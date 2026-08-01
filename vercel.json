@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/", "destination": "/web/index.html" },
+    { "source": "/index.html", "destination": "/web/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
+  "crons": [
+    { "path": "/api/cron-health", "schedule": "0 0 * * *" }
+  ]
+}

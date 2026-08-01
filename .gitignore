@@ -1,0 +1,15 @@
+node_modules/
+.npm-cache/
+.env
+.env.*
+!.env.example
+
+# Raw exchange data is reproducible from the registered manifest and is not committed.
+data/raw/
+data/cache/
+
+# Temporary and editor files.
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
