@@ -1,0 +1,295 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "generated_at_utc": "2026-08-01T05:08:55.171Z",
+  "forward_boundary_exclusive_utc": "2026-07-30T16:00:00.000Z",
+  "frozen_symbols": [
+    "BNBUSDT",
+    "BTCUSDT",
+    "DOGEUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "XRPUSDT"
+  ],
+  "status": "warmup_incomplete",
+  "usable_for_h9_pnl": false,
+  "coverage": {
+    "segmentCount": 3,
+    "start": "2026-08-01T04:02:30.162Z",
+    "end": "2026-08-01T04:54:06.266Z",
+    "wallSpanDays": 0.03583453703703704,
+    "observedSegmentDays": 0.014773888888888888,
+    "gaps": [
+      {
+        "from": "2026-08-01T04:03:16.570Z",
+        "to": "2026-08-01T04:09:53.202Z",
+        "milliseconds": 396632
+      },
+      {
+        "from": "2026-08-01T04:15:09.961Z",
+        "to": "2026-08-01T04:38:52.969Z",
+        "milliseconds": 1423008
+      }
+    ],
+    "overlaps": [],
+    "continuous": false,
+    "mismatched_symbol_segments": [
+      "HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z"
+    ],
+    "missing_continuity_prevents_pnl": true
+  },
+  "valid_segments": [
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z",
+      "runId": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z",
+      "status": "complete",
+      "qualityStatus": "valid",
+      "symbols": [
+        "BTCUSDT"
+      ],
+      "startedAt": "2026-08-01T04:02:30.162Z",
+      "finishedAt": "2026-08-01T04:03:16.570Z",
+      "durationSeconds": 30,
+      "wallDurationMs": 46408,
+      "records": 3806,
+      "rejectedRecords": 0,
+      "depthUpdates": 367,
+      "forceOrders": 0,
+      "errors": [],
+      "files": [
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z/public.ndjson",
+          "bytes": 1252145,
+          "sha256": "677065278f99cee0463600be65acdfdb30b84fbb1efb18e38b733349ea121b4f"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z/market.ndjson",
+          "bytes": 38625,
+          "sha256": "284271b2b66683840667523bcb97095ef7f205ecfd3b6278fad5f52fffa91b76"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z/funding.ndjson",
+          "bytes": 225,
+          "sha256": "4ffa6c8ff54ecaecf4bb3fc2685824aa2abd7727e1a204d9f3272e4a0b5323f6"
+        }
+      ]
+    },
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040953202Z",
+      "runId": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T040953202Z",
+      "status": "complete",
+      "qualityStatus": "valid",
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT",
+        "SOLUSDT",
+        "XRPUSDT",
+        "DOGEUSDT"
+      ],
+      "startedAt": "2026-08-01T04:09:53.202Z",
+      "finishedAt": "2026-08-01T04:15:09.961Z",
+      "durationSeconds": 300,
+      "wallDurationMs": 316759,
+      "records": 74016,
+      "rejectedRecords": 0,
+      "depthUpdates": 16520,
+      "forceOrders": 1,
+      "errors": [],
+      "files": [
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040953202Z/public.ndjson",
+          "bytes": 23291503,
+          "sha256": "672a42e2869bd61ab963646a4227838870656ea326e914818378135f4cdd4600"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040953202Z/market.ndjson",
+          "bytes": 1087528,
+          "sha256": "b218ef72c2533ea8af5d29461e44f8382523bcb17d8c832e7bb029d575aefe80"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T040953202Z/funding.ndjson",
+          "bytes": 1339,
+          "sha256": "6febcc1c07a1b4a99a50052c9be1c9f02cc51d193bafdd6f74a1d4cdf06a8051"
+        }
+      ]
+    },
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z",
+      "runId": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z",
+      "status": "complete",
+      "qualityStatus": "valid",
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT",
+        "SOLUSDT",
+        "XRPUSDT",
+        "DOGEUSDT"
+      ],
+      "startedAt": "2026-08-01T04:38:52.969Z",
+      "finishedAt": "2026-08-01T04:54:06.266Z",
+      "durationSeconds": 900,
+      "wallDurationMs": 913297,
+      "records": 291512,
+      "rejectedRecords": 0,
+      "depthUpdates": 49010,
+      "forceOrders": 4,
+      "errors": [],
+      "files": [
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z/public.ndjson",
+          "bytes": 85312765,
+          "sha256": "56159511ee2a35f41cbcb465be89e3e4bdb682116e488d2a72b07624dc011dca"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z/market.ndjson",
+          "bytes": 3811999,
+          "sha256": "8a24f4535bf96c48b2017797061a11c29eeb012b23ba61778c03732cf8bde3ea"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z/funding.ndjson",
+          "bytes": 1339,
+          "sha256": "7fa4c66c9d0323aa2877fc48748cc7c9cb655f990f6c627668792e2a717962a2"
+        }
+      ]
+    }
+  ],
+  "excluded_entries": [
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T021903681Z",
+      "status": "unmanifested",
+      "files": [
+        "market.ndjson",
+        "public.ndjson"
+      ],
+      "errors": [
+        "missing_manifest"
+      ]
+    },
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T021928988Z",
+      "status": "unmanifested",
+      "files": [
+        "market.ndjson",
+        "public.ndjson"
+      ],
+      "errors": [
+        "missing_manifest"
+      ]
+    },
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T022049204Z",
+      "runId": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T022049204Z",
+      "status": "failed",
+      "qualityStatus": "not_ready",
+      "symbols": [
+        "BTCUSDT"
+      ],
+      "startedAt": "2026-08-01T02:21:00.054Z",
+      "finishedAt": "2026-08-01T02:21:05.054Z",
+      "durationSeconds": 5,
+      "wallDurationMs": 5000,
+      "records": 0,
+      "rejectedRecords": 0,
+      "depthUpdates": 0,
+      "forceOrders": 0,
+      "errors": [
+        "snapshot: fetch failed",
+        "public: WebSocket error: wss://fstream.binance.com/public/stream?streams=btcusdt@bookTicker/btcusdt@depth@100ms",
+        "market: WebSocket error: wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade/btcusdt@forceOrder/btcusdt@markPrice@1s"
+      ],
+      "files": [
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T022049204Z/public.ndjson",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T022049204Z/market.ndjson",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T030825235Z",
+      "runId": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T030825235Z",
+      "status": "failed",
+      "qualityStatus": "not_ready",
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT",
+        "SOLUSDT",
+        "XRPUSDT",
+        "DOGEUSDT"
+      ],
+      "startedAt": "2026-08-01T03:08:25.236Z",
+      "finishedAt": "2026-08-01T03:09:05.991Z",
+      "durationSeconds": 30,
+      "wallDurationMs": 40755,
+      "records": 0,
+      "rejectedRecords": 0,
+      "depthUpdates": 0,
+      "forceOrders": 0,
+      "errors": [
+        "snapshot: fetch failed",
+        "public: WebSocket error: wss://fstream.binance.com/public/stream?streams=btcusdt@bookTicker/btcusdt@depth@100ms/ethusdt@bookTicker/ethusdt@depth@100ms/bnbusdt@bookTicker/bnbusdt@depth@100ms/solusdt@bookTicker/solusdt@depth@100ms/xrpusdt@bookTicker/xrpusdt@depth@100ms/dogeusdt@bookTicker/dogeusdt@depth@100ms",
+        "market: WebSocket error: wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade/btcusdt@forceOrder/btcusdt@markPrice@1s/ethusdt@aggTrade/ethusdt@forceOrder/ethusdt@markPrice@1s/bnbusdt@aggTrade/bnbusdt@forceOrder/bnbusdt@markPrice@1s/solusdt@aggTrade/solusdt@forceOrder/solusdt@markPrice@1s/xrpusdt@aggTrade/xrpusdt@forceOrder/xrpusdt@markPrice@1s/dogeusdt@aggTrade/dogeusdt@forceOrder/dogeusdt@markPrice@1s",
+        "funding: fetch failed"
+      ],
+      "files": [
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T030825235Z/public.ndjson",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T030825235Z/market.ndjson",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T030825235Z/funding.ndjson",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T035748117Z",
+      "runId": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T035748117Z",
+      "status": "complete",
+      "qualityStatus": "invalid",
+      "symbols": [
+        "BTCUSDT"
+      ],
+      "startedAt": "2026-08-01T03:57:48.118Z",
+      "finishedAt": "2026-08-01T03:58:29.108Z",
+      "durationSeconds": 30,
+      "wallDurationMs": 40990,
+      "records": 1052,
+      "rejectedRecords": 292,
+      "depthUpdates": 0,
+      "forceOrders": 0,
+      "errors": [],
+      "files": [
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T035748117Z/public.ndjson",
+          "bytes": 565039,
+          "sha256": "ba5a388662fb342fcfd892cb9e1efa99b396fb285e9245530fe7c2b7898bfadd"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T035748117Z/market.ndjson",
+          "bytes": 17534,
+          "sha256": "f3559124b78d785d0f41039a032c026d1bb3f49f22536f1a8c4e97e6968db64c"
+        },
+        {
+          "path": "data/raw/forward/HY-FWD-MICROSTRUCTURE-001-2026-08-01T035748117Z/funding.ndjson",
+          "bytes": 225,
+          "sha256": "aa6eb6685a1ab8b1adfbe7062b4ec87836470a2fb244f64bf8797adbcb9c6c5b"
+        }
+      ]
+    }
+  ]
+}

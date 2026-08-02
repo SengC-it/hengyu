@@ -1,0 +1,28 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "attempt_id": "HY-EXP-0013-CAP-006",
+  "attempted_at_utc": "2026-08-01T05:12:56.780Z",
+  "finished_at_utc": "2026-08-01T06:13:05.156Z",
+  "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T051256779Z",
+  "requested_duration_seconds": 3600,
+  "status": "failed",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+  "messages": 13374,
+  "depth_updates": 2939,
+  "force_orders": 0,
+  "funding_rate_rows": 6,
+  "usable_for_pnl": false,
+  "validation_status": "not_ready",
+  "errors": [
+    "public WebSocket error",
+    "market WebSocket error",
+    "funding REST returned HTTP 451 for all six symbols",
+    "funding polling then reported repeated fetch failures"
+  ],
+  "file_sha256": {
+    "public.ndjson": "e7e8de07917e38c6c29c353d6f0bda5bce74f9ccfb3e51735afc83e061839676",
+    "market.ndjson": "a3715d05b3270fe2d8979d57fd66b3c4fd1c66e01eff27a9f8b315e8c668b9ca",
+    "funding.ndjson": "2b87cf2be9e66755f1862cf4c65be67e0f12fda6e376ec59ca48243ddeb414d6"
+  },
+  "interpretation": "Proxy or proxy-exit route failure, not a strategy result. Partial records are retained for diagnostics only and excluded from H9 PnL. User assistance is needed to provide a stable Binance-public-data route; no API key or order endpoint is required."
+}

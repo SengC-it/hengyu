@@ -1,0 +1,11 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "amendment_id": "HY-EXP-0013-A3",
+  "effective_before_data_lock": true,
+  "reason": "Prevent outcome-dependent selection: the forward replay must enter every event satisfying the frozen event and execution rules.",
+  "candidate_policy": {
+    "selection": "no post-event profitability or expected-edge filter is applied; every qualifying recovery event is replayed",
+    "minimum_net_and_ratio": "promotion and reporting gates only, never a future-informed trade filter",
+    "risk_sizing": "replay uses a fixed preregistered quantity or a separately frozen sizing input; quantity is not changed after observing outcomes"
+  }
+}

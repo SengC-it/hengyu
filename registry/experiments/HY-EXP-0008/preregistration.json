@@ -1,0 +1,127 @@
+{
+  "experiment_id": "HY-EXP-0008",
+  "title": "USDT/USDC same-underlying perpetual convergence using settlement mark prices",
+  "hypothesis_id": "H4",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-30",
+  "market": "Binance USD-M perpetual",
+  "provenance": {
+    "predecessor": "HY-EXP-0007",
+    "predecessor_preregistration_sha256": "40ddc1203b6b4dd0b10d8e48957f7a4b1054b23a3f1e5b6e83abb46f435bb2f9",
+    "reason_for_new_id": "HY-EXP-0007 failed before PnL because all June 2026 mark-price archives omit one complete UTC day",
+    "economic_rule_changes": "none",
+    "data_rule_change": "replace continuous mark-price klines and monthly funding archives with the official funding history response, which supplies realized fundingRate and settlement markPrice together"
+  },
+  "base_assets": [
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "XRP",
+    "DOGE",
+    "LINK",
+    "ADA"
+  ],
+  "symbols": {
+    "BTC": ["BTCUSDT", "BTCUSDC"],
+    "ETH": ["ETHUSDT", "ETHUSDC"],
+    "BNB": ["BNBUSDT", "BNBUSDC"],
+    "SOL": ["SOLUSDT", "SOLUSDC"],
+    "XRP": ["XRPUSDT", "XRPUSDC"],
+    "DOGE": ["DOGEUSDT", "DOGEUSDC"],
+    "LINK": ["LINKUSDT", "LINKUSDC"],
+    "ADA": ["ADAUSDT", "ADAUSDC"]
+  },
+  "data": {
+    "futures_source": "https://data.binance.vision/data/futures/um",
+    "funding_source": "https://fapi.binance.com/fapi/v1/fundingRate",
+    "funding_source_type": "rest_history_with_mark_price",
+    "spot_source": "https://data.binance.vision/data/spot",
+    "interval": "5m",
+    "download_end_month": "2026-06",
+    "evaluation_start_utc": "2024-02-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+    "symbol_start_months": {
+      "BTC": "2024-01",
+      "ETH": "2024-01",
+      "BNB": "2024-01",
+      "SOL": "2024-01",
+      "XRP": "2024-01",
+      "DOGE": "2024-01",
+      "LINK": "2024-02",
+      "ADA": "2025-03"
+    },
+    "fx_symbol": "USDCUSDT",
+    "fx_start_month": "2024-01",
+    "inputs": [
+      "USDT and USDC perpetual contract klines",
+      "official funding history snapshots containing realized fundingRate and settlement markPrice for both legs",
+      "USDCUSDT spot klines"
+    ],
+    "funding_snapshot_rule": "after preregistration, paginate each symbol from its declared start through the evaluation boundary with limit 1000; save and hash the complete JSON response before PnL",
+    "quality_policy": "fail before PnL on corrupt ZIP, invalid funding JSON, missing or non-positive settlement markPrice, funding timestamp lag of at least one second, hash mismatch, duplicate normalized timestamp, non-contiguous required contract/FX 5m series, missing archive inside a declared coverage window, or missing signal/entry/exit/funding FX valuation data"
+  },
+  "signal": {
+    "spread": "log(USDT perpetual contract close / (USDC perpetual contract close * USDCUSDT spot close))",
+    "decision_time": "close of a synchronized completed 5m contract and FX bar",
+    "robust_lookback_bars": 8640,
+    "robust_statistics_update": "at 00:00 UTC only, using exactly the prior 8640 synchronized spreads and excluding every bar from the current UTC day",
+    "center": "median of the frozen prior window",
+    "scale": "1.4826 times median absolute deviation from the frozen center",
+    "minimum_absolute_deviation": 0.006,
+    "minimum_absolute_robust_z": 4,
+    "direction": "positive deviation: short USDT and long USDC; negative deviation: long USDT and short USDC",
+    "entry_time": "both legs at the next synchronized 5m contract open",
+    "base_quantity": "equal base-asset quantity on both legs; quantity makes converted entry notionals sum to the reference gross notional",
+    "rearm": "after an event, require absolute deviation below 0.003 and absolute robust z below 2 before another event in that base asset",
+    "exit": "after entry, use the entry event's frozen center; when signed spread deviation is non-positive on a completed 5m bar, exit both legs at the next synchronized open",
+    "maximum_hold_bars": 288,
+    "maximum_hold": "24 hours from the nominal simultaneous entry",
+    "overlap": "at most one open event per base asset; different base assets may overlap"
+  },
+  "liquidity": {
+    "lookback_bars": 288,
+    "minimum_quote_volume_per_leg": 25000000,
+    "reference_gross_notional_usdt": 10000,
+    "reference_leg_notional_usdt": 5000,
+    "maximum_reference_participation_of_prior_5m_quote_volume": 0.02,
+    "eligibility_time": "all volume and participation checks use bars strictly before the signal bar",
+    "rejection": "if either leg fails either liquidity check, no event is created"
+  },
+  "execution": {
+    "order_type": "taker",
+    "fee_per_fill": 0.0005,
+    "slippage_per_fill": {
+      "base": 0.0001,
+      "stress": 0.0007,
+      "extreme": 0.0015
+    },
+    "fees": "charge both legs on entry and exit simulated fill notionals in their settlement asset",
+    "funding": "charge every official realized event with entry_time_for_leg <= fundingTime < exit_time using the markPrice returned in that same funding history row; convert USDC cash flows at USDCUSDT spot open at the normalized funding timestamp",
+    "fx_conversion": "convert USDC entry notional, exit PnL, fees and funding to USDT with synchronized USDCUSDT spot prices at their event times",
+    "base_and_stress_fill": "both legs fill at the same next 5m open",
+    "extreme_leg_risk": "evaluate USDT-first and USDC-first; the delayed leg fills one full 5m bar later, and retain the worse net result for that event",
+    "rejected_or_partial_live_order": "not modeled as a successful pair; PAPER_ONLY remains mandatory and no live order is authorized"
+  },
+  "development_screen": {
+    "minimum_event_pairs": 30,
+    "minimum_stress_profit_factor": 1.3,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_events_positive": true,
+    "maximum_stress_drawdown_return_units": -0.2,
+    "minimum_profitable_base_assets": 4,
+    "both_spread_directions_profitable": true,
+    "minimum_profitable_half_years": 3,
+    "maximum_positive_month_contribution_share": 0.4,
+    "extreme_single_leg_delay_net_return_positive": true,
+    "minimum_median_entry_dislocation": 0.006
+  },
+  "interpretation": {
+    "pass": "eligible only for a new point-in-time universe replication with order-book and simultaneous-fill shadow evidence",
+    "fail": "eliminate this exact specification; any spread threshold, robust z, liquidity gate, rearm rule or exit change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability or live-trading value",
+    "known_bias": "the eight-base diagnostic panel is fixed after archive coverage inspection and is not a historical full-market universe",
+    "structural_caveat": "5m contract opens plus slippage cannot prove two-leg simultaneity; the extreme scenario is a deterministic latency stress, not an order-book replay",
+    "special_caveat": "the replacement funding source was selected after observing archive structure but before any H4 spread or PnL"
+  }
+}

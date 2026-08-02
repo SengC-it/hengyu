@@ -1,0 +1,11 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "amendment_id": "HY-EXP-0013-A6",
+  "effective_before_data_lock": true,
+  "reason": "Resolve the word trailing without changing the registered percentile or event direction.",
+  "threshold_policy": {
+    "lookback": "the immediately preceding 30 calendar days of completed 60-second windows, excluding the current window",
+    "quantile": "nearest-rank 99.5th percentile of absolute pressure values with positive traded notional",
+    "warmup": "the first 30 calendar days build this history and cannot generate events"
+  }
+}

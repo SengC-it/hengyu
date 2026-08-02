@@ -1,0 +1,96 @@
+{
+  "experiment_id": "HY-EXP-0011",
+  "title": "Rolling cross-asset relative-value convergence in fixed economic pairs",
+  "hypothesis_id": "H7",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-08-01",
+  "market": "Binance USD-M perpetual",
+  "pairs": [
+    { "pair_id": "BTC_LTC", "x_symbol": "BTCUSDT", "y_symbol": "LTCUSDT", "economic_relation": "proof-of-work monetary assets" },
+    { "pair_id": "ETH_ETC", "x_symbol": "ETHUSDT", "y_symbol": "ETCUSDT", "economic_relation": "Ethereum-family execution networks" },
+    { "pair_id": "SOL_AVAX", "x_symbol": "SOLUSDT", "y_symbol": "AVAXUSDT", "economic_relation": "high-throughput smart-contract layer ones" },
+    { "pair_id": "ADA_DOT", "x_symbol": "ADAUSDT", "y_symbol": "DOTUSDT", "economic_relation": "research-led proof-of-stake layer ones" }
+  ],
+  "data": {
+    "source": "https://data.binance.vision/data/futures/um",
+    "source_interval": "5m",
+    "signal_interval": "4h aggregated from 48 complete 5m bars aligned to UTC",
+    "download_start_month": "2023-12",
+    "download_end_month": "2026-05",
+    "evaluation_start_utc": "2024-03-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-06-01T00:00:00.000Z",
+    "inputs": [
+      "contract klines",
+      "mark price klines for funding valuation",
+      "realized funding events"
+    ],
+    "quality_policy": "fail before PnL on corrupt ZIP, hash mismatch, invalid or duplicate row, non-contiguous 5m series, incomplete 4h aggregation, missing archive, or missing signal, execution, or funding valuation data",
+    "boundary_note": "all observations end before the 2026-07-30 forward boundary and remain D0 development evidence"
+  },
+  "signal": {
+    "lookback_4h_bars": 540,
+    "lookback": "90 calendar days",
+    "beta_model": "OLS with intercept of y 4h close-to-close log returns on x returns using only the prior 540 complete 4h bars",
+    "minimum_beta": 0.25,
+    "maximum_beta": 2.5,
+    "spread": "log(y close) minus frozen beta times log(x close)",
+    "center_and_scale": "mean and sample standard deviation of spread levels over the same prior 540 bars, excluding the current signal bar",
+    "entry_zscore": 3,
+    "rearm_absolute_zscore": 1,
+    "direction": "when y residual is rich, short y and long beta-weighted x; when y residual is cheap, long y and short beta-weighted x",
+    "decision_time": "close of the complete 4h signal bar",
+    "base_entry_time": "5m open after one full post-signal 5m processing bar, exactly 5 minutes after the next 4h boundary",
+    "exit": "first later complete 4h close whose frozen-beta spread crosses the frozen entry center, otherwise seven calendar days after entry",
+    "base_exit_time": "5m open after one full post-exit-signal 5m processing bar; maximum-hold exit is exactly seven days after entry",
+    "maximum_hold_4h_bars": 42,
+    "overlap": "at most one open trade per fixed pair; a pair must re-enter absolute rolling zscore at or below 1 before another entry"
+  },
+  "risk_and_capacity": {
+    "pair_gross_account_weight": 0.25,
+    "allocation_reason": "four fixed pairs each receive at most one quarter of account gross, so simultaneous signals cannot exceed one unit of gross exposure",
+    "leg_weights": "within each pair, absolute y weight to absolute x weight is 1 to beta and the two absolute weights sum to 0.25",
+    "reference_account_gross_notional_usdt": 10000,
+    "capacity_lookback_bars": 12,
+    "capacity_measure": "minimum quote volume of the 12 completed 5m bars ending at the signal close",
+    "maximum_reference_participation": 0.02,
+    "capacity_rule": "reference account notional times absolute leg weight must not exceed 2% of that leg's capacity measure; otherwise skip the signal"
+  },
+  "execution": {
+    "order_type": "taker",
+    "fee_per_fill": 0.0005,
+    "scenarios": {
+      "base": { "fill_delay_bars": 0, "slippage_per_fill": 0.0001 },
+      "stress": { "fill_delay_bars": 0, "slippage_per_fill": 0.0007 },
+      "extreme": { "fill_delay_bars": 0, "slippage_per_fill": 0.0015 },
+      "delay5m": { "fill_delay_bars": 1, "slippage_per_fill": 0.0007 }
+    },
+    "delay_rule": "delay5m moves both pair legs at entry and exit by one additional complete 5m bar",
+    "fees": "charge each x and y entry and exit fill notional",
+    "funding": "include every actual funding transfer with leg_entry_time <= funding_time < leg_exit_time, valued at the mark-price 5m open at funding_time",
+    "live_authorization": "PAPER_ONLY; no live orders are authorized"
+  },
+  "development_screen": {
+    "minimum_pair_trades": 40,
+    "minimum_stress_profit_factor": 1.3,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_trades_positive": true,
+    "stress_profit_without_best_5_entry_days_positive": true,
+    "maximum_stress_drawdown_return_units": -0.2,
+    "minimum_profitable_pairs": 3,
+    "both_residual_directions_profitable": true,
+    "minimum_profitable_half_years": 3,
+    "maximum_positive_month_contribution_share": 0.4,
+    "maximum_positive_pair_contribution_share": 0.4,
+    "extreme_net_return_positive": true,
+    "delay5m_net_return_positive": true,
+    "minimum_delay5m_profit_factor": 1
+  },
+  "interpretation": {
+    "pass": "eligible only for point-in-time pair-universe replication, cointegration diagnostics and sub-minute execution replay; not eligible for live trading",
+    "fail": "eliminate this exact specification; any pair list, lookback, zscore, rearm level, beta range, allocation, or holding-period change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability or live-trading value",
+    "known_bias": "the four economic pairs and their surviving contracts are fixed with hindsight and cannot support a deployable universe claim",
+    "independence_rule": "each pair trade is one observation; trades sharing an entry UTC day are additionally treated as one dependent event cluster",
+    "anti_concentration_rule": "a passing result cannot derive more than 40% of all positive pair contribution from one pair"
+  }
+}

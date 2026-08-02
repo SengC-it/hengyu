@@ -1,0 +1,112 @@
+{
+  "experiment_id": "HY-EXP-0014",
+  "version": 1,
+  "title": "Point-in-time full USD-M net-edge advisory model",
+  "status": "PREREGISTERED",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "authorization": "PAPER_ONLY",
+  "live_orders_enabled": false,
+  "signal_mode": "SIGNAL_ONLY",
+  "human_confirmation_required": true,
+  "account_access": false,
+  "hypotheses": [
+    {
+      "id": "H1",
+      "name": "liquidation_pressure_depth_recovery",
+      "mechanism": "A forced-flow shock followed by causal depth recovery may produce a short-horizon reversal after costs.",
+      "required_data": ["forceOrder", "aggTrade", "bookTicker", "depth@100ms", "markPrice@1s", "fundingRate"]
+    },
+    {
+      "id": "H2",
+      "name": "funding_open_interest_settlement_unwind",
+      "mechanism": "Crowded funding and open-interest changes around settlement may predict a post-settlement unwind.",
+      "required_data": ["fundingRate", "openInterest", "aggTrade", "bookTicker", "depth@100ms", "markPrice@1s"]
+    },
+    {
+      "id": "H3",
+      "name": "beta_neutral_cross_sectional_residual",
+      "mechanism": "Cross-sectional residual strength after removing BTC beta may have a short holding-period edge.",
+      "required_data": ["aggTrade", "bookTicker", "depth@100ms", "markPrice@1s", "openInterest"]
+    },
+    {
+      "id": "H5",
+      "name": "btc_shock_cross_symbol_response_delay",
+      "mechanism": "Different liquid contracts may respond to a causal BTC shock with measurable, executable delay.",
+      "required_data": ["aggTrade", "bookTicker", "depth@100ms", "markPrice@1s"]
+    }
+  ],
+  "universe": {
+    "policy_file": "config/universe-policy.json",
+    "mode": "POINT_IN_TIME_DYNAMIC",
+    "listing_age_days_minimum": 30,
+    "allowed_quote_assets": ["USDT", "USDC"],
+    "tiers": {
+      "A": {"quote_volume_usdt_min": 10000000, "two_sided_depth_usdt_min": 500000},
+      "B": {"quote_volume_usdt_min": 1000000, "two_sided_depth_usdt_min": 100000}
+    },
+    "excluded": ["stablecoin_base_assets", "leveraged_tokens", "non_trading_contracts"],
+    "missing_data_rule": "Exclude and record NO_TRADE; never substitute a future or current value."
+  },
+  "data_boundary": {
+    "development_cutoff_exclusive_utc": "2026-07-30T16:00:00.000Z",
+    "forward_start_rule": "The first complete hosted segment after this preregistration and schema freeze; no HY-EXP-0013 segment is reused for HY-EXP-0014 PnL.",
+    "warmup_days": 30,
+    "historical_data_use": "D0 hypothesis and mechanical checks only",
+    "required_public_data": ["exchangeInfo", "bookTicker", "depth@100ms", "aggTrade", "forceOrder", "markPrice@1s", "fundingRate", "openInterest"],
+    "failed_or_gapped_segment_rule": "A failed manifest, sequence gap, stale book, missing funding or missing open-interest observation is not PnL eligible."
+  },
+  "evaluation": {
+    "interval_seconds": 60,
+    "signal_validity_ms": 2000,
+    "research_expiry_ms": 900000,
+    "fixed_internal_research_notional_usdt": 1000,
+    "no_compounding": true,
+    "no_account_sizing": true,
+    "no_human_feedback_record": true
+  },
+  "net_edge_gate": {
+    "formula": "expectedPriceEdgeBps + expectedFundingBps - executionCostBps - confidenceZ*forecastStandardErrorBps - fundingStressBps",
+    "fee_rate_per_fill": 0.0005,
+    "book_stress_multiplier": 2,
+    "impact_buffer_bps_per_fill": 1,
+    "latency_buffer_bps_per_fill": 1,
+    "confidence_z": 1.645,
+    "minimum_conservative_net_bps": 3,
+    "minimum_gross_to_cost_ratio": 1.5,
+    "maximum_forecast_age_ms": 5000,
+    "maximum_book_age_ms": 1000,
+    "maximum_visible_book_fraction": 0.25
+  },
+  "alert_levels": {
+    "strong": {"minimum_conservative_net_bps": 6, "minimum_gross_to_cost_ratio": 2, "email": "IMMEDIATE"},
+    "medium": {"minimum_conservative_net_bps": 3, "minimum_gross_to_cost_ratio": 1.5, "email": "DIGEST_15M"},
+    "observe": {"positive_conservative_net_bps_required": true, "email": false},
+    "all_levels": "Web record; no order instruction, quantity, leverage or account risk."
+  },
+  "promotion_gates": {
+    "minimum_forward_days": 180,
+    "minimum_closed_trades": 100,
+    "require_both_minimums": true,
+    "positive_stressed_net_pnl": true,
+    "minimum_stressed_profit_factor": 1.3,
+    "maximum_stressed_drawdown_fraction": 0.2,
+    "positive_after_best_5_trades": true,
+    "positive_after_best_5_entry_days": true,
+    "positive_after_cost_and_latency_stress": true,
+    "both_directions_profitable": true,
+    "multi_symbol_and_multi_period": true,
+    "minimum_distinct_profitable_symbols": 8,
+    "minimum_profitable_half_years": 3,
+    "maximum_single_symbol_or_month_positive_contribution": 0.4,
+    "execution_deviation_within_preregistered_tolerance": true,
+    "continuous_profitability_definition": "After F1, two consecutive 30-day rolling windows must also remain positive under stress without changing the frozen specification."
+  },
+  "failure_policy": "Any failed gate eliminates this exact specification. A changed threshold, feature, cost, timing, universe rule or delivery rule creates a new experiment and new forward start.",
+  "security": {
+    "private_binance_endpoints": false,
+    "api_keys": false,
+    "order_placement": false,
+    "paper_only": true,
+    "database_prefix": "hengyu_"
+  }
+}

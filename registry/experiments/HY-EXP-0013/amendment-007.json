@@ -1,0 +1,11 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "amendment_id": "HY-EXP-0013-A7",
+  "effective_before_data_lock": true,
+  "reason": "Close a delayed-message lookahead path in pressure aggregation and recovery observation.",
+  "causality": {
+    "pressure_inputs": "a force-order or aggregate-trade row enters a window only when its receivedAt is no later than that window end; otherwise it is excluded from that window",
+    "recovery_observation": "the recovery book must be received no earlier than the five-second target and no later than two seconds after the target",
+    "recording": "late rows remain in the raw capture and are reported as data-quality exclusions; they are not silently shifted into another window"
+  }
+}

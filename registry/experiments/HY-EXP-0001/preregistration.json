@@ -1,0 +1,69 @@
+{
+  "experiment_id": "HY-EXP-0001",
+  "title": "5-minute transaction-pressure overshoot fade",
+  "hypothesis_id": "H1",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-30",
+  "market": "Binance USD-M perpetual",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT"
+  ],
+  "data": {
+    "source": "https://data.binance.vision/data/futures/um",
+    "interval": "5m",
+    "download_start_month": "2023-12",
+    "download_end_month": "2026-06",
+    "evaluation_start_utc": "2024-01-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+    "inputs": [
+      "contract klines",
+      "realized funding rates for PnL accounting only"
+    ]
+  },
+  "signal": {
+    "return_window_bars": 3,
+    "volatility_lookback_bars": 4032,
+    "minimum_absolute_log_return": 0.006,
+    "volatility_multiple": 4,
+    "quote_volume_lookback_bars": 288,
+    "minimum_quote_volume_multiple": 3,
+    "minimum_absolute_taker_imbalance": 0.25,
+    "minimum_directional_wick_fraction": 0.25,
+    "direction": "fade the shock",
+    "decision_time": "signal 5m bar close",
+    "entry_time": "next 5m bar open",
+    "hold_bars": 12,
+    "overlap": "at most one open trade per symbol"
+  },
+  "execution": {
+    "order_type": "taker",
+    "fee_per_side": 0.0005,
+    "slippage_per_side": {
+      "base": 0.0001,
+      "stress": 0.0007,
+      "extreme": 0.0015
+    },
+    "funding": "charge every realized funding event strictly after entry and before exit"
+  },
+  "development_screen": {
+    "minimum_trades": 200,
+    "minimum_stress_profit_factor": 1.1,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_positive": true,
+    "minimum_profitable_symbols": 5,
+    "both_directions_profitable": true,
+    "minimum_profitable_half_years": 3
+  },
+  "interpretation": {
+    "pass": "eligible only for a broader point-in-time-universe development test",
+    "fail": "eliminate this exact specification; any parameter change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability"
+  }
+}

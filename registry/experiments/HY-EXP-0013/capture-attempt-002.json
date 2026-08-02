@@ -1,0 +1,21 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "attempt_id": "HY-EXP-0013-CAP-002",
+  "attempted_at_utc": "2026-08-01T03:08:25.236Z",
+  "finished_at_utc": "2026-08-01T03:09:05.991Z",
+  "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T030825235Z",
+  "duration_seconds": 30,
+  "status": "failed",
+  "records": 0,
+  "usable_for_pnl": false,
+  "snapshot_count": 0,
+  "websocket_messages": 0,
+  "funding_rate_rows": 0,
+  "errors": {
+    "snapshot_fetch_failures": 6,
+    "public_websocket": "WebSocket error: wss://fstream.binance.com/public/stream",
+    "market_websocket": "WebSocket error: wss://fstream.binance.com/market/stream",
+    "funding_fetch_failures": 6
+  },
+  "interpretation": "Connectivity/data-availability failure only; HY-EXP-0013 remains preregistered, not data-locked, and has no PnL conclusion."
+}

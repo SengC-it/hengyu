@@ -1,0 +1,135 @@
+{
+  "experiment_id": "HY-EXP-0010",
+  "title": "Biweekly beta-neutral cross-sectional funding carry",
+  "hypothesis_id": "H6",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-31",
+  "market": "Binance USD-M perpetual",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "ADAUSDT",
+    "BCHUSDT",
+    "DOTUSDT",
+    "AVAXUSDT",
+    "TRXUSDT",
+    "ETCUSDT",
+    "FILUSDT",
+    "APTUSDT"
+  ],
+  "data": {
+    "source": "https://data.binance.vision/data/futures/um",
+    "interval": "5m",
+    "download_start_month": "2023-12",
+    "download_end_month": "2026-05",
+    "evaluation_start_utc": "2024-01-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-06-01T00:00:00.000Z",
+    "inputs": [
+      "contract klines",
+      "premium index klines for data completeness diagnostics only",
+      "mark price klines for funding valuation",
+      "realized funding events"
+    ],
+    "quality_policy": "fail before PnL on corrupt ZIP, hash mismatch, invalid or duplicate row, non-contiguous required 5m series, missing archive, or missing feature, execution, or funding valuation data",
+    "boundary_note": "all observations end before the 2026-07-30 forward boundary and remain D0 development evidence"
+  },
+  "schedule": {
+    "anchor_utc": "2024-01-01T00:00:00.000Z",
+    "rebalance_days": 14,
+    "event_time": "every 14 days from the frozen anchor",
+    "funding_information_cutoff": "include realized funding events in (event_time - 14 days, event_time], because the portfolio waits for publication after event_time",
+    "decision_time": "close of the complete 5m contract bar beginning at event_time",
+    "base_entry_time": "5m open exactly 10 minutes after event_time",
+    "hold_bars": 4032,
+    "hold": "14 calendar days from each scenario's actual entry",
+    "overlap": "successive portfolios are contiguous and non-overlapping within each execution scenario"
+  },
+  "features": {
+    "funding_score_lookback_days": 14,
+    "minimum_funding_events": 42,
+    "funding_score": "sum of realized funding rates strictly after event_time minus 14 days and through event_time",
+    "beta_lookback_bars": 8640,
+    "liquidity_lookback_bars": 8640,
+    "capacity_lookback_bars": 12,
+    "beta_model": "OLS beta and residual volatility for each alt versus BTC using synchronized close-to-close returns from 8640 bars ending before event_time",
+    "liquidity_measure": "sum quote volume over 8640 completed bars ending before event_time",
+    "capacity_measure": "minimum quote volume over 12 completed bars ending before event_time",
+    "btc_trend_regime": "sign of BTC log return over the prior 14 calendar days ending before event_time"
+  },
+  "portfolio": {
+    "benchmark": "BTCUSDT",
+    "benchmark_excluded_from_cross_section": true,
+    "eligible_symbols": 12,
+    "minimum_valid_symbols": 12,
+    "long_count": 3,
+    "short_count": 3,
+    "long_selection": "three lowest trailing funding scores among the 12 most liquid alts",
+    "short_selection": "three highest trailing funding scores among the 12 most liquid alts",
+    "sleeve_weights": "inverse prior residual volatility, normalized to alt longs +0.5 and alt shorts -0.5",
+    "btc_hedge": "negative of selected alt prior beta exposure",
+    "normalization": "divide all signed alt and BTC hedge weights by total absolute weight",
+    "projected_funding_return": "sum of negative signed normalized leg weight times its trailing funding score",
+    "minimum_projected_funding_return": 0.0024,
+    "threshold_reason": "24 bps equals the frozen stress round-trip fee plus slippage cost; no portfolio is opened when trailing carry does not cover that hurdle",
+    "maximum_absolute_pretrade_beta_exposure": 1e-10,
+    "reference_gross_notional_usdt": 10000,
+    "maximum_reference_participation": 0.02,
+    "capacity_rule": "reference notional times absolute normalized leg weight must not exceed 2% of the leg's frozen capacity measure; otherwise skip the whole event"
+  },
+  "execution": {
+    "order_type": "taker",
+    "fee_per_fill": 0.0005,
+    "scenarios": {
+      "base": {
+        "entry_delay_bars": 0,
+        "slippage_per_fill": 0.0001
+      },
+      "stress": {
+        "entry_delay_bars": 0,
+        "slippage_per_fill": 0.0007
+      },
+      "extreme": {
+        "entry_delay_bars": 0,
+        "slippage_per_fill": 0.0015
+      },
+      "delay5m": {
+        "entry_delay_bars": 1,
+        "slippage_per_fill": 0.0007
+      }
+    },
+    "fees": "charge every alt and BTC hedge entry and exit fill notional",
+    "funding": "include each actual funding transfer with leg_entry_time <= funding_time < leg_exit_time, valued at the mark-price 5m open at funding_time",
+    "live_authorization": "PAPER_ONLY; no live orders are authorized"
+  },
+  "development_screen": {
+    "minimum_event_portfolios": 40,
+    "minimum_stress_profit_factor": 1.3,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_events_positive": true,
+    "maximum_stress_drawdown_return_units": -0.2,
+    "minimum_profitable_alt_symbols": 8,
+    "both_alt_sleeves_profitable": true,
+    "both_prior_btc_trend_regimes_profitable": true,
+    "actual_funding_return_positive": true,
+    "funding_after_fees_and_slippage_positive": true,
+    "minimum_profitable_half_years": 3,
+    "maximum_positive_month_contribution_share": 0.4,
+    "extreme_net_return_positive": true,
+    "delay5m_net_return_positive": true,
+    "minimum_delay5m_profit_factor": 1
+  },
+  "interpretation": {
+    "pass": "eligible only for a new point-in-time full-universe replication and sub-minute execution replay; not eligible for live trading",
+    "fail": "eliminate this exact specification; any lookback, rebalance interval, hurdle, selection count, weighting, or holding-period change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability or live-trading value",
+    "known_bias": "the fixed 16-symbol panel is survivor-selected and cannot support a deployable universe claim",
+    "independence_rule": "the biweekly portfolio is the observation unit; legs and funding settlements must not be counted as independent trades",
+    "mechanism_rule": "a pass requires actual funding transfers, after frozen fees and slippage, to be positive; price PnL alone cannot validate H6"
+  }
+}

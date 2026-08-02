@@ -1,0 +1,15 @@
+{
+  "experiment_id": "HY-EXP-0014",
+  "amendment": 1,
+  "reason": "Freeze the first causal feature-to-forecast adapters before any new F0 segment.",
+  "config_file": "config/hypothesis-models.json",
+  "hypothesis_adapters": {
+    "H1": "reversal side follows signed liquidation pressure; expected edge is event impulse bps * 0.25 * min(recovery ratio, 1); minimum absolute pressure 5 bps; minimum recovery ratio 0.8; forecast standard error 20 bps.",
+    "H2": "reversal side is opposite same-direction funding and open-interest crowding; expected edge is abs(funding bps) * 0.35 + abs(OI change bps) * 0.10; minimum funding 5 bps; minimum OI change 2 bps; forecast standard error 15 bps.",
+    "H3": "residual is asset return minus beta * market return; mean-reversion side is opposite residual; expected edge is abs(residual bps) * 0.25; minimum residual 8 bps; forecast standard error 18 bps.",
+    "H5": "response gap is beta * BTC shock minus symbol return; trade the gap direction; expected edge is abs(response gap bps) * 0.25; minimum BTC shock 30 bps; minimum gap 8 bps; forecast standard error 20 bps."
+  },
+  "no_future_data": true,
+  "no_account_sizing": true,
+  "change_policy": "Any adapter coefficient, feature, threshold, direction, cost or holding-period change creates a new experiment and forward start."
+}

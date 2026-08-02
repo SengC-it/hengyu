@@ -1,0 +1,12 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "amendment_id": "HY-EXP-0013-A5",
+  "effective_before_data_lock": true,
+  "reason": "Freeze a symbol-comparable research size before any forward outcomes are observed.",
+  "position_sizing": {
+    "method": "fixed gross notional per event",
+    "notional_usdt": 1000,
+    "quantity": "1000 divided by the decision mid price; no compounding and no outcome-dependent resizing",
+    "interpretation": "research normalization only, not account leverage or trading advice"
+  }
+}

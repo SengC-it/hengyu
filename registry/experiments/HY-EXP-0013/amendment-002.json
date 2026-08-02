@@ -1,0 +1,13 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "amendment_id": "HY-EXP-0013-A2",
+  "effective_before_data_lock": true,
+  "reason": "Make the already registered execution-cost wording numerical and reproducible while no account fee tier has been supplied.",
+  "execution_assumptions": {
+    "fee_rate_per_fill": 0.0005,
+    "book_stress_multiplier": 2,
+    "impact_buffer_bps_per_fill": 1,
+    "latency_buffer_bps_per_fill": 1
+  },
+  "policy": "These are research stress assumptions, not an account-specific fee quote; any change creates a new experiment. PAPER_ONLY remains in force."
+}

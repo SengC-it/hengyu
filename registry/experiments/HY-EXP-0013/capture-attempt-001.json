@@ -1,0 +1,15 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "attempt_id": "HY-EXP-0013-CAP-001",
+  "attempted_at_utc": "2026-08-01T02:20:49.204Z",
+  "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T022049204Z",
+  "status": "failed",
+  "records": 0,
+  "usable_for_pnl": false,
+  "errors": [
+    "snapshot: fetch failed",
+    "public: WebSocket error: wss://fstream.binance.com/public/stream?streams=btcusdt@bookTicker/btcusdt@depth@100ms",
+    "market: WebSocket error: wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade/btcusdt@forceOrder/btcusdt@markPrice@1s"
+  ],
+  "interpretation": "Connectivity/data-availability failure only; HY-EXP-0013 remains preregistered and not data-locked."
+}

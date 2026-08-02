@@ -1,0 +1,135 @@
+{
+  "experiment_id": "HY-EXP-0009",
+  "title": "Cross-sectional convergence after the first completed reaction bar to a BTC shock",
+  "hypothesis_id": "H5",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-31",
+  "market": "Binance USD-M perpetual",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "ADAUSDT",
+    "BCHUSDT",
+    "DOTUSDT",
+    "AVAXUSDT",
+    "TRXUSDT",
+    "ETCUSDT",
+    "FILUSDT",
+    "APTUSDT"
+  ],
+  "data": {
+    "source": "https://data.binance.vision/data/futures/um",
+    "interval": "5m",
+    "download_start_month": "2023-12",
+    "download_end_month": "2026-05",
+    "evaluation_start_utc": "2024-01-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-06-01T00:00:00.000Z",
+    "inputs": [
+      "contract klines",
+      "mark price klines for funding valuation",
+      "realized funding events"
+    ],
+    "quality_policy": "fail before PnL on corrupt ZIP, hash mismatch, invalid or duplicate row, non-contiguous required 5m contract or mark series, missing archive, or missing feature/entry/exit/funding valuation data",
+    "boundary_note": "all observations end before the 2026-07-30 forward boundary and remain D0 development evidence"
+  },
+  "event": {
+    "benchmark": "BTCUSDT",
+    "shock_window_bars": 3,
+    "shock_return": "log return from the first bar open through the third bar close",
+    "volatility_lookback_bars": 8640,
+    "zscore_method": "current overlapping 15m return minus the mean of the prior 8640 overlapping 15m returns, divided by their sample standard deviation",
+    "minimum_absolute_log_return": 0.015,
+    "minimum_absolute_zscore": 4,
+    "cooldown_bars": 288,
+    "cooldown": "24 hours from a detected BTC shock; only one market event is counted regardless of how many alt legs trade",
+    "reaction_bar": "the first complete 5m bar after the three-bar BTC shock",
+    "decision_time": "close of the completed reaction bar",
+    "base_entry_time": "next 5m open after the reaction bar closes"
+  },
+  "features": {
+    "beta_lookback_bars": 8640,
+    "liquidity_lookback_bars": 8640,
+    "capacity_lookback_bars": 12,
+    "return": "close-to-close 5m log return for beta history; open-to-close log return for the completed reaction bar",
+    "beta_model": "OLS alpha and beta for each alt versus BTC using only returns ending before the BTC shock starts",
+    "residual_scale": "sample standard deviation of prior OLS residuals",
+    "reaction_score": "(alt reaction return - alpha - beta * BTC reaction return) / prior residual scale",
+    "liquidity_measure": "sum quote volume strictly before the BTC shock window",
+    "capacity_measure": "minimum 5m quote volume over the 12 completed bars ending with the reaction bar"
+  },
+  "portfolio": {
+    "benchmark_excluded_from_cross_section": true,
+    "eligible_symbols": 12,
+    "minimum_valid_symbols": 12,
+    "long_count": 3,
+    "short_count": 3,
+    "long_selection": "three lowest reaction scores",
+    "short_selection": "three highest reaction scores",
+    "minimum_mean_long_score": -0.75,
+    "minimum_mean_short_score": 0.75,
+    "minimum_mean_score_spread": 2,
+    "sleeve_weights": "inverse prior residual volatility, normalized to alt longs +0.5 and alt shorts -0.5",
+    "btc_hedge": "negative of selected alt prior beta exposure",
+    "normalization": "divide all signed alt and BTC hedge weights by total absolute weight",
+    "maximum_absolute_pretrade_beta_exposure": 1e-10,
+    "reference_gross_notional_usdt": 10000,
+    "maximum_reference_participation": 0.02,
+    "capacity_rule": "reference notional times absolute normalized leg weight must not exceed 2% of that leg's frozen capacity measure; otherwise skip the whole event",
+    "hold_bars": 12,
+    "hold": "60 minutes from each scenario's actual entry",
+    "overlap": "BTC shock cooldown prevents overlapping market events"
+  },
+  "execution": {
+    "order_type": "taker",
+    "fee_per_fill": 0.0005,
+    "scenarios": {
+      "base": {
+        "entry_delay_bars": 0,
+        "slippage_per_fill": 0.0001
+      },
+      "stress": {
+        "entry_delay_bars": 0,
+        "slippage_per_fill": 0.0007
+      },
+      "extreme": {
+        "entry_delay_bars": 0,
+        "slippage_per_fill": 0.0015
+      },
+      "delay5m": {
+        "entry_delay_bars": 1,
+        "slippage_per_fill": 0.0007
+      }
+    },
+    "fees": "charge each alt and BTC hedge leg on its simulated entry and exit fill notional",
+    "funding": "charge every realized funding event with leg_entry_time <= funding_time < leg_exit_time using the mark-price 5m open at the funding timestamp",
+    "live_authorization": "PAPER_ONLY; no live orders are authorized"
+  },
+  "development_screen": {
+    "minimum_event_portfolios": 40,
+    "minimum_stress_profit_factor": 1.3,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_events_positive": true,
+    "maximum_stress_drawdown_return_units": -0.2,
+    "minimum_profitable_alt_symbols": 8,
+    "both_alt_sleeves_profitable": true,
+    "both_btc_shock_directions_profitable": true,
+    "minimum_profitable_half_years": 3,
+    "maximum_positive_month_contribution_share": 0.4,
+    "extreme_net_return_positive": true,
+    "delay5m_net_return_positive": true,
+    "minimum_delay5m_profit_factor": 1
+  },
+  "interpretation": {
+    "pass": "eligible only for a new point-in-time universe and sub-minute trade/quote replay; not eligible for live trading",
+    "fail": "eliminate this exact specification; any shock threshold, score threshold, selection count, weighting or holding-period change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability or live-trading value",
+    "known_bias": "the fixed 16-symbol panel is survivor-selected and cannot support a deployable universe claim",
+    "independence_rule": "portfolio event is the unit of analysis; constituent legs must never be counted as independent trades"
+  }
+}

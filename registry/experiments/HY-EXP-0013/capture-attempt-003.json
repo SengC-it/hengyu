@@ -1,0 +1,32 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "attempt_id": "HY-EXP-0013-CAP-003",
+  "attempted_at_utc": "2026-08-01T04:02:30.162Z",
+  "finished_at_utc": "2026-08-01T04:03:16.570Z",
+  "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z",
+  "duration_seconds": 30,
+  "symbols": ["BTCUSDT"],
+  "status": "complete",
+  "records": 3806,
+  "accepted_records": 3806,
+  "rejected_records": 0,
+  "usable_for_pnl": false,
+  "validation_status": "valid",
+  "depth_updates": 367,
+  "pre_snapshot_depth_records": 72,
+  "aggregate_trades": 126,
+  "book_ticker_updates": 3275,
+  "mark_price_updates": 37,
+  "funding_rate_rows": 1,
+  "force_orders": 0,
+  "replay_status": "insufficient_warmup",
+  "detected_events": 0,
+  "closed_trades": 0,
+  "file_sha256": {
+    "public.ndjson": "677065278f99cee0463600be65acdfdb30b84fbb1efb18e38b733349ea121b4f",
+    "market.ndjson": "284271b2b66683840667523bcb97095ef7f205ecfd3b6278fad5f52fffa91b76",
+    "funding.ndjson": "4ffa6c8ff54ecaecf4bb3fc2685824aa2abd7727e1a204d9f3272e4a0b5323f6"
+  },
+  "collector_path": "Node --use-env-proxy through the configured HTTP(S) proxy; aligned REST depth snapshot with buffered WebSocket updates",
+  "interpretation": "Connectivity and local-book reconstruction smoke test only. This attempt does not provide a signal, PnL, or profitability conclusion; the 30-day warmup and forward promotion gates remain incomplete."
+}

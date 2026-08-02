@@ -1,0 +1,75 @@
+{
+  "experiment_id": "HY-EXP-0002",
+  "title": "Post-funding-settlement premium unwind",
+  "hypothesis_id": "H2A",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-30",
+  "market": "Binance USD-M perpetual",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT"
+  ],
+  "data": {
+    "source": "https://data.binance.vision/data/futures/um",
+    "interval": "5m",
+    "download_start_month": "2023-12",
+    "download_end_month": "2026-06",
+    "evaluation_start_utc": "2024-01-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+    "inputs": [
+      "contract klines",
+      "premium index klines",
+      "mark price klines",
+      "realized funding events"
+    ],
+    "quality_policy": "fail on corrupt ZIP, invalid row, duplicate timestamp, non-contiguous 5m series, missing required archive or missing signal/entry/exit bar"
+  },
+  "signal": {
+    "event_clock": "actual realized funding event timestamps; realized rate magnitude is not used as a signal",
+    "premium_observation": "close of the completed premium-index 5m bar ending immediately before the funding event",
+    "history_events": 90,
+    "zscore_method": "current premium minus mean of the prior 90 valid event premiums, divided by their sample standard deviation",
+    "minimum_absolute_premium": 0.0025,
+    "minimum_absolute_zscore": 3,
+    "direction": "positive premium short; negative premium long",
+    "decision_time": "last millisecond before the funding event, after the pre-event premium bar closes",
+    "entry_time": "contract 5m open exactly 5 minutes after settlement",
+    "hold_bars": 12,
+    "exit_time": "contract 5m open exactly 65 minutes after settlement",
+    "overlap": "at most one open trade per symbol"
+  },
+  "execution": {
+    "order_type": "taker",
+    "reference_initial_notional": 1,
+    "fee_per_side": 0.0005,
+    "slippage_per_side": {
+      "base": 0.0001,
+      "stress": 0.0007,
+      "extreme": 0.0015
+    },
+    "fees": "each leg charged on its own simulated fill notional",
+    "funding": "charge every realized event at event mark-price proxy when entry_time <= event_time < exit_time"
+  },
+  "development_screen": {
+    "minimum_trades": 100,
+    "minimum_stress_profit_factor": 1.1,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_trades_positive": true,
+    "stress_profit_without_best_5_event_clusters_positive": true,
+    "minimum_profitable_symbols": 5,
+    "both_directions_profitable": true,
+    "minimum_profitable_half_years": 3,
+    "maximum_positive_month_contribution_share": 0.4
+  },
+  "interpretation": {
+    "pass": "eligible only for a broader point-in-time-universe development test with a preregistered non-funding-event placebo",
+    "fail": "eliminate this exact specification; any threshold, delay or holding-period change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability"
+  }
+}

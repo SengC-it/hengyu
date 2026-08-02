@@ -1,0 +1,103 @@
+{
+  "experiment_id": "HY-EXP-0004",
+  "title": "Cross-sectional resilience after BTC deleveraging shocks",
+  "hypothesis_id": "H3",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-30",
+  "market": "Binance USD-M perpetual",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "ADAUSDT",
+    "BCHUSDT",
+    "DOTUSDT",
+    "AVAXUSDT",
+    "TRXUSDT",
+    "ETCUSDT",
+    "FILUSDT",
+    "APTUSDT"
+  ],
+  "data": {
+    "source": "https://data.binance.vision/data/futures/um",
+    "interval": "5m",
+    "download_start_month": "2023-12",
+    "download_end_month": "2026-05",
+    "evaluation_start_utc": "2024-01-01T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-06-01T00:00:00.000Z",
+    "inputs": [
+      "contract klines",
+      "mark price klines",
+      "realized funding events",
+      "daily metrics archives containing 5m open interest"
+    ],
+    "metrics_download_rule": "after preregistration, derive BTC shock event dates from contract prices only; request each event UTC date and its previous UTC date for every symbol",
+    "quality_policy": "fail on corrupt ZIP, invalid or duplicate required row, non-contiguous monthly 5m price series, missing required archive, or missing event-time price/OI/mark data"
+  },
+  "event": {
+    "benchmark": "BTCUSDT",
+    "shock_window_bars": 6,
+    "shock_return": "log return from the first bar open through the sixth bar close",
+    "volatility_lookback_bars": 8640,
+    "zscore_method": "current shock return minus mean of the prior 8640 overlapping 30m returns, divided by their sample standard deviation",
+    "maximum_absolute_return": -0.02,
+    "maximum_zscore": -4,
+    "cooldown_bars": 288,
+    "event_time": "first 5m boundary after the completed six-bar shock window"
+  },
+  "portfolio": {
+    "benchmark_excluded_from_cross_section": true,
+    "beta_lookback_bars": 8640,
+    "liquidity_lookback_bars": 8640,
+    "liquidity_measure": "sum of quote volume strictly before the 30m shock window",
+    "eligible_symbols": 12,
+    "minimum_valid_symbols": 12,
+    "shock_residual": "symbol 30m log return minus prior-window beta times BTC 30m log return",
+    "oi_change": "log sum_open_interest change from event_time minus 30m to event_time",
+    "resilience_score": "cross-sectional percentile rank of shock residual plus percentile rank of negative OI change",
+    "long_count": 3,
+    "short_count": 3,
+    "initial_alt_weights": "three longs total +0.5 and three shorts total -0.5",
+    "btc_hedge": "negative of the selected alt portfolio prior-window beta exposure",
+    "normalization": "divide all signed weights, including BTC hedge, by total absolute weight",
+    "decision_time": "event_time when the period-end OI record is observable",
+    "entry_time": "contract 5m open exactly 5 minutes after event_time",
+    "hold_bars": 24,
+    "exit_time": "contract 5m open exactly 125 minutes after event_time",
+    "overlap": "global 24h event cooldown prevents overlapping portfolios"
+  },
+  "execution": {
+    "order_type": "taker",
+    "reference_portfolio_gross_notional": 1,
+    "fee_per_side": 0.0005,
+    "slippage_per_side": {
+      "base": 0.0001,
+      "stress": 0.0007,
+      "extreme": 0.0015
+    },
+    "fees": "each leg charged on its own entry and exit simulated fill notional",
+    "funding": "charge every realized event using event mark-price proxy when entry_time <= funding_time < exit_time"
+  },
+  "development_screen": {
+    "minimum_event_portfolios": 20,
+    "minimum_stress_profit_factor": 1.15,
+    "stress_net_return_units_positive": true,
+    "stress_profit_without_best_5_events_positive": true,
+    "maximum_stress_drawdown_return_units": -0.2,
+    "minimum_profitable_alt_symbols": 8,
+    "both_alt_sleeves_profitable": true,
+    "minimum_profitable_half_years": 3,
+    "maximum_positive_month_contribution_share": 0.4
+  },
+  "interpretation": {
+    "pass": "eligible only for a point-in-time full-universe development replication and event-time placebo",
+    "fail": "eliminate this exact specification; any shock threshold, score, leg count or holding-period change requires a new experiment id",
+    "prohibited_claim": "independent out-of-sample profitability",
+    "known_bias": "the fixed 16-symbol diagnostic panel is survivor-selected and cannot support a deployable universe claim"
+  }
+}

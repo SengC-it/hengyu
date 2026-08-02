@@ -1,0 +1,18 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "amendment_id": "HY-EXP-0013-A1",
+  "effective_before_data_lock": true,
+  "reason": "Make recovery depth, event impulse, boundary handling, and funding treatment executable before forward data is locked.",
+  "changes": {
+    "additional_data": [
+      "funding-rate snapshots from the official funding-rate endpoint"
+    ],
+    "pre_event_depth_window_seconds": 60,
+    "depth_measure": "sum quote notional of the top five bid and ask levels whose prices are within 10 basis points of that snapshot mid",
+    "recovery_observation": "first book snapshot at or after window_end plus 5 seconds and no later than 2 seconds after that target",
+    "recovery_rule": "recovery depth must be at least 80% of the median depth over the preceding 60 seconds; the mid must stop making a new event-direction extreme during the recovery window",
+    "event_impulse": "negative pressure uses pre-event median mid minus the minimum mid from the event window; positive pressure uses the maximum mid from the event window minus the pre-event median mid",
+    "boundary_policy": "a missing book at either entry or exit boundary rejects the event",
+    "funding_policy": "an event crossing a funding settlement without an actual official funding-rate snapshot is excluded; predicted mark-price rates are never substituted"
+  }
+}

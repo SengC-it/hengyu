@@ -1,0 +1,26 @@
+{
+  "experiment_id": "HY-EXP-0006",
+  "title": "Cross-sectional resilience after BTC deleveraging shocks with scoped metrics conflicts",
+  "hypothesis_id": "H3",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "declared_date": "2026-07-30",
+  "inherits": {
+    "path": "registry/experiments/HY-EXP-0004/preregistration.json",
+    "sha256": "a165ed0ddd729db2844f071255383d97583a4f8b76be68a4d800dbd04654efbd"
+  },
+  "provenance": {
+    "predecessors": ["HY-EXP-0004", "HY-EXP-0005"],
+    "reason_for_new_id": "Both predecessors failed before PnL on metrics timestamp structure",
+    "economic_rule_changes": "none",
+    "data_rule_change": "normalize lag <=10s; never select among duplicate snapshots; mark the symbol-time ambiguous"
+  },
+  "overrides": {
+    "data.metrics_timestamp_semantics": "create_time lag from 0 through 10000ms is normalized down to its 5m period boundary",
+    "data.maximum_metrics_publication_lag_ms": 10000,
+    "data.metrics_collision_policy": "exclude_symbol_for_event",
+    "data.metrics_collision_semantics": "all normalized duplicates become ambiguous; ambiguous, missing or non-positive required OI excludes that symbol from that event",
+    "portfolio.minimum_valid_symbols": 12,
+    "portfolio.insufficient_valid_symbols_policy": "fail the entire experiment if any frozen event has fewer than 12 valid symbols; never skip the event",
+    "interpretation.special_caveat": "data rules were selected after structural inspection but before any H3 portfolio or PnL"
+  }
+}

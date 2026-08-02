@@ -1,0 +1,13 @@
+{
+  "experiment_id": "HY-EXP-0013",
+  "attempt_id": "HY-EXP-0013-CAP-005",
+  "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z",
+  "phase": "replay",
+  "status": "failed_then_fixed",
+  "failure_type": "runtime_validation_error",
+  "error": "RangeError: Maximum call stack size exceeded from spreading 291512 timestamps into Math.max",
+  "pnl_computed": false,
+  "data_mutated": false,
+  "fix": "Replaced spread-based timestamp min/max with a linear bounded scan; rerun completed with insufficient_warmup, zero events, and zero closed trades.",
+  "interpretation": "This was an infrastructure failure, not a strategy result. The failed invocation and causal fix are retained before any data lock."
+}
