@@ -1,0 +1,14 @@
+{
+  "experiment_id": "HY-EXP-0005",
+  "failed_at": "2026-07-30T13:53:00.000Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "DATA_QUALITY_FAILURE_NO_PNL_COMPUTED",
+  "stage": "normalized_metrics_collision_check_before_portfolio_construction",
+  "error": "22 normalized metrics timestamp collisions with conflicting snapshots",
+  "preregistration_sha256": "a321e0cbc1bafc58269dd1a976a24246f36018ce6a8d13cf60815a2ecb74556b",
+  "data_manifest_sha256": "338a7f72a082ae8a1f752e89caf3183d44c098130ca1d574f3fc25c39d69392c",
+  "normalized_timestamp_collisions": 22,
+  "required_event_timestamp_collisions": 0,
+  "result_artifacts_generated": false,
+  "interpretation": "No economic inference is permitted. Collision scope handling requires a new preregistered experiment."
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0014",
+  "evidenceClass": "D0_DEVELOPMENT_ONLY",
+  "h1": {
+    "minimumAbsolutePressureBps": 5,
+    "minimumRecoveryRatio": 0.8,
+    "eventImpulseMultiplier": 0.25,
+    "forecastStandardErrorBps": 20,
+    "fundingStressBps": 1,
+    "maxHoldMs": 900000
+  },
+  "h2": {
+    "minimumAbsoluteFundingBps": 5,
+    "minimumAbsoluteOiChangeBps": 2,
+    "fundingEdgeMultiplier": 0.35,
+    "oiEdgeMultiplier": 0.1,
+    "forecastStandardErrorBps": 15,
+    "fundingStressBps": 2,
+    "maxHoldMs": 3600000
+  },
+  "h3": {
+    "minimumAbsoluteResidualBps": 8,
+    "residualEdgeMultiplier": 0.25,
+    "forecastStandardErrorBps": 18,
+    "fundingStressBps": 1,
+    "maxHoldMs": 3600000
+  },
+  "h5": {
+    "minimumAbsoluteBtcShockBps": 30,
+    "minimumAbsoluteResponseGapBps": 8,
+    "responseGapEdgeMultiplier": 0.25,
+    "forecastStandardErrorBps": 20,
+    "fundingStressBps": 1,
+    "maxHoldMs": 3600000
+  },
+  "changePolicy": "Any coefficient, feature definition, holding period or threshold change creates a new experiment and forward start."
+}

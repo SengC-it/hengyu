@@ -1,0 +1,12 @@
+{
+  "captureId": "HY-FWD-MICROSTRUCTURE-001",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+  "streams": {
+    "public": ["bookTicker", "depth@100ms"],
+    "market": ["aggTrade", "forceOrder", "markPrice@1s"]
+  },
+  "fundingPollSeconds": 60,
+  "outputRoot": "data/raw/forward",
+  "authorization": "PAPER_ONLY",
+  "note": "Public market-data capture only; no private endpoints or order placement."
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "modelId": "HENGYU-NET-EDGE-001",
+  "experimentId": "HY-EXP-0014",
+  "evaluationIntervalSeconds": 60,
+  "signalValidityMs": 2000,
+  "researchExpiryMs": 900000,
+  "strongMinConservativeNetBps": 6,
+  "strongMinGrossToCostRatio": 2,
+  "mediumMinConservativeNetBps": 3,
+  "mediumMinGrossToCostRatio": 1.5,
+  "delivery": {
+    "web": true,
+    "strongEmail": "IMMEDIATE",
+    "mediumEmail": "DIGEST_15M",
+    "observeEmail": false
+  },
+  "manualOnly": {
+    "requiresHumanConfirmation": true,
+    "autoExecution": false,
+    "orderPlacement": false,
+    "accountAccess": false,
+    "quantityProvided": false,
+    "leverageProvided": false,
+    "accountRiskProvided": false
+  }
+}

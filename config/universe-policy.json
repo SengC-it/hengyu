@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "universeId": "HENGYU-USD-M-DYNAMIC-A-B",
+  "mode": "POINT_IN_TIME_DYNAMIC",
+  "minListingAgeDays": 30,
+  "allowedQuoteAssets": ["USDT", "USDC"],
+  "minTierAQuoteVolumeUsdt": 10000000,
+  "minTierBQuoteVolumeUsdt": 1000000,
+  "minTierADepthUsdt": 500000,
+  "minTierBDepthUsdt": 100000,
+  "depthBps": 10,
+  "maxDepthAgeMs": 5000,
+  "maxSymbols": 200,
+  "excludedBaseAssets": ["USDT", "USDC", "BUSD", "DAI", "FDUSD", "TUSD", "USDP", "USDE", "USD1"],
+  "pointInTimeRule": "Only exchangeInfo, ticker and depth observations available at snapshot observedAt may affect eligibility.",
+  "failureRule": "Missing or stale data excludes the symbol and records the reason; it never falls back to a tradable default."
+}

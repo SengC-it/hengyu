@@ -1,0 +1,22 @@
+{
+  "experiment_id": "HY-EXP-0004",
+  "failed_at": "2026-07-30T13:48:00.000Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "DATA_QUALITY_FAILURE_NO_PNL_COMPUTED",
+  "stage": "metrics_validation_before_portfolio_construction",
+  "error": "AVAXUSDT required OI record at 2024-04-16T10:00:00.000Z is not exactly aligned",
+  "preregistration_sha256": "a165ed0ddd729db2844f071255383d97583a4f8b76be68a4d800dbd04654efbd",
+  "data_manifest_sha256": "6e6287db3ce86a93ff22631f4e1311ffc27f2434d62a92fffb4232618965c044",
+  "unaligned_metrics_rows": 1075,
+  "publication_lag_ms_distribution": {
+    "1000": 917,
+    "2000": 132,
+    "3000": 17,
+    "4000": 4,
+    "5000": 3,
+    "6000": 2
+  },
+  "missing_exact_required_rows": 1,
+  "result_artifacts_generated": false,
+  "interpretation": "No economic inference is permitted. Timestamp normalization requires a new preregistered experiment."
+}

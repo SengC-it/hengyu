@@ -1,0 +1,34 @@
+{
+  "experiment_id": "HY-EXP-0007",
+  "failed_at": "2026-07-30T15:23:42.331Z",
+  "stage": "post_data_lock_pre_pnl_validation",
+  "reason": "NON_CONTIGUOUS_MARK_PRICE_ARCHIVES",
+  "pnl_computed": false,
+  "details": {
+    "missing_start_utc": "2026-06-29T00:00:00.000Z",
+    "missing_end_exclusive_utc": "2026-06-30T00:00:00.000Z",
+    "missing_bars_per_symbol": 288,
+    "affected_symbols": [
+      "BTCUSDT",
+      "BTCUSDC",
+      "ETHUSDT",
+      "ETHUSDC",
+      "BNBUSDT",
+      "BNBUSDC",
+      "SOLUSDT",
+      "SOLUSDC",
+      "XRPUSDT",
+      "XRPUSDC",
+      "DOGEUSDT",
+      "DOGEUSDC",
+      "LINKUSDT",
+      "LINKUSDC",
+      "ADAUSDT",
+      "ADAUSDC"
+    ],
+    "contract_kline_control": "BTCUSDT contract archive contains all 8640 June 2026 5m bars",
+    "observed_mark_rows_per_affected_june_archive": 8352,
+    "quality_rule": "fail before PnL on non-contiguous required 5m series"
+  },
+  "disposition": "Experiment failed without spread or PnL evaluation. Any alternative funding mark source requires a new experiment ID."
+}

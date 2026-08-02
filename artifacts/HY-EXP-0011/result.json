@@ -1,0 +1,392 @@
+{
+  "experiment_id": "HY-EXP-0011",
+  "generated_at": "2026-08-01T01:36:24.651Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "EXACT_SPECIFICATION_ELIMINATED",
+  "preregistration_sha256": "2200141df2512f0e52b1c2614afeb253ab2d8bd8a2f9dffbdc380778afc82a95",
+  "data_manifest_sha256": "132a75690e3079263838b1f5b4a2afa946b78c99a317f8463a39b1d17a05f458",
+  "code": {
+    "runtime": "v24.12.0",
+    "command": "npm run exp:011:run"
+  },
+  "coverage": {
+    "BTC_LTC": {
+      "xContractBars": 262944,
+      "yContractBars": 262944,
+      "xFourHourBars": 5478,
+      "yFourHourBars": 5478,
+      "signals": 5
+    },
+    "ETH_ETC": {
+      "xContractBars": 262944,
+      "yContractBars": 262944,
+      "xFourHourBars": 5478,
+      "yFourHourBars": 5478,
+      "signals": 4
+    },
+    "SOL_AVAX": {
+      "xContractBars": 262944,
+      "yContractBars": 262944,
+      "xFourHourBars": 5478,
+      "yFourHourBars": 5478,
+      "signals": 3
+    },
+    "ADA_DOT": {
+      "xContractBars": 262944,
+      "yContractBars": 262944,
+      "xFourHourBars": 5478,
+      "yFourHourBars": 5478,
+      "signals": 6
+    }
+  },
+  "pairTrades": 18,
+  "skippedByPair": {
+    "BTC_LTC": {},
+    "ETH_ETC": {
+      "reference_capacity": 1
+    },
+    "SOL_AVAX": {},
+    "ADA_DOT": {}
+  },
+  "summaries": {
+    "base": {
+      "pairTrades": 18,
+      "entryDayClusters": 18,
+      "wins": 11,
+      "winRate": 0.6111111111111112,
+      "grossPriceReturnUnits": 0.038935975317622724,
+      "netReturnUnits": 0.034920369134369064,
+      "profitFactor": 1.4482882131179167,
+      "profitWithoutBest5Trades": -0.053268982480235295,
+      "profitWithoutBest5EntryDays": -0.053268982480235295,
+      "maxDrawdownReturnUnits": -0.05361194542100456,
+      "totalFees": 0.004449363558270159,
+      "totalFunding": 0.0013236304760301965,
+      "profitablePairs": 3,
+      "profitableHalfYears": 4,
+      "maxPositiveMonthContributionShare": 0.39111958346373,
+      "maxPositivePairContributionShare": 0.3772287369054341,
+      "medianAbsoluteEntryZscore": 3.190999118428588,
+      "byPair": {
+        "BTC_LTC": 0.017991328494978365,
+        "ETH_ETC": -0.018882614766703963,
+        "SOL_AVAX": 0.015515623747349484,
+        "ADA_DOT": 0.020296031658745186
+      },
+      "byDirection": {
+        "Y_RICH": 0.022024339221056306,
+        "Y_CHEAP": 0.01289602991331276
+      },
+      "byHalfYear": {
+        "2024-H1": 0.013802610532989736,
+        "2024-H2": -0.010794080827645883,
+        "2025-H1": 0.022259754341670306,
+        "2025-H2": 0.006892134153880695,
+        "2026-H1": 0.0027599509334742143
+      },
+      "byMonth": {
+        "2024-03": 0.01174906872936711,
+        "2024-04": 0.002658725678034197,
+        "2024-06": -0.0006051838744115714,
+        "2024-08": 0.01040996273164018,
+        "2024-11": -0.024810941958989956,
+        "2024-12": 0.0036068983997038923,
+        "2025-02": 0.025684146281755478,
+        "2025-03": -0.0034243919400851718,
+        "2025-08": 0.007070968892525791,
+        "2025-09": -0.0006028268075378741,
+        "2025-11": 0.0004239920688927784,
+        "2026-01": 0.004064506892276686,
+        "2026-04": -0.001304555958802472
+      },
+      "byEntryDay": {
+        "2024-03-15": 0.01174906872936711,
+        "2024-04-01": 0.002658725678034197,
+        "2024-06-07": -0.0006051838744115714,
+        "2024-08-05": 0.01040996273164018,
+        "2024-11-08": -0.027746629189713327,
+        "2024-11-12": 0.018348234741763277,
+        "2024-11-16": -0.015412547511039907,
+        "2024-12-01": -0.028801003462014602,
+        "2024-12-03": 0.013459724876853159,
+        "2024-12-04": 0.018948176984865336,
+        "2025-02-26": 0.025684146281755478,
+        "2025-03-05": -0.0034243919400851718,
+        "2025-08-14": 0.0005595085588326835,
+        "2025-08-15": 0.006511460333693107,
+        "2025-09-19": -0.0006028268075378741,
+        "2025-11-07": 0.0004239920688927784,
+        "2026-01-15": 0.004064506892276686,
+        "2026-04-13": -0.001304555958802472
+      }
+    },
+    "stress": {
+      "pairTrades": 18,
+      "entryDayClusters": 18,
+      "wins": 11,
+      "winRate": 0.6111111111111112,
+      "grossPriceReturnUnits": 0.038935975317622724,
+      "netReturnUnits": 0.02958114220907903,
+      "profitFactor": 1.3696773479765816,
+      "profitWithoutBest5Trades": -0.05716291033890941,
+      "profitWithoutBest5EntryDays": -0.05716291033890941,
+      "maxDrawdownReturnUnits": -0.05490376698155185,
+      "totalFees": 0.0044493518774775635,
+      "totalFunding": 0.0013236304760301965,
+      "profitablePairs": 3,
+      "profitableHalfYears": 4,
+      "maxPositiveMonthContributionShare": 0.4065611942445596,
+      "maxPositivePairContributionShare": 0.372781648433874,
+      "medianAbsoluteEntryZscore": 3.190999118428588,
+      "byPair": {
+        "BTC_LTC": 0.016461431717767462,
+        "ETH_ETC": -0.020053798668971504,
+        "SOL_AVAX": 0.01467051407984552,
+        "ADA_DOT": 0.018502995080437557
+      },
+      "byDirection": {
+        "Y_RICH": 0.019425052861416978,
+        "Y_CHEAP": 0.010156089347662057
+      },
+      "byHalfYear": {
+        "2024-H1": 0.012953271530864978,
+        "2024-H2": -0.012964749071565411,
+        "2025-H1": 0.021683491401561512,
+        "2025-H2": 0.0057460578353639895,
+        "2026-H1": 0.002163070512853962
+      },
+      "byMonth": {
+        "2024-03": 0.011478167517833076,
+        "2024-04": 0.002368343859815863,
+        "2024-06": -0.0008932398467839612,
+        "2024-08": 0.010094044394298294,
+        "2024-11": -0.025781216671998133,
+        "2024-12": 0.0027224232061344306,
+        "2025-02": 0.025387169920840627,
+        "2025-03": -0.0037036785192791147,
+        "2025-08": 0.006477828203167999,
+        "2025-09": -0.0008729335410239299,
+        "2025-11": 0.00014116317321992075,
+        "2026-01": 0.0037745220324343614,
+        "2026-04": -0.0016114515195803994
+      },
+      "byEntryDay": {
+        "2024-03-15": 0.011478167517833076,
+        "2024-04-01": 0.002368343859815863,
+        "2024-06-07": -0.0008932398467839612,
+        "2024-08-05": 0.010094044394298294,
+        "2024-11-08": -0.02808769936931669,
+        "2024-11-12": 0.01803374159362659,
+        "2024-11-16": -0.015727258896308036,
+        "2024-12-01": -0.029122550309553717,
+        "2024-12-03": 0.013175103761053587,
+        "2024-12-04": 0.018669869754634562,
+        "2025-02-26": 0.025387169920840627,
+        "2025-03-05": -0.0037036785192791147,
+        "2025-08-14": 0.00027037859339960543,
+        "2025-08-15": 0.006207449609768393,
+        "2025-09-19": -0.0008729335410239299,
+        "2025-11-07": 0.00014116317321992075,
+        "2026-01-15": 0.0037745220324343614,
+        "2026-04-13": -0.0016114515195803994
+      }
+    },
+    "extreme": {
+      "pairTrades": 18,
+      "entryDayClusters": 18,
+      "wins": 9,
+      "winRate": 0.5,
+      "grossPriceReturnUnits": 0.038935975317622724,
+      "netReturnUnits": 0.022462172975358765,
+      "profitFactor": 1.2699820003235363,
+      "profitWithoutBest5Trades": -0.06235481415047503,
+      "profitWithoutBest5EntryDays": -0.06235481415047503,
+      "maxDrawdownReturnUnits": -0.056626195728948406,
+      "totalFees": 0.004449336303087437,
+      "totalFunding": 0.0013236304760301965,
+      "profitablePairs": 3,
+      "profitableHalfYears": 4,
+      "maxPositiveMonthContributionShare": 0.4280771962001813,
+      "maxPositivePairContributionShare": 0.365543901070837,
+      "medianAbsoluteEntryZscore": 3.190999118428588,
+      "byPair": {
+        "BTC_LTC": 0.014421569348152908,
+        "ETH_ETC": -0.02161537720532833,
+        "SOL_AVAX": 0.013543701189840246,
+        "ADA_DOT": 0.016112279642693933
+      },
+      "byDirection": {
+        "Y_RICH": 0.015959337715230996,
+        "Y_CHEAP": 0.006502835260127766
+      },
+      "byHalfYear": {
+        "2024-H1": 0.011820819528031963,
+        "2024-H2": -0.015858973396791664,
+        "2025-H1": 0.020915140814749753,
+        "2025-H2": 0.004217956077341753,
+        "2026-H1": 0.0013672299520269575
+      },
+      "byMonth": {
+        "2024-03": 0.011116965902454343,
+        "2024-04": 0.0019811681021914282,
+        "2024-06": -0.0012773144766138073,
+        "2024-08": 0.009672819944509145,
+        "2024-11": -0.0270749162893425,
+        "2024-12": 0.0015431229480416843,
+        "2025-02": 0.024991201439620844,
+        "2025-03": -0.00407606062487109,
+        "2025-08": 0.00568697395069097,
+        "2025-09": -0.0012330758523386443,
+        "2025-11": -0.0002359420210105729,
+        "2026-01": 0.0033878755526445866,
+        "2026-04": -0.002020645600617629
+      },
+      "byEntryDay": {
+        "2024-03-15": 0.011116965902454343,
+        "2024-04-01": 0.0019811681021914282,
+        "2024-06-07": -0.0012773144766138073,
+        "2024-08-05": 0.009672819944509145,
+        "2024-11-08": -0.02854245960878794,
+        "2024-11-12": 0.017614417396111012,
+        "2024-11-16": -0.016146874076665572,
+        "2024-12-01": -0.029551279439605904,
+        "2024-12-03": 0.012795608939987461,
+        "2024-12-04": 0.01829879344766013,
+        "2025-02-26": 0.024991201439620844,
+        "2025-03-05": -0.00407606062487109,
+        "2025-08-14": -0.00011512802717785625,
+        "2025-08-15": 0.005802101977868826,
+        "2025-09-19": -0.0012330758523386443,
+        "2025-11-07": -0.0002359420210105729,
+        "2026-01-15": 0.0033878755526445866,
+        "2026-04-13": -0.002020645600617629
+      }
+    },
+    "delay5m": {
+      "pairTrades": 18,
+      "entryDayClusters": 18,
+      "wins": 11,
+      "winRate": 0.6111111111111112,
+      "grossPriceReturnUnits": 0.033688522402503376,
+      "netReturnUnits": 0.024337460376433438,
+      "profitFactor": 1.2910904984624354,
+      "profitWithoutBest5Trades": -0.06032896974407708,
+      "profitWithoutBest5EntryDays": -0.06032896974407708,
+      "maxDrawdownReturnUnits": -0.059499464184741016,
+      "totalFees": 0.004456559181791737,
+      "totalFunding": 0.0013446965176060624,
+      "profitablePairs": 3,
+      "profitableHalfYears": 4,
+      "maxPositiveMonthContributionShare": 0.4228616615984352,
+      "maxPositivePairContributionShare": 0.3821544049058689,
+      "medianAbsoluteEntryZscore": 3.190999118428588,
+      "byPair": {
+        "BTC_LTC": 0.016253004699064943,
+        "ETH_ETC": -0.0239139655885877,
+        "SOL_AVAX": 0.013558926290433957,
+        "ADA_DOT": 0.018439494975522247
+      },
+      "byDirection": {
+        "Y_RICH": 0.013685100876282542,
+        "Y_CHEAP": 0.0106523595001509
+      },
+      "byHalfYear": {
+        "2024-H1": 0.013270365114288994,
+        "2024-H2": -0.019211089739979988,
+        "2025-H1": 0.022436500303643768,
+        "2025-H2": 0.0055580116534749945,
+        "2026-H1": 0.0022836730450056754
+      },
+      "byMonth": {
+        "2024-03": 0.011303094549033246,
+        "2024-04": 0.0027601530453740045,
+        "2024-06": -0.0007928824801182559,
+        "2024-08": 0.010337130503499724,
+        "2024-11": -0.03005670420858431,
+        "2024-12": 0.000508483965104594,
+        "2025-02": 0.025710341394624407,
+        "2025-03": -0.0032738410909806392,
+        "2025-08": 0.006144043942143004,
+        "2025-09": -0.00110424487467169,
+        "2025-11": 0.0005182125860036801,
+        "2026-01": 0.0035193733114195908,
+        "2026-04": -0.0012357002664139154
+      },
+      "byEntryDay": {
+        "2024-03-15": 0.011303094549033246,
+        "2024-04-01": 0.0027601530453740045,
+        "2024-06-07": -0.0007928824801182559,
+        "2024-08-05": 0.010337130503499724,
+        "2024-11-08": -0.02778150879134482,
+        "2024-11-12": 0.017701750235591566,
+        "2024-11-16": -0.019976945652831056,
+        "2024-12-01": -0.029442759976156706,
+        "2024-12-03": 0.011903018119731643,
+        "2024-12-04": 0.018048225821529658,
+        "2025-02-26": 0.025710341394624407,
+        "2025-03-05": -0.0032738410909806392,
+        "2025-08-14": 0.00012970363534224767,
+        "2025-08-15": 0.006014340306800757,
+        "2025-09-19": -0.00110424487467169,
+        "2025-11-07": 0.0005182125860036801,
+        "2026-01-15": 0.0035193733114195908,
+        "2026-04-13": -0.0012357002664139154
+      }
+    }
+  },
+  "mechanismDiagnostics": {
+    "stress_average_gross_price_bps_per_trade": 21.63109739867929,
+    "stress_average_net_bps_per_trade": 16.433967893932792,
+    "stress_average_funding_bps_per_trade": 0.7353502644612203,
+    "stress_center_cross_exits": 1,
+    "stress_maximum_hold_exits": 17,
+    "stress_center_cross_rate": 0.05555555555555555,
+    "stress_top5_net_return_units": 0.08674405254798845,
+    "stress_top5_share_of_total_net": 2.9324105179875377,
+    "stress_net_without_best_trade": 0.004193972288238403,
+    "stress_largest_positive_month_contribution_share": 0.4065611942445596,
+    "stress_pair_trade_counts": {
+      "BTC_LTC": 5,
+      "ETH_ETC": 4,
+      "SOL_AVAX": 3,
+      "ADA_DOT": 6
+    },
+    "interpretation": "Only one of 18 trades crossed the frozen entry center; 17 exited at the seven-day cap. Positive aggregate PnL therefore does not demonstrate repeatable center convergence, and the best five trades exceed total net profit by almost three times."
+  },
+  "developmentScreen": {
+    "pass": false,
+    "checks": {
+      "minimumTrades": false,
+      "stressProfitFactor": true,
+      "positiveNet": true,
+      "withoutBest5Trades": false,
+      "withoutBest5EntryDays": false,
+      "maxDrawdown": true,
+      "pairBreadth": true,
+      "bothDirections": true,
+      "halfYearBreadth": true,
+      "monthConcentration": false,
+      "pairConcentration": true,
+      "extremePositive": true,
+      "delay5mPositive": true,
+      "delay5mProfitFactor": true
+    },
+    "failures": [
+      "minimumTrades",
+      "withoutBest5Trades",
+      "withoutBest5EntryDays",
+      "monthConcentration"
+    ]
+  },
+  "limitations": [
+    "All observations are exposed D0 development data and cannot prove out-of-sample profitability.",
+    "The four fixed economic pairs and their surviving contracts are selected with hindsight.",
+    "Economic similarity does not guarantee cointegration; rolling zscore can mistake structural divergence for temporary dislocation.",
+    "The beta hedge is a backward-looking linear estimate and can fail abruptly during regime changes.",
+    "A 5m open plus fixed slippage is not a bid/ask or order-book fill, and both pair legs are not atomic.",
+    "The 25% pair allocation caps simultaneous gross exposure but does not simulate exchange margin, liquidation or correlation stress.",
+    "Return-unit drawdown is not leveraged account equity drawdown.",
+    "A pass would still require point-in-time pair formation, formal stability diagnostics and forward shadow evidence.",
+    "Only 1/18 trades crossed the frozen center; the other 17 maximum-hold exits make the observed profit weak evidence for the preregistered convergence mechanism."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "captureId": "HY-FWD-USD-M-DYNAMIC-001",
+  "universeConfig": "config/universe-policy.json",
+  "universeMode": "POINT_IN_TIME_DYNAMIC",
+  "streams": {
+    "public": ["bookTicker", "depth@100ms"],
+    "market": ["aggTrade", "forceOrder", "markPrice@1s"]
+  },
+  "fundingPollSeconds": 60,
+  "openInterestPollSeconds": 60,
+  "outputRoot": "data/raw/forward",
+  "authorization": "PAPER_ONLY",
+  "note": "Public USD-M data only; the universe is snapshotted point-in-time per segment; no private endpoints or order placement."
+}

@@ -1,0 +1,265 @@
+{
+  "experiment_id": "HY-EXP-0008",
+  "generated_at": "2026-07-30T15:35:57.316Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "EXACT_SPECIFICATION_ELIMINATED",
+  "preregistration_sha256": "59eb1ae24023e761206442a9852776f167aa2e3efd2884b20a0e6461326b017a",
+  "data_manifest_sha256": "59e1355a4f38b7757a78da41e72d18be6aec4b8f6815517c380afdc352088c87",
+  "code": {
+    "runtime": "v24.12.0",
+    "command": "npm run exp:007:run"
+  },
+  "coverage": {
+    "BTC": {
+      "synchronizedBars": 261642,
+      "firstBar": 1704371400000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2736,
+      "usdcFundingRows": 2731,
+      "events": 1
+    },
+    "ETH": {
+      "synchronizedBars": 261641,
+      "firstBar": 1704371700000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2736,
+      "usdcFundingRows": 2731,
+      "events": 1
+    },
+    "BNB": {
+      "synchronizedBars": 261640,
+      "firstBar": 1704372000000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2736,
+      "usdcFundingRows": 2731,
+      "events": 1
+    },
+    "SOL": {
+      "synchronizedBars": 261639,
+      "firstBar": 1704372300000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2736,
+      "usdcFundingRows": 2731,
+      "events": 2
+    },
+    "XRP": {
+      "synchronizedBars": 261638,
+      "firstBar": 1704372600000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2736,
+      "usdcFundingRows": 2731,
+      "events": 5
+    },
+    "DOGE": {
+      "synchronizedBars": 257640,
+      "firstBar": 1705572000000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2736,
+      "usdcFundingRows": 2686,
+      "events": 3
+    },
+    "LINK": {
+      "synchronizedBars": 249306,
+      "firstBar": 1708072200000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 2643,
+      "usdcFundingRows": 2601,
+      "events": 1
+    },
+    "ADA": {
+      "synchronizedBars": 138693,
+      "firstBar": 1741256100000,
+      "lastBar": 1782863700000,
+      "usdtFundingRows": 1461,
+      "usdcFundingRows": 2897,
+      "events": 1
+    }
+  },
+  "summaries": {
+    "base": {
+      "eventPairs": 15,
+      "wins": 15,
+      "winRate": 1,
+      "grossPriceReturnUnits": 0.11384660160702642,
+      "netReturnUnits": 0.09830383683165439,
+      "profitFactor": null,
+      "profitWithoutBest5Events": 0.02459687565030593,
+      "maxDrawdownReturnUnits": 0,
+      "totalFees": 0.016287083969821335,
+      "totalFunding": 0.004001341179769162,
+      "usdtLegNet": -0.7469107226287743,
+      "usdcLegNet": 0.8452145594604287,
+      "medianAbsoluteEntryDislocation": 0.009032437532659313,
+      "averageHoldHours": 0.9388888888888889,
+      "profitableBaseAssets": 8,
+      "profitableHalfYears": 4,
+      "maxPositiveMonthContributionShare": 0.8332124077148846,
+      "maximumConcurrentEvents": 5,
+      "byBaseAsset": {
+        "SOL": 0.006600670338189479,
+        "DOGE": 0.026781713661893372,
+        "XRP": 0.04713278498730725,
+        "BNB": 0.0061521232045901346,
+        "BTC": 0.0011074586983910763,
+        "LINK": 0.00014137505596403344,
+        "ETH": 0.0038101168205999726,
+        "ADA": 0.006577594064719051
+      },
+      "byDirection": {
+        "USDT_RICH": 0.05160900453820514,
+        "USDC_RICH": 0.04669483229344923
+      },
+      "byHalfYear": {
+        "2024-H1": 0.005797631798083163,
+        "2024-H2": 0.007407021340996132,
+        "2025-H1": 0.0031912071184611876,
+        "2025-H2": 0.0819079765741139
+      },
+      "byMonth": {
+        "2024-04": 0.001070593932289978,
+        "2024-06": 0.0047270378657931844,
+        "2024-11": 0.0027686798088993234,
+        "2024-12": 0.004638341532096808,
+        "2025-02": 0.0031912071184611876,
+        "2025-10": 0.0819079765741139
+      }
+    },
+    "stress": {
+      "eventPairs": 15,
+      "wins": 11,
+      "winRate": 0.7333333333333333,
+      "grossPriceReturnUnits": 0.11384660160702642,
+      "netReturnUnits": 0.07876173791556379,
+      "profitFactor": 36.723046681786364,
+      "profitWithoutBest5Events": 0.012132243301692961,
+      "maxDrawdownReturnUnits": -0.001288992453030026,
+      "totalFees": 0.0162870509739908,
+      "totalFunding": 0.004001341179769162,
+      "usdtLegNet": -0.7566888238431859,
+      "usdcLegNet": 0.8354505617587497,
+      "medianAbsoluteEntryDislocation": 0.009032437532659313,
+      "averageHoldHours": 0.9388888888888889,
+      "profitableBaseAssets": 6,
+      "profitableHalfYears": 4,
+      "maxPositiveMonthContributionShare": 0.8835987213360248,
+      "maximumConcurrentEvents": 5,
+      "byBaseAsset": {
+        "SOL": 0.004075499530600422,
+        "DOGE": 0.022930720941286148,
+        "XRP": 0.040848081857249356,
+        "BNB": 0.00481001651902443,
+        "BTC": -0.00012444565646334808,
+        "LINK": -0.001164546796566674,
+        "ETH": 0.0025626384158784275,
+        "ADA": 0.004823773104555039
+      },
+      "byDirection": {
+        "USDT_RICH": 0.039564028197555244,
+        "USDC_RICH": 0.03919770971800856
+      },
+      "byHalfYear": {
+        "2024-H1": 0.0021157004783568566,
+        "2024-H2": 0.004929231673231373,
+        "2025-H1": 0.0019579171156275323,
+        "2025-H2": 0.06975888864834803
+      },
+      "byMonth": {
+        "2024-04": -0.00018686959585352837,
+        "2024-06": 0.002302570074210385,
+        "2024-11": 0.0015679398106779494,
+        "2024-12": 0.0033612918625534234,
+        "2025-02": 0.0019579171156275323,
+        "2025-10": 0.06975888864834803
+      }
+    },
+    "extreme": {
+      "eventPairs": 15,
+      "wins": 0,
+      "winRate": 0,
+      "grossPriceReturnUnits": -0.6344237860980481,
+      "netReturnUnits": -0.6970443716213411,
+      "profitFactor": 0,
+      "profitWithoutBest5Events": -0.6432486570984693,
+      "maxDrawdownReturnUnits": -0.6970443716213411,
+      "totalFees": 0.016657151684308806,
+      "totalFunding": 0.004001341179769162,
+      "usdtLegNet": -1.0794411326084967,
+      "usdcLegNet": 0.3823967609871557,
+      "medianAbsoluteEntryDislocation": 0.009032437532659313,
+      "averageHoldHours": 0.9388888888888889,
+      "profitableBaseAssets": 0,
+      "profitableHalfYears": 0,
+      "maxPositiveMonthContributionShare": 1,
+      "maximumConcurrentEvents": 5,
+      "byBaseAsset": {
+        "SOL": -0.03219564270228638,
+        "DOGE": -0.11154886523173785,
+        "XRP": -0.20890361156844914,
+        "BNB": -0.11934467200185996,
+        "BTC": -0.02645962218651343,
+        "LINK": -0.059589987572859764,
+        "ETH": -0.01878787698230579,
+        "ADA": -0.12021409337532887
+      },
+      "byDirection": {
+        "USDT_RICH": -0.42084255464021514,
+        "USDC_RICH": -0.276201816981126
+      },
+      "byHalfYear": {
+        "2024-H1": -0.08616395722237137,
+        "2024-H2": -0.042218748826308126,
+        "2025-H1": -0.004226482127903455,
+        "2025-H2": -0.5644351834447582
+      },
+      "byMonth": {
+        "2024-04": -0.03045625824193187,
+        "2024-06": -0.05570769898043951,
+        "2024-11": -0.005242253086093199,
+        "2024-12": -0.03697649574021493,
+        "2025-02": -0.004226482127903455,
+        "2025-10": -0.5644351834447582
+      }
+    }
+  },
+  "developmentScreen": {
+    "pass": false,
+    "checks": {
+      "minimumEvents": false,
+      "stressProfitFactor": true,
+      "positiveNet": true,
+      "withoutBest5Events": true,
+      "maxDrawdown": true,
+      "baseAssetBreadth": true,
+      "bothSpreadDirections": true,
+      "halfYearBreadth": true,
+      "monthConcentration": false,
+      "extremeSingleLegDelay": false,
+      "medianEntryDislocation": true
+    },
+    "failures": [
+      "minimumEvents",
+      "monthConcentration",
+      "extremeSingleLegDelay"
+    ]
+  },
+  "dependencyDiagnostics": {
+    "unique_stress_event_dates": 6,
+    "dominant_event_date": "2025-10-10",
+    "dominant_event_date_pairs": 9,
+    "dominant_event_date_stress_net_return_units": 0.06975888864834803,
+    "dominant_event_date_share_of_total_stress_net": 0.885695142013407,
+    "stress_usdt_leg_net_return_units": -0.7566888238431859,
+    "stress_usdc_leg_net_return_units": 0.8354505617587497,
+    "interpretation": "The positive pair result is a small residual between much larger opposing leg PnL and is highly exposed to non-simultaneous fills."
+  },
+  "limitations": [
+    "All observations are exposed D0 development data and cannot prove out-of-sample profitability.",
+    "The fixed eight-base panel was selected after archive coverage inspection and is not a point-in-time full-market universe.",
+    "Contract and FX 5m opens plus fixed slippage cannot prove that both live legs would fill simultaneously.",
+    "The extreme one-bar leg delay is deterministic and is not an order-book or outage replay.",
+    "Nine of fifteen pairs occurred in the same 2025-10-10 market episode, which supplied 88.6% of total stress net return.",
+    "USDC settlement cash flows are converted with spot bar opens; collateral haircuts, cross-margin rules and conversion fees are absent.",
+    "Return-unit drawdown orders overlapping event exits and is not leveraged account equity drawdown.",
+    "A pass would still require a new full-universe replication, order-book shadow fills and forward evidence."
+  ]
+}

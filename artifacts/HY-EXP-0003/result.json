@@ -1,0 +1,245 @@
+{
+  "experiment_id": "HY-EXP-0003",
+  "generated_at": "2026-07-30T12:09:36.576Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "EXACT_SPECIFICATION_ELIMINATED",
+  "preregistration_sha256": "4d943f9487d107f005954bce0e755662b24198eea92aab884e5a7c45a4218fca",
+  "data_manifest_sha256": "ba833d2b719f2c496d6e1cca682605d59876f053bd92723c35e5006cf43c54ce",
+  "code": {
+    "runtime": "v24.12.0",
+    "command": "npm run exp:002:run"
+  },
+  "coverage": {
+    "BTCUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 1
+    },
+    "ETHUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 1
+    },
+    "BNBUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 0
+    },
+    "XRPUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 0
+    },
+    "SOLUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 3
+    },
+    "DOGEUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 1
+    },
+    "LINKUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 0
+    },
+    "LTCUSDT": {
+      "contractBars": 262944,
+      "premiumBars": 262944,
+      "markBars": 262944,
+      "fundingEvents": 2739,
+      "firstBar": 1701388800000,
+      "lastBar": 1780271700000,
+      "signals": 0
+    }
+  },
+  "rawSignals": 6,
+  "summaries": {
+    "base": {
+      "trades": 6,
+      "wins": 1,
+      "winRate": 0.16666666666666666,
+      "grossPriceReturnUnits": -0.10085486429795659,
+      "netReturnUnits": -0.10810248040026674,
+      "averageNetReturn": -0.018017080066711124,
+      "medianNetReturn": -0.01229090013923196,
+      "naiveTStatistic": -2.2773370253382716,
+      "profitFactor": 0.0037435472266074197,
+      "profitWithoutBest5": -0.052627752186726426,
+      "maxDrawdownReturnUnits": -0.10810248040026674,
+      "totalFees": 0.006039680925715773,
+      "totalFunding": 0,
+      "profitableSymbols": 1,
+      "profitableHalfYears": 0,
+      "maxPositiveMonthContributionShare": 1,
+      "bySymbol": {
+        "SOLUSDT": -0.05170734706973925,
+        "DOGEUSDT": -0.052627752186726426,
+        "BTCUSDT": 0.0004062073972672688,
+        "ETHUSDT": -0.004173588541068319
+      },
+      "byDirection": {
+        "short": -0.09615738161577445,
+        "long": -0.011945098784492285
+      },
+      "byHalfYear": {
+        "2024-H1": -0.09615738161577445,
+        "2025-H2": -0.011945098784492285
+      },
+      "byMonth": {
+        "2024-02": -0.027125546791275327,
+        "2024-03": -0.06903183482449912,
+        "2025-10": -0.011945098784492285
+      },
+      "eventClusters": 4,
+      "profitWithoutBest5EventClusters": 0
+    },
+    "stress": {
+      "trades": 6,
+      "wins": 0,
+      "winRate": 0,
+      "grossPriceReturnUnits": -0.10085486429795659,
+      "netReturnUnits": -0.11535012171629293,
+      "averageNetReturn": -0.019225020286048822,
+      "medianNetReturn": -0.013491106954592904,
+      "naiveTStatistic": -2.428460927539526,
+      "profitFactor": 0,
+      "profitWithoutBest5": -0.05385860575268168,
+      "maxDrawdownReturnUnits": -0.11535012171629293,
+      "totalFees": 0.006039711182175062,
+      "totalFunding": 0,
+      "profitableSymbols": 0,
+      "profitableHalfYears": 0,
+      "maxPositiveMonthContributionShare": 1,
+      "bySymbol": {
+        "SOLUSDT": -0.055323314473158615,
+        "DOGEUSDT": -0.05385860575268168,
+        "BTCUSDT": -0.0007928289746572349,
+        "ETHUSDT": -0.005375372515795386
+      },
+      "byDirection": {
+        "short": -0.10221147063584168,
+        "long": -0.013138651080451239
+      },
+      "byHalfYear": {
+        "2024-H1": -0.10221147063584168,
+        "2025-H2": -0.013138651080451239
+      },
+      "byMonth": {
+        "2024-02": -0.028341100563972807,
+        "2024-03": -0.07387037007186886,
+        "2025-10": -0.013138651080451239
+      },
+      "eventClusters": 4,
+      "profitWithoutBest5EventClusters": 0
+    },
+    "extreme": {
+      "trades": 6,
+      "wins": 0,
+      "winRate": 0,
+      "grossPriceReturnUnits": -0.10085486429795659,
+      "netReturnUnits": -0.12501364347099506,
+      "averageNetReturn": -0.02083560724516584,
+      "medianNetReturn": -0.015091382708407463,
+      "naiveTStatistic": -2.629657930945057,
+      "profitFactor": 0,
+      "profitWithoutBest5": -0.05549974384062257,
+      "maxDrawdownReturnUnits": -0.12501364347099506,
+      "totalFees": 0.006039751524120781,
+      "totalFunding": 0,
+      "profitableSymbols": 0,
+      "profitableHalfYears": 0,
+      "maxPositiveMonthContributionShare": 1,
+      "bySymbol": {
+        "SOLUSDT": -0.06014460434438441,
+        "DOGEUSDT": -0.05549974384062257,
+        "BTCUSDT": -0.002391544137223104,
+        "ETHUSDT": -0.00697775114876496
+      },
+      "byDirection": {
+        "short": -0.1102835893292652,
+        "long": -0.014730054141729844
+      },
+      "byHalfYear": {
+        "2024-H1": -0.1102835893292652,
+        "2025-H2": -0.014730054141729844
+      },
+      "byMonth": {
+        "2024-02": -0.029961838927569484,
+        "2024-03": -0.08032175040169572,
+        "2025-10": -0.014730054141729844
+      },
+      "eventClusters": 4,
+      "profitWithoutBest5EventClusters": 0
+    }
+  },
+  "developmentScreen": {
+    "pass": false,
+    "checks": {
+      "minimumTrades": false,
+      "stressProfitFactor": false,
+      "positiveNet": false,
+      "withoutBest5Trades": false,
+      "withoutBest5EventClusters": false,
+      "symbolBreadth": false,
+      "bothDirections": false,
+      "halfYearBreadth": false,
+      "monthConcentration": false
+    },
+    "failures": [
+      "minimumTrades",
+      "stressProfitFactor",
+      "positiveNet",
+      "withoutBest5Trades",
+      "withoutBest5EventClusters",
+      "symbolBreadth",
+      "bothDirections",
+      "halfYearBreadth",
+      "monthConcentration"
+    ]
+  },
+  "limitations": [
+    "All observations are exposed development data and cannot prove out-of-sample profitability.",
+    "The fixed eight-symbol diagnostic panel is not a point-in-time full-market universe.",
+    "The signal uses premium-index close before settlement but enters five minutes after settlement; 5m contract open remains a price proxy, not a bid/ask fill.",
+      "Funding archive event timestamps determine the clock; realized funding-rate magnitude is excluded from signal generation.",
+      "Max drawdown remains cumulative equal-notional return units, not account equity under margin and liquidation rules.",
+      "The 2026-05 complete-month endpoint was selected after HY-EXP-0002 exposed a 2026-06 archive gap, but before any H2A PnL was computed.",
+      "A passing screen only permits a broader preregistered development test including a non-event placebo."
+  ],
+  "artifacts": {
+    "manifest": "artifacts/HY-EXP-0003/data-manifest.json",
+    "trades": "artifacts/HY-EXP-0003/trades.csv",
+    "report": "artifacts/HY-EXP-0003/report.md"
+  }
+}

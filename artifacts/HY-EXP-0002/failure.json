@@ -1,0 +1,36 @@
+{
+  "experiment_id": "HY-EXP-0002",
+  "failed_at": "2026-07-30T12:04:13.590Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "DATA_QUALITY_FAILURE_NO_PNL_COMPUTED",
+  "stage": "strict_data_validation_before_signal_results",
+  "command": "npm run exp:002:run",
+  "error": "BTCUSDT/premium: non-contiguous 5m series at 1782690900000",
+  "preregistration_sha256": "bf77e32421ab9131e63857476031b01336ce0d1b0c4f1cfb0eef8c0acae3776a",
+  "data_manifest_sha256": "cf13fb3b53eb18a09b1fff19c0ecc53fcedfe0b49f5a63281d5900cb1bc49581",
+  "code_commit": "f49b0fd87f7dddd1e5b14f1d62b7f2f29fed1a65",
+  "data_quality": {
+    "gap_after_utc": "2026-06-28T23:55:00.000Z",
+    "gap_before_utc": "2026-06-30T00:00:00.000Z",
+    "missing_five_minute_bars_per_affected_series": 288,
+    "affected_premium_series": 8,
+    "affected_mark_series": 8,
+    "affected_contract_series": 0,
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "SOLUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ]
+  },
+  "result_artifacts_generated": false,
+  "interpretation": "The fixed experiment is operationally failed. No economic pass/fail inference is permitted because no PnL summary was produced.",
+  "report": {
+    "path": "artifacts/HY-EXP-0002/failure-report.md",
+    "sha256": "86f9c3d49da774e59820b9fcff995d64166a870e3bea8da5da1612dd4b07d990"
+  }
+}

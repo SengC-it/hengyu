@@ -1,0 +1,29 @@
+{
+  "experiment_id": "HY-EXP-0008",
+  "completed_at": "2026-07-30T15:35:57.316Z",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "conclusion": "EXACT_SPECIFICATION_ELIMINATED",
+  "code_commit": "1630ebe04a601fdb759898a45bf751e04803c964",
+  "artifacts": [
+    {
+      "path": "registry/experiments/HY-EXP-0008/preregistration.json",
+      "sha256": "59eb1ae24023e761206442a9852776f167aa2e3efd2884b20a0e6461326b017a"
+    },
+    {
+      "path": "artifacts/HY-EXP-0008/data-manifest.json",
+      "sha256": "59e1355a4f38b7757a78da41e72d18be6aec4b8f6815517c380afdc352088c87"
+    },
+    {
+      "path": "artifacts/HY-EXP-0008/result.json",
+      "sha256": "c99c97047da22cc58cfa855d547f9045117a64a1b7cfcce428ffc2df085d5064"
+    },
+    {
+      "path": "artifacts/HY-EXP-0008/trades.jsonl",
+      "sha256": "8b1a0745c081976cbc0dd72b693a3ea532d0007e76053c8652f3880d953862e9"
+    },
+    {
+      "path": "artifacts/HY-EXP-0008/report.md",
+      "sha256": "169ca87c9f7df87ca6edcb84a5764c5faaf379828d4b3bfa5363c0d2245a3c90"
+    }
+  ]
+}

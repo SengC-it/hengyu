@@ -1,0 +1,32 @@
+{
+  "modelId": "HENGYU-NET-EDGE-001",
+  "evidenceClass": "D0_DEVELOPMENT_ONLY",
+  "authorization": "PAPER_ONLY",
+  "liveOrdersEnabled": false,
+  "purpose": "research-only net-edge decision gate; thresholds are not account-specific advice",
+  "execution": {
+    "feeRatePerFill": 0.0005,
+    "bookStressMultiplier": 2,
+    "impactBufferBpsPerFill": 1,
+    "latencyBufferBpsPerFill": 1
+  },
+  "gate": {
+    "confidenceZ": 1.645,
+    "minimumConservativeNetBps": 3,
+    "minimumGrossToCostRatio": 1.5,
+    "maximumForecastAgeMs": 5000,
+    "maximumBookAgeMs": 1000,
+    "maximumVisibleBookFraction": 0.25
+  },
+  "risk": {
+    "perTradeRiskFraction": 0.0025,
+    "maximumGrossLeverage": 1,
+    "maximumNetExposureFraction": 0.2,
+    "maximumBetaExposureFraction": 0.2,
+    "maximumPortfolioLossFraction": 0.02,
+    "maximumSinglePositionFraction": 0.5,
+    "maximumClusterLossFraction": 0.01,
+    "maximumPositions": 5
+  },
+  "changePolicy": "Any change to a threshold, cost assumption, feature definition, latency, sizing or risk limit creates a new model or experiment record. These defaults do not authorize live orders."
+}
