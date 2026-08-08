@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "symbols": ["BTCUSDT"],
+  "evaluationIntervalSeconds": 60,
+  "heartbeatIntervalSeconds": 60,
+  "stateFile": "data/live/state.json",
+  "pendingFile": "data/live/pending-advisories.ndjson",
+  "takeProfitImpulseMultiplier": 1,
+  "alertLevel": "MEDIUM",
+  "openInterestEnabled": false,
+  "notes": "Live H9 uses a 1.0x event-impulse TP by default; all output remains PAPER_ONLY."
+}

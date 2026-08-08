@@ -13,7 +13,7 @@ const EXIT_BOOK = {
   asks: [[100.6, 10], [100.7, 10]]
 };
 
-test('advisory replay uses causal entry, expiry exit, fees and stress', () => {
+test('advisory replay keeps a signal open when neither TP nor SL is touched', () => {
   const signal = buildNetEdgeAdvisorySignal({
     candidate: {
       hypothesisId: 'H1',
@@ -42,12 +42,12 @@ test('advisory replay uses causal entry, expiry exit, fees and stress', () => {
       { symbol: 'BTCUSDT', eventTime: 12_000, receivedAt: 12_000, ...EXIT_BOOK }
     ]
   });
-  assert.equal(trade.status, 'CLOSED');
-  assert.equal(trade.exitReason, 'TIME');
+  assert.equal(trade.status, 'OPEN');
+  assert.equal(trade.exitReason, null);
   assert.equal(trade.accountDataUsed, false);
-  assert.ok(trade.stressNetPnl < trade.netPnl);
   const summary = summarizeAdvisoryTrades([trade]);
-  assert.equal(summary.closedTrades, 1);
+  assert.equal(summary.closedTrades, 0);
+  assert.equal(summary.openTrades, 1);
   assert.equal(summary.symbols[0], 'BTCUSDT');
 });
 
@@ -68,4 +68,3 @@ test('advisory replay rejects missing causal fill or exit book', () => {
   assert.equal(result.status, 'REJECTED');
   assert.equal(result.reason, 'signal_to_fill_timeout');
 });
-

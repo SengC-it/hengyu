@@ -3,6 +3,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dashboardSnapshot, readAdvisories, readDeliveries } from '../src/service/advisory-store.mjs';
+import { readSentReview } from '../api/_lib/review-read-model.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -30,7 +31,7 @@ function limitFrom(url) {
   return Number.isSafeInteger(value) && value > 0 && value <= 500 ? value : 100;
 }
 
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host ?? 'localhost'}`);
   if (request.method !== 'GET') {
     json(response, 405, { error: 'read_only_endpoint' });
@@ -58,6 +59,11 @@ const server = http.createServer((request, response) => {
     }
     if (url.pathname === '/api/dashboard') {
       json(response, 200, dashboardSnapshot({ signalsFile, outboxFile, limit: limitFrom(url) }));
+      return;
+    }
+    if (url.pathname === '/api/review') {
+      const review = await readSentReview(limitFrom(url));
+      json(response, 200, { dataStatus: review.configured ? 'ok' : 'not_configured', ...review });
       return;
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {

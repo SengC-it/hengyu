@@ -1,0 +1,119 @@
+name: Hengyu H9 Signal Worker
+
+on:
+  schedule:
+    # GitHub evaluates scheduled workflows in UTC. Keep five minutes between runs
+    # and avoid the busiest minute of the hour where possible.
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hengyu-h9-signal-worker
+  cancel-in-progress: false
+
+jobs:
+  h9:
+    name: Generate and ingest H9 signals
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      HENGYU_API_BASE_URL: ${{ secrets.HENGYU_API_BASE_URL || 'https://hengyu-research.vercel.app' }}
+      HENGYU_INGEST_SECRET: ${{ secrets.HENGYU_INGEST_SECRET }}
+      HENGYU_WORKER_SYMBOLS: ${{ vars.HENGYU_WORKER_SYMBOLS || 'BTCUSDT' }}
+      HENGYU_WORKER_TP_MULTIPLIER: ${{ vars.HENGYU_WORKER_TP_MULTIPLIER || '1' }}
+      HENGYU_WORKER_ALERT_LEVEL: ${{ vars.HENGYU_WORKER_ALERT_LEVEL || 'MEDIUM' }}
+      HENGYU_WORKER_DRY_RUN: 'false'
+      HENGYU_WORKER_STATE_FILE: data/live/state.json
+      HENGYU_WORKER_PENDING_FILE: data/live/pending-advisories.ndjson
+
+    steps:
+      - name: Check out Hengyu
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Node dependencies
+        shell: bash
+        run: npm ci
+
+      - name: Prepare H9 state directory
+        shell: bash
+        run: mkdir -p data/live
+
+      - name: Restore H9 state from the previous run
+        uses: actions/cache/restore@v4
+        with:
+          path: data/live
+          key: hengyu-h9-state-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            hengyu-h9-state-${{ github.ref_name }}-
+
+      - name: Validate Hengyu ingest and Supabase configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${HENGYU_INGEST_SECRET}" ]]; then
+            echo "::error::Configure the GitHub Actions secret HENGYU_INGEST_SECRET."
+            exit 1
+          fi
+
+          health="$(curl --fail --show-error --silent "${HENGYU_API_BASE_URL%/}/api/health")"
+          echo "${health}"
+          HEALTH_JSON="${health}" node --input-type=module -e '
+            const health = JSON.parse(process.env.HEALTH_JSON);
+            const missing = [];
+            if (!health.ingestConfigured) missing.push("Vercel HENGYU_INGEST_SECRET");
+            if (!health.supabase?.configured) missing.push("Vercel HENGYU_SUPABASE_URL + HENGYU_SUPABASE_SECRET_KEY");
+            if (missing.length) {
+              console.error(`::error::Hengyu runtime is not ready: ${missing.join("; ")}`);
+              process.exit(1);
+            }
+            if (!health.gmailConfigured) {
+              console.warn("::warning::Gmail is not configured; H9 rows may be stored, but email alerts will not be sent.");
+            }
+          '
+
+      - name: Run H9 evaluator and ingest for 25 minutes
+        shell: bash
+        run: node --use-env-proxy scripts/live-worker.mjs --seconds 1500
+
+      - name: Publish H9 run summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f data/live/state.json ]]; then
+            echo "## H9 worker" >> "$GITHUB_STEP_SUMMARY"
+            echo "State file was not produced." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import fs from 'node:fs';
+
+          const state = JSON.parse(fs.readFileSync('data/live/state.json', 'utf8'));
+          const iso = value => value == null ? 'n/a' : new Date(value).toISOString();
+          console.log('## H9 worker state');
+          console.log(`Saved at: ${iso(state.savedAt)}`);
+          for (const [symbol, row] of Object.entries(state.symbols ?? {})) {
+            const warmupUntil = row.warmupStartedAt == null
+              ? null
+              : row.warmupStartedAt + 30 * 24 * 60 * 60 * 1000;
+            console.log(`- **${symbol}**: warmup started ${iso(row.warmupStartedAt)}, `
+              + `warmup target ${iso(warmupUntil)}, `
+              + `last closed window ${iso(row.lastClosedWindowEnd)}, `
+              + `last accepted window ${iso(row.lastAcceptedWindowEnd)}, `
+              + `pressure windows ${row.pressureWindows?.length ?? 0}`);
+          }
+          NODE
+
+      - name: Save H9 state for the next run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/live
+          key: hengyu-h9-state-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}

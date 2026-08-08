@@ -7,9 +7,13 @@ node_modules/
 # Raw exchange data is reproducible from the registered manifest and is not committed.
 data/raw/
 data/cache/
+data/live/
 
 # Temporary and editor files.
 *.tmp
 *.log
 .DS_Store
 Thumbs.db
+
+.vercel
+.env*

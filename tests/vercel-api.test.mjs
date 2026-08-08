@@ -4,6 +4,10 @@ import crypto from 'node:crypto';
 import { assertPaperOnly, safetyEnvelope } from '../api/_lib/safety.mjs';
 import { publicSignal } from '../api/_lib/read-model.mjs';
 import { verifySignedRequest } from '../api/_lib/signature.mjs';
+import { gmailFromHeader, gmailStatus } from '../api/_lib/gmail.mjs';
+import { emailReferences } from '../api/_lib/review-read-model.mjs';
+import { buildEmailOutboxRow } from '../api/ingest.mjs';
+import testEmailHandler from '../api/test-email.mjs';
 
 test('Vercel safety envelope stays paper-only and exposes no account controls', () => {
   const envelope = safetyEnvelope();
@@ -39,6 +43,105 @@ test('signed collector request verifies the exact body and timestamp', () => {
     'x-hengyu-signature': signature
   } }, body);
   assert.deepEqual(result, { ok: true });
+  if (previous === undefined) delete process.env.HENGYU_INGEST_SECRET;
+  else process.env.HENGYU_INGEST_SECRET = previous;
+});
+
+test('advisory bundle email row contains the same three reference prices', () => {
+  const previousFrom = process.env.HENGYU_GMAIL_FROM_ADDRESS;
+  const previousTo = process.env.HENGYU_GMAIL_TO_ADDRESS;
+  process.env.HENGYU_GMAIL_FROM_ADDRESS = 'research@example.com';
+  process.env.HENGYU_GMAIL_TO_ADDRESS = 'owner@example.com';
+  const row = buildEmailOutboxRow({
+    alert_level: 'MEDIUM',
+    advisory_type: 'REVIEW_BUY',
+    symbol: 'BTCUSDT',
+    expires_at: '2026-08-02T00:15:00.000Z',
+    entry_reference: 100,
+    stop_reference: 98,
+    exit_reference: 103,
+    dedupe_key: 'test-advisory',
+    metadata: { reasons: ['H9_FORCE_PRESSURE_RECOVERY'] }
+  }, '00000000-0000-4000-8000-000000000001');
+  assert.equal(row.from_address, 'research@example.com');
+  assert.match(row.body_plain, /入场价：100/);
+  assert.match(row.body_plain, /止损价：98/);
+  assert.match(row.body_plain, /止盈价：103/);
+  assert.match(row.body_sha256, /^[0-9a-f]{64}$/);
+  if (previousFrom === undefined) delete process.env.HENGYU_GMAIL_FROM_ADDRESS;
+  else process.env.HENGYU_GMAIL_FROM_ADDRESS = previousFrom;
+  if (previousTo === undefined) delete process.env.HENGYU_GMAIL_TO_ADDRESS;
+  else process.env.HENGYU_GMAIL_TO_ADDRESS = previousTo;
+});
+
+test('review parser reads prices from both Chinese and historical English emails', () => {
+  assert.deepEqual(emailReferences({ body_plain: '入场价：100\n止损价：98\n止盈价：103' }, {}), {
+    entryPrice: 100,
+    stopPrice: 98,
+    takeProfitPrice: 103
+  });
+  assert.deepEqual(emailReferences({
+    body_plain: 'Reference entry: 100\nReference stop: 98\nReference take-profit: 103'
+  }, {}), {
+    entryPrice: 100,
+    stopPrice: 98,
+    takeProfitPrice: 103
+  });
+});
+
+test('Gmail SMTP App Password mode needs only the three Hengyu email variables', () => {
+  const names = [
+    'HENGYU_GMAIL_FROM_ADDRESS',
+    'HENGYU_GMAIL_TO_ADDRESS',
+    'HENGYU_GMAIL_APP_PASSWORD',
+    'HENGYU_GMAIL_SEND_ENABLED',
+    'HENGYU_GMAIL_CLIENT_ID',
+    'HENGYU_GMAIL_CLIENT_SECRET',
+    'HENGYU_GMAIL_REFRESH_TOKEN'
+  ];
+  const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
+  for (const name of names) delete process.env[name];
+  process.env.HENGYU_GMAIL_FROM_ADDRESS = 'research@example.com';
+  process.env.HENGYU_GMAIL_TO_ADDRESS = 'owner@example.com';
+  process.env.HENGYU_GMAIL_APP_PASSWORD = 'test-app-password';
+  assert.deepEqual(gmailStatus(), {
+    configured: true,
+    enabled: true,
+    mode: 'smtp_app_password',
+    fromName: 'HengYu'
+  });
+  for (const name of names) {
+    if (previous[name] === undefined) delete process.env[name];
+    else process.env[name] = previous[name];
+  }
+});
+
+test('Gmail sender header uses HengYu as the default display name', () => {
+  const previous = process.env.HENGYU_GMAIL_FROM_NAME;
+  delete process.env.HENGYU_GMAIL_FROM_NAME;
+  assert.equal(gmailFromHeader('zunxian.chi@example.com'), 'HengYu <zunxian.chi@example.com>');
+  if (previous === undefined) delete process.env.HENGYU_GMAIL_FROM_NAME;
+  else process.env.HENGYU_GMAIL_FROM_NAME = previous;
+});
+
+test('test email endpoint rejects an unsigned request without sending', async () => {
+  const previous = process.env.HENGYU_INGEST_SECRET;
+  process.env.HENGYU_INGEST_SECRET = 'test-secret';
+  const request = {
+    method: 'POST',
+    headers: {},
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ report: 'test' })); }
+  };
+  const response = {
+    statusCode: 0,
+    headers: {},
+    body: '',
+    setHeader(name, value) { this.headers[name] = value; },
+    end(value) { this.body = value; }
+  };
+  await testEmailHandler(request, response);
+  assert.equal(response.statusCode, 401);
+  assert.match(response.body, /invalid_signature|stale_signature/);
   if (previous === undefined) delete process.env.HENGYU_INGEST_SECRET;
   else process.env.HENGYU_INGEST_SECRET = previous;
 });

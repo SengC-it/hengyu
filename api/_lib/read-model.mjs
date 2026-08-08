@@ -24,6 +24,7 @@ export function publicSignal(row) {
     reference: {
       entryPrice: numberOrNull(row.entry_reference),
       stopPrice: numberOrNull(row.stop_reference),
+      takeProfitPrice: numberOrNull(row.exit_reference),
       exitPrice: numberOrNull(row.exit_reference)
     },
     costs: {

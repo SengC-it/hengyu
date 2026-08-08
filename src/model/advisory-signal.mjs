@@ -72,6 +72,11 @@ export function buildH9AdvisorySignal({
   const recoveryRatio = finite('recovery ratio', event.recoveryRatio, { minimum: 0 });
   const eventImpulse = finite('event impulse', event.eventImpulse, { minimum: 0 });
   const quote = topOppositeQuote(event.decisionBook, side);
+  const takeProfitPrice = event.takeProfitPrice
+    ?? event.targetPrice
+    ?? event.expectedExitPrice
+    ?? event.exitReferencePrice
+    ?? null;
   const fixedNotional = finite('fixed research notional', policy.fixedNotionalPerEvent, {
     minimum: 0,
     exclusiveMinimum: true
@@ -86,6 +91,13 @@ export function buildH9AdvisorySignal({
     impactBufferBpsPerFill: policy.impactBufferBpsPerFill,
     latencyBufferBpsPerFill: policy.latencyBufferBpsPerFill
   });
+  const alertLevel = String(event.alertLevel ?? policy.alertLevel ?? 'NONE').toUpperCase();
+  if (!['STRONG', 'MEDIUM', 'OBSERVE', 'NONE'].includes(alertLevel)) {
+    throw new Error('invalid H9 alert level');
+  }
+  const email = alertLevel === 'STRONG'
+    ? 'IMMEDIATE'
+    : alertLevel === 'MEDIUM' ? 'DIGEST_15M' : 'NONE';
 
   return {
     schemaVersion: 1,
@@ -94,6 +106,7 @@ export function buildH9AdvisorySignal({
     hypothesisId: 'H9',
     evidenceClass: 'F0_PENDING',
     status: 'ADVISORY',
+    alertLevel,
     action: side === 'BUY' ? 'REVIEW_BUY' : 'REVIEW_SELL',
     symbol,
     side,
@@ -106,7 +119,9 @@ export function buildH9AdvisorySignal({
       decisionMid,
       oppositeBestPrice: quote.price,
       oppositeBestQuantity: quote.quantity,
+      entryPrice: quote.price,
       stopPrice,
+      takeProfitPrice,
       stopDistanceBps: Math.abs(stopPrice - decisionMid) / decisionMid * BPS,
       eventImpulseBps: eventImpulse / decisionMid * BPS
     },
@@ -123,6 +138,11 @@ export function buildH9AdvisorySignal({
       roundTripCostBps: execution.fillable ? execution.totalExecutionCostBps : null,
       observedBookCostBps: execution.fillable ? execution.observedBookCostBps : null,
       stressedBookCostBps: execution.fillable ? execution.stressedBookCostBps : null
+    },
+    delivery: {
+      web: true,
+      email,
+      dedupeKey: `HY-EXP-0013:${symbol}:${side}:${decisionTime}:${alertLevel}`
     },
     manualOnly: {
       requiresHumanConfirmation: true,

@@ -83,6 +83,8 @@ npm.cmd run forward:capture:dynamic:proxy -- --seconds 86400
 npm.cmd run advisory:server
 ```
 
+本地长期运行的入口是根目录 `start-live-worker.bat`；第一次双击会创建并打开 `.env.live.local` 模板。完整配置说明见 [本地实时 Worker](docs/local-live-worker.md)。
+
 候选评估输出只包含方向、参考价格、失效时间和成本；数量、杠杆、账户风险和任何下单接口均不会输出。分级提醒写入 `data/advisory-outbox.ndjson`，需要你提供邮件供应商凭据后再接入投递适配器。
 
 下载和运行已预注册的第一轮开发样本实验：

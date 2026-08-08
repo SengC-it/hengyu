@@ -92,7 +92,6 @@ export function simulateAdvisorySignal({
   const decisionTime = integer('signal decision time', signal.decisionTime);
   const generatedAt = integer('signal generated time', signal.generatedAt);
   const validUntil = integer('signal valid-until time', signal.validUntil);
-  const expiresAt = integer('signal expiry time', signal.expiresAt);
   const symbolBooks = rowsForSymbol(books, symbol);
   const entryBook = symbolBooks.find(book => {
     const eventAt = marketTime(book);
@@ -105,22 +104,50 @@ export function simulateAdvisorySignal({
     : finite('quantity', quantity, { minimum: 0, exclusiveMinimum: true });
   const entry = walkBook({ side, quantity: entryQuantity, book: entryBook });
   if (!entry.fillable) return { status: 'REJECTED', reason: 'insufficient_entry_depth', signalId: signal.signalId };
-  const target = signal.reference?.exitReferencePrice == null ? null : Number(signal.reference.exitReferencePrice);
+  const targetValue = signal.reference?.takeProfitPrice ?? signal.reference?.exitReferencePrice;
+  const target = targetValue == null ? null : Number(targetValue);
   const stop = signal.reference?.stopPrice == null ? null : Number(signal.reference.stopPrice);
   let exitBook = null;
   let exitReason = null;
   for (const book of symbolBooks) {
     const time = marketTime(book);
-    if (time < marketTime(entryBook) || time > expiresAt) continue;
+    if (time < marketTime(entryBook)) continue;
     const currentMid = mid(book);
     const stopTriggered = stop != null && (side === 'BUY' ? currentMid <= stop : currentMid >= stop);
     const targetReached = target != null && (side === 'BUY' ? currentMid >= target : currentMid <= target);
+    if (stopTriggered && targetReached) {
+      return { status: 'REJECTED', reason: 'tp_sl_order_unknown_same_observation', signalId: signal.signalId };
+    }
     if (stopTriggered) { exitBook = book; exitReason = 'STOP'; break; }
     if (targetReached) { exitBook = book; exitReason = 'TARGET'; break; }
   }
   if (!exitBook) {
-    exitBook = symbolBooks.find(book => marketTime(book) >= expiresAt) ?? null;
-    exitReason = 'TIME';
+    const markBook = symbolBooks.filter(book => marketTime(book) >= marketTime(entryBook)).at(-1) ?? entryBook;
+    const markPrice = mid(markBook);
+    const direction = sideSign(side);
+    const markGrossPricePnl = direction * entryQuantity * (markPrice - entry.vwap);
+    const markFees = (entry.quoteNotional + entryQuantity * markPrice) * policy.feeRatePerFill;
+    return {
+      status: 'OPEN',
+      signalId: signal.signalId,
+      experimentId: signal.experimentId,
+      hypothesisId: signal.hypothesisId,
+      symbol,
+      side,
+      entryTime: marketTime(entryBook),
+      entryReceivedAt: receivedAt(entryBook),
+      signalToFillMs: receivedAt(entryBook) - generatedAt,
+      holdMs: marketTime(markBook) - marketTime(entryBook),
+      exitReason: null,
+      entryPrice: entry.vwap,
+      markTime: marketTime(markBook),
+      markPrice,
+      markGrossPricePnl,
+      markFees,
+      markNetPnl: markGrossPricePnl - markFees,
+      accountDataUsed: false,
+      humanFeedbackRecorded: false
+    };
   }
   if (!exitBook) return { status: 'REJECTED', reason: 'missing_exit_book', signalId: signal.signalId };
   const exitSide = side === 'BUY' ? 'SELL' : 'BUY';
@@ -180,6 +207,7 @@ export function simulateAdvisorySignal({
 
 export function summarizeAdvisoryTrades(trades) {
   const closed = (trades ?? []).filter(trade => trade?.status === 'CLOSED');
+  const open = (trades ?? []).filter(trade => trade?.status === 'OPEN');
   const ordered = [...closed].sort((left, right) => left.exitTime - right.exitTime || left.signalId.localeCompare(right.signalId));
   const grossProfit = ordered.filter(row => row.stressNetPnl > 0).reduce((total, row) => total + row.stressNetPnl, 0);
   const grossLoss = ordered.filter(row => row.stressNetPnl < 0).reduce((total, row) => total - row.stressNetPnl, 0);
@@ -198,8 +226,10 @@ export function summarizeAdvisoryTrades(trades) {
   }
   const best5 = [...clusters.values()].sort((left, right) => right - left).slice(0, 5);
   const stressNetPnl = ordered.reduce((total, row) => total + row.stressNetPnl, 0);
+  const observed = [...ordered, ...open];
   return {
     closedTrades: ordered.length,
+    openTrades: open.length,
     wins: ordered.filter(row => row.stressNetPnl > 0).length,
     losses: ordered.filter(row => row.stressNetPnl < 0).length,
     netPnl: ordered.reduce((total, row) => total + row.netPnl, 0),
@@ -208,7 +238,7 @@ export function summarizeAdvisoryTrades(trades) {
     maxDrawdown,
     best5ClusterStressNetPnl: best5.reduce((total, value) => total + value, 0),
     afterBest5ClusterStressNetPnl: stressNetPnl - best5.reduce((total, value) => total + value, 0),
-    symbols: [...new Set(ordered.map(row => row.symbol))].sort(),
-    sides: [...new Set(ordered.map(row => row.side))].sort()
+    symbols: [...new Set(observed.map(row => row.symbol))].sort(),
+    sides: [...new Set(observed.map(row => row.side))].sort()
   };
 }

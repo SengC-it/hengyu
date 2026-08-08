@@ -7,10 +7,13 @@ private order.
 Each advisory signal contains:
 
 - `REVIEW_BUY` or `REVIEW_SELL`, never an order instruction;
-- the event and received timestamps, the two-second validity boundary, and the
-  fifteen-minute research expiry;
+- the event and received timestamps, the two-second entry-validity boundary,
+  and the research expiry metadata (it is not an automatic exit);
 - the opposite best quote observed at the recovery decision;
 - a stop reference and the observed event-impulse context;
+- an entry, stop-loss and take-profit triplet for the sent-signal review; the
+  first TP/SL touch settles the paper result, otherwise the position remains
+  open;
 - a fixed-notional research execution-cost estimate, explicitly labelled as
   research context rather than account sizing;
 - `humanConfirmationRequired: true`, `autoExecution: false`, and

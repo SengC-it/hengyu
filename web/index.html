@@ -10,6 +10,11 @@
     main { max-width: 1100px; margin: 0 auto; padding: 24px; }
     header { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
     .notice { padding: 12px; border: 1px solid #334155; border-radius: 8px; color: #cbd5e1; }
+    .section { margin-top: 28px; }
+    .section h2 { margin-bottom: 6px; }
+    .muted { color: #94a3b8; font-size: 13px; }
+    .closed-win { color: #4ade80; } .closed-loss { color: #f87171; }
+    .holding { color: #facc15; } .data-insufficient, .invalid { color: #fda4af; }
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { padding: 9px 8px; border-bottom: 1px solid #1e293b; text-align: left; }
     th { color: #94a3b8; font-size: 12px; }
@@ -23,16 +28,53 @@
     <p class="notice">只读研究提醒：PAPER_ONLY · 不读取账户 · 不提供数量/杠杆 · 不含下单接口。</p>
     <div id="counts"></div>
     <table><thead><tr><th>时间</th><th>级别</th><th>动作</th><th>币种</th><th>入场参考</th><th>保守净优势</th><th>状态</th></tr></thead><tbody id="rows"></tbody></table>
+    <section class="section">
+      <h2>已发复盘</h2>
+      <p class="muted">只统计邮件已实际发送（SENT）的 STRONG/MEDIUM 信号。按邮件中的入场、SL、TP 价格复盘；TP/SL 首次触发结算，未触发则持续持仓，不按时间平仓。收益为价格收益，不含手续费和滑点。</p>
+      <div id="review-counts"></div>
+      <div id="review-status" class="muted">复盘读取中…</div>
+      <table><thead><tr><th>发送时间</th><th>币种/方向</th><th>入场</th><th>SL</th><th>TP</th><th>结算</th><th>价格收益</th><th>数据</th></tr></thead><tbody id="review-rows"></tbody></table>
+    </section>
   </main>
   <script>
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+    const price = value => value == null ? '—' : Number(value).toLocaleString(undefined, { maximumFractionDigits: 8 });
+    const time = value => value ? new Date(value).toLocaleString() : '—';
+    const bps = value => value == null ? '—' : `${Number(value).toFixed(2)} bps`;
+
+    function reviewStatus(row) {
+      if (row.status === 'CLOSED') return row.exitReason === 'TP' ? '已止盈' : '已止损';
+      if (row.status === 'HOLDING') return '持仓中';
+      if (row.status === 'DATA_INSUFFICIENT') return '数据不足';
+      return '信号无效';
+    }
+
+    function reviewPnl(row) {
+      if (row.status === 'CLOSED') return `${bps(row.pnlBps)} (${Number(row.pnlPercent).toFixed(2)}%)`;
+      if (row.status === 'HOLDING' && row.markPnlBps != null) return `浮动 ${bps(row.markPnlBps)}`;
+      return '—';
+    }
+
     async function refresh() {
-      const result = await fetch('/api/dashboard', { cache: 'no-store' }).then(response => response.json());
-      document.querySelector('#status').textContent = `信号 ${result.counts.signals} · 邮件 ${result.counts.alerts}`;
+      const [result, review] = await Promise.all([
+        fetch('/api/dashboard', { cache: 'no-store' }).then(response => response.json()),
+        fetch('/api/review?limit=100', { cache: 'no-store' }).then(response => response.json())
+      ]);
+      document.querySelector('#status').textContent = `信号 ${result.counts.signals} · 邮件 ${result.counts.alerts} · 已发复盘 ${review.summary.totalSignals}`;
       document.querySelector('#counts').textContent = `STRONG ${result.counts.strong} · MEDIUM ${result.counts.medium} · OBSERVE ${result.counts.observe} · NO_TRADE ${result.counts.noTrade}`;
       document.querySelector('#rows').innerHTML = result.signals.map(signal => {
         const level = String(signal.alertLevel || 'NONE').toLowerCase();
         const edge = signal.costs?.conservativeNetEdgeBps == null ? '—' : `${Number(signal.costs.conservativeNetEdgeBps).toFixed(2)} bps`;
-        return `<tr><td>${new Date(signal.generatedAt).toLocaleString()}</td><td class="${level}">${signal.alertLevel}</td><td>${signal.action || 'NO_TRADE'}</td><td><code>${signal.symbol}</code></td><td>${signal.reference?.entryPrice ?? '—'}</td><td>${edge}</td><td>${signal.status}</td></tr>`;
+        return `<tr><td>${time(signal.generatedAt)}</td><td class="${level}">${escapeHtml(signal.alertLevel)}</td><td>${escapeHtml(signal.action || 'NO_TRADE')}</td><td><code>${escapeHtml(signal.symbol)}</code></td><td>${price(signal.reference?.entryPrice)}</td><td>${edge}</td><td>${escapeHtml(signal.status)}</td></tr>`;
+      }).join('');
+      const summary = review.summary;
+      document.querySelector('#review-counts').textContent = `已发 ${summary.totalSignals} · 已结算 ${summary.closedSignals} · 持仓中 ${summary.holdingSignals} · 胜 ${summary.wins} · 负 ${summary.losses} · 已实现 ${Number(summary.realizedPnlPercent).toFixed(2)}%`;
+      document.querySelector('#review-status').textContent = review.dataStatus === 'not_configured'
+        ? '复盘数据源未配置。'
+        : `复盘数据：${review.marketData.interval} K线；触发K线再用逐笔聚合成交确认先后。更新时间 ${new Date().toLocaleString()}`;
+      document.querySelector('#review-rows').innerHTML = review.reviews.map(row => {
+        const statusClass = row.status.toLowerCase().replace('_', '-');
+        return `<tr><td>${time(row.sentAt)}</td><td><code>${escapeHtml(row.symbol)}</code> ${escapeHtml(row.side)}</td><td>${price(row.reference?.entryPrice)}</td><td>${price(row.reference?.stopPrice)}</td><td>${price(row.reference?.takeProfitPrice)}</td><td class="${statusClass}">${reviewStatus(row)}${row.exitAt ? `<br><span class="muted">${time(row.exitAt)}</span>` : ''}</td><td class="${row.pnlBps > 0 ? 'closed-win' : row.pnlBps < 0 ? 'closed-loss' : ''}">${reviewPnl(row)}</td><td title="${escapeHtml(row.reason || '')}">${escapeHtml(row.dataQuality || row.reason || '—')}</td></tr>`;
       }).join('');
     }
     refresh().catch(error => { document.querySelector('#status').textContent = `读取失败：${error.message}`; });

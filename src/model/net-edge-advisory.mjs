@@ -129,6 +129,7 @@ export function buildNetEdgeAdvisorySignal({
   const expiresAt = decisionTime + Math.min(researchExpiryMs, candidateHoldMs);
   const execution = result.metrics?.execution ?? null;
   const quote = quoteFromExecution(execution, book, side);
+  const takeProfitPrice = candidate.expectedExitPrice ?? quote.exitReferencePrice;
   const advisory = {
     schemaVersion: 1,
     signalId: signalId({
@@ -154,7 +155,8 @@ export function buildNetEdgeAdvisorySignal({
     expiresAt,
     reference: {
       entryPrice: quote.entryPrice,
-      exitReferencePrice: candidate.expectedExitPrice ?? quote.exitReferencePrice,
+      takeProfitPrice,
+      exitReferencePrice: takeProfitPrice,
       oppositeBestPrice: quote.oppositeBestPrice,
       stopPrice: candidate.stopPrice ?? null,
       maximumHoldMs: candidate.maxHoldMs ?? researchExpiryMs
@@ -195,7 +197,7 @@ export function buildModelSimulationRecord({ signal, outcome }) {
   if (!signal || typeof signal !== 'object') throw new Error('signal is required');
   if (!outcome || typeof outcome !== 'object') throw new Error('outcome is required');
   const status = String(outcome.status ?? '').toUpperCase();
-  if (!['CLOSED', 'REJECTED'].includes(status)) throw new Error('simulation outcome status is invalid');
+  if (!['OPEN', 'CLOSED', 'REJECTED'].includes(status)) throw new Error('simulation outcome status is invalid');
   const row = {
     schemaVersion: 1,
     recordType: 'MODEL_SIMULATION',
@@ -205,11 +207,14 @@ export function buildModelSimulationRecord({ signal, outcome }) {
     symbol: signal.symbol,
     side: signal.side,
     alertLevel: signal.alertLevel,
-    status,
+    status: status === 'REJECTED' ? 'INVALID' : status,
     entryTime: outcome.entryTime ?? null,
     exitTime: outcome.exitTime ?? null,
     signalToFillMs: outcome.signalToFillMs ?? null,
     exitReason: outcome.exitReason ?? null,
+    markTime: outcome.markTime ?? null,
+    markPrice: outcome.markPrice ?? null,
+    markNetPnl: outcome.markNetPnl ?? null,
     grossPricePnl: outcome.grossPricePnl ?? null,
     fundingPnl: outcome.fundingPnl ?? null,
     fees: outcome.fees ?? null,

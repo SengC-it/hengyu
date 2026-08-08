@@ -3,6 +3,30 @@ import path from 'node:path';
 
 const EMAIL_LEVELS = new Set(['STRONG', 'MEDIUM']);
 
+const LEVEL_LABELS = Object.freeze({
+  STRONG: '较强',
+  MEDIUM: '一般',
+  OBSERVE: '观察',
+  NONE: '普通'
+});
+
+const REASON_LABELS = Object.freeze({
+  H9_FORCE_PRESSURE_RECOVERY: '价格下跌后出现反弹迹象',
+  PRESSURE_THRESHOLD_BREACH: '市场波动达到提醒标准',
+  DEPTH_RECOVERY: '当前买卖力量正在恢复',
+  future_timestamp: '数据时间异常',
+  stale_forecast: '预测数据已经过时',
+  stale_book: '市场价格数据已经过时',
+  insufficient_visible_depth: '当前可成交数量不足',
+  visible_depth_participation: '当前可成交数量有限',
+  non_positive_price_edge: '预期价格空间不足',
+  insufficient_cost_coverage: '预期空间不足以覆盖费用',
+  insufficient_conservative_net_edge: '扣除费用和风险后，剩余空间不足',
+  pressure_below_threshold: '市场波动还没有达到提醒标准',
+  insufficient_recovery: '反弹力度不足',
+  missing_event_impulse: '缺少足够的价格变化'
+});
+
 function integer(name, value, { minimum = 0 } = {}) {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < minimum) throw new Error(`invalid ${name}`);
@@ -15,28 +39,70 @@ function levelOf(signal) {
   return level;
 }
 
+function directionOf(signal) {
+  const action = String(signal?.action ?? '').toUpperCase();
+  if (action === 'REVIEW_BUY' || action === 'BUY') return '买入';
+  if (action === 'REVIEW_SELL' || action === 'SELL') return '卖出';
+  const side = String(signal?.side ?? '').toUpperCase();
+  if (side === 'BUY' || side === 'LONG') return '买入';
+  if (side === 'SELL' || side === 'SHORT') return '卖出';
+  return '观察';
+}
+
+function displayTime(value) {
+  if (value == null || value === '') return '未提供';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '未提供';
+  return date.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    hour12: false
+  }) + '（北京时间）';
+}
+
+function displayPrice(value) {
+  return value == null || value === '' ? '未提供' : String(value);
+}
+
+function displayNetSpace(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? (parsed / 100).toFixed(2) + '%' : '未提供';
+}
+
+function displayReasons(reasons) {
+  const labels = [...new Set((reasons ?? [])
+    .map(reason => REASON_LABELS[String(reason)] ?? '系统条件已满足'))];
+  return labels.join('；') || '系统条件已满足';
+}
+
 export function formatAdvisoryEmail(signal) {
   const level = levelOf(signal);
-  const action = signal.action ?? 'NO_TRADE';
   const symbol = signal.symbol ?? 'UNKNOWN';
-  const entry = signal.reference?.entryPrice ?? 'n/a';
-  const stop = signal.reference?.stopPrice ?? 'n/a';
-  const expiry = signal.expiresAt == null ? 'n/a' : new Date(signal.expiresAt).toISOString();
-  const edge = signal.costs?.conservativeNetEdgeBps == null
-    ? 'n/a'
-    : `${Number(signal.costs.conservativeNetEdgeBps).toFixed(2)} bps`;
-  const subject = `[Hengyu ${level}] ${action} ${symbol} · manual review only`;
+  const entry = signal.reference?.entryPrice;
+  const stop = signal.reference?.stopPrice;
+  const takeProfit = signal.reference?.takeProfitPrice
+    ?? signal.reference?.exitReferencePrice
+    ?? signal.reference?.exitPrice;
+  const direction = directionOf(signal);
+  const levelLabel = LEVEL_LABELS[level];
+  const subject = '[HengYu] ' + symbol + ' ' + direction + '提醒（' + levelLabel + '）｜仅供参考';
   const text = [
     subject,
     '',
-    `Reference entry: ${entry}`,
-    `Reference stop: ${stop}`,
-    `Research expiry: ${expiry}`,
-    `Conservative net edge: ${edge}`,
-    `Reasons: ${(signal.reasons ?? []).join(', ') || 'gate passed'}`,
+    '信号方向：' + direction,
+    '信号强度：' + levelLabel,
+    '交易品种：' + symbol,
     '',
-    'PAPER_ONLY. This is a research advisory, not an order instruction.',
-    'No account balance, quantity, leverage or private API was used.'
+    '价格参考（复盘只使用下面三项）：',
+    '入场价：' + displayPrice(entry),
+    '止损价：' + displayPrice(stop),
+    '止盈价：' + displayPrice(takeProfit),
+    '',
+    '信号有效到：' + displayTime(signal.expiresAt),
+    '结算规则：入场后，止损价和止盈价谁先触及就按谁结算；如果两者都没有触及，就继续持仓，不会因为时间到了自动平仓。',
+    '预计扣除费用后的空间：' + displayNetSpace(signal.costs?.conservativeNetEdgeBps) + '（仅作参考，不代表保证盈利）',
+    '触发原因：' + displayReasons(signal.reasons),
+    '',
+    '重要提醒：这是一封研究提醒，不是买卖指令。系统不会自动下单，也不会读取或动用你的账户资金。'
   ].join('\n');
   return { subject, text };
 }

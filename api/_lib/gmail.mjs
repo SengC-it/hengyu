@@ -1,16 +1,50 @@
 import { insertRow, selectRows, updateRow } from './supabase.mjs';
+import nodemailer from 'nodemailer';
 
-function enabled() {
-  return process.env.HENGYU_GMAIL_SEND_ENABLED === 'true' &&
+const DEFAULT_GMAIL_FROM_NAME = 'HengYu';
+
+function disabled() {
+  return process.env.HENGYU_GMAIL_SEND_ENABLED === 'false';
+}
+
+function gmailFromName() {
+  return String(process.env.HENGYU_GMAIL_FROM_NAME || DEFAULT_GMAIL_FROM_NAME).trim()
+    || DEFAULT_GMAIL_FROM_NAME;
+}
+
+export function gmailFromHeader(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return raw;
+  const match = raw.match(/<([^<>]+)>/);
+  const address = (match ? match[1] : raw).trim();
+  return `${gmailFromName()} <${address}>`;
+}
+
+function smtpConfigured() {
+  return !disabled() &&
+    process.env.HENGYU_GMAIL_FROM_ADDRESS &&
+    process.env.HENGYU_GMAIL_TO_ADDRESS &&
+    process.env.HENGYU_GMAIL_APP_PASSWORD;
+}
+
+function oauthConfigured() {
+  return !disabled() &&
+    process.env.HENGYU_GMAIL_SEND_ENABLED === 'true' &&
     process.env.HENGYU_GMAIL_CLIENT_ID &&
     process.env.HENGYU_GMAIL_CLIENT_SECRET &&
     process.env.HENGYU_GMAIL_REFRESH_TOKEN;
 }
 
+function enabled() {
+  return Boolean(smtpConfigured() || oauthConfigured());
+}
+
 export function gmailStatus() {
   return {
-    configured: Boolean(enabled()),
-    enabled: process.env.HENGYU_GMAIL_SEND_ENABLED === 'true'
+    configured: enabled(),
+    enabled: !disabled(),
+    mode: smtpConfigured() ? 'smtp_app_password' : (oauthConfigured() ? 'oauth' : null),
+    fromName: gmailFromName()
   };
 }
 
@@ -35,11 +69,10 @@ function base64Url(value) {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-export async function sendGmail({ from, to, subject, text }) {
-  if (!enabled()) throw new Error('gmail_not_enabled');
+async function sendGmailViaOAuth({ from, to, subject, text }) {
   const token = await accessToken();
   const raw = [
-    `From: ${from}`,
+    `From: ${gmailFromHeader(from || process.env.HENGYU_GMAIL_FROM_ADDRESS)}`,
     `To: ${to}`,
     `Subject: ${subject}`,
     'Content-Type: text/plain; charset="UTF-8"',
@@ -55,6 +88,31 @@ export async function sendGmail({ from, to, subject, text }) {
   const data = await response.json();
   if (!response.ok || !data.id) throw new Error('gmail_send_failed');
   return data.id;
+}
+
+async function sendGmailViaSmtp({ from, to, subject, text }) {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.HENGYU_GMAIL_FROM_ADDRESS,
+      pass: process.env.HENGYU_GMAIL_APP_PASSWORD
+    }
+  });
+  const result = await transporter.sendMail({
+    from: gmailFromHeader(from || process.env.HENGYU_GMAIL_FROM_ADDRESS),
+    to: to || process.env.HENGYU_GMAIL_TO_ADDRESS,
+    subject,
+    text
+  });
+  return result.messageId || result.response || 'smtp_sent';
+}
+
+export async function sendGmail({ from, to, subject, text }) {
+  if (smtpConfigured()) return sendGmailViaSmtp({ from, to, subject, text });
+  if (oauthConfigured()) return sendGmailViaOAuth({ from, to, subject, text });
+  throw new Error('gmail_not_enabled');
 }
 
 export async function dispatchPendingEmails(limit = 10) {

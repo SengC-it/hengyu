@@ -1,7 +1,10 @@
+import { createHash } from 'node:crypto';
 import { sendJson, methodAllowed, readBody, parseJson } from './_lib/http.mjs';
-import { insertRow } from './_lib/supabase.mjs';
+import { insertRow, selectRows } from './_lib/supabase.mjs';
 import { assertPaperOnly } from './_lib/safety.mjs';
 import { verifySignedRequest } from './_lib/signature.mjs';
+import { formatAdvisoryEmail } from '../src/model/alert-outbox.mjs';
+import { gmailStatus } from './_lib/gmail.mjs';
 
 const SPECS = {
   advisory: {
@@ -58,6 +61,84 @@ function validate(spec, record) {
   return safe;
 }
 
+function advisoryEmailSignal(advisory) {
+  const metadata = advisory.metadata && typeof advisory.metadata === 'object'
+    ? advisory.metadata
+    : {};
+  return {
+    alertLevel: advisory.alert_level,
+    action: advisory.advisory_type,
+    symbol: advisory.symbol,
+    expiresAt: advisory.expires_at,
+    reference: {
+      entryPrice: advisory.entry_reference,
+      stopPrice: advisory.stop_reference,
+      takeProfitPrice: advisory.exit_reference
+    },
+    costs: { conservativeNetEdgeBps: advisory.conservative_net_edge_bps },
+    reasons: Array.isArray(metadata.reasons) ? metadata.reasons : []
+  };
+}
+
+export function buildEmailOutboxRow(advisory, advisoryId) {
+  const fromAddress = process.env.HENGYU_GMAIL_FROM_ADDRESS;
+  const toAddress = process.env.HENGYU_GMAIL_TO_ADDRESS;
+  if (!fromAddress || !toAddress) return null;
+  const message = formatAdvisoryEmail(advisoryEmailSignal(advisory));
+  return {
+    advisory_id: advisoryId,
+    alert_level: advisory.alert_level,
+    from_address: fromAddress,
+    to_address: toAddress,
+    subject: message.subject,
+    body_plain: message.text,
+    body_sha256: createHash('sha256').update(message.text).digest('hex'),
+    dedupe_key: `${advisory.dedupe_key}:EMAIL`,
+    status: 'PENDING',
+    attempts: 0
+  };
+}
+
+async function ingestAdvisoryBundle(record) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
+    throw new Error('invalid_record');
+  }
+  const advisory = validate(SPECS.advisory, record.advisory);
+  if (record.email !== undefined) assertPaperOnly(record.email);
+  const inserted = await insertRow('hengyu_advisories', advisory, { onConflict: 'dedupe_key' });
+  const duplicate = Array.isArray(inserted) && inserted.length === 0;
+  let advisoryRow = Array.isArray(inserted) ? inserted[0] : null;
+  if (!advisoryRow?.advisory_id) {
+    const existing = await selectRows('hengyu_advisories', {
+      select: 'advisory_id,alert_level,advisory_type,symbol,expires_at,entry_reference,stop_reference,exit_reference,conservative_net_edge_bps,metadata,dedupe_key',
+      filters: { dedupe_key: `eq.${advisory.dedupe_key}` },
+      limit: 1
+    });
+    advisoryRow = Array.isArray(existing) ? existing[0] : null;
+  }
+  if (!advisoryRow?.advisory_id) throw new Error('advisory_id_not_returned');
+  const shouldQueueEmail = record.email?.requested !== false
+    && ['STRONG', 'MEDIUM'].includes(String(advisory.alert_level).toUpperCase());
+  let emailStatus = {
+    requested: shouldQueueEmail,
+    configured: gmailStatus().configured,
+    queued: false,
+    duplicate: false
+  };
+  if (shouldQueueEmail) {
+    const emailRow = buildEmailOutboxRow({ ...advisory, ...advisoryRow }, advisoryRow.advisory_id);
+    if (emailRow) {
+      const emailInserted = await insertRow('hengyu_email_outbox', emailRow, { onConflict: 'dedupe_key' });
+      emailStatus = {
+        ...emailStatus,
+        queued: true,
+        duplicate: Array.isArray(emailInserted) && emailInserted.length === 0
+      };
+    }
+  }
+  return { duplicate, advisoryId: advisoryRow.advisory_id, email: emailStatus };
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') return methodAllowed(response, ['POST']);
   let bodyText;
@@ -66,6 +147,15 @@ export default async function handler(request, response) {
     const signature = verifySignedRequest(request, bodyText);
     if (!signature.ok) return sendJson(response, signature.status, { error: signature.reason });
     const body = parseJson(bodyText);
+    if (body.kind === 'advisory_bundle') {
+      const result = await ingestAdvisoryBundle(body.record);
+      return sendJson(response, 202, {
+        accepted: true,
+        kind: body.kind,
+        ...result,
+        paperOnly: true
+      });
+    }
     const spec = SPECS[body.kind];
     if (!spec) return sendJson(response, 400, { error: 'unsupported_ingest_kind' });
     const record = validate(spec, body.record);
@@ -77,7 +167,7 @@ export default async function handler(request, response) {
       paperOnly: true
     });
   } catch (error) {
-    const status = /missing_field|future_timestamp|invalid_record|paper_only|live_orders|forbidden_field|unsupported|invalid_json|request_body/.test(error.message)
+    const status = /missing_field|future_timestamp|invalid_record|paper_only|live_orders|forbidden_field|unsupported|invalid_json|request_body|invalid_email/.test(error.message)
       ? 400 : (error.status || 503);
     sendJson(response, status, { error: status === 400 ? error.message : 'ingest_failed' });
   }

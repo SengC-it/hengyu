@@ -13,6 +13,7 @@
 - `/`：只读信号页
 - `/api/health`：安全状态和配置状态
 - `/api/dashboard`：信号与邮件 outbox 的脱敏读模型
+- `/api/review`：已实际发送信号的 TP/SL 首触复盘和价格收益统计
 - `/api/signals`、`/api/alerts`：分页只读接口
 
 ## 必需的托管配置
@@ -26,10 +27,10 @@
 - `HENGYU_PAPER_ONLY=true`
 - `HENGYU_LIVE_ORDERS_ENABLED=false`
 
-启用 Gmail outbox 发送前，还必须配置 `HENGYU_GMAIL_CLIENT_ID`、`HENGYU_GMAIL_CLIENT_SECRET`、`HENGYU_GMAIL_REFRESH_TOKEN`、`HENGYU_GMAIL_FROM_ADDRESS`、`HENGYU_GMAIL_TO_ADDRESS`，并显式设置 `HENGYU_GMAIL_SEND_ENABLED=true`。没有这些变量时，邮件接口只返回未配置状态，不会尝试发送。
+启用 Gmail outbox 发送只需要配置 `HENGYU_GMAIL_FROM_ADDRESS`、`HENGYU_GMAIL_TO_ADDRESS`、`HENGYU_GMAIL_APP_PASSWORD`。实现使用 Gmail SMTP App Password；`HENGYU_GMAIL_SEND_ENABLED` 默认不需要设置。旧的 Gmail API OAuth 变量仍作为兼容 fallback，但不应与 SMTP 配置混用。没有这些变量时，邮件接口只返回未配置状态，不会尝试发送。
 
 ## 数据与盈利状态
 
-当前 `/api/health` 的生产结果为 `degraded`（密钥未配置），`/api/dashboard` 返回空信号和 `dataStatus=not_configured`。这不是盈利结论；只有在采集器完成签名上报、数据质量通过、并满足注册表规定的前向样本门槛后，才允许计算模拟 PnL。
+当前 `/api/health` 的生产结果为 `degraded`（密钥未配置），`/api/dashboard` 返回空信号和 `dataStatus=not_configured`。这不是盈利结论；`/api/review` 只在邮件真实发送且行情证据可用时计算价格收益，未确认的 TP/SL 先后不会被算作盈亏。
 
 Vercel 无长连接采集器能力。原始盘口/成交流应在可长期运行的合规采集环境中保存，并通过签名的 `/api/ingest` 分片写入 Supabase；断线、序列缺口、过期盘口或 funding 失败时，采集器必须上报不可用于 PnL 的 segment。
