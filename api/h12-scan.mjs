@@ -1,17 +1,21 @@
 import { sendJson, methodAllowed } from './_lib/http.mjs';
 import { dispatchPendingEmails } from './_lib/gmail.mjs';
 import { insertRow } from './_lib/supabase.mjs';
+import { verifyGitHubActionsOidc } from './_lib/github-oidc.mjs';
 import { ingestAdvisoryBundle } from './ingest.mjs';
 import { detectLiveH12Signals, fetchLiveH12Series, h12AdvisoryBundle, H12_PRODUCTION_POLICY } from '../src/model/live-h12.mjs';
 
-function authorized(request) {
+async function authorized(request) {
   const expected = process.env.CRON_SECRET || process.env.HENGYU_CRON_SECRET || '';
-  return Boolean(expected) && request.headers.authorization === `Bearer ${expected}`;
+  const authorization = request.headers.authorization ?? '';
+  if (expected && authorization === `Bearer ${expected}`) return true;
+  if (!authorization.startsWith('Bearer ')) return false;
+  return verifyGitHubActionsOidc(authorization.slice('Bearer '.length));
 }
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') return methodAllowed(response, ['GET']);
-  if (!authorized(request)) return sendJson(response, 401, { error: 'unauthorized' });
+  if (!await authorized(request)) return sendJson(response, 401, { error: 'unauthorized' });
   const now = Date.now();
   try {
     const pairs = await Promise.all(H12_PRODUCTION_POLICY.symbols.map(async symbol => [

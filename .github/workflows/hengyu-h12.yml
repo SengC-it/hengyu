@@ -1,0 +1,40 @@
+name: Hengyu H12 Production Trigger
+
+on:
+  schedule:
+    - cron: "5 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: hengyu-h12-production-trigger
+  cancel-in-progress: false
+
+jobs:
+  h12:
+    name: Trigger H12 Singapore scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request short-lived GitHub OIDC identity
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(curl --fail --show-error --silent \
+            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=hengyu-h12-production" | jq -r '.value')"
+          [[ -n "${token}" && "${token}" != "null" ]] || exit 1
+          echo "token=${token}" >> "${GITHUB_OUTPUT}"
+      - name: Trigger paper-only H12 scan
+        shell: bash
+        env:
+          HENGYU_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent \
+            -H "Authorization: Bearer ${HENGYU_OIDC_TOKEN}" \
+            https://hengyu-research.vercel.app/api/h12-scan

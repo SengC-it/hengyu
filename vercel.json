@@ -19,7 +19,6 @@
     }
   },
   "crons": [
-    { "path": "/api/cron-health", "schedule": "0 0 * * *" },
-    { "path": "/api/h12-scan", "schedule": "5 */4 * * *" }
+    { "path": "/api/cron-health", "schedule": "0 0 * * *" }
   ]
 }

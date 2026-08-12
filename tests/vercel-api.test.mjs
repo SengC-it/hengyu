@@ -9,6 +9,7 @@ import { emailReferences } from '../api/_lib/review-read-model.mjs';
 import { buildEmailOutboxRow } from '../api/ingest.mjs';
 import testEmailHandler from '../api/test-email.mjs';
 import h12ScanHandler from '../api/h12-scan.mjs';
+import { verifyGitHubActionsOidc } from '../api/_lib/github-oidc.mjs';
 
 function mockResponse() {
   return {
@@ -190,4 +191,24 @@ test('H12 cron endpoint rejects an invalid bearer token before market-data acces
   assert.match(response.body, /unauthorized/);
   if (previous === undefined) delete process.env.CRON_SECRET;
   else process.env.CRON_SECRET = previous;
+});
+
+test('H12 accepts only a signed short-lived GitHub OIDC identity for its main workflow', async () => {
+  const now = 1_800_000_000_000;
+  const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const header = Buffer.from(JSON.stringify({ alg: 'RS256', kid: 'test-key' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({
+    iss: 'https://token.actions.githubusercontent.com', aud: 'hengyu-h12-production',
+    repository: 'SengC-it/hengyu', ref: 'refs/heads/main',
+    workflow_ref: 'SengC-it/hengyu/.github/workflows/hengyu-h12.yml@refs/heads/main',
+    event_name: 'workflow_dispatch', iat: now / 1000 - 5, exp: now / 1000 + 300
+  })).toString('base64url');
+  const signature = crypto.sign('sha256', Buffer.from(`${header}.${payload}`), privateKey).toString('base64url');
+  const token = `${header}.${payload}.${signature}`;
+  const fetchImpl = async () => ({
+    ok: true,
+    async json() { return { keys: [{ ...publicKey.export({ format: 'jwk' }), kid: 'test-key' }] }; }
+  });
+  assert.equal(await verifyGitHubActionsOidc(token, { fetchImpl, now }), true);
+  assert.equal(await verifyGitHubActionsOidc(`${token}x`, { fetchImpl, now }), false);
 });
