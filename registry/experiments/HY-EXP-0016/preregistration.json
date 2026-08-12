@@ -1,0 +1,47 @@
+{
+  "experiment_id": "HY-EXP-0016",
+  "title": "H10 medium-horizon Donchian trend screen",
+  "declared_date": "2026-08-12",
+  "status": "PREREGISTERED",
+  "evidence_class": "D0_HISTORICAL_SCREEN_ONLY",
+  "authorization": "PAPER_ONLY",
+  "purpose": "Evaluate a materially different, lower-turnover replacement candidate after H8 and H9 failed; historical results alone cannot authorize live trading.",
+  "market": "Binance USD-M perpetual",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+  "data": {
+    "source": "Binance official public archive",
+    "type": "5m contract klines aggregated to UTC-aligned 4h bars",
+    "download_start_utc": "2025-07-12T00:00:00.000Z",
+    "evaluation_start_utc": "2025-08-12T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-08-12T00:00:00.000Z",
+    "quality_policy": "Reuse only HY-EXP-0015 files whose hashes pass its locked manifest; reject duplicate, non-contiguous, incomplete or misaligned bars."
+  },
+  "strategy": {
+    "bar_interval_hours": 4,
+    "entry_channel_bars": 120,
+    "exit_channel_bars": 60,
+    "atr_bars": 30,
+    "initial_stop_atr_multiple": 2,
+    "entry": "When a completed 4h close is strictly above the prior 120-bar high, buy at the next 4h open; when strictly below the prior 120-bar low, sell at the next 4h open.",
+    "exit": "Exit at the next 4h open after a completed close crosses the opposite prior 60-bar channel, or at the fixed initial two-ATR intrabar stop, whichever occurs first.",
+    "conflict_policy": "While flat, if both long and short entry conditions are somehow true, do not trade. While open, no reversal occurs until the exit is complete. Intrabar stop takes precedence over a later close-based channel exit.",
+    "position_policy": "At most one position per symbol; no pyramiding; fixed one-sixth research-account allocation per symbol; no compounding.",
+    "stress_cost_bps_per_fill": 7,
+    "funding": "Omitted because the public kline screen does not contain a causal funding ledger; this limitation must be reported."
+  },
+  "promotion_screen": {
+    "minimum_closed_trades": 30,
+    "minimum_profit_factor": 1.2,
+    "positive_stress_net": true,
+    "maximum_closed_equity_drawdown_fraction": -0.20,
+    "positive_after_best_5_trades": true,
+    "minimum_positive_month_share": 0.50,
+    "both_directions_non_negative": true,
+    "minimum_profitable_symbols": 3
+  },
+  "decision": {
+    "pass": "Eligible only for frozen forward paper validation; not approved to replace H8 in live trading.",
+    "fail": "Eliminate this exact H10 specification and register a materially different H11 before further testing.",
+    "change_policy": "Any feature, threshold, channel, stop, cost, universe or date change requires a new experiment id."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "experiment_id": "HY-EXP-0015",
+  "title": "H9 public-kline continuation screen",
+  "declared_date": "2026-08-12",
+  "evidence_class": "D0_PROXY_SCREEN_ONLY",
+  "authorization": "PAPER_ONLY",
+  "purpose": "Decide whether continued collection of exact H9 force-order and causal order-book data is justified; never claim this proxy is H9 profitability evidence.",
+  "market": "Binance USD-M perpetual",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+  "data": {
+    "source": "Binance official public archive",
+    "type": "5m contract klines",
+    "download_start_utc": "2025-07-12T00:00:00.000Z",
+    "evaluation_start_utc": "2025-08-12T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-08-12T00:00:00.000Z",
+    "quality_policy": "Reject corrupt ZIPs, duplicate or non-contiguous bars, and incomplete symbol coverage before PnL."
+  },
+  "proxy": {
+    "bar_minutes": 5,
+    "pressure": "absolute signed aggressive quote flow divided by trailing six-bar quote volume; signed aggressive quote flow is 2*taker-buy quote volume minus total quote volume",
+    "threshold": "nearest-rank 99.5th percentile over prior 30 calendar days of completed proxy-pressure bars",
+    "direction": "trade against signed proxy pressure",
+    "recovery": "the immediately following 5m bar must not extend the event-direction extreme and must close beyond the event close against pressure",
+    "entry": "open of the first 5m bar after the completed recovery bar",
+    "stop": "0.75 times event high-low impulse adverse to entry",
+    "exit": "first stop touch or the open 15 minutes after entry; ambiguous stop-at-entry-bar uses stop",
+    "cooldown_minutes": 30,
+    "overlap": "at most one open proxy trade per symbol",
+    "stress_cost_bps_per_fill": 7,
+    "funding": "omitted because maximum hold is 15 minutes; this can slightly overstate or understate events crossing funding settlement"
+  },
+  "continuation_screen": {
+    "minimum_closed_trades": 60,
+    "minimum_profit_factor": 1.0,
+    "positive_stress_net": true,
+    "maximum_drawdown_return_units": -0.20,
+    "positive_after_best_5_trades": true,
+    "minimum_positive_month_share": 0.50,
+    "both_directions_non_negative": true,
+    "minimum_profitable_symbols": 3
+  },
+  "decision": {
+    "pass": "Continue exact H9 collection; proxy pass is not strategy replacement approval.",
+    "fail": "Stop prioritizing the exact frozen H9 specification and register a materially different mechanism before further collection.",
+    "change_policy": "Any proxy feature, threshold, recovery, exit or cost change requires a new experiment id."
+  }
+}

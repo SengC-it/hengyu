@@ -84,6 +84,26 @@ export function formatAdvisoryEmail(signal) {
     ?? signal.reference?.exitPrice;
   const direction = directionOf(signal);
   const levelLabel = LEVEL_LABELS[level];
+  if (signal.hypothesisId === 'H12' || signal.reviewModel === 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL') {
+    const subject = `[HengYu] ${symbol} H12 做空提醒（${level}）｜仅供研究`;
+    return {
+      subject,
+      text: [
+        subject,
+        '',
+        '策略：H12 广泛熊市过滤＋120根4小时通道向下突破',
+        '方向：仅做空',
+        `交易品种：${symbol}`,
+        `参考入场价：${displayPrice(entry)}`,
+        `固定初始止损价：${displayPrice(stop)}`,
+        `信号时初始60根通道参考：${displayPrice(signal.initialExitChannelPrice)}`,
+        `动态退出规则：${signal.exitRule ?? '完成的4小时收盘价突破此前60根高点后，在下一根4小时开盘退出。'}`,
+        '',
+        '重要：H12没有固定止盈价，不能使用固定TP/SL模型复盘。',
+        '本邮件是PAPER_ONLY研究提醒；需要人工确认，系统不会自动下单、不会读取账户，也不会提供仓位或杠杆。'
+      ].join('\n')
+    };
+  }
   const subject = '[HengYu] ' + symbol + ' ' + direction + '提醒（' + levelLabel + '）｜仅供参考';
   const text = [
     subject,

@@ -8,6 +8,9 @@ export default function handler(request, response) {
   const gmail = gmailStatus();
   sendJson(response, 200, {
     status: hasSupabaseConfig() ? 'ok' : 'degraded',
+    productionStrategy: 'H12',
+    productionExperiment: 'HY-EXP-0018',
+    productionSchedule: 'EVERY_4H_GITHUB_ACTIONS',
     ...safetyEnvelope(),
     supabase: supabaseConfigStatus(),
     gmailConfigured: gmail.configured,

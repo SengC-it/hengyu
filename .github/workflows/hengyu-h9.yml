@@ -1,10 +1,6 @@
 name: Hengyu H9 Signal Worker
 
 on:
-  schedule:
-    # GitHub evaluates scheduled workflows in UTC. Keep five minutes between runs
-    # and avoid the busiest minute of the hour where possible.
-    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 permissions:

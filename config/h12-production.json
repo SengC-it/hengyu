@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0018",
+  "hypothesisId": "H12",
+  "mode": "SIGNAL_ONLY",
+  "authorization": "PAPER_ONLY",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+  "barInterval": "4h",
+  "direction": "SELL_ONLY",
+  "entryChannelBars": 120,
+  "exitChannelBars": 60,
+  "atrBars": 30,
+  "initialStopAtrMultiple": 2,
+  "btcFastSmaBars": 60,
+  "slowSmaBars": 180,
+  "minimumBreadthBelowSlowSma": 4,
+  "liveOrdersEnabled": false,
+  "orderPlacementEnabled": false,
+  "humanConfirmationRequired": true
+}

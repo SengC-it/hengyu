@@ -74,6 +74,30 @@ test('advisory bundle email row contains the same three reference prices', () =>
   else process.env.HENGYU_GMAIL_TO_ADDRESS = previousTo;
 });
 
+test('H12 email declares a dynamic Donchian exit instead of inventing a take-profit', () => {
+  const previousFrom = process.env.HENGYU_GMAIL_FROM_ADDRESS;
+  const previousTo = process.env.HENGYU_GMAIL_TO_ADDRESS;
+  process.env.HENGYU_GMAIL_FROM_ADDRESS = 'research@example.com';
+  process.env.HENGYU_GMAIL_TO_ADDRESS = 'owner@example.com';
+  const row = buildEmailOutboxRow({
+    alert_level: 'MEDIUM', advisory_type: 'REVIEW_SELL', symbol: 'BTCUSDT',
+    expires_at: '2026-11-01T00:00:00.000Z', entry_reference: 100,
+    stop_reference: 105, exit_reference: null, dedupe_key: 'h12-test',
+    metadata: {
+      hypothesisId: 'H12', reviewModel: 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL',
+      initialExitChannelPrice: 110, exitRule: '60-bar dynamic exit',
+      reasons: ['H12_BROAD_BEAR_REGIME']
+    }
+  }, '00000000-0000-4000-8000-000000000012');
+  assert.match(row.subject, /H12/);
+  assert.match(row.body_plain, /60-bar dynamic exit/);
+  assert.match(row.body_plain, /没有固定止盈价/);
+  if (previousFrom === undefined) delete process.env.HENGYU_GMAIL_FROM_ADDRESS;
+  else process.env.HENGYU_GMAIL_FROM_ADDRESS = previousFrom;
+  if (previousTo === undefined) delete process.env.HENGYU_GMAIL_TO_ADDRESS;
+  else process.env.HENGYU_GMAIL_TO_ADDRESS = previousTo;
+});
+
 test('review parser reads prices from both Chinese and historical English emails', () => {
   assert.deepEqual(emailReferences({ body_plain: '入场价：100\n止损价：98\n止盈价：103' }, {}), {
     entryPrice: 100,

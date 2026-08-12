@@ -10,6 +10,15 @@
   "scripts": {
     "test": "node --test --test-isolation=none tests/*.test.mjs",
     "registry:verify": "node scripts/registry.mjs verify",
+    "audit:h8": "node scripts/performance-audit.mjs --write",
+    "h9:proxy:download": "node --use-env-proxy scripts/h9-proxy.mjs download",
+    "h9:proxy:run": "node scripts/h9-proxy.mjs run",
+    "h10:prepare": "node scripts/h10-trend.mjs prepare",
+    "h10:run": "node scripts/h10-trend.mjs run",
+    "h11:prepare": "node scripts/h11-short-trend.mjs prepare",
+    "h11:run": "node scripts/h11-short-trend.mjs run",
+    "h12:prepare": "node scripts/h12-regime-trend.mjs prepare",
+    "h12:run": "node scripts/h12-regime-trend.mjs run",
     "exp:001:download": "node scripts/exp001.mjs download",
     "exp:001:run": "node scripts/exp001.mjs run",
     "exp:002:download": "node scripts/exp002.mjs download",
@@ -46,7 +55,8 @@
     "forward:validate": "node scripts/forward-validate.mjs",
     "forward:quality": "node scripts/forward-quality.mjs",
     "h9:replay": "node scripts/h9-replay.mjs",
-    "worker:live": "node --use-env-proxy scripts/live-worker.mjs"
+    "worker:live": "node --use-env-proxy scripts/live-worker.mjs",
+    "worker:h12": "node --use-env-proxy scripts/live-h12-worker.mjs"
   },
   "dependencies": {
     "nodemailer": "^6.9.16"

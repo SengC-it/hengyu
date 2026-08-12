@@ -1,0 +1,1307 @@
+{
+  "experimentId": "HY-EXP-0016",
+  "generatedAt": "2026-08-12T13:31:13.371Z",
+  "sourceExperimentId": "HY-EXP-0015",
+  "sourceManifest": "artifacts/HY-EXP-0015/data-manifest.json",
+  "sourceManifestSha256": "95f4b215a9f1e8e9c353de32929faf08e236c7a6b770917ef7f2de82e40a3a26",
+  "preregistrationSha256": "a9b73c5df392a982acd295ad74ac8bc52b70b79b017a43a0c6949c33f9fa40c9",
+  "amendmentSha256": "db2c484db9a4198bbe7b8fd37716203564f807e7c21b26e82b58921141aefc37",
+  "files": [
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2025-07.zip",
+      "symbol": "BTCUSDT",
+      "period": "2025-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2025-07.zip",
+      "bytes": 405712,
+      "sha256": "2cea4750d51d9c064d674ec8d0d8d1f39448960284272fdc74698562c873bf0f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2025-08.zip",
+      "symbol": "BTCUSDT",
+      "period": "2025-08",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2025-08.zip",
+      "bytes": 405889,
+      "sha256": "7f78f6f88ae1946f8bd8312a37d1d74b24e24d6b13bc37d2909ad7c8c0c7e9ae"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2025-09.zip",
+      "symbol": "BTCUSDT",
+      "period": "2025-09",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2025-09.zip",
+      "bytes": 388679,
+      "sha256": "dbfb8bc2f9343107c7a702acd6919d77060a8f7ea4b25359c71e5fc018a85209"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2025-10.zip",
+      "symbol": "BTCUSDT",
+      "period": "2025-10",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2025-10.zip",
+      "bytes": 412617,
+      "sha256": "fab262ca4318f8f65164ae33a020458439adc6f7bc2e59bbfce1886118d05a48"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2025-11.zip",
+      "symbol": "BTCUSDT",
+      "period": "2025-11",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2025-11.zip",
+      "bytes": 398908,
+      "sha256": "2759d4be0fe68cc2be3d4d91940fcd95abc69f0c31f25d0b6cb5e0629c625d2d"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2025-12.zip",
+      "symbol": "BTCUSDT",
+      "period": "2025-12",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2025-12.zip",
+      "bytes": 404647,
+      "sha256": "0e923a3d2ac4f6711d8c841220f4e5d2e479c1bdb40b41515eb250e16808304f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-01.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-01",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-01.zip",
+      "bytes": 402596,
+      "sha256": "c092f3b26036f203bb5b11c28958574aa8501315ed26dd0f8c017051b9fb3abf"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-02.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-02",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-02.zip",
+      "bytes": 374045,
+      "sha256": "8be83befce2cd9bf0959c872d91108debd03e1b51a451bac3a56b8ddca196bb4"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-03.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-03",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-03.zip",
+      "bytes": 411027,
+      "sha256": "0302ccef9b3e5e38c35bc8667a1e890138c9136e89145688220eea99b748200e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-04.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-04",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-04.zip",
+      "bytes": 391115,
+      "sha256": "e2934467bdb6a000124948f4c8fef176e2066520a6b2e5a0522450fed51396f7"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-05.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-05",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-05.zip",
+      "bytes": 400649,
+      "sha256": "b1a73378796bb62084c32ca5865903beeaf87d521d950d5e7776343f682dea93"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-06.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-06",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-06.zip",
+      "bytes": 395606,
+      "sha256": "782c555963c852ca768335de21d5743147e5d50bff449600f8fceb9ebe5273de"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/monthly/BTCUSDT-5m-2026-07.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-07.zip",
+      "bytes": 400503,
+      "sha256": "ec750f7aa69c8f842fa1464a90ad4aa92452cfa767df9e8d70dc484e466c8fc3"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-01.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-01",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-01.zip",
+      "bytes": 12923,
+      "sha256": "d07b32bbaa249ad07540bc73b808c1f45a74a36445e8512ea1f57abe22fdb49c"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-02.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-02",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-02.zip",
+      "bytes": 13232,
+      "sha256": "3f850c16896eba7daf9e83b616b6df519e1149efd47b3b42624d06d8076d4b39"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-03.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-03",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-03.zip",
+      "bytes": 13684,
+      "sha256": "b5e7fab121b19840a3ccfbb62e064336fa64cc611c3ce58da171c967b495bb8c"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-04.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-04",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-04.zip",
+      "bytes": 13570,
+      "sha256": "a89e2a13d7604fb55f14859071363daa7b2b754dc9a0503643ddf36d9c9bd323"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-05.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-05",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-05.zip",
+      "bytes": 13554,
+      "sha256": "bda279fb494c6534255ad23b93a2e30018aac4b2ec8a6658489130588a9eb2f6"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-06.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-06",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-06.zip",
+      "bytes": 13421,
+      "sha256": "64067df14037319d68c4a7d6bfe037b9cb632a49dfd39b0ab3eda387118cf2e2"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-07.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-07",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-07.zip",
+      "bytes": 13503,
+      "sha256": "4eecd95d52cf51335d2ab44ad5a3b085269e9340c0f160e7ad5088fbe14898fc"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-08.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-08",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-08.zip",
+      "bytes": 12403,
+      "sha256": "ba7a4e9679ba8aa565cea7cf8159c2b076f7a65766728d4b48f23d1b2514cc28"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-09.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-09",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-09.zip",
+      "bytes": 12639,
+      "sha256": "400e2f0244bdd67ac64bfde0eecd94a09b313ce01d5afedb2a51f89f35f8ed18"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-10.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-10",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-10.zip",
+      "bytes": 13534,
+      "sha256": "8184e5264d3bcda36847f79548d116590d03bbf4e85ce0b069f6a3b73ed7c14a"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BTCUSDT/daily/BTCUSDT-5m-2026-08-11.zip",
+      "symbol": "BTCUSDT",
+      "period": "2026-08-11",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-08-11.zip",
+      "bytes": 13403,
+      "sha256": "65b94ec61951197b77762e688afa9913d19f9e1e08c93add1d0c7f0173dd48f3"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2025-07.zip",
+      "symbol": "ETHUSDT",
+      "period": "2025-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2025-07.zip",
+      "bytes": 425604,
+      "sha256": "fd2af89a8b6dfddd3a2769bb5bd0244454340487a513ba99c86bb7425979c4d6"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2025-08.zip",
+      "symbol": "ETHUSDT",
+      "period": "2025-08",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2025-08.zip",
+      "bytes": 430895,
+      "sha256": "f2d7687eecda432ce840b1320f868f56ab9ea0c2304b5fc83cefc5684696b344"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2025-09.zip",
+      "symbol": "ETHUSDT",
+      "period": "2025-09",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2025-09.zip",
+      "bytes": 407356,
+      "sha256": "71ee9f99652c07dcea827cd8f870cce49e77203d4c938f80b1c15ac9a4cef473"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2025-10.zip",
+      "symbol": "ETHUSDT",
+      "period": "2025-10",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2025-10.zip",
+      "bytes": 427064,
+      "sha256": "597747fb89e6a6d2ed8029663a7f6310a5b8044b756cc59f4ce83dd3c34e95b2"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2025-11.zip",
+      "symbol": "ETHUSDT",
+      "period": "2025-11",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2025-11.zip",
+      "bytes": 412674,
+      "sha256": "49d6fe077f2f2da4febe18952866ff1b607d72a390306cd9fc74863dbfde4b89"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2025-12.zip",
+      "symbol": "ETHUSDT",
+      "period": "2025-12",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2025-12.zip",
+      "bytes": 417162,
+      "sha256": "0723e20236ff44ecc65bc98b7e344fe6d1bcefd204e72684054064c295ca5c5e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-01.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-01",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-01.zip",
+      "bytes": 415616,
+      "sha256": "c0bd8615649919f64250f8a254b4a282933117e203f8cc9a831d3efd5a4e59d0"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-02.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-02",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-02.zip",
+      "bytes": 383341,
+      "sha256": "606781a505c76025b1be3e7c4a375037f63510293402775efed87a23801398b5"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-03.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-03",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-03.zip",
+      "bytes": 420323,
+      "sha256": "ec2694016c1d41b815e9c403519c8971a454ef2276987f4ec5ad949bd33674eb"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-04.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-04",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-04.zip",
+      "bytes": 401030,
+      "sha256": "94c890bf844ef6c289bcf6d126869a39bbc457aac139a5e0b8cebdf2bef2e078"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-05.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-05",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-05.zip",
+      "bytes": 408995,
+      "sha256": "3a642e9db105c9002210fc4d7f5a99a527d6b52d63823ae17076c1e2d2578eda"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-06.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-06",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-06.zip",
+      "bytes": 402792,
+      "sha256": "f26819283e11870b0b206acea9e084bcd7e3c6a5fb2abb8800ac5a424959e49d"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/monthly/ETHUSDT-5m-2026-07.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/ETHUSDT/5m/ETHUSDT-5m-2026-07.zip",
+      "bytes": 410874,
+      "sha256": "2e9ba157f21fbcb97f108dd263d572cd0b4d6cc1db7cd54446f762f4ce3e6dda"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-01.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-01",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-01.zip",
+      "bytes": 13354,
+      "sha256": "f8bc00abd41bc23534a3817324968699659378a132a7113df0a6b70552321108"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-02.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-02",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-02.zip",
+      "bytes": 13715,
+      "sha256": "c918d41d3b6229b72e8f8a24ebf426b7307550fdafa8fc2dabf3194880bcc915"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-03.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-03",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-03.zip",
+      "bytes": 14005,
+      "sha256": "2eda0521302c9430edb896f74d1b6be2adc2d00b9817c2e62275357ef12cb39f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-04.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-04",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-04.zip",
+      "bytes": 13804,
+      "sha256": "34d94ad9e7d450f3b004a7a5ce43c8d9c09630d1cf925065710bd8bc4d806d4e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-05.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-05",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-05.zip",
+      "bytes": 13870,
+      "sha256": "42bc64322c0f7db74a345397d9c36f11ae2f85f0ffc46884d1f88a0566fb3ed7"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-06.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-06",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-06.zip",
+      "bytes": 13690,
+      "sha256": "b1628e7e6ef09643d1ac93e1b21bbc580120744ae71ca38f4e640df29858acdc"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-07.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-07",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-07.zip",
+      "bytes": 13742,
+      "sha256": "cabf3df357aaf2e031c70efe645858670b43fcbb1ef2c9782786112d2f3dc0cc"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-08.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-08",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-08.zip",
+      "bytes": 12868,
+      "sha256": "eb7db9ea43851bcbe7473f565b0daa53971e8eac19fb2e66cfa3262c0e41eb63"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-09.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-09",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-09.zip",
+      "bytes": 13077,
+      "sha256": "e404174e3097d0cb68f6db1399b6034c158df35f0747fb944ab8b2a54895cf82"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-10.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-10",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-10.zip",
+      "bytes": 13800,
+      "sha256": "92c09da520f23442b6eb8ffebfa22c0bec5dd935a8888958dc7d8cb978259488"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/ETHUSDT/daily/ETHUSDT-5m-2026-08-11.zip",
+      "symbol": "ETHUSDT",
+      "period": "2026-08-11",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/ETHUSDT/5m/ETHUSDT-5m-2026-08-11.zip",
+      "bytes": 13646,
+      "sha256": "100cfd1401c945c0137190846024560e9fc44c5ab1a7fb869384153bb71f3b4f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2025-07.zip",
+      "symbol": "BNBUSDT",
+      "period": "2025-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2025-07.zip",
+      "bytes": 363224,
+      "sha256": "a2f6d98970824eed785fac826f4d4b817409685c601dc9e14bce9eb0aabf321a"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2025-08.zip",
+      "symbol": "BNBUSDT",
+      "period": "2025-08",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2025-08.zip",
+      "bytes": 369394,
+      "sha256": "78f8b628e7f22f8b31bad7b00cffeab2b5220dd1ee3fb7582ae4015020f455ca"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2025-09.zip",
+      "symbol": "BNBUSDT",
+      "period": "2025-09",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2025-09.zip",
+      "bytes": 358373,
+      "sha256": "5ce670f46a3c87d5770d6d584b66cc2252b5db0f86510ccee12cb8c665059ab3"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2025-10.zip",
+      "symbol": "BNBUSDT",
+      "period": "2025-10",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2025-10.zip",
+      "bytes": 390710,
+      "sha256": "688f1b22151e44487f0966566b02c5f8d30207a8cac32232830da864d40f3d50"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2025-11.zip",
+      "symbol": "BNBUSDT",
+      "period": "2025-11",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2025-11.zip",
+      "bytes": 364013,
+      "sha256": "170e786f15bc6a367a18ba1f636134db7477b3930108860d414e6775e960f78f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2025-12.zip",
+      "symbol": "BNBUSDT",
+      "period": "2025-12",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2025-12.zip",
+      "bytes": 364467,
+      "sha256": "fcc7a8f8657fc1d9ae7ad2f41464eac7d4ed1299035aca99479c67d01ee24250"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-01.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-01",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-01.zip",
+      "bytes": 363441,
+      "sha256": "c7f246c1b5ce4e56db910d110914aa01aad24d1d37fe7f4b0783dfa95c477a8f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-02.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-02",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-02.zip",
+      "bytes": 335546,
+      "sha256": "e751e108a6d4ddbab3fa190995b145a36f859fa31327f10d23cf1ff6897b11a7"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-03.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-03",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-03.zip",
+      "bytes": 361946,
+      "sha256": "703903aa8d76b80dc9e4ac5e9f6ed3e4abab478227b0f687312f32872f2853ca"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-04.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-04",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-04.zip",
+      "bytes": 344292,
+      "sha256": "bb7773b1f101e4c401118c0d2fe568616d0986398f3747f4762da053e22f1c52"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-05.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-05",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-05.zip",
+      "bytes": 359147,
+      "sha256": "5743a5b7e2b32f5ffad9ccf25dc8e9a57bed3f1a7900f5e477392adf2f44fdc2"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-06.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-06",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-06.zip",
+      "bytes": 352039,
+      "sha256": "80af68e445cbe8bea60bda211dbc9e83ed3faf938350501ea7fa365277b6e932"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/monthly/BNBUSDT-5m-2026-07.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BNBUSDT/5m/BNBUSDT-5m-2026-07.zip",
+      "bytes": 352075,
+      "sha256": "8d1adb01e3f352cce6cb4d89ac7ffd38783817306b4f84e3ba5475e2fb22ce0f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-01.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-01",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-01.zip",
+      "bytes": 11984,
+      "sha256": "890fab514fd16d62a3fd0fed38db1e18983ddd4b4b4334e8335a8efa0e8fdd6b"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-02.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-02",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-02.zip",
+      "bytes": 11942,
+      "sha256": "edc92172c9915c0e8373bb5bd35751ba1fb9a26966de5c66ebaa217d66f48f4f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-03.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-03",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-03.zip",
+      "bytes": 11952,
+      "sha256": "56b134f1f9303cf75bcae71612765c735befc80e6170e224ef2c0e0e8b3f153e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-04.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-04",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-04.zip",
+      "bytes": 11745,
+      "sha256": "9494084c416f3b604bd572ed07550f377a7d2e7083986e64ceae1a0769969f14"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-05.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-05",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-05.zip",
+      "bytes": 12135,
+      "sha256": "cf31c756260e0d48c049975e5aea4c69a52360a42d19826f1fb0e4ffbc89dd2b"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-06.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-06",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-06.zip",
+      "bytes": 11846,
+      "sha256": "7d989054124cbf4e56d1fa073992a1b3d3f4b1f127f8841375fee1bfa3162472"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-07.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-07",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-07.zip",
+      "bytes": 11816,
+      "sha256": "449f3c0896ee986789789355d2ee4d4174432f976b00259fe3395a7aa1058a37"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-08.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-08",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-08.zip",
+      "bytes": 11752,
+      "sha256": "fdefdf656428429773df1d1cb52026357072503ce240c21a2cd40fd30a307dc6"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-09.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-09",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-09.zip",
+      "bytes": 11795,
+      "sha256": "6ecd8cffa13cce7beddd49da4f23e703e2fb31f6d6b5f1bd00dba38bf1d7b4b4"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-10.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-10",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-10.zip",
+      "bytes": 11783,
+      "sha256": "1b78c1e798fed3049b137f6261c878bad03ccd1dac04a835e898994dd9ad1fdf"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/BNBUSDT/daily/BNBUSDT-5m-2026-08-11.zip",
+      "symbol": "BNBUSDT",
+      "period": "2026-08-11",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/BNBUSDT/5m/BNBUSDT-5m-2026-08-11.zip",
+      "bytes": 11947,
+      "sha256": "889d2161898dfdd893adb9ef58b960d2089cd57152db7563e95861415b33a26e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2025-07.zip",
+      "symbol": "SOLUSDT",
+      "period": "2025-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2025-07.zip",
+      "bytes": 392216,
+      "sha256": "7c3e09670eaa371e8575989bab8c0e73552f44ff390743ab9bea85550f0643ed"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2025-08.zip",
+      "symbol": "SOLUSDT",
+      "period": "2025-08",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2025-08.zip",
+      "bytes": 397785,
+      "sha256": "e3e36ffade2e1919d2e07bbccaa291f9f00b1ad0c2059df167c7a42181dd7860"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2025-09.zip",
+      "symbol": "SOLUSDT",
+      "period": "2025-09",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2025-09.zip",
+      "bytes": 383240,
+      "sha256": "4de20e68d09fb85ac8c33aeeb47fa923690c9d9f15a598ff66c8001e36ff3bc9"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2025-10.zip",
+      "symbol": "SOLUSDT",
+      "period": "2025-10",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2025-10.zip",
+      "bytes": 397854,
+      "sha256": "e218797f9e469136e06517289ebadff27a29a0cfe62209bd6bc3e006c54c422f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2025-11.zip",
+      "symbol": "SOLUSDT",
+      "period": "2025-11",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2025-11.zip",
+      "bytes": 380885,
+      "sha256": "e1195984b59422e96b41327e37b4393cdec94c8afeadd9948e6e992b1e44ffc2"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2025-12.zip",
+      "symbol": "SOLUSDT",
+      "period": "2025-12",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2025-12.zip",
+      "bytes": 383972,
+      "sha256": "9caad04f478be09d9e71d51c7d0c1914c7dd5d93ab615f48d98d64593b386ae5"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-01.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-01",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-01.zip",
+      "bytes": 382480,
+      "sha256": "cf084f88d2a4fc9d69b3533e6292b22d3f63451d2a8d3a894d5a8abbe02bbb05"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-02.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-02",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-02.zip",
+      "bytes": 348471,
+      "sha256": "7966db75636fb4626dc1e581b496b27e637e0ff43b52a87bc3ad58ce5f6edba0"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-03.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-03",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-03.zip",
+      "bytes": 379733,
+      "sha256": "b731b706633e248b6ae0c80e93e56cc36df435733051ff730cb9e006cf7bac57"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-04.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-04",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-04.zip",
+      "bytes": 360345,
+      "sha256": "99625c8b89405c017813f60929161ddecc097646cf1280d05dcbf3ab882b13cd"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-05.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-05",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-05.zip",
+      "bytes": 371317,
+      "sha256": "c878f5d988b90a6562259c9b98d709946c3c48b55b7e9c08affebe967238c3e6"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-06.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-06",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-06.zip",
+      "bytes": 366168,
+      "sha256": "b1586ec5b540eb38bde1b39d3033f6cff16bb7e62a86f4775401a6134133acc3"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/monthly/SOLUSDT-5m-2026-07.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/SOLUSDT/5m/SOLUSDT-5m-2026-07.zip",
+      "bytes": 367873,
+      "sha256": "3e23ff1f6b8e99bfa5220b88b17d6397cec91d666a6bf50e5469080d4aedf11f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-01.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-01",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-01.zip",
+      "bytes": 11956,
+      "sha256": "14196ceb438f762351035ffb442aeb4bba6b3259de81f66f7ab5209effee2bc3"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-02.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-02",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-02.zip",
+      "bytes": 12213,
+      "sha256": "59abc7e9fce79f5fe6ee869dbb3528acf9d531896572bd09f44d99e10fd7c0cf"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-03.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-03",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-03.zip",
+      "bytes": 12349,
+      "sha256": "9cd218357be64ffaaa88fd9e4ff9cd469baf21c2db15776d76ee76eee623af99"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-04.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-04",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-04.zip",
+      "bytes": 12271,
+      "sha256": "52081ac9357bda8b1b932bc5e1d78398593a98cf01d1136ccd0e3dff41fb2ad5"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-05.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-05",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-05.zip",
+      "bytes": 12347,
+      "sha256": "0d9abfc5aa9b217975e712f2ca6abac6a44b2f6d03c0f5a06ed6e29316496f25"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-06.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-06",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-06.zip",
+      "bytes": 12404,
+      "sha256": "14ef3fd216ce8b7a4966d49dfb7f6700d41b82f2bc2d5fafed066a962df59ff3"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-07.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-07",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-07.zip",
+      "bytes": 12265,
+      "sha256": "ce593b6101f0c60b459a9ce09533b068068448e40c9a3d20b1bfa3666095aee1"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-08.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-08",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-08.zip",
+      "bytes": 12191,
+      "sha256": "ddf8a033638d4cebe070a097266d763a4e8023d7d435c9439e6b8924cc83562f"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-09.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-09",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-09.zip",
+      "bytes": 12122,
+      "sha256": "d33201a0664d41b8d57d02a83ad231b79bfa139d4ead7f2b692584ee7349068e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-10.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-10",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-10.zip",
+      "bytes": 12335,
+      "sha256": "a2b4dc6c124737c7d21ab7e51f8812b196ce127a307590680427afec86f3f787"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/SOLUSDT/daily/SOLUSDT-5m-2026-08-11.zip",
+      "symbol": "SOLUSDT",
+      "period": "2026-08-11",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/SOLUSDT/5m/SOLUSDT-5m-2026-08-11.zip",
+      "bytes": 12315,
+      "sha256": "850cdee50033dd50ff74dd45dca9fcc17ad8870ca909e9a28b7a849a7d3cb578"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2025-07.zip",
+      "symbol": "XRPUSDT",
+      "period": "2025-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2025-07.zip",
+      "bytes": 397479,
+      "sha256": "5869b00e6f64a8fa848ebd80b0383d34b7ee72e3335ec47a0501c8b4251679f2"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2025-08.zip",
+      "symbol": "XRPUSDT",
+      "period": "2025-08",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2025-08.zip",
+      "bytes": 394279,
+      "sha256": "85be15dac005103b9ad573633474cda084eecb93d6b6e5c0a959fa23b0a2ba72"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2025-09.zip",
+      "symbol": "XRPUSDT",
+      "period": "2025-09",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2025-09.zip",
+      "bytes": 373147,
+      "sha256": "5c3b186e6b1f28cad3b11f0fe87d21c4a75d43a47f24c91be030cf4c99c12931"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2025-10.zip",
+      "symbol": "XRPUSDT",
+      "period": "2025-10",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2025-10.zip",
+      "bytes": 392213,
+      "sha256": "55ebcdb4149379434796d0cd8c8c3c498233a5ad2b19e240d29b717378829d04"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2025-11.zip",
+      "symbol": "XRPUSDT",
+      "period": "2025-11",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2025-11.zip",
+      "bytes": 379354,
+      "sha256": "3fd9fa3976726a95cd774f5f2cec7c2cbfc56c152e9f9f5425c6f70e42cdd279"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2025-12.zip",
+      "symbol": "XRPUSDT",
+      "period": "2025-12",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2025-12.zip",
+      "bytes": 378852,
+      "sha256": "2cbffc01c05d216978cd5a48ff5073d8b7d622906b5d46b658e3be8d93d443fe"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-01.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-01",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-01.zip",
+      "bytes": 382230,
+      "sha256": "df729cb88d94399ecf78f6babe2d51bb3d4423cad17c6fd5e95986711fe83871"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-02.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-02",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-02.zip",
+      "bytes": 351143,
+      "sha256": "979e85a4a4587e443f2d29293feebcd64ee28b4d7f86b774bb74eb3bd6a15646"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-03.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-03",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-03.zip",
+      "bytes": 377015,
+      "sha256": "f21fe4a15a4d029e3f4f858f06abd7a6201f40fc5e5e8b07cf3a4c9ef1974400"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-04.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-04",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-04.zip",
+      "bytes": 358385,
+      "sha256": "1536b6bba6d2f7f59485ccc8c54380cf171fa3b8052b92085931eed2251d6af9"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-05.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-05",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-05.zip",
+      "bytes": 370565,
+      "sha256": "75468a31d9fefea81e8c1e324b12638363d4cbf119636d88ef8b03182edb1899"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-06.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-06",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-06.zip",
+      "bytes": 362488,
+      "sha256": "1947d7172e0b57b2a28cfe0ac764e9d6ab6bc66e4f19a2ce2295fd049f51660c"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/monthly/XRPUSDT-5m-2026-07.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/XRPUSDT/5m/XRPUSDT-5m-2026-07.zip",
+      "bytes": 366290,
+      "sha256": "86d57a59df3c9b6bf5fc4dd58a43c2350bdbec6c2ee7d9612b041486c62b53b7"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-01.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-01",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-01.zip",
+      "bytes": 11874,
+      "sha256": "e346f64d67bab6a2c47ec6719ef758afb9d2525356e0697fab05943c24c0e488"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-02.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-02",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-02.zip",
+      "bytes": 12179,
+      "sha256": "9e24ded24f3f53e06b8063e83cdb2e86f72e9f91d3108e0b5203c761eb583a2c"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-03.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-03",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-03.zip",
+      "bytes": 12367,
+      "sha256": "44170b8d1252483a9db4bd1f1ae1fb8984ee83f8319be207e228fb6522127e97"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-04.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-04",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-04.zip",
+      "bytes": 12182,
+      "sha256": "6e40cbc6384a00609507c62992dcb99bb95e81d10b9c8fd038f2e2925ec21153"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-05.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-05",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-05.zip",
+      "bytes": 12335,
+      "sha256": "e43ea6d3524bcbb9a48b43e340e5b90d646eeef6e58b44f5260e96e616ea080c"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-06.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-06",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-06.zip",
+      "bytes": 12490,
+      "sha256": "d1009b7916702b85e7bdd7177cc07e2c8c22fc24b7b493a45c5714db3b94d8be"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-07.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-07",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-07.zip",
+      "bytes": 12600,
+      "sha256": "3eb38d06102883e53863304a9c5342efa35516a18d02e6afc01f637649cc6ad9"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-08.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-08",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-08.zip",
+      "bytes": 12179,
+      "sha256": "083de0452400b9e787015f4ece63bca351ee64a13c25c9fbb29b1b0435d547e8"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-09.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-09",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-09.zip",
+      "bytes": 12085,
+      "sha256": "53ab231eab8e635399bc0d5147b0abb04214152192906d2f3d8fa92e37420980"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-10.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-10",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-10.zip",
+      "bytes": 12468,
+      "sha256": "a7fa1fa5ea4c7360a4469c35c1c398967eaa9e7c3a5f1a58b48fa44111e59aab"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/XRPUSDT/daily/XRPUSDT-5m-2026-08-11.zip",
+      "symbol": "XRPUSDT",
+      "period": "2026-08-11",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/XRPUSDT/5m/XRPUSDT-5m-2026-08-11.zip",
+      "bytes": 12535,
+      "sha256": "987af94f2ff0b097406bf1d76a352272d0bf0e6e9ca372576fbfd1ba05576e4d"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2025-07.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2025-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2025-07.zip",
+      "bytes": 398816,
+      "sha256": "62528cb8c169ad1780acf0d0efb4fc40d046020900f5b667092fbee19d12fdf7"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2025-08.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2025-08",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2025-08.zip",
+      "bytes": 397704,
+      "sha256": "9d41f89b683ef8bcdca3fe4625858b9cb068451ca78a1b5e75195b4274175314"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2025-09.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2025-09",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2025-09.zip",
+      "bytes": 384666,
+      "sha256": "8db747b710a6c70bdeb48f21dea3af8183813bea640997949a41933b389156cd"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2025-10.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2025-10",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2025-10.zip",
+      "bytes": 397707,
+      "sha256": "a5afbc1b3d19db3d0974533a8a58ed4ee1e974ffa9c5754644c06c054765fcb8"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2025-11.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2025-11",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2025-11.zip",
+      "bytes": 377498,
+      "sha256": "d7bd84cc6cce26b250716b58018cba0c10fc5b656cd4a08c443610ed2c221ecb"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2025-12.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2025-12",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2025-12.zip",
+      "bytes": 378878,
+      "sha256": "6912fd75cc77b271f5879856a280e0eb28c980f1983bef08e0743b90d81c107d"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-01.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-01",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-01.zip",
+      "bytes": 381611,
+      "sha256": "983b4dae5818ec0702630222fb6801251a9ff8f42f7ea402d3e69e0922d6881e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-02.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-02",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-02.zip",
+      "bytes": 346850,
+      "sha256": "108ad54dda7f842e8a67ce85bfbc5ebdad224428ea5f22ffb144a97e4c2553c4"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-03.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-03",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-03.zip",
+      "bytes": 380069,
+      "sha256": "2f7d394cb12a096921f76afe17d10a223fa170ea3eaca229138751c147d3adb2"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-04.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-04",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-04.zip",
+      "bytes": 363844,
+      "sha256": "f654b612dc08e477ac725124142358bb6768d12081fd54bd48daf212c9a6fd42"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-05.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-05",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-05.zip",
+      "bytes": 377549,
+      "sha256": "539d707876d594953f0eeebe0d0fde5c3c1f1966cf5788650498526c31c896e1"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-06.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-06",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-06.zip",
+      "bytes": 361917,
+      "sha256": "8bae032eb4623decf9029348342eb9f9d73da192c64a51fc50b0d9725b71178c"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/monthly/DOGEUSDT-5m-2026-07.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-07",
+      "frequency": "monthly",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-07.zip",
+      "bytes": 365748,
+      "sha256": "97df60ac95bf4db1eff03fcefde717bebccd87c9c151aba87beca5ec4603fbf9"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-01.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-01",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-01.zip",
+      "bytes": 12127,
+      "sha256": "1abd67236a146a1c68e3c08eb48e50e89380b4e8b4ff1da088f922e5aca91230"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-02.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-02",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-02.zip",
+      "bytes": 12192,
+      "sha256": "54ff2e3546beacf06849672b9d5aac48bf89d85f2b5eecc97eb82cfb82efef9e"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-03.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-03",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-03.zip",
+      "bytes": 12252,
+      "sha256": "b10bf283ad9b81551c7c7741a5ea3f059d2b31b7ec115f81c7d2ba9774038be4"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-04.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-04",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-04.zip",
+      "bytes": 12024,
+      "sha256": "cad9363df1348671e2faf7ae9f00737e1e811e5042e7da23e283333cfe8ae5d0"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-05.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-05",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-05.zip",
+      "bytes": 12170,
+      "sha256": "be8b88c0ce9cb93b344994a94a76d5d4530f44944048639ce2aaab82b739645a"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-06.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-06",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-06.zip",
+      "bytes": 12176,
+      "sha256": "df2a4ee898e89db8c8f422d13ea419428866d6ec9989fdca19f09c72cce17011"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-07.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-07",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-07.zip",
+      "bytes": 12142,
+      "sha256": "5db9c0daa60f599649f1a9d9d0e49380cb463afe3648a491b41e33e152d60a1b"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-08.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-08",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-08.zip",
+      "bytes": 12071,
+      "sha256": "40aac2d06fb0afbb275f025e800c88e3c2a0bbb8c49c8b9432a1bfbd3473cc2d"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-09.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-09",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-09.zip",
+      "bytes": 12026,
+      "sha256": "08826e86428dfbc6d0746f1aaa5599c8282604230c7dbe8d0dbade21b845b0bc"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-10.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-10",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-10.zip",
+      "bytes": 12080,
+      "sha256": "0db9cb57706c47688077fe84856c822596c83b445143c27970adce2ce76a88de"
+    },
+    {
+      "file": "data/raw/HY-EXP-0015/DOGEUSDT/daily/DOGEUSDT-5m-2026-08-11.zip",
+      "symbol": "DOGEUSDT",
+      "period": "2026-08-11",
+      "frequency": "daily",
+      "url": "https://data.binance.vision/data/futures/um/daily/klines/DOGEUSDT/5m/DOGEUSDT-5m-2026-08-11.zip",
+      "bytes": 12424,
+      "sha256": "ab4f58a822dea2118e38e04456df6abcf3c803a2762d874906022ae63f3aca02"
+    }
+  ]
+}

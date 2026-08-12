@@ -1,0 +1,126 @@
+{
+  "experimentId": "HY-EXP-0016",
+  "generatedAt": "2026-08-12T13:31:26.418Z",
+  "evidenceClass": "D0_HISTORICAL_SCREEN_ONLY",
+  "evaluation": {
+    "start": "2025-08-12T00:00:00.000Z",
+    "endExclusive": "2026-08-12T00:00:00.000Z",
+    "stressCostBpsPerFill": 7,
+    "fixedAllocationPerSymbol": 0.16666666666666666
+  },
+  "coverage": {
+    "BTCUSDT": {
+      "fiveMinuteBars": 114048,
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "ETHUSDT": {
+      "fiveMinuteBars": 114048,
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "BNBUSDT": {
+      "fiveMinuteBars": 114048,
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "SOLUSDT": {
+      "fiveMinuteBars": 114048,
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "XRPUSDT": {
+      "fiveMinuteBars": 114048,
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "DOGEUSDT": {
+      "fiveMinuteBars": 114048,
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    }
+  },
+  "summary": {
+    "trades": 117,
+    "wins": 19,
+    "losses": 98,
+    "winRate": 0.1623931623931624,
+    "grossPriceWinRate": 0.1623931623931624,
+    "grossPriceProfitFactor": 0.7050593529085033,
+    "netReturnFraction": -0.1893096563134496,
+    "averageNetReturnBpsPerTrade": -97.08187503253822,
+    "profitFactor": 0.6691330347308087,
+    "maximumClosedEquityDrawdownFraction": -0.26524630426181917,
+    "profitWithoutBest5Trades": -0.3798955780759546,
+    "positiveMonths": 4,
+    "observedMonths": 13,
+    "profitableSymbols": 0,
+    "byMonth": {
+      "2025-08": -0.04607781179572653,
+      "2025-09": -0.05020855106458169,
+      "2025-10": -0.07461231923666231,
+      "2025-11": -0.053407580736397946,
+      "2025-12": 0.012247238458054342,
+      "2026-01": -0.04119719705909397,
+      "2026-02": 0.09203466425381192,
+      "2026-03": -0.0016202941208466135,
+      "2026-04": -0.05968743992982391,
+      "2026-05": -0.03853014559361087,
+      "2026-06": 0.06797636984969763,
+      "2026-07": -0.02775652737800986,
+      "2026-08": 0.031529938039740295
+    },
+    "byDirection": {
+      "BUY": -0.3026971717994379,
+      "SELL": 0.11338751548598845
+    },
+    "bySymbol": {
+      "DOGEUSDT": -0.06976524397887507,
+      "BTCUSDT": -0.004766158507734246,
+      "SOLUSDT": -0.020292566910777722,
+      "ETHUSDT": -0.016408452237790735,
+      "BNBUSDT": -0.01127813151487076,
+      "XRPUSDT": -0.06679910316340103
+    },
+    "exitReasons": {
+      "stop": 95,
+      "channel": 20,
+      "terminal": 2
+    }
+  },
+  "decision": {
+    "pass": false,
+    "checks": {
+      "minimumTrades": true,
+      "profitFactor": false,
+      "positiveNet": false,
+      "maximumDrawdown": false,
+      "withoutBest5": false,
+      "positiveMonthShare": false,
+      "bothDirections": false,
+      "symbolBreadth": false
+    },
+    "failures": [
+      "profitFactor",
+      "positiveNet",
+      "maximumDrawdown",
+      "withoutBest5",
+      "positiveMonthShare",
+      "bothDirections",
+      "symbolBreadth"
+    ]
+  },
+  "limitations": [
+    "This is an in-sample historical screen of one frozen candidate, not independent forward validation.",
+    "Funding payments are omitted and can improve or worsen actual perpetual-futures results.",
+    "Fixed stressed fills do not reconstruct historical order-book slippage.",
+    "Closed-equity drawdown excludes intratrade mark-to-market drawdown and therefore can understate risk.",
+    "A pass permits only frozen forward paper validation, never immediate live replacement."
+  ]
+}

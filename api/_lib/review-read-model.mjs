@@ -204,6 +204,10 @@ export async function readSentReview(
       results[index] = invalidResult(candidate.outbox, null, now, 'advisory_not_found');
       continue;
     }
+    if (candidate.advisory.experiment_id === 'HY-EXP-0018') {
+      results[index] = invalidResult(candidate.outbox, candidate.advisory, now, 'dynamic_exit_requires_stateful_h12_review');
+      continue;
+    }
     const validation = reviewSentSignal({
       signal: candidate.signal,
       sentAt: candidate.outbox.sent_at ?? candidate.outbox.created_at,

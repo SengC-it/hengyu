@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-12T12:53:46.003Z",
+  "experimentId": "HY-EXP-0012",
+  "evidenceClass": "D0_DEVELOPMENT_ONLY",
+  "purpose": "ROLLING_12_MONTH_PERFORMANCE_AND_GOVERNANCE_AUDIT",
+  "summary": {
+    "period": {
+      "start": "2025-06-01T00:00:00.000Z",
+      "endExclusive": "2026-06-01T00:00:00.000Z"
+    },
+    "scenario": "stress",
+    "trades": 45,
+    "wins": 14,
+    "losses": 31,
+    "winRate": 0.3111111111111111,
+    "grossProfitReturnUnits": 0.2180362195021188,
+    "grossLossReturnUnits": 0.5770733435495958,
+    "netReturnUnits": -0.359037124047477,
+    "profitFactor": 0.3778310364519202,
+    "averageWinReturnUnits": 0.01557401567872277,
+    "averageLossReturnUnits": -0.018615269146761156,
+    "payoffRatio": 0.8366258664292519,
+    "breakevenWinRate": 0.54447670496125,
+    "expectancyReturnUnits": -0.0079786027566106,
+    "maximumDrawdownReturnUnits": -0.41142706591607264,
+    "maximumConsecutiveLosses": 7,
+    "profitWithoutBest5Trades": -0.49157095806755735,
+    "positiveMonths": 3,
+    "negativeMonths": 9,
+    "observedMonths": 12,
+    "monthly": [
+      {
+        "month": "2025-06",
+        "netReturnUnits": 0.0345370159484933
+      },
+      {
+        "month": "2025-07",
+        "netReturnUnits": -0.06819973284325108
+      },
+      {
+        "month": "2025-08",
+        "netReturnUnits": -0.0002801997634211406
+      },
+      {
+        "month": "2025-09",
+        "netReturnUnits": -0.01980120415584037
+      },
+      {
+        "month": "2025-10",
+        "netReturnUnits": -0.03521798740038678
+      },
+      {
+        "month": "2025-11",
+        "netReturnUnits": -0.022536910049241306
+      },
+      {
+        "month": "2025-12",
+        "netReturnUnits": -0.07004558809799138
+      },
+      {
+        "month": "2026-01",
+        "netReturnUnits": -0.06468885808280925
+      },
+      {
+        "month": "2026-02",
+        "netReturnUnits": -0.05172565645818974
+      },
+      {
+        "month": "2026-03",
+        "netReturnUnits": -0.07282139293832325
+      },
+      {
+        "month": "2026-04",
+        "netReturnUnits": 0.002212790329299176
+      },
+      {
+        "month": "2026-05",
+        "netReturnUnits": 0.009530599464184872
+      }
+    ]
+  },
+  "promotion": {
+    "status": "ELIMINATED",
+    "newSignalsAllowed": false,
+    "checks": {
+      "minimumTrades": false,
+      "profitFactor": false,
+      "positiveNet": false,
+      "positiveWithoutBest5": false,
+      "maximumDrawdown": false
+    },
+    "failures": [
+      "minimumTrades",
+      "profitFactor",
+      "positiveNet",
+      "positiveWithoutBest5",
+      "maximumDrawdown"
+    ],
+    "reason": "The exact specification failed frozen evidence gates and must not be reused or tuned in place."
+  },
+  "lossContainmentComparison": {
+    "basis": "DISABLE_FAILED_EXACT_SPECIFICATION",
+    "before": {
+      "trades": 45,
+      "netReturnUnits": -0.359037124047477,
+      "pnlUsdt": -3590.3712404747703
+    },
+    "after": {
+      "trades": 0,
+      "netReturnUnits": 0,
+      "pnlUsdt": 0
+    },
+    "historicalLossExposureRemovedUsdt": 3590.3712404747703,
+    "warning": "The gate is decided after the completed audit window. The after case is current loss containment through NO_TRADE, not retroactive avoided loss or evidence of a profitable replacement strategy."
+  },
+  "currentResearchDirection": {
+    "experimentId": "HY-EXP-0014",
+    "status": "F0_PENDING",
+    "paperOnly": true,
+    "historicalProfitClaimAllowed": false
+  }
+}

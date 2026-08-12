@@ -1,0 +1,110 @@
+{
+  "experimentId": "HY-EXP-0015",
+  "generatedAt": "2026-08-12T13:23:54.714Z",
+  "evidenceClass": "D0_PROXY_SCREEN_ONLY",
+  "coverage": {
+    "BTCUSDT": {
+      "bars": 114048,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "ETHUSDT": {
+      "bars": 114048,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "BNBUSDT": {
+      "bars": 114048,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "SOLUSDT": {
+      "bars": 114048,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "XRPUSDT": {
+      "bars": 114048,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "DOGEUSDT": {
+      "bars": 114048,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    }
+  },
+  "summary": {
+    "trades": 1411,
+    "wins": 369,
+    "losses": 1042,
+    "winRate": 0.261516654854713,
+    "grossPriceWinRate": 0.5343727852586818,
+    "grossPriceReturnUnits": 0.13778023820271965,
+    "grossPriceProfitFactor": 1.0944736659320755,
+    "netReturnUnits": -1.8376197617972823,
+    "averageNetReturnBps": -13.023527723581022,
+    "profitFactor": 0.3085052654482799,
+    "maximumDrawdownReturnUnits": -1.8378506919121733,
+    "profitWithoutBest5Trades": -1.9416529797751043,
+    "positiveMonths": 0,
+    "observedMonths": 13,
+    "profitableSymbols": 0,
+    "byMonth": {
+      "2025-08": -0.08808398972896173,
+      "2025-09": -0.14990016311851898,
+      "2025-10": -0.08415494127831143,
+      "2025-11": -0.1572943749417873,
+      "2025-12": -0.2232121872928308,
+      "2026-01": -0.1687415539571603,
+      "2026-02": -0.16874407919371287,
+      "2026-03": -0.13588954219222676,
+      "2026-04": -0.11942098338190246,
+      "2026-05": -0.1834362477926386,
+      "2026-06": -0.16274183182767754,
+      "2026-07": -0.12945856808774742,
+      "2026-08": -0.066541299003804
+    },
+    "byDirection": {
+      "SELL": -0.7174039443236285,
+      "BUY": -1.1202158174736518
+    },
+    "bySymbol": {
+      "ETHUSDT": -0.2649540865726163,
+      "XRPUSDT": -0.41874558309735016,
+      "DOGEUSDT": -0.30325872838984713,
+      "BNBUSDT": -0.35655362038476446,
+      "BTCUSDT": -0.2998313976814177,
+      "SOLUSDT": -0.19427634567128463
+    }
+  },
+  "decision": {
+    "continueExactH9Collection": false,
+    "checks": {
+      "minimumTrades": true,
+      "profitFactor": false,
+      "positiveNet": false,
+      "maximumDrawdown": false,
+      "withoutBest5": false,
+      "positiveMonthShare": false,
+      "bothDirections": false,
+      "symbolBreadth": false
+    },
+    "failures": [
+      "profitFactor",
+      "positiveNet",
+      "maximumDrawdown",
+      "withoutBest5",
+      "positiveMonthShare",
+      "bothDirections",
+      "symbolBreadth"
+    ]
+  },
+  "limitations": [
+    "This is a public-kline continuation screen, not an exact H9 replay.",
+    "Aggressive trade imbalance is not force-order liquidation pressure.",
+    "Candle recovery is not causal five-second order-book recovery.",
+    "Fixed stress cost is not a walked historical order book.",
+    "A pass only justifies continued exact H9 collection; a fail stops prioritizing the frozen exact specification."
+  ]
+}

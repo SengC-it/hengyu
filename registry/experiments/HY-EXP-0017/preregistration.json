@@ -1,0 +1,57 @@
+{
+  "experiment_id": "HY-EXP-0017",
+  "title": "H11 short-only medium-horizon Donchian trend screen",
+  "declared_date": "2026-08-12",
+  "status": "PREREGISTERED",
+  "evidence_class": "D0_POST_HOC_HISTORICAL_DEVELOPMENT",
+  "authorization": "PAPER_ONLY",
+  "purpose": "Test the minimum H10 revision suggested by H10 direction attribution: retain the frozen short mechanism and remove the failed long branch. A pass permits forward paper validation only.",
+  "selection_disclosure": "H11 was selected after observing H10 on the same evaluation interval. Results are not independent out-of-sample evidence and cannot authorize live replacement.",
+  "market": "Binance USD-M perpetual",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+  "data": {
+    "source": "Binance official public archive",
+    "type": "5m contract klines aggregated to UTC-aligned 4h bars",
+    "download_start_utc": "2025-07-12T00:00:00.000Z",
+    "evaluation_start_utc": "2025-08-12T00:00:00.000Z",
+    "evaluation_midpoint_utc": "2026-02-12T00:00:00.000Z",
+    "evaluation_end_exclusive_utc": "2026-08-12T00:00:00.000Z",
+    "quality_policy": "Reuse only HY-EXP-0015 files whose hashes pass its locked manifest; reject duplicate, non-contiguous, incomplete or misaligned bars."
+  },
+  "strategy": {
+    "bar_interval_hours": 4,
+    "allowed_direction": "SELL_ONLY",
+    "entry_channel_bars": 120,
+    "exit_channel_bars": 60,
+    "atr_bars": 30,
+    "initial_stop_atr_multiple": 2,
+    "entry": "When a completed 4h close is strictly below the prior 120-bar low, sell at the next 4h open. Long signals are ignored.",
+    "exit": "Exit at the next 4h open after a completed close is strictly above the prior 60-bar high, or at the fixed initial two-ATR intrabar stop, whichever occurs first.",
+    "conflict_policy": "While open, no new entry or reversal is allowed. Intrabar stop takes precedence over a later close-based channel exit.",
+    "terminal_exit": "Liquidate any open position at the close of the last complete 4h bar before the evaluation boundary and charge one exit fill.",
+    "position_policy": "At most one short per symbol; no pyramiding; fixed one-sixth research-account allocation per symbol; idle slots earn zero; no compounding.",
+    "stress_cost_bps_per_fill": 7,
+    "funding": "Omitted because the public kline screen lacks a causal funding ledger; this limitation must be reported."
+  },
+  "accounting": {
+    "trade_metrics": "Win rate and profit factor use each closed position's stressed return on its symbol slot.",
+    "portfolio_metrics": "Net return and drawdown scale each trade by one-sixth account allocation; closed-equity drawdown is ordered by exit time and excludes intratrade mark-to-market drawdown.",
+    "monthly_metrics": "Attribute one-sixth-scaled stressed return to UTC exit month and include all calendar months touched by the interval, including zero-trade months.",
+    "half_period_metrics": "First half contains exits before 2026-02-12T00:00:00Z; second half contains exits at or after that timestamp."
+  },
+  "promotion_screen": {
+    "minimum_closed_trades": 30,
+    "minimum_profit_factor": 1.3,
+    "positive_stress_net": true,
+    "maximum_closed_equity_drawdown_fraction": -0.15,
+    "positive_after_best_5_trades": true,
+    "minimum_positive_month_share": 0.50,
+    "minimum_profitable_symbols": 3,
+    "both_half_periods_positive": true
+  },
+  "decision": {
+    "pass": "Eligible for a newly frozen forward paper-validation clock; not approved for live replacement.",
+    "fail": "Eliminate this exact H11 specification and register a materially different H12 before testing.",
+    "change_policy": "Any feature, threshold, channel, stop, direction, cost, universe or date change requires a new experiment id."
+  }
+}

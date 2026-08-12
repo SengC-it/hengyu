@@ -1,0 +1,166 @@
+{
+  "experimentId": "HY-EXP-0018",
+  "generatedAt": "2026-08-12T13:41:40.607Z",
+  "evidenceClass": "D0_ITERATED_POST_HOC_HISTORICAL_DEVELOPMENT",
+  "selectionDisclosure": "H12 was selected after observing H10 and H11 on this same interval. Repeated reuse materially increases overfitting risk; results are not independent out-of-sample evidence.",
+  "evaluation": {
+    "start": "2025-08-12T00:00:00.000Z",
+    "midpoint": "2026-02-12T00:00:00.000Z",
+    "endExclusive": "2026-08-12T00:00:00.000Z",
+    "stressCostBpsPerFill": 7,
+    "fixedAllocationPerSymbol": 0.16666666666666666,
+    "eligibleRegimeBars": 981
+  },
+  "coverage": {
+    "BTCUSDT": {
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "ETHUSDT": {
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "BNBUSDT": {
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "SOLUSDT": {
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "XRPUSDT": {
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    },
+    "DOGEUSDT": {
+      "fourHourBars": 2376,
+      "start": "2025-07-12T00:00:00.000Z",
+      "end": "2026-08-11T23:59:59.999Z"
+    }
+  },
+  "summary": {
+    "trades": 34,
+    "wins": 16,
+    "losses": 18,
+    "winRate": 0.47058823529411764,
+    "grossPriceWinRate": 0.47058823529411764,
+    "grossPriceProfitFactor": 3.1504423618382127,
+    "netReturnFraction": 0.23442043767912812,
+    "averageNetReturnBpsPerTrade": 413.68312531610866,
+    "profitFactor": 3.005316062844024,
+    "maximumClosedEquityDrawdownFraction": -0.053407580736397946,
+    "profitWithoutBest5Trades": 0.04383451591662309,
+    "positiveMonths": 6,
+    "observedMonths": 13,
+    "profitableSymbols": 5,
+    "byMonth": {
+      "2025-08": 0,
+      "2025-09": 0,
+      "2025-10": 0,
+      "2025-11": -0.053407580736397946,
+      "2025-12": 0.03367929503649493,
+      "2026-01": 0.04229100998126675,
+      "2026-02": 0.09203466425381192,
+      "2026-03": 0.06081745153268074,
+      "2026-04": -0.004590359615059946,
+      "2026-05": -0.02707220250685759,
+      "2026-06": 0.052601246308660685,
+      "2026-07": 0,
+      "2026-08": 0.03806691342452863
+    },
+    "byDirection": {
+      "SELL": 0.23442043767912812
+    },
+    "bySymbol": {
+      "XRPUSDT": -0.014095459347449414,
+      "BTCUSDT": 0.0477927212664534,
+      "DOGEUSDT": 0.008989269079153404,
+      "BNBUSDT": 0.04662549636006377,
+      "ETHUSDT": 0.06066626106263557,
+      "SOLUSDT": 0.08444214925827143
+    },
+    "exitReasons": {
+      "stop": 17,
+      "channel": 15,
+      "terminal": 2
+    },
+    "byHalfPeriod": {
+      "first": 0.022562724281363723,
+      "second": 0.21185771339776444
+    },
+    "grossAccountReturnFraction": 0.24235377101246158,
+    "stressCostAccountFraction": 0.007933333333333334,
+    "bySymbolStatistics": {
+      "BTCUSDT": {
+        "trades": 5,
+        "wins": 3,
+        "winRate": 0.6,
+        "profitFactor": 6.731242854452958,
+        "accountReturnFraction": 0.0477927212664534
+      },
+      "ETHUSDT": {
+        "trades": 5,
+        "wins": 3,
+        "winRate": 0.6,
+        "profitFactor": 6.49383787050029,
+        "accountReturnFraction": 0.06066626106263558
+      },
+      "BNBUSDT": {
+        "trades": 5,
+        "wins": 3,
+        "winRate": 0.6,
+        "profitFactor": 6.160166186508219,
+        "accountReturnFraction": 0.04662549636006379
+      },
+      "SOLUSDT": {
+        "trades": 4,
+        "wins": 3,
+        "winRate": 0.75,
+        "profitFactor": 15.55803775366468,
+        "accountReturnFraction": 0.08444214925827143
+      },
+      "XRPUSDT": {
+        "trades": 8,
+        "wins": 2,
+        "winRate": 0.25,
+        "profitFactor": 0.6558698545438466,
+        "accountReturnFraction": -0.014095459347449414
+      },
+      "DOGEUSDT": {
+        "trades": 7,
+        "wins": 2,
+        "winRate": 0.2857142857142857,
+        "profitFactor": 1.215455295468934,
+        "accountReturnFraction": 0.0089892690791534
+      }
+    }
+  },
+  "decision": {
+    "pass": false,
+    "checks": {
+      "minimumTrades": true,
+      "profitFactor": true,
+      "positiveNet": true,
+      "maximumDrawdown": true,
+      "withoutBest5": true,
+      "positiveMonthShare": false,
+      "symbolBreadth": true,
+      "bothHalfPeriods": true
+    },
+    "failures": [
+      "positiveMonthShare"
+    ]
+  },
+  "limitations": [
+    "H12 is a third iteration selected after observing H10 and H11 on this same interval; it is not independent validation.",
+    "Funding payments are omitted and can improve or worsen actual perpetual-futures results.",
+    "Fixed stressed fills do not reconstruct historical order-book slippage.",
+    "Closed-equity drawdown excludes intratrade mark-to-market drawdown and therefore can understate risk.",
+    "A pass permits only a newly frozen forward paper-validation clock."
+  ]
+}

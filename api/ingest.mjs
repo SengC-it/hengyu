@@ -76,7 +76,11 @@ function advisoryEmailSignal(advisory) {
       takeProfitPrice: advisory.exit_reference
     },
     costs: { conservativeNetEdgeBps: advisory.conservative_net_edge_bps },
-    reasons: Array.isArray(metadata.reasons) ? metadata.reasons : []
+    reasons: Array.isArray(metadata.reasons) ? metadata.reasons : [],
+    hypothesisId: metadata.hypothesisId ?? null,
+    exitRule: metadata.exitRule ?? null,
+    initialExitChannelPrice: metadata.initialExitChannelPrice ?? null,
+    reviewModel: metadata.reviewModel ?? null
   };
 }
 

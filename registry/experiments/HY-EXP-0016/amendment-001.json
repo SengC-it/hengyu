@@ -1,0 +1,13 @@
+{
+  "experiment_id": "HY-EXP-0016",
+  "amendment_id": "amendment-001",
+  "declared_at": "2026-08-12T13:29:30.000Z",
+  "reason": "Clarify terminal accounting and summary units before locking or reading H10 outcomes.",
+  "changes": {
+    "terminal_exit": "Any position still open at the evaluation boundary is liquidated at the close of the last complete 4h bar before the boundary and charged one exit fill.",
+    "trade_metrics": "Win rate and profit factor use each closed position's stressed return on its allocated symbol slot.",
+    "portfolio_metrics": "Net return and drawdown scale each trade by the frozen one-sixth account allocation; closed-equity drawdown is ordered by exit time and does not include intratrade mark-to-market drawdown.",
+    "monthly_metrics": "Attribute each closed trade's one-sixth-scaled stressed return to its UTC exit month; include every calendar month touched by the evaluation interval, including zero-trade months."
+  },
+  "change_policy_effect": "No strategy feature, parameter, symbol, cost or date changed."
+}
