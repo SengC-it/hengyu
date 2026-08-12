@@ -8,6 +8,7 @@ H12 is deployed in `SIGNAL_ONLY` / `PAPER_ONLY` mode. It has no exchange account
 - Risk reference: fixed initial two-ATR stop.
 - Exit: next 4h open after a completed close exceeds the prior 60-bar high. There is no fixed take-profit.
 - Delivery: signed `/api/ingest` request, Supabase advisory/outbox, then Gmail dispatch.
+- Market-data transport: Binance USD-M primary REST host with the four Binance futures fallback hosts; no non-Binance substitution.
 - Deduplication: experiment, symbol, side and completed signal-bar time.
 
 The former H9 workflow remains manually dispatchable for audit but no longer has a schedule.

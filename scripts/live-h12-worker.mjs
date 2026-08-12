@@ -29,13 +29,28 @@ async function post(pathname, payload) {
 }
 
 async function fetchSeries(symbol) {
-  const url = new URL('https://fapi.binance.com/fapi/v1/klines');
-  url.searchParams.set('symbol', symbol);
-  url.searchParams.set('interval', '4h');
-  url.searchParams.set('limit', '220');
-  const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
-  if (!response.ok) throw new Error(`${symbol}: Binance HTTP ${response.status}`);
-  return normalizeFourHourKlines(symbol, await response.json());
+  const bases = [
+    'https://fapi.binance.com',
+    'https://fapi1.binance.com',
+    'https://fapi2.binance.com',
+    'https://fapi3.binance.com',
+    'https://fapi4.binance.com'
+  ];
+  const failures = [];
+  for (const base of bases) {
+    const url = new URL('/fapi/v1/klines', base);
+    url.searchParams.set('symbol', symbol);
+    url.searchParams.set('interval', '4h');
+    url.searchParams.set('limit', '220');
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+      if (response.ok) return normalizeFourHourKlines(symbol, await response.json());
+      failures.push(`${url.hostname}:${response.status}`);
+    } catch (error) {
+      failures.push(`${url.hostname}:${error.cause?.code ?? error.name}`);
+    }
+  }
+  throw new Error(`${symbol}: Binance futures endpoints unavailable (${failures.join(', ')})`);
 }
 
 async function main() {
