@@ -8,6 +8,17 @@ import { gmailFromHeader, gmailStatus } from '../api/_lib/gmail.mjs';
 import { emailReferences } from '../api/_lib/review-read-model.mjs';
 import { buildEmailOutboxRow } from '../api/ingest.mjs';
 import testEmailHandler from '../api/test-email.mjs';
+import h12ScanHandler from '../api/h12-scan.mjs';
+
+function mockResponse() {
+  return {
+    statusCode: 0,
+    headers: {},
+    body: '',
+    setHeader(name, value) { this.headers[name] = value; },
+    end(value) { this.body = value; }
+  };
+}
 
 test('Vercel safety envelope stays paper-only and exposes no account controls', () => {
   const envelope = safetyEnvelope();
@@ -168,4 +179,15 @@ test('test email endpoint rejects an unsigned request without sending', async ()
   assert.match(response.body, /invalid_signature|stale_signature/);
   if (previous === undefined) delete process.env.HENGYU_INGEST_SECRET;
   else process.env.HENGYU_INGEST_SECRET = previous;
+});
+
+test('H12 cron endpoint rejects an invalid bearer token before market-data access', async () => {
+  const previous = process.env.CRON_SECRET;
+  process.env.CRON_SECRET = 'cron-test-secret';
+  const response = mockResponse();
+  await h12ScanHandler({ method: 'GET', headers: { authorization: 'Bearer wrong' } }, response);
+  assert.equal(response.statusCode, 401);
+  assert.match(response.body, /unauthorized/);
+  if (previous === undefined) delete process.env.CRON_SECRET;
+  else process.env.CRON_SECRET = previous;
 });

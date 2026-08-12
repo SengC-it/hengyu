@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { detectLiveH12Signals, h12AdvisoryBundle, H12_PRODUCTION_POLICY, normalizeFourHourKlines } from '../src/model/live-h12.mjs';
+import { detectLiveH12Signals, fetchLiveH12Series, h12AdvisoryBundle, H12_PRODUCTION_POLICY } from '../src/model/live-h12.mjs';
 
 const baseUrl = process.env.HENGYU_API_BASE_URL || 'https://hengyu-research.vercel.app';
 const secret = process.env.HENGYU_INGEST_SECRET || '';
@@ -28,34 +28,9 @@ async function post(pathname, payload) {
   return result;
 }
 
-async function fetchSeries(symbol) {
-  const bases = [
-    'https://fapi.binance.com',
-    'https://fapi1.binance.com',
-    'https://fapi2.binance.com',
-    'https://fapi3.binance.com',
-    'https://fapi4.binance.com'
-  ];
-  const failures = [];
-  for (const base of bases) {
-    const url = new URL('/fapi/v1/klines', base);
-    url.searchParams.set('symbol', symbol);
-    url.searchParams.set('interval', '4h');
-    url.searchParams.set('limit', '220');
-    try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
-      if (response.ok) return normalizeFourHourKlines(symbol, await response.json());
-      failures.push(`${url.hostname}:${response.status}`);
-    } catch (error) {
-      failures.push(`${url.hostname}:${error.cause?.code ?? error.name}`);
-    }
-  }
-  throw new Error(`${symbol}: Binance futures endpoints unavailable (${failures.join(', ')})`);
-}
-
 async function main() {
   const now = Date.now();
-  const pairs = await Promise.all(H12_PRODUCTION_POLICY.symbols.map(async symbol => [symbol, await fetchSeries(symbol)]));
+  const pairs = await Promise.all(H12_PRODUCTION_POLICY.symbols.map(async symbol => [symbol, await fetchLiveH12Series(symbol)]));
   const signals = detectLiveH12Signals(Object.fromEntries(pairs), { now });
   const output = { mode: dryRun ? 'DRY_RUN' : 'PAPER_ONLY_PRODUCTION', scannedAt: new Date(now).toISOString(), signals: [] };
   for (const signal of signals) {

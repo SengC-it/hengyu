@@ -4,7 +4,7 @@ import { safetyEnvelope } from './_lib/safety.mjs';
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') return methodAllowed(response, ['GET']);
-  const expected = process.env.HENGYU_CRON_SECRET;
+  const expected = process.env.CRON_SECRET || process.env.HENGYU_CRON_SECRET;
   if (!expected) return sendJson(response, 503, { error: 'cron_secret_not_configured' });
   if (request.headers.authorization !== `Bearer ${expected}`) return sendJson(response, 401, { error: 'unauthorized' });
   if (hasSupabaseConfig()) {

@@ -103,7 +103,7 @@ export function buildEmailOutboxRow(advisory, advisoryId) {
   };
 }
 
-async function ingestAdvisoryBundle(record) {
+export async function ingestAdvisoryBundle(record) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) {
     throw new Error('invalid_record');
   }

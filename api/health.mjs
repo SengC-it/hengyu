@@ -10,7 +10,7 @@ export default function handler(request, response) {
     status: hasSupabaseConfig() ? 'ok' : 'degraded',
     productionStrategy: 'H12',
     productionExperiment: 'HY-EXP-0018',
-    productionSchedule: 'EVERY_4H_GITHUB_ACTIONS',
+    productionSchedule: 'EVERY_4H_VERCEL_CRON_SIN1',
     ...safetyEnvelope(),
     supabase: supabaseConfigStatus(),
     gmailConfigured: gmail.configured,

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectLiveH12Signals, h12AdvisoryBundle, H12_PRODUCTION_POLICY } from '../src/model/live-h12.mjs';
+import { detectLiveH12Signals, fetchLiveH12Series, h12AdvisoryBundle, H12_PRODUCTION_POLICY } from '../src/model/live-h12.mjs';
 
 function fallingSeries(symbol, { breakout = false } = {}) {
   const step = 4 * 60 * 60 * 1000;
@@ -36,4 +36,19 @@ test('H12 production bundle remains paper-only and declares dynamic exit', () =>
   assert.equal(bundle.record.advisory.authorization_mode, 'PAPER_ONLY');
   assert.equal(bundle.record.advisory.exit_reference, null);
   assert.equal(bundle.record.advisory.metadata.reviewModel, 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL');
+  assert.equal(bundle.record.advisory.metadata.source, 'vercel-h12-worker');
+});
+
+test('live H12 falls back to the next official Binance futures endpoint', async () => {
+  const calls = [];
+  const rows = [[0, '100', '102', '98', '101', '1', 14_399_999]];
+  const fetchImpl = async url => {
+    calls.push(url.hostname);
+    if (calls.length === 1) return { ok: false, status: 451, text: async () => '' };
+    return { ok: true, status: 200, text: async () => JSON.stringify(rows) };
+  };
+  const series = await fetchLiveH12Series('BTCUSDT', { fetchImpl });
+  assert.deepEqual(calls, ['fapi.binance.com', 'fapi1.binance.com']);
+  assert.equal(series[0].symbol, 'BTCUSDT');
+  assert.equal(series[0].close, 101);
 });

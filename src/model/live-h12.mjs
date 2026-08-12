@@ -41,6 +41,39 @@ export function normalizeFourHourKlines(symbol, rows) {
   });
 }
 
+export async function fetchLiveH12Series(symbol, { fetchImpl = fetch } = {}) {
+  const bases = [
+    'https://fapi.binance.com',
+    'https://fapi1.binance.com',
+    'https://fapi2.binance.com',
+    'https://fapi3.binance.com',
+    'https://fapi4.binance.com'
+  ];
+  const failures = [];
+  for (const base of bases) {
+    const url = new URL('/fapi/v1/klines', base);
+    url.searchParams.set('symbol', symbol);
+    url.searchParams.set('interval', '4h');
+    url.searchParams.set('limit', '220');
+    try {
+      const response = await fetchImpl(url, { signal: AbortSignal.timeout(15_000) });
+      if (!response.ok) {
+        failures.push(`${url.hostname}:${response.status}`);
+        continue;
+      }
+      const text = await response.text();
+      try {
+        return normalizeFourHourKlines(symbol, JSON.parse(text));
+      } catch {
+        failures.push(`${url.hostname}:non_json`);
+      }
+    } catch (error) {
+      failures.push(`${url.hostname}:${error.cause?.code ?? error.name}`);
+    }
+  }
+  throw new Error(`${symbol}: Binance futures endpoints unavailable (${failures.join(', ')})`);
+}
+
 export function detectLiveH12Signals(seriesBySymbol, {
   now = Date.now(),
   policy = H12_PRODUCTION_POLICY
@@ -123,7 +156,7 @@ export function h12AdvisoryBundle(signal, { generatedAt = Date.now() } = {}) {
         live_orders_enabled: false,
         dedupe_key: `${signal.experimentId}:${signal.symbol}:SELL:${signal.signalTime}`,
         metadata: {
-          source: 'github-actions-h12-worker',
+          source: 'vercel-h12-worker',
           modelId: 'HENGYU-H12-PROD-001',
           hypothesisId: 'H12',
           generatedAt: new Date(generatedAt).toISOString(),
