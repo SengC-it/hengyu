@@ -35,6 +35,11 @@ export default async function handler(request, response) {
     });
     return sendJson(response, 200, { ok: true, sent: true, gmail, messageId });
   } catch (error) {
+    console.error('test_email_delivery_failed', {
+      code: error.code || null,
+      responseCode: error.responseCode || null,
+      command: error.command || null
+    });
     return sendJson(response, error.status || 503, {
       error: error.message === 'gmail_not_enabled' ? 'gmail_not_configured' : 'email_test_failed'
     });
