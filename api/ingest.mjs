@@ -18,7 +18,8 @@ const SPECS = {
       'latency_buffer_bps', 'uncertainty_bps', 'conservative_net_edge_bps', 'status', 'no_trade_reason',
       'pnl_eligible', 'authorization_mode', 'live_orders_enabled', 'dedupe_key', 'metadata',
       'decision_at', 'scheduler_delay_ms', 'theoretical_open', 'executable_price', 'holding_period_ms',
-      'funding_cost_bps', 'funding_event_count', 'mae_bps', 'mfe_bps', 'mark_to_market_drawdown_bps'
+      'funding_cost_bps', 'funding_event_count', 'funding_projection_ms', 'edge_source', 'edge_model_id',
+      'mae_bps', 'mfe_bps', 'mark_to_market_drawdown_bps'
     ]
   },
   capture_segment: {
@@ -43,7 +44,8 @@ const SPECS = {
     required: ['scan_key', 'service_name', 'strategy_id', 'experiment_id', 'observed_at', 'status'],
     fields: [
       'scan_id', 'scan_key', 'service_name', 'strategy_id', 'experiment_id', 'observed_at', 'decision_at',
-      'signal_time', 'theoretical_open_at', 'scheduler_delay_ms', 'status', 'regime_pass', 'breadth',
+      'scan_started_at', 'signal_time', 'theoretical_open_at', 'scheduler_delay_ms', 'scheduler_source',
+      'scheduler_attempt', 'status', 'regime_pass', 'breadth',
       'btc_fast_sma', 'btc_slow_sma', 'candidate_count', 'signal_count', 'missed_count', 'reasons',
       'regime', 'symbols', 'details', 'authorization_mode', 'live_orders_enabled'
     ]

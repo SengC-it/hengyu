@@ -57,6 +57,7 @@ function alertLevel(result, candidate, policy) {
   const metrics = result.metrics;
   if (!metrics) return 'NONE';
   const hardDataReasons = new Set([
+    'unverified_price_edge',
     'future_timestamp',
     'stale_forecast',
     'stale_book',
@@ -108,10 +109,7 @@ export function buildNetEdgeAdvisorySignal({
   const level = alertLevel(result, candidate, policy);
   const validUntil = generatedAt + integer('signalValidityMs', policy.signalValidityMs, { minimum: 1 });
   const researchExpiryMs = integer('researchExpiryMs', policy.researchExpiryMs, { minimum: 1 });
-  const candidateHoldMs = candidate.maxHoldMs == null
-    ? researchExpiryMs
-    : integer('candidate maximum hold', candidate.maxHoldMs, { minimum: 1 });
-  const expiresAt = decisionTime + Math.min(researchExpiryMs, candidateHoldMs);
+  const expiresAt = decisionTime + researchExpiryMs;
   const execution = result.metrics?.execution ?? null;
   const quote = quoteFromExecution(execution, book, side);
   const takeProfitPrice = candidate.expectedExitPrice ?? null;
@@ -127,6 +125,8 @@ export function buildNetEdgeAdvisorySignal({
     experimentId: policy.experimentId,
     hypothesisId: candidate.hypothesisId ?? null,
     modelId: policy.modelId,
+    edgeSource: candidate.edgeSource ?? null,
+    edgeModelId: candidate.edgeModelId ?? null,
     evidenceClass: policy.evidenceClass,
     status: result.decision === 'TRADE' ? 'ADVISORY' : level === 'OBSERVE' ? 'OBSERVE' : 'NO_TRADE',
     decision: result.decision,
@@ -146,21 +146,23 @@ export function buildNetEdgeAdvisorySignal({
       bidPrice: quote.bidPrice,
       askPrice: quote.askPrice,
       stopPrice: candidate.stopPrice ?? null,
-      maximumHoldMs: candidate.maxHoldMs ?? researchExpiryMs
+      maximumHoldMs: candidate.maxHoldMs ?? null
     },
-      costs: result.metrics ? {
-        expectedPriceEdgeBps: finite('expectedPriceEdgeBps', candidate.expectedPriceEdgeBps),
-        expectedFundingBps: finite('expectedFundingBps', candidate.expectedFundingBps),
-        expectedGrossEdgeBps: result.metrics.expectedGrossEdgeBps,
-        feeBps: result.metrics.execution.feeBps,
-        spreadBps: result.metrics.execution.spreadBps,
-        slippageBps: result.metrics.execution.slippageBps,
-        observedBookCostBps: result.metrics.execution.observedBookCostBps,
-        stressedBookCostBps: result.metrics.execution.stressedBookCostBps,
-        impactBps: result.metrics.execution.impactBufferBps,
-        executionCostBps: result.metrics.execution.totalExecutionCostBps,
-        expectedNetEdgeBps: result.metrics.expectedNetEdgeBps,
-        uncertaintyPenaltyBps: result.metrics.uncertaintyPenaltyBps,
+    costs: result.metrics ? {
+      expectedPriceEdgeBps: candidate.expectedPriceEdgeBps == null
+        ? null
+        : finite('expectedPriceEdgeBps', candidate.expectedPriceEdgeBps),
+      expectedFundingBps: finite('expectedFundingBps', candidate.expectedFundingBps),
+      expectedGrossEdgeBps: result.metrics.expectedGrossEdgeBps,
+      feeBps: result.metrics.execution.feeBps,
+      spreadBps: result.metrics.execution.spreadBps,
+      slippageBps: result.metrics.execution.slippageBps,
+      observedBookCostBps: result.metrics.execution.observedBookCostBps,
+      stressedBookCostBps: result.metrics.execution.stressedBookCostBps,
+      impactBps: result.metrics.execution.impactBufferBps,
+      executionCostBps: result.metrics.execution.totalExecutionCostBps,
+      expectedNetEdgeBps: result.metrics.expectedNetEdgeBps,
+      uncertaintyPenaltyBps: result.metrics.uncertaintyPenaltyBps,
       fundingStressBps: finite('fundingStressBps', candidate.fundingStressBps, { minimum: 0 }),
       conservativeNetEdgeBps: result.metrics.conservativeNetEdgeBps,
       grossToCostRatio: result.metrics.grossToCostRatio,

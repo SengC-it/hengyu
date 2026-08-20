@@ -7,6 +7,7 @@ import { H12_CONFIG } from './policy-config.mjs';
 
 const BPS = 10_000;
 const FOUR_HOURS = 4 * 60 * 60 * 1000;
+const UNVERIFIED_EDGE_SOURCE = 'UNVERIFIED';
 
 export const H12_PRODUCTION_POLICY = Object.freeze({
   experimentId: H12_CONFIG.experimentId,
@@ -22,7 +23,7 @@ export const H12_PRODUCTION_POLICY = Object.freeze({
   maxSchedulerDelayMs: H12_CONFIG.maxSchedulerDelayMs,
   signalValidityMs: H12_CONFIG.signalValidityMs,
   researchExpiryMs: H12_CONFIG.researchExpiryMs,
-  maxHoldMs: H12_CONFIG.maxHoldMs,
+  fundingProjectionMs: H12_CONFIG.fundingProjectionMs,
   researchNotionalUsdt: H12_CONFIG.researchNotionalUsdt,
   researchEquityUsdt: H12_CONFIG.researchEquityUsdt,
   forecastStandardErrorBps: H12_CONFIG.forecastStandardErrorBps,
@@ -42,6 +43,13 @@ function integer(name, value, { minimum = 0 } = {}) {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < minimum) throw new Error(`invalid ${name}`);
   return parsed;
+}
+
+export function normalizeH12Scheduler({ source = 'direct', attempt = 1 } = {}) {
+  const normalizedSource = String(source ?? '').trim();
+  if (!/^[A-Za-z0-9._:-]{1,80}$/.test(normalizedSource)) throw new Error('invalid scheduler source');
+  const normalizedAttempt = integer('scheduler attempt', attempt, { minimum: 1 });
+  return { source: normalizedSource, attempt: normalizedAttempt };
 }
 
 function average(values) {
@@ -227,14 +235,33 @@ function candidateDiagnostic(base, advisory) {
   };
 }
 
+function forceUnverifiedEdgeNoTrade(advisory) {
+  return {
+    ...advisory,
+    status: 'NO_TRADE',
+    decision: 'NO_TRADE',
+    alertLevel: 'NONE',
+    action: null,
+    reasons: [...new Set([...(advisory.reasons ?? []), 'EDGE_UNVERIFIED'])],
+    delivery: { ...advisory.delivery, email: 'NONE' }
+  };
+}
+
 export function evaluateLiveH12Scan(seriesBySymbol, {
   marketBySymbol = {},
   now = Date.now(),
+  scanStartedAt = now,
+  schedulerSource = 'direct',
+  schedulerAttempt = 1,
   policy = H12_PRODUCTION_POLICY
 } = {}) {
+  const decisionTime = integer('decision time', now);
+  const scanStartTime = integer('scan started time', scanStartedAt);
+  if (scanStartTime > decisionTime) throw new Error('scan started after decision time');
+  const scheduler = normalizeH12Scheduler({ source: schedulerSource, attempt: schedulerAttempt });
   const completedBySymbol = {};
   for (const symbol of policy.symbols) {
-    const completed = latestCompleted(seriesBySymbol[symbol] ?? [], now);
+    const completed = latestCompleted(seriesBySymbol[symbol] ?? [], decisionTime);
     if (completed.length < policy.slowSmaBars) throw new Error(`${symbol}: insufficient completed 4h history`);
     completedBySymbol[symbol] = completed;
   }
@@ -252,7 +279,7 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
     minimumBreadth: policy.minimumBreadth
   });
   const theoreticalOpenAt = signalTime + FOUR_HOURS;
-  const schedulerDelayMs = Math.max(0, now - theoreticalOpenAt);
+  const schedulerDelayMs = Math.max(0, decisionTime - theoreticalOpenAt);
   const symbols = {};
   const signals = [];
   const missedSignals = [];
@@ -299,7 +326,7 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
     const market = marketBySymbol[symbol];
     const book = market?.book ?? market;
     const funding = market?.funding;
-    const bookTime = book?.receivedAt ?? market?.receivedAt ?? now;
+    const bookTime = book?.receivedAt ?? market?.receivedAt ?? decisionTime;
     const executablePrice = Number(book?.bids?.[0]?.[0]);
     const marketBase = { ...base, executablePrice: Number.isFinite(executablePrice) ? executablePrice : null };
     if (!book?.bids?.length || !book?.asks?.length) {
@@ -319,7 +346,7 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
     const expectedFundingBps = estimateFundingCarryBps({
       side: 'SELL',
       fundingRate: funding.fundingRate,
-      holdingPeriodMs: policy.maxHoldMs,
+      holdingPeriodMs: policy.fundingProjectionMs,
       fundingIntervalMs: policy.fundingIntervalMs
     });
     const candidate = {
@@ -328,67 +355,83 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
       side: 'SELL',
       quantity: policy.researchNotionalUsdt / entryPrice,
       researchNotionalUsdt: policy.researchNotionalUsdt,
-      expectedPriceEdgeBps: Math.max(0, distanceToBreakoutBps),
+      expectedPriceEdgeBps: null,
+      edgeSource: UNVERIFIED_EDGE_SOURCE,
+      edgeModelId: null,
       forecastStandardErrorBps: policy.forecastStandardErrorBps,
       expectedFundingBps,
       fundingStressBps: Math.abs(expectedFundingBps) + policy.fundingStressBufferBps,
-      forecastTime: now,
+      forecastTime: decisionTime,
       bookTime,
-      decisionTime: now,
+      decisionTime,
       stopPrice: entryPrice + policy.initialStopAtrMultiple * atr,
       expectedExitPrice: null,
-      maxHoldMs: policy.maxHoldMs,
       cluster: `H12:${signalTime}`
     };
     const advisory = buildNetEdgeAdvisorySignal({
       candidate,
       book,
-      now,
+      now: decisionTime,
       policy: h12NetEdgePolicy(policy)
     });
+    const finalAdvisory = forceUnverifiedEdgeNoTrade(advisory);
     const diagnostic = candidateDiagnostic({
       ...marketBase,
       fundingRate: funding.fundingRate,
       expectedFundingBps,
-      fundingHoldingPeriodMs: policy.maxHoldMs,
-      bookAgeMs: Math.max(0, now - bookTime),
-      atr
-    }, advisory);
+      fundingProjectionMs: policy.fundingProjectionMs,
+      bookAgeMs: Math.max(0, decisionTime - bookTime),
+      atr,
+      edgeSource: candidate.edgeSource,
+      edgeModelId: candidate.edgeModelId,
+      candidate: {
+        symbol: candidate.symbol,
+        side: candidate.side,
+        signalTime,
+        entryPrice,
+        stopPrice: candidate.stopPrice,
+        expectedPriceEdgeBps: candidate.expectedPriceEdgeBps,
+        edgeSource: candidate.edgeSource,
+        edgeModelId: candidate.edgeModelId
+      }
+    }, finalAdvisory);
     symbols[symbol] = diagnostic;
-    if (advisory.status !== 'NO_TRADE') {
+    if (finalAdvisory.status !== 'NO_TRADE') {
       signals.push({
-        ...advisory,
+        ...finalAdvisory,
         experimentId: policy.experimentId,
         hypothesisId: policy.hypothesisId,
         signalTime: signalBar.closeTime,
-        decisionTime: now,
-        generatedAt: now,
-        validUntil: now + policy.signalValidityMs,
-        expiresAt: now + Math.min(policy.researchExpiryMs, policy.maxHoldMs),
-        entryPrice: advisory.reference.entryPrice,
-        stopPrice: advisory.reference.stopPrice,
+        decisionTime,
+        generatedAt: decisionTime,
+        validUntil: decisionTime + policy.signalValidityMs,
+        expiresAt: decisionTime + policy.researchExpiryMs,
+        entryPrice: finalAdvisory.reference.entryPrice,
+        stopPrice: finalAdvisory.reference.stopPrice,
         schedulerDelayMs,
-        bookAgeMs: Math.max(0, now - bookTime),
+        bookAgeMs: Math.max(0, decisionTime - bookTime),
         theoreticalOpenAt,
         theoreticalOpen: theoreticalBar?.open ?? null,
-        executablePrice: advisory.reference.entryPrice,
+        executablePrice: finalAdvisory.reference.entryPrice,
         signalClose: signalBar.close,
         priorEntryChannelLow: priorLow,
         atr,
         initialExitChannelPrice: Math.max(...completed.slice(index - policy.exitChannelBars, index).map(row => row.high)),
-        exitRule: `Stateful dynamic exit: next 4h close above prior ${policy.exitChannelBars}-bar high or initial ${policy.initialStopAtrMultiple} ATR stop, with maximum hold ${policy.maxHoldMs}ms.`,
+        exitRule: `Stateful dynamic exit: next 4h close above prior ${policy.exitChannelBars}-bar high or initial ${policy.initialStopAtrMultiple} ATR stop.`,
         funding: {
           rate: funding.fundingRate,
           fundingTime: funding.fundingTime,
           nextFundingTime: funding.nextFundingTime,
           expectedFundingBps,
           fundingCostBps: -expectedFundingBps,
-          holdingPeriodMs: policy.maxHoldMs,
-          settlementCount: Math.ceil(policy.maxHoldMs / policy.fundingIntervalMs)
+          fundingProjectionMs: policy.fundingProjectionMs,
+          holdingPeriodMs: null,
+          settlementCount: null
         }
       });
     }
   }
+  const rejectionReasons = Object.values(symbols).flatMap(row => row.reasons ?? []);
   const status = signals.length ? 'SIGNAL' : missedSignals.length ? 'MISSED_SIGNAL' : 'NO_SIGNAL';
   return {
     status,
@@ -397,13 +440,19 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
       schemaVersion: 2,
       strategyId: 'H12',
       experimentId: policy.experimentId,
-      observedAt: new Date(now).toISOString(),
-      decisionTime: new Date(now).toISOString(),
+      observedAt: new Date(decisionTime).toISOString(),
+      scanStartedAt: new Date(scanStartTime).toISOString(),
+      decisionTime: new Date(decisionTime).toISOString(),
       signalTime,
       theoreticalOpenAt,
       schedulerDelayMs,
+      schedulerSource: scheduler.source,
+      schedulerAttempt: scheduler.attempt,
       status,
-      reasons: [...new Set(baseReasons.concat(missedSignals.length ? ['SCHEDULER_DELAY_EXCEEDED'] : []))],
+      reasons: [...new Set(baseReasons.concat(
+        missedSignals.length ? ['SCHEDULER_DELAY_EXCEEDED'] : [],
+        rejectionReasons
+      ))],
       regime,
       symbols,
       candidateCount: Object.values(symbols).filter(row => ['ADVISORY', 'OBSERVE', 'NO_TRADE'].includes(row.status)).length,
@@ -421,15 +470,18 @@ export function detectLiveH12Signals(seriesBySymbol, options = {}) {
 
 export function h12ScanDiagnosticRecord(diagnostics, { serviceName = 'vercel-h12-worker' } = {}) {
   return {
-    scan_key: `H12:${diagnostics.signalTime}:${diagnostics.status}`,
+    scan_key: `H12:${diagnostics.experimentId}:${diagnostics.signalTime}:${diagnostics.schedulerSource}:${diagnostics.schedulerAttempt}`,
     service_name: serviceName,
     strategy_id: diagnostics.strategyId,
     experiment_id: diagnostics.experimentId,
     observed_at: diagnostics.observedAt,
+    scan_started_at: diagnostics.scanStartedAt,
     decision_at: diagnostics.decisionTime,
     signal_time: new Date(diagnostics.signalTime).toISOString(),
     theoretical_open_at: new Date(diagnostics.theoreticalOpenAt).toISOString(),
     scheduler_delay_ms: diagnostics.schedulerDelayMs,
+    scheduler_source: diagnostics.schedulerSource,
+    scheduler_attempt: diagnostics.schedulerAttempt,
     status: diagnostics.status,
     regime_pass: diagnostics.regime.pass,
     breadth: diagnostics.regime.breadth,
@@ -476,7 +528,10 @@ export function h12AdvisoryBundle(signal, { generatedAt = Date.now() } = {}) {
         exit_reference: null,
         gross_edge_bps: costs.expectedGrossEdgeBps ?? null,
         funding_edge_bps: costs.expectedFundingBps ?? funding.expectedFundingBps ?? null,
+        edge_source: signal.edgeSource ?? null,
+        edge_model_id: signal.edgeModelId ?? null,
         holding_period_ms: funding.holdingPeriodMs ?? signal.reference?.maximumHoldMs ?? null,
+        funding_projection_ms: funding.fundingProjectionMs ?? null,
         funding_cost_bps: funding.fundingCostBps ?? null,
         funding_event_count: funding.settlementCount ?? null,
         fee_bps: costs.feeBps ?? 0,
@@ -494,6 +549,8 @@ export function h12AdvisoryBundle(signal, { generatedAt = Date.now() } = {}) {
         metadata: {
           source: 'vercel-h12-worker',
           modelId: 'HENGYU-NET-EDGE-001',
+          edgeSource: signal.edgeSource ?? null,
+          edgeModelId: signal.edgeModelId ?? null,
           hypothesisId: signal.hypothesisId,
           generatedAt: new Date(generatedAt).toISOString(),
           signalTime: new Date(signalTime).toISOString(),

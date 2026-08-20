@@ -75,6 +75,27 @@ test('sub-threshold positive edge is observed and never emailed', () => {
   assert.equal(signal.status, 'OBSERVE');
 });
 
+test('unverified price edge is retained as metadata and cannot become TRADE', () => {
+  const signal = buildNetEdgeAdvisorySignal({
+    candidate: candidate({
+      expectedPriceEdgeBps: null,
+      edgeSource: 'UNVERIFIED',
+      edgeModelId: null
+    }),
+    book: BOOK,
+    policy: POLICY,
+    now: 10_000
+  });
+  assert.equal(signal.status, 'NO_TRADE');
+  assert.equal(signal.decision, 'NO_TRADE');
+  assert.equal(signal.edgeSource, 'UNVERIFIED');
+  assert.equal(signal.edgeModelId, null);
+  assert.equal(signal.costs.expectedPriceEdgeBps, null);
+  assert.ok(signal.reasons.includes('unverified_price_edge'));
+  assert.equal(signal.reference.maximumHoldMs, null);
+  assert.equal(signal.expiresAt, 909_500);
+});
+
 test('stale candidate is NO_TRADE and simulation contains model fields only', () => {
   const signal = buildNetEdgeAdvisorySignal({
     candidate: candidate({ forecastTime: 1_000, bookTime: 1_000 }),

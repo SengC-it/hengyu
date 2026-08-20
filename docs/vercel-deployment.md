@@ -28,7 +28,7 @@
 - `HENGYU_PAPER_ONLY=true`
 - `HENGYU_LIVE_ORDERS_ENABLED=false`
 
-部署前必须先应用候选引擎诊断迁移，并确认 `hengyu_scan_diagnostics` 已启用 RLS、匿名/认证角色无读写权限、`service_role` 只有应用所需权限。迁移不会创建下单表、交易所账户权限或订单函数。
+部署前必须先应用候选引擎诊断迁移 `supabase/migrations/20260820150000_candidate_engine_diagnostics.sql` 和 H12 时序/调度迁移 `supabase/migrations/20260821100000_h12_timing_edge_scheduler.sql`，并确认 `hengyu_scan_diagnostics` 已启用 RLS、匿名/认证角色无读写权限、`service_role` 只有应用所需权限。迁移不会创建下单表、交易所账户权限或订单函数。
 
 启用 Gmail outbox 发送只需要配置 `HENGYU_GMAIL_FROM_ADDRESS`、`HENGYU_GMAIL_TO_ADDRESS`、`HENGYU_GMAIL_APP_PASSWORD`。实现使用 Gmail SMTP App Password；`HENGYU_GMAIL_SEND_ENABLED` 默认不需要设置。旧的 Gmail API OAuth 变量仍作为兼容 fallback，但不应与 SMTP 配置混用。没有这些变量时，邮件接口只返回未配置状态，不会尝试发送。
 

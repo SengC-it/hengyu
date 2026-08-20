@@ -17,7 +17,7 @@
   "maxSchedulerDelayMs": 900000,
   "signalValidityMs": 900000,
   "researchExpiryMs": 86400000,
-  "maxHoldMs": 86400000,
+  "fundingProjectionMs": 86400000,
   "researchNotionalUsdt": 1000,
   "researchEquityUsdt": 100000,
   "forecastStandardErrorBps": 20,

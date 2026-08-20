@@ -34,7 +34,7 @@
       <h2>为什么没有信号</h2>
       <div id="diagnostic-summary" class="diagnostic"></div>
       <p id="diagnostic-reasons" class="muted">诊断读取中…</p>
-      <table><thead><tr><th>扫描时间</th><th>策略</th><th>状态</th><th>Regime</th><th>Breadth</th><th>延迟</th><th>原因</th></tr></thead><tbody id="diagnostic-rows"></tbody></table>
+      <table><thead><tr><th>扫描时间</th><th>策略</th><th>状态</th><th>Regime</th><th>Breadth</th><th>延迟</th><th>调度来源/尝试</th><th>原因</th></tr></thead><tbody id="diagnostic-rows"></tbody></table>
       <table><thead><tr><th>币种</th><th>候选状态</th><th>方向</th><th>突破门槛</th><th>距离</th><th>延迟</th><th>拒绝原因</th></tr></thead><tbody id="diagnostic-symbol-rows"></tbody></table>
     </section>
     <section class="section">
@@ -82,12 +82,15 @@
         ['最新状态', latest?.status || diagnostic.status || '—'],
         ['Regime', latest?.regimePass == null ? '—' : (latest.regimePass ? 'PASS' : 'FAIL')],
         ['Breadth', latest?.breadth == null ? '—' : `${latest.breadth}/6`],
-        ['Scheduler delay', latest?.schedulerDelayMs == null ? '—' : `${latest.schedulerDelayMs} ms`]
+        ['Scheduler delay', latest?.schedulerDelayMs == null ? '—' : `${latest.schedulerDelayMs} ms`],
+        ['Scheduler source', latest?.schedulerSource ? `${latest.schedulerSource} · #${latest.schedulerAttempt ?? '—'}` : '—'],
+        ['Scan start', time(latest?.scanStartedAt)],
+        ['Decision time', time(latest?.decisionTime)]
       ].map(([label, value]) => `<div class="diagnostic-card"><div class="muted">${label}</div><div>${escapeHtml(value)}</div></div>`).join('');
       document.querySelector('#diagnostic-reasons').textContent = diagnostic.error
         ? `诊断表不可用：${diagnostic.error}`
         : `最近原因：${(latest?.reasons || diagnostic.latestReasons || []).join('、') || '暂无记录'}`;
-      document.querySelector('#diagnostic-rows').innerHTML = (result.scans || []).map(scan => `<tr><td>${time(scan.observedAt)}</td><td><code>${escapeHtml(scan.strategyId)}</code></td><td>${escapeHtml(scan.status)}</td><td>${scan.regimePass == null ? '—' : scan.regimePass ? 'PASS' : 'FAIL'}</td><td>${scan.breadth == null ? '—' : scan.breadth}</td><td>${scan.schedulerDelayMs == null ? '—' : `${scan.schedulerDelayMs} ms`}</td><td title="${escapeHtml((scan.reasons || []).join(', '))}">${escapeHtml((scan.reasons || []).join('、') || '—')}</td></tr>`).join('');
+      document.querySelector('#diagnostic-rows').innerHTML = (result.scans || []).map(scan => `<tr><td>${time(scan.observedAt)}</td><td><code>${escapeHtml(scan.strategyId)}</code></td><td>${escapeHtml(scan.status)}</td><td>${scan.regimePass == null ? '—' : scan.regimePass ? 'PASS' : 'FAIL'}</td><td>${scan.breadth == null ? '—' : scan.breadth}</td><td>${scan.schedulerDelayMs == null ? '—' : `${scan.schedulerDelayMs} ms`}</td><td>${escapeHtml(scan.schedulerSource || '—')} / #${escapeHtml(scan.schedulerAttempt ?? '—')}</td><td title="${escapeHtml((scan.reasons || []).join(', '))}">${escapeHtml((scan.reasons || []).join('、') || '—')}</td></tr>`).join('');
       document.querySelector('#diagnostic-symbol-rows').innerHTML = Object.entries(latest?.symbols || {}).map(([symbol, row]) => `<tr><td><code>${escapeHtml(symbol)}</code></td><td>${escapeHtml(row.status || '—')}</td><td>${escapeHtml(row.side || row.direction || '—')}</td><td>${row.breakoutPass == null ? '—' : row.breakoutPass ? 'PASS' : 'FAIL'}</td><td>${row.distanceToBreakoutBps == null ? '—' : bps(row.distanceToBreakoutBps)}</td><td>${row.schedulerDelayMs == null ? '—' : `${row.schedulerDelayMs} ms`}</td><td title="${escapeHtml((row.reasons || []).join(', '))}">${escapeHtml((row.reasons || []).join('、') || '—')}</td></tr>`).join('');
       document.querySelector('#experiment-status').innerHTML = Object.values(result.experiments || {}).map(experiment => `<div class="${experiment.pass ? 'good' : 'bad'}"><code>${escapeHtml(experiment.experimentId)}</code>：${escapeHtml(experiment.status)} · pass=${experiment.pass} · ${escapeHtml(experiment.reason)}</div>`).join('');
       document.querySelector('#rows').innerHTML = result.signals.map(signal => {

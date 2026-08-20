@@ -9,6 +9,7 @@ import {
   fetchLiveH12Series,
   h12AdvisoryBundle,
   h12ScanDiagnosticRecord,
+  normalizeH12Scheduler,
   H12_PRODUCTION_POLICY
 } from '../src/model/live-h12.mjs';
 
@@ -23,8 +24,13 @@ async function authorized(request) {
 export default async function handler(request, response) {
   if (request.method !== 'GET') return methodAllowed(response, ['GET']);
   if (!await authorized(request)) return sendJson(response, 401, { error: 'unauthorized' });
-  const now = Date.now();
+  const scanStartedAt = Date.now();
   try {
+    const requestUrl = new URL(request.url ?? '/api/h12-scan', 'https://hengyu.local');
+    const scheduler = normalizeH12Scheduler({
+      source: requestUrl.searchParams.get('scheduler_source') ?? 'vercel-h12-scan',
+      attempt: requestUrl.searchParams.get('scheduler_attempt') ?? 1
+    });
     const pairs = await Promise.all(H12_PRODUCTION_POLICY.symbols.map(async symbol => {
       const [series, market] = await Promise.all([
         fetchLiveH12Series(symbol),
@@ -32,16 +38,23 @@ export default async function handler(request, response) {
       ]);
       return { symbol, series, market };
     }));
+    const decisionTime = Date.now();
     const evaluated = evaluateLiveH12Scan(
       Object.fromEntries(pairs.map(row => [row.symbol, row.series])),
-      { marketBySymbol: Object.fromEntries(pairs.map(row => [row.symbol, row.market])), now }
+      {
+        marketBySymbol: Object.fromEntries(pairs.map(row => [row.symbol, row.market])),
+        now: decisionTime,
+        scanStartedAt,
+        schedulerSource: scheduler.source,
+        schedulerAttempt: scheduler.attempt
+      }
     );
     const signals = evaluated.signals;
     const diagnostics = evaluated.diagnostics;
     await insertRow('hengyu_scan_diagnostics', h12ScanDiagnosticRecord(diagnostics), { onConflict: 'scan_key' });
     const ingested = [];
     for (const signal of signals) {
-      ingested.push(await ingestAdvisoryBundle(h12AdvisoryBundle(signal, { generatedAt: now }).record));
+      ingested.push(await ingestAdvisoryBundle(h12AdvisoryBundle(signal, { generatedAt: decisionTime }).record));
     }
     let emails = { status: 'SKIPPED', reason: 'gmail_not_configured', dispatched: [] };
     if (gmailStatus().configured) {
@@ -53,7 +66,7 @@ export default async function handler(request, response) {
     }
     await insertRow('hengyu_system_heartbeats', {
       service_name: 'vercel-h12-worker',
-      observed_at: new Date(now).toISOString(),
+      observed_at: new Date(decisionTime).toISOString(),
       status: emails.status === 'FAILED' ? 'DEGRADED' : 'HEALTHY',
       pnl_eligible: false,
        details: {
@@ -63,6 +76,8 @@ export default async function handler(request, response) {
          scanStatus: diagnostics.status,
          noSignalReasons: diagnostics.reasons,
          schedulerDelayMs: diagnostics.schedulerDelayMs,
+         schedulerSource: diagnostics.schedulerSource,
+         schedulerAttempt: diagnostics.schedulerAttempt,
          emailDispatch: emails.status
        }
     });
@@ -71,7 +86,7 @@ export default async function handler(request, response) {
       strategy: 'H12',
       mode: 'SIGNAL_ONLY',
       authorization: 'PAPER_ONLY',
-      scannedAt: new Date(now).toISOString(),
+      scannedAt: new Date(decisionTime).toISOString(),
       scanStatus: diagnostics.status,
       diagnostics,
       signals: signals.map(signal => signal.signalId),

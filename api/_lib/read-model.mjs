@@ -8,7 +8,8 @@ const ADVISORY_SELECT = [
   'latency_buffer_bps', 'uncertainty_bps', 'conservative_net_edge_bps',
   'status', 'pnl_eligible', 'created_at', 'decision_at', 'scheduler_delay_ms',
   'theoretical_open', 'executable_price', 'holding_period_ms', 'funding_cost_bps',
-  'funding_event_count', 'mae_bps', 'mfe_bps', 'mark_to_market_drawdown_bps', 'metadata'
+  'funding_event_count', 'funding_projection_ms', 'edge_source', 'edge_model_id',
+  'mae_bps', 'mfe_bps', 'mark_to_market_drawdown_bps', 'metadata'
 ].join(',');
 
 function numberOrNull(value) {
@@ -47,8 +48,11 @@ export function publicSignal(row) {
       uncertaintyBps: numberOrNull(row.uncertainty_bps),
       conservativeNetEdgeBps: numberOrNull(row.conservative_net_edge_bps),
       fundingCostBps: numberOrNull(row.funding_cost_bps),
-      fundingEventCount: row.funding_event_count == null ? null : Number(row.funding_event_count)
+      fundingEventCount: row.funding_event_count == null ? null : Number(row.funding_event_count),
+      fundingProjectionMs: row.funding_projection_ms == null ? null : Number(row.funding_projection_ms)
     },
+    edgeSource: row.edge_source ?? null,
+    edgeModelId: row.edge_model_id ?? null,
     schedulerDelayMs: row.scheduler_delay_ms == null ? null : Number(row.scheduler_delay_ms),
     pathMetrics: {
       maeBps: numberOrNull(row.mae_bps),
@@ -101,10 +105,13 @@ export function publicScanDiagnostic(row) {
     strategyId: row.strategy_id,
     experimentId: row.experiment_id,
     observedAt: row.observed_at,
+    scanStartedAt: row.scan_started_at,
     decisionTime: row.decision_at,
     signalTime: row.signal_time,
     theoreticalOpenAt: row.theoretical_open_at,
     schedulerDelayMs: row.scheduler_delay_ms == null ? null : Number(row.scheduler_delay_ms),
+    schedulerSource: row.scheduler_source ?? null,
+    schedulerAttempt: row.scheduler_attempt == null ? null : Number(row.scheduler_attempt),
     status: row.status,
     regimePass: row.regime_pass,
     breadth: row.breadth == null ? null : Number(row.breadth),
@@ -125,7 +132,7 @@ export async function readScanDiagnostics(limit) {
   if (!hasSupabaseConfig()) return { configured: false, rows: [], error: null };
   try {
     const rows = await selectRows('hengyu_scan_diagnostics', {
-      select: 'scan_id,scan_key,service_name,strategy_id,experiment_id,observed_at,decision_at,signal_time,theoretical_open_at,scheduler_delay_ms,status,regime_pass,breadth,btc_fast_sma,btc_slow_sma,candidate_count,signal_count,missed_count,reasons,regime,symbols,details',
+      select: 'scan_id,scan_key,service_name,strategy_id,experiment_id,observed_at,scan_started_at,decision_at,signal_time,theoretical_open_at,scheduler_delay_ms,scheduler_source,scheduler_attempt,status,regime_pass,breadth,btc_fast_sma,btc_slow_sma,candidate_count,signal_count,missed_count,reasons,regime,symbols,details',
       order: 'observed_at.desc',
       limit
     });

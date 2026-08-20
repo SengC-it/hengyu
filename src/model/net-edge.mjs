@@ -130,8 +130,13 @@ export function evaluateNetEdge({
   now = Date.now()
 }) {
   sideSign(candidate.side);
+  const expectedPriceEdgeBps = candidate.expectedPriceEdgeBps == null
+    ? null
+    : Number(candidate.expectedPriceEdgeBps);
+  if (expectedPriceEdgeBps !== null) {
+    requireFinite('expectedPriceEdgeBps', expectedPriceEdgeBps, { minimum: -Infinity });
+  }
   for (const [name, value, minimum] of [
-    ['expectedPriceEdgeBps', candidate.expectedPriceEdgeBps, -Infinity],
     ['forecastStandardErrorBps', candidate.forecastStandardErrorBps, 0],
     ['expectedFundingBps', candidate.expectedFundingBps, -Infinity],
     ['fundingStressBps', candidate.fundingStressBps, 0],
@@ -160,6 +165,9 @@ export function evaluateNetEdge({
     latencyBufferBpsPerFill: policy.latencyBufferBpsPerFill
   });
   const reasons = [];
+  if (expectedPriceEdgeBps === null || String(candidate.edgeSource ?? '').toUpperCase() === 'UNVERIFIED') {
+    reasons.push('unverified_price_edge');
+  }
   if (candidate.forecastTime > now || candidate.bookTime > now) reasons.push('future_timestamp');
   if (now - candidate.forecastTime > policy.maximumForecastAgeMs) reasons.push('stale_forecast');
   if (now - candidate.bookTime > policy.maximumBookAgeMs) reasons.push('stale_book');
@@ -175,7 +183,7 @@ export function evaluateNetEdge({
       reasons.push('visible_depth_participation');
     }
     const uncertaintyPenaltyBps = policy.confidenceZ * candidate.forecastStandardErrorBps;
-    const expectedGrossEdgeBps = candidate.expectedPriceEdgeBps + candidate.expectedFundingBps;
+    const expectedGrossEdgeBps = (expectedPriceEdgeBps ?? 0) + candidate.expectedFundingBps;
     const expectedNetEdgeBps = expectedGrossEdgeBps - execution.totalExecutionCostBps;
     const conservativeNetEdgeBps = expectedNetEdgeBps
       - uncertaintyPenaltyBps
@@ -183,7 +191,7 @@ export function evaluateNetEdge({
     const grossToCostRatio = execution.totalExecutionCostBps > 0
       ? expectedGrossEdgeBps / execution.totalExecutionCostBps
       : Infinity;
-    if (candidate.expectedPriceEdgeBps <= 0) reasons.push('non_positive_price_edge');
+    if (expectedPriceEdgeBps === null || expectedPriceEdgeBps <= 0) reasons.push('non_positive_price_edge');
     if (grossToCostRatio < policy.minimumGrossToCostRatio) reasons.push('insufficient_cost_coverage');
     if (conservativeNetEdgeBps < policy.minimumConservativeNetBps) {
       reasons.push('insufficient_conservative_net_edge');

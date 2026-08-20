@@ -2,7 +2,9 @@ name: Hengyu H12 Production Trigger
 
 on:
   schedule:
-    - cron: "5 */4 * * *"
+    # Poll five minutes apart so a delayed GitHub runner still has retries
+    # inside the 15-minute post-boundary acceptance window.
+    - cron: "2-59/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,7 +19,7 @@ jobs:
   h12:
     name: Trigger H12 Singapore scanner
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Request short-lived GitHub OIDC identity
         id: oidc
@@ -35,6 +37,23 @@ jobs:
           HENGYU_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent \
-            -H "Authorization: Bearer ${HENGYU_OIDC_TOKEN}" \
-            https://hengyu-research.vercel.app/api/h12-scan
+          for attempt in 1 2 3; do
+            body_file="$(mktemp)"
+            if http_code="$(curl --show-error --silent --output "${body_file}" --write-out "%{http_code}" \
+              --connect-timeout 15 --max-time 75 \
+              -H "Authorization: Bearer ${HENGYU_OIDC_TOKEN}" \
+              "https://hengyu-research.vercel.app/api/h12-scan?scheduler_source=github-actions-h12-5m&scheduler_attempt=${attempt}")"; then
+              :
+            else
+              http_code="000"
+            fi
+            cat "${body_file}"
+            rm -f "${body_file}"
+            if [[ "${http_code}" == "200" ]]; then
+              exit 0
+            fi
+            if (( attempt < 3 )); then
+              sleep 30
+            fi
+          done
+          exit 1
