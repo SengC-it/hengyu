@@ -1,5 +1,12 @@
 import crypto from 'node:crypto';
-import { detectLiveH12Signals, fetchLiveH12Series, h12AdvisoryBundle, H12_PRODUCTION_POLICY } from '../src/model/live-h12.mjs';
+import {
+  evaluateLiveH12Scan,
+  fetchLiveH12Market,
+  fetchLiveH12Series,
+  h12AdvisoryBundle,
+  h12ScanDiagnosticRecord,
+  H12_PRODUCTION_POLICY
+} from '../src/model/live-h12.mjs';
 
 const baseUrl = process.env.HENGYU_API_BASE_URL || 'https://hengyu-research.vercel.app';
 const secret = process.env.HENGYU_INGEST_SECRET || '';
@@ -30,9 +37,31 @@ async function post(pathname, payload) {
 
 async function main() {
   const now = Date.now();
-  const pairs = await Promise.all(H12_PRODUCTION_POLICY.symbols.map(async symbol => [symbol, await fetchLiveH12Series(symbol)]));
-  const signals = detectLiveH12Signals(Object.fromEntries(pairs), { now });
-  const output = { mode: dryRun ? 'DRY_RUN' : 'PAPER_ONLY_PRODUCTION', scannedAt: new Date(now).toISOString(), signals: [] };
+  const pairs = await Promise.all(H12_PRODUCTION_POLICY.symbols.map(async symbol => {
+    const [series, market] = await Promise.all([
+      fetchLiveH12Series(symbol),
+      fetchLiveH12Market(symbol).catch(error => ({ error: error.message }))
+    ]);
+    return { symbol, series, market };
+  }));
+  const evaluated = evaluateLiveH12Scan(
+    Object.fromEntries(pairs.map(row => [row.symbol, row.series])),
+    { marketBySymbol: Object.fromEntries(pairs.map(row => [row.symbol, row.market])), now }
+  );
+  const signals = evaluated.signals;
+  const output = {
+    mode: dryRun ? 'DRY_RUN' : 'PAPER_ONLY_PRODUCTION',
+    scannedAt: new Date(now).toISOString(),
+    scanStatus: evaluated.status,
+    diagnostics: evaluated.diagnostics,
+    signals: []
+  };
+  if (!dryRun) {
+    output.diagnostic = await post('/api/ingest', {
+      kind: 'scan_diagnostic',
+      record: h12ScanDiagnosticRecord(evaluated.diagnostics, { serviceName: 'github-actions-h12-worker' })
+    });
+  }
   for (const signal of signals) {
     const bundle = h12AdvisoryBundle(signal, { generatedAt: now });
     const result = dryRun ? { accepted: false, dryRun: true } : await post('/api/ingest', bundle);

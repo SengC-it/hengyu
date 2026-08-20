@@ -13,7 +13,7 @@ const EXIT_BOOK = {
   asks: [[100.6, 10], [100.7, 10]]
 };
 
-test('advisory replay keeps a signal open when neither TP nor SL is touched', () => {
+test('advisory replay closes a dynamic signal at its maximum hold when neither TP nor SL is touched', () => {
   const signal = buildNetEdgeAdvisorySignal({
     candidate: {
       hypothesisId: 'H1',
@@ -42,12 +42,12 @@ test('advisory replay keeps a signal open when neither TP nor SL is touched', ()
       { symbol: 'BTCUSDT', eventTime: 12_000, receivedAt: 12_000, ...EXIT_BOOK }
     ]
   });
-  assert.equal(trade.status, 'OPEN');
-  assert.equal(trade.exitReason, null);
+  assert.equal(trade.status, 'CLOSED');
+  assert.equal(trade.exitReason, 'TIME');
   assert.equal(trade.accountDataUsed, false);
   const summary = summarizeAdvisoryTrades([trade]);
-  assert.equal(summary.closedTrades, 0);
-  assert.equal(summary.openTrades, 1);
+  assert.equal(summary.closedTrades, 1);
+  assert.equal(summary.openTrades, 0);
   assert.equal(summary.symbols[0], 'BTCUSDT');
 });
 

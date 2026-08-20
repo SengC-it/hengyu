@@ -10,6 +10,7 @@ import { buildEmailOutboxRow } from '../api/ingest.mjs';
 import testEmailHandler from '../api/test-email.mjs';
 import h12ScanHandler from '../api/h12-scan.mjs';
 import { verifyGitHubActionsOidc } from '../api/_lib/github-oidc.mjs';
+import { experimentValidation } from '../src/model/experiment-status.mjs';
 
 function mockResponse() {
   return {
@@ -42,6 +43,12 @@ test('public signal projection omits quantity, leverage, order and account field
   const text = JSON.stringify(signal).toLowerCase();
   assert.match(text, /manualonly/);
   assert.doesNotMatch(text, /quantity|leverage|notional|orderplacement|accountaccess/);
+});
+
+test('dashboard validation record keeps HY-EXP-0018 explicitly failed', () => {
+  const validation = experimentValidation('HY-EXP-0018');
+  assert.equal(validation.pass, false);
+  assert.equal(validation.status, 'FAILED');
 });
 
 test('signed collector request verifies the exact body and timestamp', () => {

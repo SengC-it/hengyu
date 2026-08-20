@@ -19,6 +19,9 @@
     th, td { padding: 9px 8px; border-bottom: 1px solid #1e293b; text-align: left; }
     th { color: #94a3b8; font-size: 12px; }
     .strong { color: #4ade80; } .medium { color: #facc15; } .observe { color: #93c5fd; }
+    .bad { color: #f87171; } .good { color: #4ade80; }
+    .diagnostic { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 12px; }
+    .diagnostic-card { padding: 12px; background: #111c33; border: 1px solid #263754; border-radius: 8px; }
     code { color: #a5b4fc; }
   </style>
 </head>
@@ -27,10 +30,21 @@
     <header><h1>Hengyu Research</h1><span id="status">读取中…</span></header>
     <p class="notice">只读研究提醒：PAPER_ONLY · 不读取账户 · 不提供数量/杠杆 · 不含下单接口。</p>
     <div id="counts"></div>
+    <section class="section">
+      <h2>为什么没有信号</h2>
+      <div id="diagnostic-summary" class="diagnostic"></div>
+      <p id="diagnostic-reasons" class="muted">诊断读取中…</p>
+      <table><thead><tr><th>扫描时间</th><th>策略</th><th>状态</th><th>Regime</th><th>Breadth</th><th>延迟</th><th>原因</th></tr></thead><tbody id="diagnostic-rows"></tbody></table>
+      <table><thead><tr><th>币种</th><th>候选状态</th><th>方向</th><th>突破门槛</th><th>距离</th><th>延迟</th><th>拒绝原因</th></tr></thead><tbody id="diagnostic-symbol-rows"></tbody></table>
+    </section>
+    <section class="section">
+      <h2>实验验证状态</h2>
+      <div id="experiment-status" class="notice"></div>
+    </section>
     <table><thead><tr><th>时间</th><th>级别</th><th>动作</th><th>币种</th><th>入场参考</th><th>保守净优势</th><th>状态</th></tr></thead><tbody id="rows"></tbody></table>
     <section class="section">
       <h2>已发复盘</h2>
-      <p class="muted">只统计邮件已实际发送（SENT）的 STRONG/MEDIUM 信号。按邮件中的入场、SL、TP 价格复盘；TP/SL 首次触发结算，未触发则持续持仓，不按时间平仓。收益为价格收益，不含手续费和滑点。</p>
+      <p class="muted">只统计邮件已实际发送（SENT）的 STRONG/MEDIUM 信号。历史固定 TP/SL 复盘与 H12 动态退出分开处理；展示区区分已实现收益和浮动收益。完整研究回放另计手续费、资金费、MAE、MFE 与 mark-to-market 回撤。</p>
       <div id="review-counts"></div>
       <div id="review-status" class="muted">复盘读取中…</div>
       <table><thead><tr><th>发送时间</th><th>币种/方向</th><th>入场</th><th>SL</th><th>TP</th><th>结算</th><th>价格收益</th><th>数据</th></tr></thead><tbody id="review-rows"></tbody></table>
@@ -43,7 +57,7 @@
     const bps = value => value == null ? '—' : `${Number(value).toFixed(2)} bps`;
 
     function reviewStatus(row) {
-      if (row.status === 'CLOSED') return row.exitReason === 'TP' ? '已止盈' : '已止损';
+      if (row.status === 'CLOSED') return row.exitReason === 'TP' ? '已止盈' : row.exitReason === 'SL' ? '已止损' : row.exitReason === 'TIME' ? '按时间平仓' : '已平仓';
       if (row.status === 'HOLDING') return '持仓中';
       if (row.status === 'DATA_INSUFFICIENT') return '数据不足';
       return '信号无效';
@@ -62,6 +76,20 @@
       ]);
       document.querySelector('#status').textContent = `信号 ${result.counts.signals} · 邮件 ${result.counts.alerts} · 已发复盘 ${review.summary.totalSignals}`;
       document.querySelector('#counts').textContent = `STRONG ${result.counts.strong} · MEDIUM ${result.counts.medium} · OBSERVE ${result.counts.observe} · NO_TRADE ${result.counts.noTrade}`;
+      const latest = result.latestScan;
+      const diagnostic = result.diagnostics || {};
+      document.querySelector('#diagnostic-summary').innerHTML = [
+        ['最新状态', latest?.status || diagnostic.status || '—'],
+        ['Regime', latest?.regimePass == null ? '—' : (latest.regimePass ? 'PASS' : 'FAIL')],
+        ['Breadth', latest?.breadth == null ? '—' : `${latest.breadth}/6`],
+        ['Scheduler delay', latest?.schedulerDelayMs == null ? '—' : `${latest.schedulerDelayMs} ms`]
+      ].map(([label, value]) => `<div class="diagnostic-card"><div class="muted">${label}</div><div>${escapeHtml(value)}</div></div>`).join('');
+      document.querySelector('#diagnostic-reasons').textContent = diagnostic.error
+        ? `诊断表不可用：${diagnostic.error}`
+        : `最近原因：${(latest?.reasons || diagnostic.latestReasons || []).join('、') || '暂无记录'}`;
+      document.querySelector('#diagnostic-rows').innerHTML = (result.scans || []).map(scan => `<tr><td>${time(scan.observedAt)}</td><td><code>${escapeHtml(scan.strategyId)}</code></td><td>${escapeHtml(scan.status)}</td><td>${scan.regimePass == null ? '—' : scan.regimePass ? 'PASS' : 'FAIL'}</td><td>${scan.breadth == null ? '—' : scan.breadth}</td><td>${scan.schedulerDelayMs == null ? '—' : `${scan.schedulerDelayMs} ms`}</td><td title="${escapeHtml((scan.reasons || []).join(', '))}">${escapeHtml((scan.reasons || []).join('、') || '—')}</td></tr>`).join('');
+      document.querySelector('#diagnostic-symbol-rows').innerHTML = Object.entries(latest?.symbols || {}).map(([symbol, row]) => `<tr><td><code>${escapeHtml(symbol)}</code></td><td>${escapeHtml(row.status || '—')}</td><td>${escapeHtml(row.side || row.direction || '—')}</td><td>${row.breakoutPass == null ? '—' : row.breakoutPass ? 'PASS' : 'FAIL'}</td><td>${row.distanceToBreakoutBps == null ? '—' : bps(row.distanceToBreakoutBps)}</td><td>${row.schedulerDelayMs == null ? '—' : `${row.schedulerDelayMs} ms`}</td><td title="${escapeHtml((row.reasons || []).join(', '))}">${escapeHtml((row.reasons || []).join('、') || '—')}</td></tr>`).join('');
+      document.querySelector('#experiment-status').innerHTML = Object.values(result.experiments || {}).map(experiment => `<div class="${experiment.pass ? 'good' : 'bad'}"><code>${escapeHtml(experiment.experimentId)}</code>：${escapeHtml(experiment.status)} · pass=${experiment.pass} · ${escapeHtml(experiment.reason)}</div>`).join('');
       document.querySelector('#rows').innerHTML = result.signals.map(signal => {
         const level = String(signal.alertLevel || 'NONE').toLowerCase();
         const edge = signal.costs?.conservativeNetEdgeBps == null ? '—' : `${Number(signal.costs.conservativeNetEdgeBps).toFixed(2)} bps`;

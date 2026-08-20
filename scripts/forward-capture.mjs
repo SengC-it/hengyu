@@ -125,6 +125,8 @@ function connect(url, output, summary) {
     const data = payload.data ?? payload;
     output.write(`${JSON.stringify({ receivedAt, stream, data })}\n`);
     summary.messages++;
+    const messageSymbol = String(data?.s ?? stream.split('@', 1)[0]).toUpperCase();
+    summary.messagesBySymbol[messageSymbol] = (summary.messagesBySymbol[messageSymbol] ?? 0) + 1;
     if (data?.e === 'depthUpdate') {
       summary.depthUpdates++;
       const symbol = String(data.s ?? stream.split('@', 1)[0]).toUpperCase();
@@ -219,6 +221,7 @@ async function pollFundingRates(symbolList, durationSeconds, output, summary) {
       seen.set(key, true);
       output.write(`${JSON.stringify(row)}\n`);
       summary.messages++;
+      summary.messagesBySymbol[row.data.s] = (summary.messagesBySymbol[row.data.s] ?? 0) + 1;
     }
     const remaining = stopAt - Date.now();
     if (remaining <= 0) break;
@@ -236,7 +239,7 @@ async function fetchOpenInterest(symbol) {
   return {
     receivedAt: Date.now(),
     stream: `${symbol.toLowerCase()}@openInterest`,
-    data: { e: 'openInterest', E: Date.now(), s: symbol, openInterest: payload.openInterest, time: payload.time ?? null }
+    data: { e: 'openInterest', E: payload.time ?? Date.now(), s: symbol, openInterest: payload.openInterest, time: payload.time ?? null }
   };
 }
 
@@ -253,6 +256,8 @@ async function pollOpenInterest(symbolList, durationSeconds, output, summary, in
       }
       output.write(`${JSON.stringify(result.value)}\n`);
       summary.messages++;
+      const symbol = result.value.data.s;
+      summary.messagesBySymbol[symbol] = (summary.messagesBySymbol[symbol] ?? 0) + 1;
     }
     const remaining = stopAt - Date.now();
     if (remaining <= 0) break;
@@ -292,6 +297,7 @@ async function main() {
       depthUpdates: 0,
       forceOrders: 0,
       parseErrors: 0,
+      messagesBySymbol: {},
       depthBuffers: new Map(),
       depthAlignedSymbols: new Set()
     },
@@ -302,6 +308,7 @@ async function main() {
       depthUpdates: 0,
       forceOrders: 0,
       parseErrors: 0,
+      messagesBySymbol: {},
       depthBuffers: new Map(),
       depthAlignedSymbols: new Set()
     }
@@ -310,6 +317,7 @@ async function main() {
     endpoint: 'rest-funding',
     streams: symbolList.map(symbol => `${symbol.toLowerCase()}@fundingRate`),
     messages: 0,
+    messagesBySymbol: {},
     errors: [],
     stopRequested: false
   };
@@ -317,6 +325,7 @@ async function main() {
     endpoint: 'rest-open-interest',
     streams: symbolList.map(symbol => `${symbol.toLowerCase()}@openInterest`),
     messages: 0,
+    messagesBySymbol: {},
     errors: [],
     stopRequested: false
   };
@@ -378,6 +387,10 @@ async function main() {
     universe,
     endpoints: [...summaries, fundingSummary, ...(openInterestInterval ? [openInterestSummary] : [])]
       .map(({ close, depthBuffers, depthAlignedSymbols, ...summary }) => summary),
+    coverage: Object.fromEntries(symbolList.map(symbol => [symbol, {
+      messages: [...summaries, fundingSummary, ...(openInterestInterval ? [openInterestSummary] : [])]
+        .reduce((total, summary) => total + Number(summary.messagesBySymbol?.[symbol] ?? 0), 0)
+    }])),
     snapshots,
     errors,
     files: [publicFile, marketFile, fundingFile, ...(openInterestInterval ? [openInterestFile] : [])].map(file => ({

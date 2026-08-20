@@ -61,6 +61,8 @@ test('round-trip cost includes two fees, both book sides and stress buffers', ()
   });
   assert.equal(cost.fillable, true);
   assert.equal(cost.feeBps, 10);
+  assert.ok(cost.spreadBps > 0);
+  assert.ok(cost.slippageBps >= 0);
   assert.equal(cost.impactBufferBps, 2);
   assert.equal(cost.latencyBufferBps, 2);
   assert.ok(cost.totalExecutionCostBps > 30);

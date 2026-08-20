@@ -118,14 +118,32 @@ export async function sendGmail({ from, to, subject, text }) {
 export async function dispatchPendingEmails(limit = 10) {
   if (!enabled()) throw new Error('gmail_not_enabled');
   const rows = await selectRows('hengyu_email_outbox', {
-    select: 'outbox_id,advisory_id,alert_level,from_address,to_address,subject,body_plain,attempts',
-    filters: { status: 'eq.PENDING' },
+    select: 'outbox_id,advisory_id,alert_level,from_address,to_address,subject,body_plain,attempts,status,next_attempt_at',
+    filters: { status: 'in.(PENDING,SENDING)' },
     order: 'created_at.asc',
     limit
   });
   const results = [];
   for (const row of Array.isArray(rows) ? rows : []) {
+    const now = Date.now();
+    const nextAttemptAt = row.next_attempt_at == null ? null : Date.parse(row.next_attempt_at);
+    if (nextAttemptAt != null && Number.isFinite(nextAttemptAt) && nextAttemptAt > now) continue;
     const attempt = Number(row.attempts || 0) + 1;
+    const leaseUntil = new Date(now + 5 * 60_000).toISOString();
+    const claimFilters = row.status === 'SENDING'
+      ? nextAttemptAt == null
+        ? { outbox_id: `eq.${row.outbox_id}`, status: 'eq.SENDING' }
+        : { outbox_id: `eq.${row.outbox_id}`, status: 'eq.SENDING', next_attempt_at: `lt.${new Date(now).toISOString()}` }
+      : { outbox_id: `eq.${row.outbox_id}`, status: 'eq.PENDING' };
+    const claimed = await updateRow('hengyu_email_outbox', claimFilters, {
+      status: 'SENDING',
+      attempts: attempt,
+      next_attempt_at: leaseUntil
+    });
+    if (Array.isArray(claimed) && claimed.length === 0) {
+      results.push({ outboxId: row.outbox_id, status: 'SKIPPED' });
+      continue;
+    }
     try {
       const messageId = await sendGmail({
         from: row.from_address || process.env.HENGYU_GMAIL_FROM_ADDRESS,
@@ -134,7 +152,7 @@ export async function dispatchPendingEmails(limit = 10) {
         text: row.body_plain
       });
       await updateRow('hengyu_email_outbox', { outbox_id: `eq.${row.outbox_id}` }, {
-        status: 'SENT', attempts: attempt, sent_at: new Date().toISOString(), last_error: null
+        status: 'SENT', attempts: attempt, sent_at: new Date().toISOString(), next_attempt_at: null, last_error: null
       });
       await insertRow('hengyu_email_deliveries', {
         outbox_id: row.outbox_id,
@@ -145,9 +163,18 @@ export async function dispatchPendingEmails(limit = 10) {
       });
       results.push({ outboxId: row.outbox_id, status: 'SENT' });
     } catch (error) {
+      const retryable = attempt < 8;
+      const retryAt = retryable
+        ? new Date(Date.now() + Math.min(60 * 60_000, 2 ** Math.min(attempt, 6) * 60_000)).toISOString()
+        : null;
       await updateRow('hengyu_email_outbox', {
-        outbox_id: `eq.${row.outbox_id}`
-      }, { status: 'FAILED', attempts: attempt, last_error: 'gmail_delivery_failed' });
+        outbox_id: `eq.${row.outbox_id}`, status: 'eq.SENDING'
+      }, {
+        status: retryable ? 'PENDING' : 'FAILED',
+        attempts: attempt,
+        next_attempt_at: retryAt,
+        last_error: 'gmail_delivery_failed'
+      });
       await insertRow('hengyu_email_deliveries', {
         outbox_id: row.outbox_id,
         attempt_number: attempt,

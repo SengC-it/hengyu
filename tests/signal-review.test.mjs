@@ -79,6 +79,23 @@ test('a signal remains holding after its research expiry when neither level is t
   assert.ok(Math.abs(result.markPnlBps - 30) < 1e-9);
 });
 
+test('a declared maximum hold closes at the first causal candle boundary', () => {
+  const result = reviewSentSignal({
+    signal: signal({
+      reference: { entryPrice: 100, stopPrice: 99, takeProfitPrice: 101, maximumHoldMs: 1_000 }
+    }),
+    candles: [
+      { openTime: 1_000, closeTime: 1_999, open: 100, high: 100.4, low: 99.8, close: 100.2 },
+      { openTime: 2_000, closeTime: 2_999, open: 100.2, high: 100.6, low: 99.7, close: 100.3 }
+    ],
+    now: 3_000
+  });
+  assert.equal(result.status, 'CLOSED');
+  assert.equal(result.exitReason, 'TIME');
+  assert.equal(result.exitAt, 2_000);
+  assert.ok(Math.abs(result.pnlBps - 20) < 1e-9);
+});
+
 test('a threshold hit without exact trade evidence is not forced into a PnL result', () => {
   const result = reviewSentSignal({
     signal: signal(),

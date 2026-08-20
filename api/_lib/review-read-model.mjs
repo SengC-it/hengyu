@@ -5,7 +5,7 @@ import { hasSupabaseConfig, selectRows } from './supabase.mjs';
 const OUTBOX_SELECT = 'outbox_id,advisory_id,alert_level,status,sent_at,created_at,body_plain';
 const ADVISORY_SELECT = [
   'advisory_id', 'experiment_id', 'symbol', 'advisory_type', 'alert_level',
-  'signal_at', 'expires_at', 'entry_reference', 'stop_reference', 'exit_reference'
+  'signal_at', 'expires_at', 'entry_reference', 'stop_reference', 'exit_reference', 'holding_period_ms'
 ].join(',');
 
 function iso(value) {
@@ -60,7 +60,8 @@ function publicReview({ outbox, advisory, signal, result }) {
     reference: {
       entryPrice: safeNumber(reference.entryPrice),
       stopPrice: safeNumber(reference.stopPrice),
-      takeProfitPrice: safeNumber(reference.takeProfitPrice)
+      takeProfitPrice: safeNumber(reference.takeProfitPrice),
+      maximumHoldMs: reference.maximumHoldMs == null ? null : Number(reference.maximumHoldMs)
     },
     status: result.status,
     entryAt: iso(result.entryAt),
@@ -96,7 +97,10 @@ function reviewSignalEnvelope(outbox, advisory) {
     action: advisory.advisory_type,
     signalAt: advisory.signal_at,
     expiresAt: advisory.expires_at,
-    reference: emailReferences(outbox, advisory)
+    reference: {
+      ...emailReferences(outbox, advisory),
+      maximumHoldMs: advisory.holding_period_ms == null ? null : Number(advisory.holding_period_ms)
+    }
   };
 }
 
@@ -150,8 +154,9 @@ async function reviewOne({ candidate, candles, now, fetchImpl, tradeCache }) {
 
 /**
  * Read only email-delivered signals and calculate their live paper review.
- * The result is intentionally derived on demand, so a holding signal remains
- * open until a TP or SL is observed in public market data.
+ * The result is intentionally derived on demand; fixed TP/SL signals may use
+ * a declared causal maximum hold, while H12 dynamic-exit emails are rejected
+ * by this generic reviewer until a stateful reviewer exists.
  */
 export async function readSentReview(
   limit = 100,
@@ -160,7 +165,7 @@ export async function readSentReview(
   if (!hasSupabaseConfig()) {
     return {
       configured: false,
-      rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_NO_TIME_EXIT',
+      rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_WITH_OPTIONAL_TIME_EXIT',
       marketData: { source: 'BINANCE_USDM_PUBLIC', interval: '1m' },
       reviews: [],
       summary: summarizeSentReviews([])
@@ -176,7 +181,7 @@ export async function readSentReview(
   if (!outbox.length) {
     return {
       configured: true,
-      rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_NO_TIME_EXIT',
+      rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_WITH_OPTIONAL_TIME_EXIT',
       marketData: { source: 'BINANCE_USDM_PUBLIC', interval: '1m' },
       reviews: [],
       summary: summarizeSentReviews([])
@@ -270,7 +275,7 @@ export async function readSentReview(
   }));
   return {
     configured: true,
-    rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_NO_TIME_EXIT',
+    rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_WITH_OPTIONAL_TIME_EXIT',
     marketData: {
       source: 'BINANCE_USDM_PUBLIC',
       interval: '1m',

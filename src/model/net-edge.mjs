@@ -102,6 +102,8 @@ export function estimateRoundTripCost({
   }
   const feeBps = 2 * feeRatePerFill * BPS;
   const observedBookCostBps = entry.adverseBookCostBps + exit.adverseBookCostBps;
+  const spreadBps = (book.asks[0][0] - book.bids[0][0]) / ((book.asks[0][0] + book.bids[0][0]) / 2) * BPS;
+  const slippageBps = Math.max(0, observedBookCostBps - spreadBps);
   const stressedBookCostBps = observedBookCostBps * bookStressMultiplier;
   const impactBufferBps = 2 * impactBufferBpsPerFill;
   const latencyBufferBps = 2 * latencyBufferBpsPerFill;
@@ -110,6 +112,8 @@ export function estimateRoundTripCost({
     entry,
     exit,
     feeBps,
+    spreadBps,
+    slippageBps,
     observedBookCostBps,
     stressedBookCostBps,
     impactBufferBps,

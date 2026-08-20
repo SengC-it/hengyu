@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { evaluateHypothesisObservation } from '../src/model/advisory-evaluator.mjs';
 import { appendAdvisoryRecord } from '../src/service/advisory-store.mjs';
+import { netEdgeAdvisoryPolicy } from '../src/model/policy-config.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -37,7 +38,7 @@ function rowsFromInput(input) {
 function main() {
   const input = loadJson(inputFile());
   const hypothesisPolicy = loadJson(path.join(ROOT, 'config', 'hypothesis-models.json'));
-  const advisoryPolicy = loadJson(path.join(ROOT, 'config', 'advisory-alerts.json'));
+  const advisoryPolicy = netEdgeAdvisoryPolicy();
   const fixedNotional = Number(flag('research-notional', '1000'));
   if (!Number.isFinite(fixedNotional) || fixedNotional <= 0) throw new Error('--research-notional must be positive');
   const signals = rowsFromInput(input).map(row => {

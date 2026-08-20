@@ -41,7 +41,7 @@ test('validates an aligned local depth sequence and normalizes force pressure', 
   assert.equal(result.forceOrders[0].pressure, -200);
   assert.equal(result.fundingRates[0].fundingRate, 0.0001);
   assert.equal(normalizeForceOrder({
-    E: receivedAt, o: { s: 'BTCUSDT', S: 'BUY', p: '100', q: '2', T: receivedAt }
+    E: receivedAt, o: { s: 'BTCUSDT', S: 'BUY', p: '100', q: '2', z: '2', ap: '100', X: 'FILLED', T: receivedAt }
   }).pressure, 200);
 });
 

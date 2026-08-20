@@ -14,9 +14,11 @@ const SPECS = {
     fields: [
       'advisory_id', 'experiment_id', 'capture_segment_id', 'symbol', 'advisory_type', 'alert_level',
       'signal_at', 'expires_at', 'reference_bid', 'reference_ask', 'entry_reference', 'stop_reference',
-      'exit_reference', 'gross_edge_bps', 'funding_edge_bps', 'fee_bps', 'slippage_bps', 'impact_bps',
+      'exit_reference', 'gross_edge_bps', 'funding_edge_bps', 'fee_bps', 'spread_bps', 'slippage_bps', 'impact_bps',
       'latency_buffer_bps', 'uncertainty_bps', 'conservative_net_edge_bps', 'status', 'no_trade_reason',
-      'pnl_eligible', 'authorization_mode', 'live_orders_enabled', 'dedupe_key', 'metadata'
+      'pnl_eligible', 'authorization_mode', 'live_orders_enabled', 'dedupe_key', 'metadata',
+      'decision_at', 'scheduler_delay_ms', 'theoretical_open', 'executable_price', 'holding_period_ms',
+      'funding_cost_bps', 'funding_event_count', 'mae_bps', 'mfe_bps', 'mark_to_market_drawdown_bps'
     ]
   },
   capture_segment: {
@@ -34,6 +36,17 @@ const SPECS = {
     conflict: null,
     required: ['service_name', 'observed_at', 'status'],
     fields: ['heartbeat_id', 'service_name', 'observed_at', 'status', 'last_capture_at', 'pnl_eligible', 'details']
+  },
+  scan_diagnostic: {
+    table: 'hengyu_scan_diagnostics',
+    conflict: 'scan_key',
+    required: ['scan_key', 'service_name', 'strategy_id', 'experiment_id', 'observed_at', 'status'],
+    fields: [
+      'scan_id', 'scan_key', 'service_name', 'strategy_id', 'experiment_id', 'observed_at', 'decision_at',
+      'signal_time', 'theoretical_open_at', 'scheduler_delay_ms', 'status', 'regime_pass', 'breadth',
+      'btc_fast_sma', 'btc_slow_sma', 'candidate_count', 'signal_count', 'missed_count', 'reasons',
+      'regime', 'symbols', 'details', 'authorization_mode', 'live_orders_enabled'
+    ]
   }
 };
 
@@ -58,6 +71,10 @@ function validate(spec, record) {
   }
   if (spec.table === 'hengyu_capture_segments' && safe.status !== 'COMPLETE') safe.pnl_eligible = false;
   if (spec.table === 'hengyu_system_heartbeats') safe.pnl_eligible = false;
+  if (spec.table === 'hengyu_scan_diagnostics') {
+    safe.authorization_mode = 'PAPER_ONLY';
+    safe.live_orders_enabled = false;
+  }
   return safe;
 }
 

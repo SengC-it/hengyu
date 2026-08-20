@@ -38,12 +38,30 @@ export function evaluateCaptureDataQuality({
   if (!validation) reasons.push('missing_validation');
   const endpoints = Array.isArray(manifest.endpoints) ? manifest.endpoints : [];
   const streams = endpoints.flatMap(endpoint => endpoint.streams ?? []);
+  for (const endpoint of endpoints) {
+    if (!Number.isSafeInteger(Number(endpoint.messages))) {
+      reasons.push(`missing_record_count:${endpoint.endpoint ?? 'unknown'}`);
+    } else if (Number(endpoint.messages) <= 0) {
+      reasons.push(`no_records:${endpoint.endpoint ?? 'unknown'}`);
+    }
+  }
   for (const marker of requiredStreams) {
     if (!streamPresent(streams, marker)) reasons.push(`missing_stream:${marker}`);
   }
   const manifestSymbols = new Set((manifest.symbols ?? []).map(symbol => String(symbol).toUpperCase()));
   for (const symbol of requiredSymbols) {
     if (!manifestSymbols.has(String(symbol).toUpperCase())) reasons.push(`missing_symbol:${symbol}`);
+  }
+  const coverage = manifest.coverage && typeof manifest.coverage === 'object' ? manifest.coverage : null;
+  if (coverage) {
+    for (const symbol of requiredSymbols) {
+      const row = coverage[String(symbol).toUpperCase()] ?? coverage[symbol];
+      if (!row || !Number.isSafeInteger(Number(row.messages ?? row.records))) {
+        reasons.push(`missing_symbol_record_count:${symbol}`);
+      } else if (Number(row.messages ?? row.records) <= 0) {
+        reasons.push(`no_symbol_records:${symbol}`);
+      }
+    }
   }
   return {
     status: reasons.length ? 'NOT_READY' : 'READY',

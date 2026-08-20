@@ -24,7 +24,15 @@ const REASON_LABELS = Object.freeze({
   insufficient_conservative_net_edge: '扣除费用和风险后，剩余空间不足',
   pressure_below_threshold: '市场波动还没有达到提醒标准',
   insufficient_recovery: '反弹力度不足',
-  missing_event_impulse: '缺少足够的价格变化'
+  missing_event_impulse: '缺少足够的价格变化',
+  REGIME_FAILED: '大级别趋势过滤未通过',
+  REGIME_SIDEWAYS: '市场处于震荡区间',
+  NO_BREAKOUT: '尚未突破入场通道',
+  INSUFFICIENT_BREAKOUT_HISTORY: '突破历史长度不足',
+  SCHEDULER_DELAY_EXCEEDED: '扫描延迟超过可成交窗口',
+  MISSING_EXECUTABLE_DEPTH: '缺少可成交盘口深度',
+  MISSING_FUNDING_RATE: '缺少实时资金费率',
+  INVALID_ATR: '波动率数据无效'
 });
 
 function integer(name, value, { minimum = 0 } = {}) {

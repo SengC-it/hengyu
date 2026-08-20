@@ -1,27 +1,10 @@
 import { createHash } from 'node:crypto';
 import { evaluateNetEdge } from './net-edge.mjs';
+import { netEdgeAdvisoryPolicy } from './policy-config.mjs';
 
-export const DEFAULT_NET_EDGE_ADVISORY_POLICY = Object.freeze({
-  modelId: 'HENGYU-NET-EDGE-001',
-  experimentId: 'HY-EXP-0014',
-  evidenceClass: 'F0_PENDING',
-  signalValidityMs: 2_000,
-  researchExpiryMs: 15 * 60_000,
-  strongMinConservativeNetBps: 6,
-  strongMinGrossToCostRatio: 2,
-  mediumMinConservativeNetBps: 3,
-  mediumMinGrossToCostRatio: 1.5,
-  feeRatePerFill: 0.0005,
-  bookStressMultiplier: 2,
-  impactBufferBpsPerFill: 1,
-  latencyBufferBpsPerFill: 1,
-  confidenceZ: 1.645,
-  minimumConservativeNetBps: 3,
-  minimumGrossToCostRatio: 1.5,
-  maximumForecastAgeMs: 5_000,
-  maximumBookAgeMs: 1_000,
-  maximumVisibleBookFraction: 0.25
-});
+export const DEFAULT_NET_EDGE_ADVISORY_POLICY = Object.freeze(netEdgeAdvisoryPolicy({
+  experimentId: 'HY-EXP-0014'
+}));
 
 function integer(name, value, { minimum = 0 } = {}) {
   const parsed = Number(value);
@@ -64,7 +47,9 @@ function quoteFromExecution(execution, book, side) {
   return {
     entryPrice: entry?.vwap ?? null,
     exitReferencePrice: exit?.vwap ?? null,
-    oppositeBestPrice: oppositeLevels?.[0]?.[0] == null ? null : Number(oppositeLevels[0][0])
+    oppositeBestPrice: oppositeLevels?.[0]?.[0] == null ? null : Number(oppositeLevels[0][0]),
+    bidPrice: book?.bids?.[0]?.[0] == null ? null : Number(book.bids[0][0]),
+    askPrice: book?.asks?.[0]?.[0] == null ? null : Number(book.asks[0][0])
   };
 }
 
@@ -129,7 +114,7 @@ export function buildNetEdgeAdvisorySignal({
   const expiresAt = decisionTime + Math.min(researchExpiryMs, candidateHoldMs);
   const execution = result.metrics?.execution ?? null;
   const quote = quoteFromExecution(execution, book, side);
-  const takeProfitPrice = candidate.expectedExitPrice ?? quote.exitReferencePrice;
+  const takeProfitPrice = candidate.expectedExitPrice ?? null;
   const advisory = {
     schemaVersion: 1,
     signalId: signalId({
@@ -158,16 +143,24 @@ export function buildNetEdgeAdvisorySignal({
       takeProfitPrice,
       exitReferencePrice: takeProfitPrice,
       oppositeBestPrice: quote.oppositeBestPrice,
+      bidPrice: quote.bidPrice,
+      askPrice: quote.askPrice,
       stopPrice: candidate.stopPrice ?? null,
       maximumHoldMs: candidate.maxHoldMs ?? researchExpiryMs
     },
-    costs: result.metrics ? {
-      expectedPriceEdgeBps: finite('expectedPriceEdgeBps', candidate.expectedPriceEdgeBps),
-      expectedFundingBps: finite('expectedFundingBps', candidate.expectedFundingBps),
-      expectedGrossEdgeBps: result.metrics.expectedGrossEdgeBps,
-      executionCostBps: result.metrics.execution.totalExecutionCostBps,
-      expectedNetEdgeBps: result.metrics.expectedNetEdgeBps,
-      uncertaintyPenaltyBps: result.metrics.uncertaintyPenaltyBps,
+      costs: result.metrics ? {
+        expectedPriceEdgeBps: finite('expectedPriceEdgeBps', candidate.expectedPriceEdgeBps),
+        expectedFundingBps: finite('expectedFundingBps', candidate.expectedFundingBps),
+        expectedGrossEdgeBps: result.metrics.expectedGrossEdgeBps,
+        feeBps: result.metrics.execution.feeBps,
+        spreadBps: result.metrics.execution.spreadBps,
+        slippageBps: result.metrics.execution.slippageBps,
+        observedBookCostBps: result.metrics.execution.observedBookCostBps,
+        stressedBookCostBps: result.metrics.execution.stressedBookCostBps,
+        impactBps: result.metrics.execution.impactBufferBps,
+        executionCostBps: result.metrics.execution.totalExecutionCostBps,
+        expectedNetEdgeBps: result.metrics.expectedNetEdgeBps,
+        uncertaintyPenaltyBps: result.metrics.uncertaintyPenaltyBps,
       fundingStressBps: finite('fundingStressBps', candidate.fundingStressBps, { minimum: 0 }),
       conservativeNetEdgeBps: result.metrics.conservativeNetEdgeBps,
       grossToCostRatio: result.metrics.grossToCostRatio,
@@ -215,6 +208,13 @@ export function buildModelSimulationRecord({ signal, outcome }) {
     markTime: outcome.markTime ?? null,
     markPrice: outcome.markPrice ?? null,
     markNetPnl: outcome.markNetPnl ?? null,
+    maeBps: outcome.maeBps ?? null,
+    mfeBps: outcome.mfeBps ?? null,
+    markToMarketDrawdownBps: outcome.markToMarketDrawdownBps ?? null,
+    holdingPeriodMs: outcome.holdingPeriodMs ?? outcome.holdMs ?? null,
+    fundingEvents: outcome.fundingEvents ?? 0,
+    fundingPnlBps: outcome.fundingPnlBps ?? null,
+    fundingCostBps: outcome.fundingCostBps ?? null,
     grossPricePnl: outcome.grossPricePnl ?? null,
     fundingPnl: outcome.fundingPnl ?? null,
     fees: outcome.fees ?? null,

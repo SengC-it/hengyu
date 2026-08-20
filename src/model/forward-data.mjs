@@ -115,19 +115,34 @@ export function normalizeForceOrder(data) {
   const side = String(order.S ?? '').toUpperCase();
   if (side !== 'BUY' && side !== 'SELL') throw new Error('force order side is invalid');
   const symbol = String(order.s ?? data.s ?? '').toUpperCase();
-  const price = number('force order price', order.p, { minimum: 0, exclusiveMinimum: true });
-  const quantity = number('force order quantity', order.q, { minimum: 0, exclusiveMinimum: true });
+  const orderStatus = order.X == null ? null : String(order.X).toUpperCase();
+  if (orderStatus && !['FILLED', 'PARTIALLY_FILLED'].includes(orderStatus)) {
+    throw new Error('force order has no executed fill');
+  }
+  const originalPrice = number('force order price', order.p, { minimum: 0, exclusiveMinimum: true });
+  const originalQuantity = number('force order quantity', order.q, { minimum: 0, exclusiveMinimum: true });
+  const executedQuantity = order.z == null
+    ? (orderStatus === 'FILLED' ? originalQuantity : null)
+    : number('force order executed quantity', order.z, { minimum: 0, exclusiveMinimum: true });
+  if (!(executedQuantity > 0)) throw new Error('force order has no executed quantity');
+  const averagePrice = order.ap == null
+    ? (orderStatus === 'FILLED' ? originalPrice : null)
+    : number('force order average price', order.ap, { minimum: 0, exclusiveMinimum: true });
+  if (!(averagePrice > 0)) throw new Error('force order has no executed price');
   const eventTime = integer('force order time', order.T ?? data.E);
-  const quoteNotional = price * quantity;
+  const quoteNotional = averagePrice * executedQuantity;
   return {
     symbol,
     side,
-    price,
-    quantity,
+    price: averagePrice,
+    quantity: executedQuantity,
+    originalQuantity,
+    executedQuantity,
+    averagePrice,
     quoteNotional,
     pressure: side === 'SELL' ? -quoteNotional : quoteNotional,
     eventTime,
-    orderStatus: order.X ?? null
+    orderStatus
   };
 }
 

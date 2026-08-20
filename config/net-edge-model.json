@@ -3,6 +3,18 @@
   "evidenceClass": "D0_DEVELOPMENT_ONLY",
   "authorization": "PAPER_ONLY",
   "liveOrdersEnabled": false,
+  "signalValidityMs": 2000,
+  "researchExpiryMs": 900000,
+  "strongMinConservativeNetBps": 6,
+  "strongMinGrossToCostRatio": 2,
+  "mediumMinConservativeNetBps": 3,
+  "mediumMinGrossToCostRatio": 1.5,
+  "delivery": {
+    "web": true,
+    "strongEmail": "IMMEDIATE",
+    "mediumEmail": "DIGEST_15M",
+    "observeEmail": false
+  },
   "purpose": "research-only net-edge decision gate; thresholds are not account-specific advice",
   "execution": {
     "feeRatePerFill": 0.0005,

@@ -1,4 +1,6 @@
 import { walkBook } from './net-edge.mjs';
+import { calculateFundingStats } from './funding.mjs';
+import { calculateTradePathMetrics } from './trade-metrics.mjs';
 
 const BPS = 10_000;
 
@@ -53,15 +55,6 @@ function rowsForSymbol(rows, symbol) {
   return (rows ?? []).filter(row => symbolOf(row.symbol) === symbol).sort((left, right) => marketTime(left) - marketTime(right) || receivedAt(left) - receivedAt(right));
 }
 
-function markAtOrBefore(rows, symbol, target) {
-  let selected = null;
-  for (const row of rowsForSymbol(rows, symbol)) {
-    if (marketTime(row) > target) break;
-    selected = row;
-  }
-  return selected;
-}
-
 function stressPrice(fill, side, multiplier, bufferBps) {
   const adverse = side === 'BUY'
     ? fill.midPrice + Math.max(0, fill.vwap - fill.midPrice) * multiplier
@@ -107,11 +100,17 @@ export function simulateAdvisorySignal({
   const targetValue = signal.reference?.takeProfitPrice ?? signal.reference?.exitReferencePrice;
   const target = targetValue == null ? null : Number(targetValue);
   const stop = signal.reference?.stopPrice == null ? null : Number(signal.reference.stopPrice);
+  const maximumHoldValue = signal.reference?.maximumHoldMs ?? signal.maxHoldMs ?? null;
+  const maximumHoldMs = maximumHoldValue == null ? null : Number(maximumHoldValue);
+  if (maximumHoldMs != null && (!Number.isSafeInteger(maximumHoldMs) || maximumHoldMs <= 0)) {
+    throw new Error('invalid maximum hold');
+  }
   let exitBook = null;
   let exitReason = null;
+  const entryTime = marketTime(entryBook);
   for (const book of symbolBooks) {
     const time = marketTime(book);
-    if (time < marketTime(entryBook)) continue;
+    if (time < entryTime) continue;
     const currentMid = mid(book);
     const stopTriggered = stop != null && (side === 'BUY' ? currentMid <= stop : currentMid >= stop);
     const targetReached = target != null && (side === 'BUY' ? currentMid >= target : currentMid <= target);
@@ -120,13 +119,31 @@ export function simulateAdvisorySignal({
     }
     if (stopTriggered) { exitBook = book; exitReason = 'STOP'; break; }
     if (targetReached) { exitBook = book; exitReason = 'TARGET'; break; }
+    if (maximumHoldMs != null && time >= entryTime + maximumHoldMs) {
+      exitBook = book;
+      exitReason = 'TIME';
+      break;
+    }
   }
   if (!exitBook) {
-    const markBook = symbolBooks.filter(book => marketTime(book) >= marketTime(entryBook)).at(-1) ?? entryBook;
+    const markBook = symbolBooks.filter(book => marketTime(book) >= entryTime).at(-1) ?? entryBook;
     const markPrice = mid(markBook);
     const direction = sideSign(side);
     const markGrossPricePnl = direction * entryQuantity * (markPrice - entry.vwap);
     const markFees = (entry.quoteNotional + entryQuantity * markPrice) * policy.feeRatePerFill;
+    const markRows = symbolBooks
+      .filter(book => marketTime(book) >= entryTime)
+      .map(book => ({ time: marketTime(book), price: mid(book) }));
+    const pathMetrics = calculateTradePathMetrics({ side, entryPrice: entry.vwap, marks: markRows });
+    const fundingStats = calculateFundingStats({
+      side,
+      quantity: entryQuantity,
+      entryPrice: entry.vwap,
+      fundingRates: rowsForSymbol(fundingRates, symbol),
+      markPrices: markPrices.filter(row => symbolOf(row.symbol) === symbol),
+      entryTime,
+      exitTime: marketTime(markBook)
+    });
     return {
       status: 'OPEN',
       signalId: signal.signalId,
@@ -134,10 +151,10 @@ export function simulateAdvisorySignal({
       hypothesisId: signal.hypothesisId,
       symbol,
       side,
-      entryTime: marketTime(entryBook),
+      entryTime,
       entryReceivedAt: receivedAt(entryBook),
       signalToFillMs: receivedAt(entryBook) - generatedAt,
-      holdMs: marketTime(markBook) - marketTime(entryBook),
+      holdMs: marketTime(markBook) - entryTime,
       exitReason: null,
       entryPrice: entry.vwap,
       markTime: marketTime(markBook),
@@ -145,6 +162,8 @@ export function simulateAdvisorySignal({
       markGrossPricePnl,
       markFees,
       markNetPnl: markGrossPricePnl - markFees,
+      ...pathMetrics,
+      ...fundingStats,
       accountDataUsed: false,
       humanFeedbackRecorded: false
     };
@@ -153,21 +172,18 @@ export function simulateAdvisorySignal({
   const exitSide = side === 'BUY' ? 'SELL' : 'BUY';
   const exit = walkBook({ side: exitSide, quantity: entryQuantity, book: exitBook });
   if (!exit.fillable) return { status: 'REJECTED', reason: 'insufficient_exit_depth', signalId: signal.signalId };
-  const entryTime = marketTime(entryBook);
   const exitTime = marketTime(exitBook);
-  let fundingPnl = 0;
-  const fundingDetails = [];
-  for (const row of rowsForSymbol(fundingRates, symbol)) {
-    const time = Number(row.fundingTime ?? row.eventTime ?? row.timestamp);
-    if (time < entryTime || time > exitTime) continue;
-    const mark = markAtOrBefore(markPrices, symbol, time);
-    if (!mark) return { status: 'REJECTED', reason: 'missing_funding_mark', signalId: signal.signalId };
-    const rate = finite('funding rate', row.fundingRate ?? row.rate);
-    const markPrice = finite('mark price', mark.markPrice ?? mark.price ?? mark.p, { minimum: 0, exclusiveMinimum: true });
-    const payment = side === 'BUY' ? -entryQuantity * markPrice * rate : entryQuantity * markPrice * rate;
-    fundingPnl += payment;
-    fundingDetails.push({ fundingTime: time, rate, markPrice, payment });
-  }
+  const fundingMarkRows = markPrices.filter(row => symbolOf(row.symbol) === symbol);
+  const fundingStats = calculateFundingStats({
+    side,
+    quantity: entryQuantity,
+    entryPrice: entry.vwap,
+    fundingRates: rowsForSymbol(fundingRates, symbol),
+    markPrices: fundingMarkRows,
+    entryTime,
+    exitTime
+  });
+  const fundingPnl = fundingStats.fundingPnl;
   const fees = (entry.quoteNotional + exit.quoteNotional) * policy.feeRatePerFill;
   const direction = sideSign(side);
   const grossPricePnl = direction * entryQuantity * (exit.vwap - entry.vwap);
@@ -178,6 +194,10 @@ export function simulateAdvisorySignal({
   const stressedFees = (entryQuantity * stressedEntryPrice + entryQuantity * stressedExitPrice) * policy.feeRatePerFill;
   const stressedGrossPricePnl = direction * entryQuantity * (stressedExitPrice - stressedEntryPrice);
   const stressNetPnl = stressedGrossPricePnl + fundingPnl - stressedFees;
+  const markRows = symbolBooks
+    .filter(book => marketTime(book) >= entryTime && marketTime(book) <= exitTime)
+    .map(book => ({ time: marketTime(book), price: mid(book) }));
+  const pathMetrics = calculateTradePathMetrics({ side, entryPrice: entry.vwap, marks: markRows });
   return {
     status: 'CLOSED',
     signalId: signal.signalId,
@@ -199,7 +219,8 @@ export function simulateAdvisorySignal({
     fees,
     netPnl,
     stressNetPnl,
-    fundingDetails,
+    ...pathMetrics,
+    ...fundingStats,
     accountDataUsed: false,
     humanFeedbackRecorded: false
   };
@@ -236,6 +257,14 @@ export function summarizeAdvisoryTrades(trades) {
     stressNetPnl,
     profitFactor: grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? Infinity : 0),
     maxDrawdown,
+    maxMarkToMarketDrawdownBps: observed.reduce(
+      (maximum, row) => Math.max(maximum, Number(row.markToMarketDrawdownBps) || 0),
+      0
+    ),
+    worstMaeBps: observed.reduce(
+      (minimum, row) => Math.min(minimum, Number(row.maeBps) || 0),
+      0
+    ),
     best5ClusterStressNetPnl: best5.reduce((total, value) => total + value, 0),
     afterBest5ClusterStressNetPnl: stressNetPnl - best5.reduce((total, value) => total + value, 0),
     symbols: [...new Set(observed.map(row => row.symbol))].sort(),

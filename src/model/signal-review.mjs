@@ -73,6 +73,14 @@ function normalizeSignal(signal, sentAt) {
     ? stopPrice < entryPrice && entryPrice < takeProfitPrice
     : takeProfitPrice < entryPrice && entryPrice < stopPrice;
   if (!levelsValid) throw new Error('price levels are not directional');
+  const maximumHoldValue = referenceValue(signal, ['maximumHoldMs', 'maximum_hold_ms'])
+    ?? signal?.maximumHoldMs
+    ?? signal?.maximum_hold_ms
+    ?? null;
+  const maximumHoldMs = maximumHoldValue == null ? null : Number(maximumHoldValue);
+  if (maximumHoldMs != null && (!Number.isSafeInteger(maximumHoldMs) || maximumHoldMs <= 0)) {
+    throw new Error('invalid maximum hold');
+  }
   return {
     signalId: signal.signalId ?? signal.advisory_id ?? null,
     experimentId: signal.experimentId ?? signal.experiment_id ?? null,
@@ -81,7 +89,8 @@ function normalizeSignal(signal, sentAt) {
     entryAt,
     entryPrice,
     stopPrice,
-    takeProfitPrice
+    takeProfitPrice,
+    maximumHoldMs
   };
 }
 
@@ -177,6 +186,7 @@ function baseReview(input, normalized, status, { candles = [], now, reason = nul
     dataQuality: candles.length ? 'CANDLE_RANGE' : 'NO_MARKET_DATA',
     triggerPrecision: null,
     triggerWindow: null,
+    maximumHoldMs: normalized.maximumHoldMs,
     reason
   };
 }
@@ -204,7 +214,8 @@ function withClosedReview(review, { exitAt, exitPrice, exitReason, triggerPrecis
 /**
  * Review one email-delivered signal using only the three prices in that
  * signal. A missing TP/SL or missing market evidence is never turned into a
- * win, loss, or time-based close.
+ * win, loss, or time-based close. A declared maximum hold is honored only
+ * when the candle boundary provides a causal exit price.
  */
 export function reviewSentSignal({
   signal,
@@ -255,12 +266,48 @@ export function reviewSentSignal({
   });
   if (!normalizedCandles.length) return review;
 
+  const maximumHoldAt = normalized.maximumHoldMs == null
+    ? null
+    : normalized.entryAt + normalized.maximumHoldMs;
+
   for (const candle of normalizedCandles) {
+    if (maximumHoldAt != null && candle.openTime >= maximumHoldAt) {
+      return withClosedReview(review, {
+        exitAt: candle.openTime,
+        exitPrice: candle.open,
+        exitReason: 'TIME',
+        triggerPrecision: 'CANDLE',
+        triggerWindow: { start: maximumHoldAt, end: candle.openTime }
+      });
+    }
+    const holdBoundaryInsideCandle = maximumHoldAt != null
+      && candle.openTime < maximumHoldAt
+      && candle.closeTime > maximumHoldAt;
     const hits = candleHits(normalized.side, candle, normalized.stopPrice, normalized.takeProfitPrice);
-    if (!hits.length) continue;
+    if (!hits.length) {
+      if (holdBoundaryInsideCandle) {
+        return {
+          ...review,
+          status: 'DATA_INSUFFICIENT',
+          dataQuality: 'CANDLE_RANGE',
+          triggerWindow: { start: candle.openTime, end: candle.closeTime },
+          reason: 'time_exit_price_missing'
+        };
+      }
+      if (maximumHoldAt != null && candle.closeTime === maximumHoldAt) {
+        return withClosedReview(review, {
+          exitAt: candle.closeTime,
+          exitPrice: candle.close,
+          exitReason: 'TIME',
+          triggerPrecision: 'CANDLE',
+          triggerWindow: { start: maximumHoldAt, end: candle.closeTime }
+        });
+      }
+      continue;
+    }
     const triggerWindow = {
       start: Math.max(normalized.entryAt, candle.openTime),
-      end: Math.min(checkedAt, candle.closeTime)
+      end: Math.min(checkedAt, candle.closeTime, maximumHoldAt ?? Infinity)
     };
     const candleTrades = normalizedTrades?.filter(row => row.time >= triggerWindow.start && row.time <= triggerWindow.end) ?? null;
     if (candleTrades?.length) {
@@ -284,6 +331,15 @@ export function reviewSentSignal({
         dataQuality: 'CANDLE_RANGE',
         triggerWindow,
         reason: hits.length > 1 ? 'tp_sl_order_unknown_in_same_candle' : 'trigger_trade_data_missing'
+      };
+    }
+    if (holdBoundaryInsideCandle) {
+      return {
+        ...review,
+        status: 'DATA_INSUFFICIENT',
+        dataQuality: 'CANDLE_RANGE',
+        triggerWindow,
+        reason: 'time_exit_order_unknown'
       };
     }
     return withClosedReview(review, {
@@ -321,6 +377,6 @@ export function summarizeSentReviews(reviews) {
     realizedPnlPercent: realizedPnlBps / 100,
     profitFactor: grossLossBps > 0 ? grossProfitBps / grossLossBps : (grossProfitBps > 0 ? Infinity : null),
     openMarkPnlBps: holding.reduce((total, row) => total + (row.markPnlBps ?? 0), 0),
-    rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_NO_TIME_EXIT'
+    rule: 'ENTRY_FIXED_TP_SL_FIRST_TOUCH_WITH_OPTIONAL_TIME_EXIT'
   };
 }
