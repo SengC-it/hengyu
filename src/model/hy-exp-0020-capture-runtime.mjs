@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { canonicalJson, sha256 } from './hy-exp-0020-historical-l2.mjs';
+import { buildUniverseSnapshot, DEFAULT_UNIVERSE_POLICY } from './universe.mjs';
 
 export const HY_EXP_0020_FINAL_OOS_WINDOW = Object.freeze({
   start: '2026-09-01T00:00:00.000Z',
@@ -25,6 +26,9 @@ const FINAL_START_MS = Date.parse(HY_EXP_0020_FINAL_OOS_WINDOW.start);
 const FINAL_END_MS = Date.parse(HY_EXP_0020_FINAL_OOS_WINDOW.endExclusive);
 const DEFAULT_DEPTH_LEVELS = 1000;
 const DEFAULT_MAX_EVENT_GAP_MS = 1_000;
+const FOUR_HOURS_MS = 4 * 60 * 60 * 1_000;
+const MAX_COMBINED_SEGMENT_MS = 3 * 60 * 60 * 1_000 + 55 * 60 * 1_000;
+const DEPTH_SNAPSHOT_MIN_INTERVAL_MS = 500;
 
 function finite(name, value, { minimum = -Infinity, exclusiveMinimum = false } = {}) {
   const parsed = Number(value);
@@ -44,6 +48,16 @@ function symbolOf(value) {
   const symbol = String(value ?? '').trim().toUpperCase();
   if (!/^[A-Z0-9][A-Z0-9_-]*$/.test(symbol)) throw new Error('invalid capture symbol');
   return symbol;
+}
+
+function captureSymbolOrNull(value) {
+  const symbol = String(value ?? '').trim().toUpperCase();
+  return /^[A-Z0-9][A-Z0-9_-]*$/.test(symbol) ? symbol : null;
+}
+
+function universeSymbolOrNull(value) {
+  const symbol = String(value ?? '').trim().toUpperCase();
+  return /^[A-Z0-9]+$/.test(symbol) ? symbol : null;
 }
 
 function normalizeSymbols(symbols) {
@@ -126,7 +140,7 @@ export function assertHyExp0020CaptureRoot({ projectRoot = process.cwd(), mode, 
   return expected;
 }
 
-export function buildHyExp0020CaptureMetadata({ mode, runId, startedAt, symbols }) {
+export function buildHyExp0020CaptureMetadata({ mode, runId, startedAt, symbols = [] }) {
   const normalizedMode = String(mode).toUpperCase();
   if (!['ENGINEERING_DRY_RUN', 'FINAL_OOS'].includes(normalizedMode)) throw new Error('invalid capture metadata mode');
   return {
@@ -143,7 +157,7 @@ export function buildHyExp0020CaptureMetadata({ mode, runId, startedAt, symbols 
     finalOosEligible: false,
     finalOosWindow: HY_EXP_0020_FINAL_OOS_WINDOW,
     startedAt: iso(startedAt),
-    symbols: normalizeSymbols(symbols)
+    symbols: symbols.length ? normalizeSymbols(symbols) : []
   };
 }
 
@@ -188,7 +202,8 @@ export function buildHyExp0020RawManifest({
   finishedAt,
   files,
   segments,
-  errors = []
+  errors = [],
+  diagnostics = null
 }) {
   const invalidSegments = (segments ?? []).filter(segment => segment.status !== 'VALID');
   const normalizedErrors = [...errors.map(String), ...invalidSegments.map(segment => `invalid_segment:${segment.segmentId}`)];
@@ -206,6 +221,7 @@ export function buildHyExp0020RawManifest({
       sha256: String(entry.sha256).toLowerCase()
     })),
     segments: segments ?? [],
+    diagnostics: diagnostics ?? {},
     invalidSegmentCount: invalidSegments.length,
     errors: normalizedErrors,
     finalOosEligible: metadata.captureMode === 'FINAL_OOS' && normalizedErrors.length === 0
@@ -236,7 +252,17 @@ export function writeImmutableCaptureManifest({ directory, manifest }) {
   return { manifestPath, manifestSha256: sha256(bytes) };
 }
 
-export function buildDepthRecordEnvelope({ symbol, data, receivedAt, stream, segmentId, kind = 'diff' }) {
+export function buildDepthRecordEnvelope({
+  symbol,
+  data,
+  receivedAt,
+  requestStartedAt = null,
+  exchangeObservedAt = null,
+  serverTime = null,
+  stream,
+  segmentId,
+  kind = 'diff'
+}) {
   const normalizedSymbol = symbolOf(symbol);
   const receipt = integer('receivedAt', receivedAt);
   if (!data || typeof data !== 'object') throw new Error('depth data is missing');
@@ -245,7 +271,10 @@ export function buildDepthRecordEnvelope({ symbol, data, receivedAt, stream, seg
     segmentId: String(segmentId),
     symbol: normalizedSymbol,
     stream: String(stream ?? `${normalizedSymbol.toLowerCase()}@depth@100ms`),
+    requestStartedAt,
     receivedAt: receipt,
+    exchangeObservedAt,
+    serverTime,
     data
   };
 }
@@ -304,7 +333,10 @@ export function createDepthSegmentReconstructor({
       state.snapshotId = lastUpdateId;
       state.lastUpdateId = lastUpdateId;
       state.aligned = false;
-      state.lastReceivedAt = receipt;
+      // The REST response completes after buffered WebSocket messages may have
+      // arrived. Do not compare those message receipts against snapshot receipt;
+      // the first diff establishes the causal receipt baseline.
+      state.lastReceivedAt = null;
       state.seen.clear();
       state.bids = new Map(bids.filter(([, quantity]) => quantity > 0));
       state.asks = new Map(asks.filter(([, quantity]) => quantity > 0));
@@ -356,9 +388,15 @@ export function createDepthSegmentReconstructor({
 
 async function fetchJson(fetchImpl, url) {
   if (typeof fetchImpl !== 'function') throw new Error('global fetch is unavailable');
+  const requestStartedAt = Date.now();
   const response = await fetchImpl(url);
   if (response?.ok === false) throw new Error(`public request failed: ${response.status}`);
-  return response.json();
+  const data = await response.json();
+  const receivedAt = Date.now();
+  const serverTime = data?.serverTime != null && Number.isFinite(Number(data.serverTime))
+    ? Number(data.serverTime)
+    : null;
+  return { data, requestStartedAt, receivedAt, serverTime };
 }
 
 function publicUrl(endpoint, params = {}) {
@@ -407,6 +445,209 @@ function closeSocket(socket) {
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function collectCombinedDepthSegment({
+  symbols,
+  segmentId,
+  boundaryAt,
+  segmentDeadline,
+  fetchImpl,
+  WebSocketImpl,
+  depthWriter,
+  snapshotWriter,
+  onUniverseSnapshot
+}) {
+  const candidateSymbols = normalizeSymbols(symbols);
+  const states = new Map();
+  const buffered = [];
+  const depthSnapshots = [];
+  const snapshotErrors = [];
+  const invalidSnapshotSymbols = new Set();
+  let nextSnapshotRequestAt = Date.now();
+  let socket;
+  let snapshotReady = false;
+  let failure = null;
+  let settled = false;
+  let resolveOutcome;
+  const outcome = new Promise(resolve => { resolveOutcome = resolve; });
+  const finish = result => {
+    if (settled) return;
+    settled = true;
+    if (result.status !== 'VALID') failure = result.reason;
+    closeSocket(socket);
+    resolveOutcome(result);
+  };
+  const onMessage = message => {
+    try {
+      const { symbol, stream, payload } = combinedMessage(message);
+      if (!candidateSymbols.includes(symbol)) throw new Error(`${symbol}:universe_stream_mismatch`);
+      const receivedAt = Date.now();
+      const envelope = buildDepthRecordEnvelope({
+        symbol,
+        data: payload,
+        receivedAt,
+        stream,
+        segmentId,
+        kind: 'diff'
+      });
+      depthWriter.append(envelope);
+      buffered.push(envelope);
+      if (snapshotReady) {
+        const state = states.get(symbol);
+        if (!state && invalidSnapshotSymbols.has(symbol)) {
+          buffered.pop();
+          return;
+        }
+        if (!state) throw new Error(`${symbol}:snapshot_missing`);
+        state.ingestDiff({ data: payload, receivedAt });
+        buffered.pop();
+      }
+    } catch (error) {
+      finish({ status: 'INVALID', reason: error.message });
+    }
+  };
+  const onError = error => finish({ status: 'INVALID', reason: error?.message ?? 'websocket_error' });
+  const onClose = () => {
+    if (settled) return;
+    if (Date.now() >= segmentDeadline) {
+      const missing = candidateSymbols.filter(symbol => !invalidSnapshotSymbols.has(symbol) && (states.get(symbol)?.summary.updates ?? 0) < 1);
+      const validSymbolCount = candidateSymbols.length - invalidSnapshotSymbols.size;
+      finish({
+        status: validSymbolCount > 0 && !missing.length ? 'VALID' : 'INVALID',
+        reason: validSymbolCount === 0
+          ? `no_valid_depth_snapshots:${[...invalidSnapshotSymbols].sort().join(',')}`
+          : (missing.length ? `no_depth_updates:${missing.join(',')}` : 'utc_4h_rotation')
+      });
+    } else {
+      finish({ status: 'INVALID', reason: 'connection_closed' });
+    }
+  };
+  try {
+    socket = await openDepthSocket({ WebSocketImpl, url: combinedDepthUrl(candidateSymbols), onMessage, onError, onClose });
+    if (settled) throw new Error(failure ?? 'combined_socket_closed_before_snapshot');
+    const snapshotRows = await mapWithConcurrency(candidateSymbols, 8, async symbol => {
+      const slot = Math.max(Date.now(), nextSnapshotRequestAt);
+      nextSnapshotRequestAt = slot + DEPTH_SNAPSHOT_MIN_INTERVAL_MS;
+      if (slot > Date.now()) await delay(slot - Date.now());
+      let response;
+      try {
+        response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.depthSnapshot, {
+          symbol,
+          limit: DEFAULT_DEPTH_LEVELS
+        }));
+      } catch (error) {
+        invalidSnapshotSymbols.add(symbol);
+        snapshotErrors.push({ symbol, reason: error.message, code: 'snapshot_request_failed' });
+        return { symbol, valid: false };
+      }
+      const envelope = buildDepthRecordEnvelope({
+        symbol,
+        data: { s: symbol, lastUpdateId: response.data.lastUpdateId, bids: response.data.bids ?? response.data.b, asks: response.data.asks ?? response.data.a },
+        requestStartedAt: response.requestStartedAt,
+        receivedAt: response.receivedAt,
+        stream: `${symbol.toLowerCase()}@depthSnapshot`,
+        segmentId,
+        kind: 'snapshot'
+      });
+      snapshotWriter.append(envelope);
+      const state = createDepthSegmentReconstructor({ symbol });
+      try {
+        state.ingestSnapshot({ data: envelope.data, receivedAt: response.receivedAt });
+      } catch (error) {
+        if (error.code !== 'insufficient_depth_levels') throw error;
+        invalidSnapshotSymbols.add(symbol);
+        snapshotErrors.push({ symbol, reason: error.message, code: error.code });
+        return {
+          symbol,
+          payload: envelope.data,
+          requestStartedAt: response.requestStartedAt,
+          receivedAt: response.receivedAt,
+          valid: false
+        };
+      }
+      states.set(symbol, state);
+      return {
+        symbol,
+        payload: envelope.data,
+        requestStartedAt: response.requestStartedAt,
+        receivedAt: response.receivedAt,
+        exchangeObservedAt: response.serverTime
+      };
+    });
+    depthSnapshots.push(...snapshotRows.filter(row => row.valid !== false));
+    const universeSnapshot = await onUniverseSnapshot({ depthSnapshots, snapshotErrors, boundaryAt, segmentId });
+    snapshotReady = true;
+    for (const envelope of buffered) {
+      if (invalidSnapshotSymbols.has(envelope.symbol)) continue;
+      if (!states.has(envelope.symbol)) throw new Error(`${envelope.symbol}:snapshot_missing`);
+      states.get(envelope.symbol).ingestDiff({ data: envelope.data, receivedAt: envelope.receivedAt });
+    }
+    buffered.length = 0;
+    const remaining = Math.max(1, segmentDeadline - Date.now());
+    const timer = setTimeout(() => {
+      const missing = candidateSymbols.filter(symbol => !invalidSnapshotSymbols.has(symbol) && (states.get(symbol)?.summary.updates ?? 0) < 1);
+      const validSymbolCount = candidateSymbols.length - invalidSnapshotSymbols.size;
+      finish({
+        status: validSymbolCount > 0 && !missing.length ? 'VALID' : 'INVALID',
+        reason: validSymbolCount === 0
+          ? `no_valid_depth_snapshots:${[...invalidSnapshotSymbols].sort().join(',')}`
+          : (missing.length ? `no_depth_updates:${missing.join(',')}` : 'utc_4h_rotation')
+      });
+    }, remaining);
+    await outcome;
+    clearTimeout(timer);
+    const perSymbol = Object.fromEntries(candidateSymbols.map(symbol => {
+      const state = states.get(symbol);
+      return [symbol, {
+        symbol,
+        ...(state?.summary ?? {
+          updates: 0,
+          maxDepthLevel: 0,
+          lastUpdateId: null,
+          status: invalidSnapshotSymbols.has(symbol) ? 'EXCLUDED' : 'INVALID',
+          reason: snapshotErrors.find(error => error.symbol === symbol)?.reason ?? failure
+        })
+      }];
+    }));
+    return {
+      segmentId,
+      boundaryAt,
+      segmentDeadline,
+      symbols: candidateSymbols,
+      status: failure ? 'INVALID' : 'VALID',
+      reason: failure ?? 'utc_4h_rotation',
+      universeSnapshot,
+      snapshots: depthSnapshots.length,
+      snapshotErrors: snapshotErrors.sort((left, right) => left.symbol.localeCompare(right.symbol)),
+      perSymbol
+    };
+  } catch (error) {
+    failure = failure ?? error.message;
+    finish({ status: 'INVALID', reason: failure });
+    await outcome;
+    return {
+      segmentId,
+      boundaryAt,
+      segmentDeadline,
+      symbols: candidateSymbols,
+      status: 'INVALID',
+      reason: failure,
+      universeSnapshot: null,
+      snapshots: depthSnapshots.length,
+      snapshotErrors: snapshotErrors.sort((left, right) => left.symbol.localeCompare(right.symbol)),
+      perSymbol: Object.fromEntries(candidateSymbols.map(symbol => [symbol, {
+        symbol,
+        ...(states.get(symbol)?.summary ?? {
+          updates: 0,
+          maxDepthLevel: 0,
+          lastUpdateId: null,
+          status: invalidSnapshotSymbols.has(symbol) ? 'EXCLUDED' : 'INVALID',
+          reason: snapshotErrors.find(error => error.symbol === symbol)?.reason ?? failure
+        })
+      }]))
+    };
+  }
 }
 
 async function collectSymbolSegment({
@@ -463,12 +704,13 @@ async function collectSymbolSegment({
   };
   try {
     socket = await openDepthSocket({ WebSocketImpl, url, onMessage, onError, onClose });
-    const receivedAt = Date.now();
-    const payload = await fetchJson(fetchImpl, publicUrl(endpoint, { symbol, limit: DEFAULT_DEPTH_LEVELS }));
+    const response = await fetchJson(fetchImpl, publicUrl(endpoint, { symbol, limit: DEFAULT_DEPTH_LEVELS }));
+    const { data: payload, requestStartedAt, receivedAt } = response;
     const snapshotEnvelope = buildDepthRecordEnvelope({
       symbol,
       data: { s: symbol, lastUpdateId: payload.lastUpdateId, bids: payload.bids ?? payload.b, asks: payload.asks ?? payload.a },
       receivedAt,
+      requestStartedAt,
       stream: `${symbol.toLowerCase()}@depthSnapshot`,
       segmentId,
       kind: 'snapshot'
@@ -477,6 +719,7 @@ async function collectSymbolSegment({
     state.ingestSnapshot({ data: snapshotEnvelope.data, receivedAt });
     snapshotReady = true;
     for (const envelope of buffered) state.ingestDiff({ data: envelope.data, receivedAt: envelope.receivedAt });
+    buffered.length = 0;
     const remaining = Math.max(1, deadline - Date.now());
     const timer = setTimeout(() => finish({
       status: failure ? 'INVALID' : (state.summary.updates > 0 ? 'VALID' : 'INVALID'),
@@ -503,9 +746,14 @@ async function pollFunding({ symbols, deadline, fetchImpl, writer, intervalMs, e
     for (const symbol of symbols) {
       if (Date.now() >= deadline) break;
       try {
-        const receivedAt = Date.now();
-        const data = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.funding, { symbol, limit: 1 }));
-        writer.append({ symbol, receivedAt, endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.funding, data });
+        const response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.funding, { symbol, limit: 1 }));
+        writer.append({
+          symbol,
+          requestStartedAt: response.requestStartedAt,
+          receivedAt: response.receivedAt,
+          endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.funding,
+          data: response.data
+        });
       } catch (error) {
         errors.push(`funding:${symbol}:${error.message}`);
         writer.append({ symbol, receivedAt: Date.now(), error: error.message, endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.funding });
@@ -516,18 +764,272 @@ async function pollFunding({ symbols, deadline, fetchImpl, writer, intervalMs, e
 }
 
 async function captureExchangeInfoAndUniverse({ symbols, fetchImpl, exchangeWriter, universeWriter }) {
-  const receivedAt = Date.now();
-  const exchangeInfo = await fetchJson(fetchImpl, HY_EXP_0020_PUBLIC_ENDPOINTS.exchangeInfo);
-  exchangeWriter.append({ receivedAt, observedAt: receivedAt, endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.exchangeInfo, data: exchangeInfo });
-  const ticker = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.ticker));
+  const exchangeResponse = await fetchJson(fetchImpl, HY_EXP_0020_PUBLIC_ENDPOINTS.exchangeInfo);
+  const tickerResponse = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.ticker));
+  const exchangeInfo = exchangeResponse.data;
+  const ticker = tickerResponse.data;
+  const observedAt = Math.max(exchangeResponse.receivedAt, tickerResponse.receivedAt);
+  exchangeWriter.append({
+    requestStartedAt: exchangeResponse.requestStartedAt,
+    receivedAt: exchangeResponse.receivedAt,
+    exchangeObservedAt: exchangeResponse.serverTime,
+    serverTime: exchangeResponse.serverTime,
+    observedAt,
+    endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.exchangeInfo,
+    data: exchangeInfo
+  });
   universeWriter.append({
-    receivedAt: Date.now(),
-    observedAt: receivedAt,
+    requestStartedAt: tickerResponse.requestStartedAt,
+    receivedAt: tickerResponse.receivedAt,
+    observedAt,
     endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.ticker,
     requestedSymbols: symbols,
     exchangeInfo,
-    ticker
+    ticker,
+    exchangeInfoRequestStartedAt: exchangeResponse.requestStartedAt,
+    exchangeInfoReceivedAt: exchangeResponse.receivedAt,
+    tickerRequestStartedAt: tickerResponse.requestStartedAt,
+    tickerReceivedAt: tickerResponse.receivedAt,
+    exchangeObservedAt: exchangeResponse.serverTime,
+    serverTime: exchangeResponse.serverTime
   });
+}
+
+function loadUniversePolicy(projectRoot) {
+  const policyFile = path.resolve(projectRoot, 'config', 'universe-policy.json');
+  const raw = JSON.parse(fs.readFileSync(policyFile, 'utf8'));
+  return {
+    ...DEFAULT_UNIVERSE_POLICY,
+    minListingAgeMs: Number(raw.minListingAgeDays) * 86_400_000,
+    allowedQuoteAssets: [...(raw.allowedQuoteAssets ?? DEFAULT_UNIVERSE_POLICY.allowedQuoteAssets)],
+    minTierAQuoteVolumeUsdt: Number(raw.minTierAQuoteVolumeUsdt),
+    minTierBQuoteVolumeUsdt: Number(raw.minTierBQuoteVolumeUsdt),
+    minTierADepthUsdt: Number(raw.minTierADepthUsdt),
+    minTierBDepthUsdt: Number(raw.minTierBDepthUsdt),
+    depthBps: Number(raw.depthBps),
+    maxDepthAgeMs: Number(raw.maxDepthAgeMs),
+    maxSymbols: Number(raw.maxSymbols),
+    excludedBaseAssets: [...(raw.excludedBaseAssets ?? DEFAULT_UNIVERSE_POLICY.excludedBaseAssets)]
+  };
+}
+
+function floorUtcFourHourBoundary(value) {
+  const timestamp = integer('boundary timestamp', value, { minimum: 0 });
+  return Math.floor(timestamp / FOUR_HOURS_MS) * FOUR_HOURS_MS;
+}
+
+function nextUtcFourHourBoundary(value) {
+  return floorUtcFourHourBoundary(value) + FOUR_HOURS_MS;
+}
+
+function excludedCaptureBaseAsset(baseAsset, policy) {
+  const base = String(baseAsset ?? '').toUpperCase();
+  const excluded = new Set((policy.excludedBaseAssets ?? []).map(value => String(value).toUpperCase()));
+  return excluded.has(base) || /(?:UP|DOWN|BULL|BEAR|[123]L|[123]S)$/.test(base);
+}
+
+/** Select a bounded candidate set from only the exchangeInfo/ticker PIT inputs. */
+export function selectHyExp0020CaptureCandidates({ exchangeInfo, tickers, observedAt, policy }) {
+  const at = integer('universe observedAt', observedAt, { minimum: 0 });
+  const effectivePolicy = policy ?? DEFAULT_UNIVERSE_POLICY;
+  const tickerBySymbol = new Map();
+  for (const row of tickers ?? []) {
+    const symbol = captureSymbolOrNull(row?.symbol ?? row?.s);
+    if (symbol) tickerBySymbol.set(symbol, row);
+  }
+  const rows = [];
+  const excluded = [];
+  for (const row of exchangeInfo ?? []) {
+    const symbol = captureSymbolOrNull(row?.symbol);
+    if (!symbol) {
+      excluded.push({
+        symbol: String(row?.symbol ?? '').trim().toUpperCase() || 'UNKNOWN',
+        reasons: ['invalid_symbol']
+      });
+      continue;
+    }
+    const baseAsset = String(row.baseAsset ?? '').toUpperCase();
+    const quoteAsset = String(row.quoteAsset ?? row.marginAsset ?? '').toUpperCase();
+    const status = String(row.status ?? '').toUpperCase();
+    const contractType = String(row.contractType ?? '').toUpperCase();
+    const onboardDate = Number(row.onboardDate);
+    const ticker = tickerBySymbol.get(symbol);
+    const volume = Number(ticker?.quoteVolume ?? ticker?.q);
+    const reasons = [];
+    if (contractType !== 'PERPETUAL') reasons.push('not_perpetual');
+    if (!effectivePolicy.allowedQuoteAssets.map(value => String(value).toUpperCase()).includes(quoteAsset)) reasons.push('unsupported_quote_asset');
+    if (status !== 'TRADING') reasons.push('not_trading');
+    if (excludedCaptureBaseAsset(baseAsset, effectivePolicy)) reasons.push('excluded_base_asset');
+    if (!Number.isFinite(onboardDate)) reasons.push('missing_listing_date');
+    else if (onboardDate > at - effectivePolicy.minListingAgeMs) reasons.push('listing_age_under_30d');
+    if (!ticker) reasons.push('missing_ticker');
+    else if (!Number.isFinite(volume) || volume < effectivePolicy.minTierBQuoteVolumeUsdt) reasons.push('volume_below_tier_b');
+    const candidate = {
+      symbol,
+      baseAsset,
+      quoteAsset,
+      contractType,
+      status,
+      onboardDate: Number.isFinite(onboardDate) ? onboardDate : null,
+      quoteVolumeUsdt: Number.isFinite(volume) ? volume : null,
+      reasons
+    };
+    if (reasons.length) excluded.push(candidate);
+    else rows.push(candidate);
+  }
+  rows.sort((left, right) => (right.quoteVolumeUsdt - left.quoteVolumeUsdt) || left.symbol.localeCompare(right.symbol));
+  const selected = rows.slice(0, effectivePolicy.maxSymbols);
+  const selectedSymbols = new Set(selected.map(row => row.symbol));
+  for (const row of rows.slice(effectivePolicy.maxSymbols)) excluded.push({ ...row, reasons: ['universe_cap'] });
+  return {
+    observedAt: at,
+    policy: effectivePolicy,
+    symbols: selected.map(row => row.symbol).sort(),
+    candidates: selected,
+    excluded: excluded.sort((left, right) => left.symbol.localeCompare(right.symbol)),
+    counts: {
+      exchangeInfo: (exchangeInfo ?? []).length,
+      ticker: (tickers ?? []).length,
+      candidateBeforeCap: rows.length,
+      candidateAfterCap: selected.length,
+      excluded: excluded.length
+    },
+    pointInTime: true,
+    futureDataUsed: false,
+    capped: rows.length > selectedSymbols.size
+  };
+}
+
+async function mapWithConcurrency(items, limit, worker) {
+  const output = new Array(items.length);
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(Math.max(1, limit), items.length) }, async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      output[index] = await worker(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return output;
+}
+
+function combinedDepthUrl(symbols) {
+  const streams = symbols.map(symbol => `${symbol.toLowerCase()}@depth@100ms`).join('/');
+  return `wss://fstream.binance.com/stream?streams=${streams}`;
+}
+
+function combinedMessage(message) {
+  const payload = payloadFromMessage(message);
+  const stream = String(message?.stream ?? `${String(payload?.s ?? '').toLowerCase()}@depth@100ms`);
+  const symbol = symbolOf(payload?.s ?? stream.split('@', 1)[0]);
+  return { symbol, stream, payload };
+}
+
+export function membershipDiff(previousSymbols, nextSymbols) {
+  const previous = new Set(previousSymbols ?? []);
+  const next = new Set(nextSymbols ?? []);
+  return {
+    added: [...next].filter(symbol => !previous.has(symbol)).sort(),
+    removed: [...previous].filter(symbol => !next.has(symbol)).sort(),
+    unchanged: [...next].filter(symbol => previous.has(symbol)).sort()
+  };
+}
+
+async function captureDynamicUniverseInputs({
+  boundaryAt,
+  fetchImpl,
+  policy,
+  exchangeWriter,
+  tickerWriter
+}) {
+  const exchangeResponse = await fetchJson(fetchImpl, HY_EXP_0020_PUBLIC_ENDPOINTS.exchangeInfo);
+  const tickerResponse = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.ticker));
+  const observedAt = Math.max(exchangeResponse.receivedAt, tickerResponse.receivedAt);
+  const exchangeInfo = exchangeResponse.data;
+  const tickers = tickerResponse.data;
+  if (!Array.isArray(exchangeInfo?.symbols)) throw new Error('exchangeInfo symbols are missing');
+  if (!Array.isArray(tickers)) throw new Error('ticker response is not an array');
+  const candidates = selectHyExp0020CaptureCandidates({
+    exchangeInfo: exchangeInfo.symbols,
+    tickers,
+    observedAt,
+    policy
+  });
+  exchangeWriter.append({
+    type: 'exchangeInfo',
+    boundaryAt,
+    requestStartedAt: exchangeResponse.requestStartedAt,
+    receivedAt: exchangeResponse.receivedAt,
+    exchangeObservedAt: exchangeResponse.serverTime,
+    serverTime: exchangeResponse.serverTime,
+    observedAt,
+    endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.exchangeInfo,
+    data: exchangeInfo
+  });
+  tickerWriter.append({
+    type: 'ticker',
+    boundaryAt,
+    requestStartedAt: tickerResponse.requestStartedAt,
+    receivedAt: tickerResponse.receivedAt,
+    observedAt,
+    endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.ticker,
+    data: tickers
+  });
+  return {
+    boundaryAt,
+    observedAt,
+    exchangeInfo,
+    tickers,
+    candidates,
+    timing: {
+      exchangeInfoRequestStartedAt: exchangeResponse.requestStartedAt,
+      exchangeInfoReceivedAt: exchangeResponse.receivedAt,
+      exchangeObservedAt: exchangeResponse.serverTime,
+      tickerRequestStartedAt: tickerResponse.requestStartedAt,
+      tickerReceivedAt: tickerResponse.receivedAt
+    }
+  };
+}
+
+function buildPITUniverseSnapshot({ inputs, depthSnapshots, snapshotErrors = [], policy }) {
+  const depths = depthSnapshots.map(snapshot => ({
+    symbol: snapshot.symbol,
+    asOf: snapshot.receivedAt,
+    bids: snapshot.payload.bids ?? snapshot.payload.b,
+    asks: snapshot.payload.asks ?? snapshot.payload.a
+  }));
+  const observedAt = Math.max(inputs.observedAt, ...depthSnapshots.map(snapshot => snapshot.receivedAt));
+  const snapshot = buildUniverseSnapshot({
+    // Preserve every raw exchangeInfo/ticker response on disk, but only pass
+    // syntactically valid symbols to the typed PIT universe builder. Binance
+    // can publish non-trading metadata rows that are not capture stream IDs;
+    // one such row must not abort the complete candidate snapshot.
+    exchangeInfo: inputs.exchangeInfo.symbols.filter(row => universeSymbolOrNull(row?.symbol)),
+    tickers: inputs.tickers
+      .filter(row => universeSymbolOrNull(row?.symbol ?? row?.s))
+      .map(row => ({ ...row, asOf: inputs.observedAt })),
+    depths,
+    observedAt,
+    policy
+  });
+  return {
+    ...snapshot,
+    captureCandidateSymbols: inputs.candidates.symbols,
+    captureCandidateCount: inputs.candidates.symbols.length,
+    exchangeInfoObservedAt: inputs.observedAt,
+    exchangeObservedAt: inputs.timing.exchangeObservedAt,
+    exchangeInfoRequestStartedAt: inputs.timing.exchangeInfoRequestStartedAt,
+    exchangeInfoReceivedAt: inputs.timing.exchangeInfoReceivedAt,
+    tickerRequestStartedAt: inputs.timing.tickerRequestStartedAt,
+    tickerReceivedAt: inputs.timing.tickerReceivedAt,
+    depthSnapshotReceivedAt: Object.fromEntries(depthSnapshots.map(row => [row.symbol, row.receivedAt])),
+    depthSnapshotErrors: snapshotErrors
+      .map(error => ({ symbol: error.symbol, reason: error.reason, code: error.code }))
+      .sort((left, right) => left.symbol.localeCompare(right.symbol)),
+    pointInTime: true,
+    futureDataUsed: false
+  };
 }
 
 async function pollExchangeInfoAndUniverse({
@@ -551,82 +1053,246 @@ async function pollExchangeInfoAndUniverse({
   }
 }
 
+async function pollDynamicFunding({ getSymbols, deadline, fetchImpl, writer, intervalMs, errors }) {
+  while (Date.now() < deadline) {
+    const symbols = getSymbols();
+    if (!symbols.length) {
+      if (Date.now() < deadline) await delay(Math.min(100, deadline - Date.now()));
+      continue;
+    }
+    for (const symbol of symbols) {
+      if (Date.now() >= deadline) break;
+      try {
+        const response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.funding, { symbol, limit: 1 }));
+        writer.append({
+          type: 'funding',
+          symbol,
+          requestStartedAt: response.requestStartedAt,
+          receivedAt: response.receivedAt,
+          endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.funding,
+          data: response.data
+        });
+      } catch (error) {
+        errors.push(`funding:${symbol}:${error.message}`);
+        writer.append({ type: 'funding_error', symbol, receivedAt: Date.now(), endpoint: HY_EXP_0020_PUBLIC_ENDPOINTS.funding, error: error.message });
+      }
+    }
+    if (Date.now() < deadline) await delay(Math.min(intervalMs, deadline - Date.now()));
+  }
+}
+
+function captureQualityDiagnostics({ segments, exchangeInfoSnapshots, universeSnapshots }) {
+  const symbols = new Set();
+  for (const segment of segments) {
+    for (const symbol of segment.symbols ?? []) symbols.add(symbol);
+    for (const symbol of Object.keys(segment.perSymbol ?? {})) symbols.add(symbol);
+  }
+  const reasons = segments.map(segment => String(segment.reason ?? ''));
+  const snapshotErrors = segments.flatMap(segment => segment.snapshotErrors ?? []);
+  const countReason = (...needles) => reasons.filter(reason => needles.some(needle => reason.includes(needle))).length;
+  return {
+    symbolsCaptured: [...symbols].sort(),
+    validSegments: segments.filter(segment => segment.status === 'VALID').length,
+    invalidSegments: segments.filter(segment => segment.status !== 'VALID').length,
+    sequenceGaps: countReason('sequence_gap'),
+    snapshotAlignmentFailures: countReason('snapshot_alignment'),
+    duplicateOrOutOfOrder: countReason('duplicate_update', 'out_of_order'),
+    crossedBooks: countReason('crossed_book'),
+    snapshotExclusions: snapshotErrors.length,
+    snapshotRequestFailures: snapshotErrors.filter(error => error.code === 'snapshot_request_failed').length,
+    insufficientDepthSymbols: snapshotErrors.filter(error => error.code === 'insufficient_depth_levels').length,
+    exchangeInfoSnapshots,
+    universeSnapshots
+  };
+}
+
 /**
- * Public-data-only Binance USD-M collector. It is intentionally not called by
- * tests or by the research runner; before 2026-09-01 it can only write the dry-run
- * namespace and all manifests remain ineligible for training/final OOS.
+ * Public-data-only Binance USD-M collector. The final universe is always derived
+ * from point-in-time exchangeInfo/ticker/depth inputs; a manually supplied symbol
+ * list is never used to define FINAL_OOS membership. Before 2026-09-01 it can only
+ * write the engineering dry-run namespace and all manifests remain ineligible.
  */
 export async function runHyExp0020Capture({
   projectRoot = process.cwd(),
   requestedMode = 'ENGINEERING_DRY_RUN',
   now = Date.now(),
-  symbols,
   maxRuntimeMs = 5 * 60 * 1_000,
   fundingPollMs = 60_000,
-  exchangeInfoPollMs = 4 * 60 * 60 * 1_000,
   reconnectBackoffMs = 1_000,
+  universePolicy = null,
   fetchImpl = globalThis.fetch,
   WebSocketImpl = globalThis.WebSocket
 } = {}) {
   const mode = resolveHyExp0020CaptureMode({ requestedMode, now });
-  const frozenSymbols = normalizeSymbols(symbols);
   const root = assertHyExp0020CaptureRoot({ projectRoot, mode });
   const startedAt = Date.now();
   const runId = `${mode.toLowerCase()}-${new Date(startedAt).toISOString().replaceAll(/[-:.TZ]/g, '')}-${randomUUID().slice(0, 8)}`;
   const directory = path.join(root, runId);
   fs.mkdirSync(directory, { recursive: true });
-  const metadata = buildHyExp0020CaptureMetadata({ mode, runId, startedAt, symbols: frozenSymbols });
+  const policy = universePolicy ?? loadUniversePolicy(projectRoot);
+  const metadata = buildHyExp0020CaptureMetadata({ mode, runId, startedAt });
   const depthWriter = openAppendOnlyNdjson(path.join(directory, 'depth.ndjson'));
   const snapshotWriter = openAppendOnlyNdjson(path.join(directory, 'depth-snapshots.ndjson'));
   const fundingWriter = openAppendOnlyNdjson(path.join(directory, 'funding.ndjson'));
   const exchangeWriter = openAppendOnlyNdjson(path.join(directory, 'exchange-info.ndjson'));
+  const tickerWriter = openAppendOnlyNdjson(path.join(directory, 'ticker.ndjson'));
   const universeWriter = openAppendOnlyNdjson(path.join(directory, 'universe.ndjson'));
+  const universeAuditWriter = openAppendOnlyNdjson(path.join(directory, 'universe-audit.ndjson'));
   const segmentWriter = openAppendOnlyNdjson(path.join(directory, 'segments.ndjson'));
-  const writers = [depthWriter, snapshotWriter, fundingWriter, exchangeWriter, universeWriter, segmentWriter];
+  const writers = [depthWriter, snapshotWriter, fundingWriter, exchangeWriter, tickerWriter, universeWriter, universeAuditWriter, segmentWriter];
   const requestedDeadline = startedAt + integer('maxRuntimeMs', maxRuntimeMs, { minimum: 1 });
   const deadline = mode === 'FINAL_OOS' ? Math.min(requestedDeadline, FINAL_END_MS) : requestedDeadline;
   const segments = [];
   const errors = [];
+  let activeSymbols = [];
+  let exchangeInfoSnapshots = 0;
+  let universeSnapshots = 0;
+  const getFundingSymbols = () => [...activeSymbols];
+  let fundingTask;
   try {
-    const fundingTask = pollFunding({ symbols: frozenSymbols, deadline, fetchImpl, writer: fundingWriter, intervalMs: fundingPollMs, errors });
-    const metadataTask = pollExchangeInfoAndUniverse({
-      symbols: frozenSymbols,
+    fundingTask = pollDynamicFunding({
+      getSymbols: getFundingSymbols,
       deadline,
       fetchImpl,
-      exchangeWriter,
-      universeWriter,
-      intervalMs: exchangeInfoPollMs,
+      writer: fundingWriter,
+      intervalMs: fundingPollMs,
       errors
     });
-    const segmentTasks = frozenSymbols.map(async symbol => {
-      let attempt = 0;
-      while (Date.now() < deadline) {
-        attempt++;
-        const segment = await collectSymbolSegment({
-          symbol,
-          segmentId: `${runId}:${symbol}:${attempt}`,
-          deadline,
+    while (Date.now() < deadline) {
+      const boundaryAt = floorUtcFourHourBoundary(Date.now());
+      const nextBoundary = nextUtcFourHourBoundary(boundaryAt);
+      let inputs;
+      try {
+        inputs = await captureDynamicUniverseInputs({
+          boundaryAt,
           fetchImpl,
-          WebSocketImpl,
-          depthWriter,
-          snapshotWriter,
-          reconstructorOptions: {}
+          policy,
+          exchangeWriter,
+          tickerWriter
         });
-        segments.push(segment);
-        segmentWriter.append(segment);
-        if (Date.now() >= deadline) break;
-        await delay(Math.min(reconnectBackoffMs, deadline - Date.now()));
+        exchangeInfoSnapshots++;
+      } catch (error) {
+        errors.push(`universe_inputs:${error.message}`);
+        universeAuditWriter.append({ type: 'universe_input_error', boundaryAt, receivedAt: Date.now(), error: error.message });
+        if (Date.now() < deadline) await delay(Math.min(60_000, deadline - Date.now()));
+        continue;
       }
-    });
-    await Promise.all([...segmentTasks, fundingTask, metadataTask]);
+      const membership = membershipDiff(activeSymbols, inputs.candidates.symbols);
+      universeAuditWriter.append({
+        type: 'universe_membership',
+        boundaryAt,
+        observedAt: inputs.observedAt,
+        previousSymbols: activeSymbols,
+        nextSymbols: inputs.candidates.symbols,
+        ...membership,
+        policy: inputs.candidates.policy,
+        counts: inputs.candidates.counts
+      });
+      activeSymbols = inputs.candidates.symbols;
+      if (!activeSymbols.length) {
+        const emptySegment = {
+          segmentId: `${runId}:boundary:${boundaryAt}:empty`,
+          boundaryAt,
+          segmentDeadline: Math.min(deadline, nextBoundary),
+          symbols: [],
+          status: 'INVALID',
+          reason: 'empty_capture_candidate_set',
+          snapshots: 0,
+          perSymbol: {}
+        };
+        segments.push(emptySegment);
+        segmentWriter.append(emptySegment);
+        for (const symbol of membership.removed) {
+          const ended = {
+            segmentId: `${runId}:boundary:${boundaryAt}:removed:${symbol}`,
+            boundaryAt,
+            segmentDeadline: Date.now(),
+            symbols: [symbol],
+            status: 'VALID',
+            reason: 'universe_removed_normal_end',
+            snapshots: 0,
+            perSymbol: {}
+          };
+          segments.push(ended);
+          segmentWriter.append(ended);
+        }
+      } else {
+        let attempt = 0;
+        while (Date.now() < deadline && Date.now() < nextBoundary) {
+          attempt++;
+          const segmentDeadline = Math.min(deadline, nextBoundary, Date.now() + MAX_COMBINED_SEGMENT_MS);
+          const segment = await collectCombinedDepthSegment({
+            symbols: activeSymbols,
+            segmentId: `${runId}:boundary:${boundaryAt}:attempt:${attempt}`,
+            boundaryAt,
+            segmentDeadline,
+            fetchImpl,
+            WebSocketImpl,
+            depthWriter,
+            snapshotWriter,
+            onUniverseSnapshot: async ({ depthSnapshots, snapshotErrors, segmentId }) => {
+              const snapshot = buildPITUniverseSnapshot({ inputs, depthSnapshots, snapshotErrors, policy });
+              universeSnapshots++;
+              universeWriter.append({
+                type: 'universe_snapshot',
+                boundaryAt,
+                segmentId,
+                observedAt: snapshot.observedAt,
+                requestStartedAt: Math.min(
+                  inputs.timing.exchangeInfoRequestStartedAt,
+                  inputs.timing.tickerRequestStartedAt,
+                  ...depthSnapshots.map(row => row.requestStartedAt)
+                ),
+                receivedAt: Math.max(
+                  inputs.timing.exchangeInfoReceivedAt,
+                  inputs.timing.tickerReceivedAt,
+                  ...depthSnapshots.map(row => row.receivedAt)
+                ),
+                exchangeObservedAt: snapshot.exchangeObservedAt,
+                depthSnapshotErrors: snapshot.depthSnapshotErrors,
+                snapshot
+              });
+              return snapshot;
+            }
+          });
+          segments.push(segment);
+          segmentWriter.append(segment);
+          if (Date.now() < nextBoundary && Date.now() < deadline) {
+            const retryDelay = segment.status === 'VALID'
+              ? reconnectBackoffMs
+              : Math.min(60_000, reconnectBackoffMs * (2 ** Math.min(attempt - 1, 6)));
+            await delay(Math.min(retryDelay, nextBoundary - Date.now(), deadline - Date.now()));
+          }
+        }
+        for (const symbol of membership.removed) {
+          const ended = {
+            segmentId: `${runId}:boundary:${boundaryAt}:removed:${symbol}`,
+            boundaryAt,
+            segmentDeadline: Date.now(),
+            symbols: [symbol],
+            status: 'VALID',
+            reason: 'universe_removed_normal_end',
+            snapshots: 0,
+            perSymbol: {}
+          };
+          segments.push(ended);
+          segmentWriter.append(ended);
+        }
+      }
+      if (Date.now() < deadline) await delay(Math.min(Math.max(1, nextBoundary - Date.now()), deadline - Date.now()));
+    }
+    await fundingTask;
   } catch (error) {
     errors.push(error.message);
   } finally {
+    if (fundingTask) await fundingTask.catch(error => errors.push(`funding_task:${error.message}`));
     for (const writer of writers) writer.close();
   }
+  const diagnostics = captureQualityDiagnostics({ segments, exchangeInfoSnapshots, universeSnapshots });
   const filePaths = [
     'depth.ndjson', 'depth-snapshots.ndjson', 'funding.ndjson',
-    'exchange-info.ndjson', 'universe.ndjson', 'segments.ndjson'
+    'exchange-info.ndjson', 'ticker.ndjson', 'universe.ndjson',
+    'universe-audit.ndjson', 'segments.ndjson'
   ].map(file => path.join(directory, file));
   const files = filePaths.map(filePath => buildRawCaptureFileEntry({ root: directory, filePath }));
   const manifest = buildHyExp0020RawManifest({
@@ -635,7 +1301,8 @@ export async function runHyExp0020Capture({
     finishedAt: Date.now(),
     files,
     segments,
-    errors
+    errors,
+    diagnostics
   });
   const manifestWrite = writeImmutableCaptureManifest({ directory, manifest });
   return { directory, mode, runId, manifest, manifestWrite };

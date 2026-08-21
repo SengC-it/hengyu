@@ -66,14 +66,25 @@ test('historical L2 validator accepts snapshot plus Binance U/u/pu chain with 10
   const result = validateHistoricalL2({
     records: validRecords(),
     symbols: [SYMBOL],
+    sample: true,
     manifest: { manifest: rawManifest, fileContents: { 'btc.ndjson': '{"source":"authorized-sample"}\n' } }
   });
-  assert.equal(result.status, 'DATA_FEASIBLE');
-  assert.equal(result.decision, 'CONTINUE');
+  assert.equal(result.status, 'SAMPLE_VALID');
+  assert.equal(result.decision, 'STOP');
   assert.equal(result.pnlComputed, false);
   assert.equal(result.snapshots, 1);
   assert.equal(result.diffs, 2);
   assert.equal(result.bySymbol[SYMBOL].lastEventTime, START + 200);
+});
+
+test('historical L2 defaults to the frozen full window and short records cannot unlock feasibility', () => {
+  const result = validateHistoricalL2({ records: validRecords(), symbols: [SYMBOL] });
+  assert.equal(result.status, 'DATA_FAIL');
+  assert.equal(result.windowStart, '2024-01-01T00:00:00.000Z');
+  assert.equal(result.windowEndExclusive, '2026-07-01T00:00:00.000Z');
+  assert.ok(result.errors.includes(`${SYMBOL}:coverage_ends_before_window`));
+  assert.equal(result.developmentAllowed, false);
+  assert.equal(result.finalOosAllowed, false);
 });
 
 test('historical L2 accepts null pu only for the first post-snapshot update and rejects later gaps', () => {
@@ -153,6 +164,40 @@ test('historical L2 manifest verifies file bytes, provenance and manifest hash',
   });
   assert.equal(tampered.status, 'DATA_FAIL');
   assert.ok(tampered.errors.includes('hash_mismatch:btc.ndjson'));
+});
+
+test('historical L2 manifest rejects valid hashes without authorization or license acceptance', () => {
+  const unauthorized = buildHistoricalL2Manifest({
+    ...manifest(),
+    accessAuthorized: false
+  });
+  const unauthorizedResult = verifyHistoricalL2Manifest({
+    manifest: unauthorized,
+    fileContents: { 'btc.ndjson': '{"source":"authorized-sample"}\n' }
+  });
+  assert.equal(unauthorizedResult.status, 'DATA_FAIL');
+  assert.equal(unauthorizedResult.decision, 'STOP');
+  assert.ok(unauthorizedResult.errors.includes('historical_data_not_authorized'));
+
+  const noLicense = buildHistoricalL2Manifest({
+    ...manifest(),
+    licenseAccepted: false
+  });
+  const noLicenseResult = verifyHistoricalL2Manifest({
+    manifest: noLicense,
+    fileContents: { 'btc.ndjson': '{"source":"authorized-sample"}\n' }
+  });
+  assert.equal(noLicenseResult.status, 'DATA_FAIL');
+  assert.ok(noLicenseResult.errors.includes('historical_license_not_accepted'));
+
+  const tamperedProvenance = manifest();
+  tamperedProvenance.provenance.datasetId = 'tampered-dataset';
+  const provenanceResult = verifyHistoricalL2Manifest({
+    manifest: tamperedProvenance,
+    fileContents: { 'btc.ndjson': '{"source":"authorized-sample"}\n' }
+  });
+  assert.equal(provenanceResult.status, 'DATA_FAIL');
+  assert.ok(provenanceResult.errors.includes('manifest_sha256_mismatch'));
 });
 
 test('historical L2 metadata audit stays DATA_FAIL without authorized, sequence-complete data', () => {

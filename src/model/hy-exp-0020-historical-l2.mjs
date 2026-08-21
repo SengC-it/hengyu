@@ -175,6 +175,10 @@ export function buildHistoricalL2Manifest({
 export function verifyHistoricalL2Manifest({ manifest, root, fileContents } = {}) {
   const errors = [];
   if (!manifest || manifest.immutable !== true) errors.push('manifest_not_immutable');
+  if (manifest?.accessAuthorized !== true) errors.push('historical_data_not_authorized');
+  if (manifest?.licenseAccepted !== true) errors.push('historical_license_not_accepted');
+  if (manifest?.windowStart !== HY_EXP_0020_HISTORICAL_L2_WINDOW.start) errors.push('manifest_window_start_mismatch');
+  if (manifest?.windowEndExclusive !== HY_EXP_0020_HISTORICAL_L2_WINDOW.endExclusive) errors.push('manifest_window_end_mismatch');
   if (!/^[a-f0-9]{64}$/.test(String(manifest?.manifestSha256 ?? ''))) {
     errors.push('manifest_sha256_missing');
   } else if (hashManifestBody(manifest) !== manifest.manifestSha256) {
@@ -216,7 +220,14 @@ export function verifyHistoricalL2Manifest({ manifest, root, fileContents } = {}
     if (buffer.length !== Number(entry.bytes)) errors.push(`bytes_mismatch:${normalizedPath}`);
     if (sha256(buffer) !== String(entry.sha256).toLowerCase()) errors.push(`hash_mismatch:${normalizedPath}`);
   }
-  return { status: errors.length ? 'DATA_FAIL' : 'VALID', errors };
+  return {
+    status: errors.length ? 'DATA_FAIL' : 'VALID',
+    decision: errors.length ? 'STOP' : 'CONTINUE',
+    developmentAllowed: false,
+    finalOosAllowed: false,
+    pnlComputed: false,
+    errors
+  };
 }
 
 function csvRows(text) {
@@ -430,7 +441,10 @@ function bookArrays(book, side) {
 
 function manifestValidationErrors(manifestInput) {
   if (!manifestInput) return [];
-  const result = verifyHistoricalL2Manifest(manifestInput);
+  const manifest = manifestInput.manifest ?? manifestInput;
+  const result = verifyHistoricalL2Manifest(
+    manifestInput.manifest ? manifestInput : { manifest: manifestInput }
+  );
   return result.status === 'VALID' ? [] : result.errors;
 }
 
@@ -441,17 +455,25 @@ function manifestValidationErrors(manifestInput) {
 export function validateHistoricalL2({
   records,
   symbols,
-  windowStart = null,
-  windowEndExclusive = null,
+  windowStart = HY_EXP_0020_HISTORICAL_L2_WINDOW.start,
+  windowEndExclusive = HY_EXP_0020_HISTORICAL_L2_WINDOW.endExclusive,
   requiredDepthLevels = HISTORICAL_L2_REQUIREMENTS.requiredDepthLevels,
   maxMissingIntervalMs = HISTORICAL_L2_REQUIREMENTS.defaultMissingIntervalMs,
-  manifest = null
+  manifest = null,
+  sample = false
 } = {}) {
   const frozenSymbols = symbolsOf(symbols);
+  const frozenWindowStart = windowStart == null ? null : iso('windowStart', windowStart);
+  const frozenWindowEndExclusive = windowEndExclusive == null ? null : iso('windowEndExclusive', windowEndExclusive);
   const summary = {
     status: 'DATA_FEASIBLE',
     decision: 'CONTINUE',
     pnlComputed: false,
+    developmentAllowed: false,
+    finalOosAllowed: false,
+    sample: Boolean(sample),
+    windowStart: frozenWindowStart,
+    windowEndExclusive: frozenWindowEndExclusive,
     errors: [],
     reasons: {},
     totalRecords: 0,
@@ -504,7 +526,9 @@ export function validateHistoricalL2({
         lastUpdateId: record.lastUpdateId,
         aligned: false,
         lastEventTime: record.eventTime,
-        lastReceivedAt: record.receivedAt,
+        // A REST/generated snapshot may be received after buffered diffs;
+        // the first causal diff establishes the receipt ordering baseline.
+        lastReceivedAt: null,
         bids: new Map(record.bids.filter(([, quantity]) => quantity > 0)),
         asks: new Map(record.asks.filter(([, quantity]) => quantity > 0))
       });
@@ -568,16 +592,21 @@ export function validateHistoricalL2({
     if (!row.snapshots) addError(summary, symbol, 'missing_snapshot');
     if (!row.diffs) addError(summary, symbol, 'missing_diff');
     if (row.firstEventTime == null) addError(summary, symbol, 'missing_symbol_coverage');
-    if (windowStart && row.firstEventTime != null && row.firstEventTime > Date.parse(windowStart)) {
+    if (!frozenWindowStart) addError(summary, symbol, 'window_start_missing');
+    if (!frozenWindowEndExclusive) addError(summary, symbol, 'window_end_missing');
+    if (!sample && frozenWindowStart && row.firstEventTime != null && row.firstEventTime > Date.parse(frozenWindowStart)) {
       addError(summary, symbol, 'coverage_starts_after_window');
     }
-    if (windowEndExclusive && row.lastEventTime != null && row.lastEventTime < Date.parse(windowEndExclusive) - maxMissingIntervalMs) {
+    if (!sample && frozenWindowEndExclusive && row.lastEventTime != null && row.lastEventTime < Date.parse(frozenWindowEndExclusive)) {
       addError(summary, symbol, 'coverage_ends_before_window');
     }
   }
   for (const error of manifestValidationErrors(manifest)) addError(summary, null, error);
   if (summary.errors.length) {
     summary.status = 'DATA_FAIL';
+    summary.decision = 'STOP';
+  } else if (sample) {
+    summary.status = 'SAMPLE_VALID';
     summary.decision = 'STOP';
   }
   return summary;

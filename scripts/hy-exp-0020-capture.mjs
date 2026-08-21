@@ -16,13 +16,11 @@ function flags(args) {
 
 async function main() {
   const options = flags(process.argv.slice(2));
-  const symbols = String(options.symbols ?? '').split(',').map(value => value.trim()).filter(Boolean);
-  if (!symbols.length) throw new Error('usage: hy-exp-0020-capture.mjs --symbols BTCUSDT,ETHUSDT [--mode ENGINEERING_DRY_RUN]');
   const result = await runHyExp0020Capture({
     requestedMode: options.mode ?? 'ENGINEERING_DRY_RUN',
-    symbols,
     maxRuntimeMs: options['duration-ms'] == null ? undefined : Number(options['duration-ms'])
   });
+  const diagnostics = result.manifest.diagnostics ?? {};
   console.log(JSON.stringify({
     directory: result.directory,
     mode: result.mode,
@@ -30,7 +28,18 @@ async function main() {
     status: result.manifest.status,
     finalOosEligible: result.manifest.finalOosEligible,
     pnlComputed: result.manifest.pnlComputed,
+    symbolsCaptured: diagnostics.symbolsCaptured ?? [],
+    validSegments: diagnostics.validSegments ?? 0,
+    invalidSegments: diagnostics.invalidSegments ?? 0,
+    sequenceGaps: diagnostics.sequenceGaps ?? 0,
+    snapshotAlignmentFailures: diagnostics.snapshotAlignmentFailures ?? 0,
+    snapshotExclusions: diagnostics.snapshotExclusions ?? 0,
+    snapshotRequestFailures: diagnostics.snapshotRequestFailures ?? 0,
+    insufficientDepthSymbols: diagnostics.insufficientDepthSymbols ?? 0,
+    exchangeInfoSnapshots: diagnostics.exchangeInfoSnapshots ?? 0,
+    universeSnapshots: diagnostics.universeSnapshots ?? 0,
     files: result.manifest.files,
+    manifestSha256: result.manifest.manifestSha256,
     errors: result.manifest.errors
   }, null, 2));
 }

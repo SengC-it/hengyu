@@ -12,11 +12,14 @@ import {
   buildRawCaptureFileEntry,
   createDepthSegmentReconstructor,
   expectedHyExp0020CaptureRoot,
+  membershipDiff,
   openAppendOnlyNdjson,
   resolveHyExp0020CaptureMode,
+  selectHyExp0020CaptureCandidates,
   writeImmutableCaptureManifest
 } from '../src/model/hy-exp-0020-capture-runtime.mjs';
 import { runHyExp0020Capture } from '../src/model/hy-exp-0020-capture-runtime.mjs';
+import { DEFAULT_UNIVERSE_POLICY } from '../src/model/universe.mjs';
 
 const BEFORE_FINAL = Date.parse('2026-08-21T00:00:00.000Z');
 const SYMBOL = 'BTCUSDT';
@@ -44,8 +47,16 @@ function diff({ U = 99, u = 101, pu = null, bids = [['1000', '2']], asks = [] } 
   return { e: 'depthUpdate', E: 1_100 + u, T: 1_099 + u, s: SYMBOL, U, u, pu, b: bids, a: asks };
 }
 
-function response(data) {
-  return { ok: true, status: 200, async json() { return data; } };
+function response(data, onBodyComplete = () => {}) {
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      await new Promise(resolve => setTimeout(resolve, 8));
+      onBodyComplete(Date.now());
+      return data;
+    }
+  };
 }
 
 class FakeWebSocket {
@@ -114,6 +125,41 @@ test('capture metadata is paper-only and dry-run is ineligible for training and 
   assert.equal(metadata.trainingEligible, false);
   assert.equal(metadata.finalOosEligible, false);
   assert.equal(metadata.dataClass, 'ENGINEERING_DRY_RUN');
+});
+
+test('dynamic capture candidates use frozen quote/status/listing/stable-base/volume policy and membership diffs are explicit', () => {
+  const observedAt = Date.parse('2026-08-22T00:00:00.000Z');
+  const policy = {
+    allowedQuoteAssets: ['USDT', 'USDC'],
+    minListingAgeMs: 30 * 86_400_000,
+    minTierBQuoteVolumeUsdt: 1_000_000,
+    maxSymbols: 2,
+    excludedBaseAssets: ['USDT', 'USDC', 'BUSD']
+  };
+  const result = selectHyExp0020CaptureCandidates({
+    observedAt,
+    policy,
+    exchangeInfo: [
+      { symbol: 'BTCUSDT', baseAsset: 'BTC', quoteAsset: 'USDT', contractType: 'PERPETUAL', status: 'TRADING', onboardDate: observedAt - 40 * 86_400_000 },
+      { symbol: 'USDCUSDT', baseAsset: 'USDC', quoteAsset: 'USDT', contractType: 'PERPETUAL', status: 'TRADING', onboardDate: observedAt - 40 * 86_400_000 },
+      { symbol: 'ETHUSDT', baseAsset: 'ETH', quoteAsset: 'USDT', contractType: 'PERPETUAL', status: 'TRADING', onboardDate: observedAt - 10 * 86_400_000 },
+      { symbol: 'XRPUSD', baseAsset: 'XRP', quoteAsset: 'USD', contractType: 'PERPETUAL', status: 'TRADING', onboardDate: observedAt - 40 * 86_400_000 },
+      { symbol: 'INVALID.SYMBOL', baseAsset: 'INVALID', quoteAsset: 'USDT', contractType: 'PERPETUAL', status: 'TRADING', onboardDate: observedAt - 40 * 86_400_000 }
+    ],
+    tickers: [
+      { symbol: 'BTCUSDT', quoteVolume: '5000000' },
+      { symbol: 'USDCUSDT', quoteVolume: '5000000' },
+      { symbol: 'ETHUSDT', quoteVolume: '5000000' },
+      { symbol: 'XRPUSD', quoteVolume: '5000000' },
+      { symbol: 'INVALID.SYMBOL', quoteVolume: '5000000' }
+    ]
+  });
+  assert.deepEqual(result.symbols, ['BTCUSDT']);
+  assert.ok(result.excluded.some(row => row.symbol === 'USDCUSDT' && row.reasons.includes('excluded_base_asset')));
+  assert.ok(result.excluded.some(row => row.symbol === 'INVALID.SYMBOL' && row.reasons.includes('invalid_symbol')));
+  assert.deepEqual(membershipDiff(['BTCUSDT', 'ETHUSDT'], ['BTCUSDT', 'SOLUSDT']), {
+    added: ['SOLUSDT'], removed: ['ETHUSDT'], unchanged: ['BTCUSDT']
+  });
 });
 
 test('append-only NDJSON preserves raw records and never truncates an existing file', () => {
@@ -206,12 +252,22 @@ test('final mode is allowed only inside the frozen OOS window', () => {
 test('engineering dry-run collector captures public snapshot/diff/funding/exchangeInfo and writes an isolated manifest', async () => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0020-collector-'));
   const levels = book();
+  const bodyCompletedAt = new Map();
+  const bodyDone = name => timestamp => bodyCompletedAt.set(name, timestamp);
   const fetchImpl = async input => {
+    await new Promise(resolve => setTimeout(resolve, 8));
     const url = String(input);
-    if (url.includes('/depth?')) return response({ lastUpdateId: 100, bids: levels.bids, asks: levels.asks });
-    if (url.includes('/fundingRate')) return response([{ symbol: SYMBOL, fundingRate: '0.0001', fundingTime: Date.now() }]);
-    if (url.includes('/exchangeInfo')) return response({ symbols: [{ symbol: SYMBOL, status: 'TRADING' }] });
-    if (url.includes('/ticker/24hr')) return response([{ symbol: SYMBOL, quoteVolume: '1000000' }]);
+    if (url.includes('/depth?')) return response({ lastUpdateId: 100, bids: levels.bids, asks: levels.asks }, bodyDone('depth'));
+    if (url.includes('/fundingRate')) return response([{ symbol: SYMBOL, fundingRate: '0.0001', fundingTime: Date.now() }], bodyDone('funding'));
+    if (url.includes('/exchangeInfo')) return response({ serverTime: 1_700_000_000_000, symbols: [{
+      symbol: SYMBOL,
+      onboardDate: Date.parse('2023-01-01T00:00:00.000Z'),
+      status: 'TRADING',
+      contractType: 'PERPETUAL',
+      baseAsset: 'BTC',
+      quoteAsset: 'USDT'
+    }] }, bodyDone('exchangeInfo'));
+    if (url.includes('/ticker/24hr')) return response([{ symbol: SYMBOL, quoteVolume: '10000000' }], bodyDone('ticker'));
     throw new Error(`unexpected fake endpoint: ${url}`);
   };
   FakeWebSocket.connections = 0;
@@ -219,11 +275,11 @@ test('engineering dry-run collector captures public snapshot/diff/funding/exchan
     projectRoot,
     requestedMode: 'ENGINEERING_DRY_RUN',
     now: BEFORE_FINAL,
-    symbols: [SYMBOL],
-    maxRuntimeMs: 100,
+    maxRuntimeMs: 200,
     fundingPollMs: 10_000,
     exchangeInfoPollMs: 10_000,
     reconnectBackoffMs: 1,
+    universePolicy: DEFAULT_UNIVERSE_POLICY,
     fetchImpl,
     WebSocketImpl: FakeWebSocket
   });
@@ -233,7 +289,22 @@ test('engineering dry-run collector captures public snapshot/diff/funding/exchan
   assert.equal(result.manifest.finalOosEligible, false);
   assert.equal(result.manifest.status, 'complete');
   assert.equal(FakeWebSocket.connections, 1);
+  for (const fileName of ['depth-snapshots.ndjson', 'funding.ndjson', 'exchange-info.ndjson', 'ticker.ndjson']) {
+    const rows = fs.readFileSync(path.join(result.directory, fileName), 'utf8').trim().split(/\r?\n/).map(line => JSON.parse(line));
+    assert.ok(rows.length > 0, `${fileName} should contain a response`);
+    for (const row of rows) assert.ok(row.receivedAt > row.requestStartedAt, `${fileName} must record body completion after request start`);
+  }
+  const timingNames = { 'depth-snapshots.ndjson': 'depth', 'funding.ndjson': 'funding', 'exchange-info.ndjson': 'exchangeInfo', 'ticker.ndjson': 'ticker' };
+  for (const [fileName, name] of Object.entries(timingNames)) {
+    const row = JSON.parse(fs.readFileSync(path.join(result.directory, fileName), 'utf8').trim().split(/\r?\n/)[0]);
+    assert.ok(row.receivedAt >= bodyCompletedAt.get(name), `${fileName} receipt must follow response body completion`);
+  }
+  const exchangeRow = JSON.parse(fs.readFileSync(path.join(result.directory, 'exchange-info.ndjson'), 'utf8').trim());
+  assert.equal(exchangeRow.exchangeObservedAt, 1_700_000_000_000);
+  assert.equal(result.manifest.diagnostics.snapshotAlignmentFailures, 0);
+  assert.equal(result.manifest.segments[0].perSymbol.BTCUSDT.updates, 2);
   assert.ok(result.manifest.files.some(file => file.path === 'exchange-info.ndjson'));
+  assert.ok(result.manifest.files.some(file => file.path === 'ticker.ndjson'));
   assert.ok(result.manifest.files.some(file => file.path === 'universe.ndjson'));
   assert.ok(result.manifest.files.some(file => file.path === 'funding.ndjson'));
   assert.ok(result.directory.includes(path.join('data', 'raw', 'engineering-dry-run', 'HY-EXP-0020')));
