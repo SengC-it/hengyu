@@ -19,6 +19,8 @@
     "h11:run": "node scripts/h11-short-trend.mjs run",
     "h12:prepare": "node scripts/h12-regime-trend.mjs prepare",
     "h12:run": "node scripts/h12-regime-trend.mjs run",
+    "profit:v3:prepare": "node scripts/profit-v3.mjs prepare",
+    "profit:v3": "node scripts/profit-v3.mjs run",
     "exp:001:download": "node scripts/exp001.mjs download",
     "exp:001:run": "node scripts/exp001.mjs run",
     "exp:002:download": "node scripts/exp002.mjs download",

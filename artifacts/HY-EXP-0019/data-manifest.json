@@ -1,0 +1,3980 @@
+{
+  "experiment_id": "HY-EXP-0019",
+  "generated_at": "2026-08-21T00:10:13.715Z",
+  "source_experiment_id": "HY-EXP-0001",
+  "source_manifest_sha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544",
+  "preregistration_sha256": "6a54a27e2af74a3203a79d217aee2c62a78a65ff0cb003dd37b63d8e0e8c1cb2",
+  "source": "Binance official public archive via locked HY-EXP-0001 manifest",
+  "point_in_time_universe": true,
+  "depth_source": "OHLCV_PROXY_NOT_ORDERBOOK",
+  "files": [
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2023-12.zip",
+      "sha256": "3292f306a22f3190315e71780b68b88a3ac5c8dda5a05e6f3d768ac21b3d6cf5",
+      "bytes": 950
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2023-12.zip",
+      "sha256": "fd7cd2a31f3e5f9178c4bc4f386f106fa365e1c0ae1b477c90d91cdd9fc8a058",
+      "bytes": 362508
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-01.zip",
+      "sha256": "6ce71612fdc2c2d227b1431ea6c9aec07d6a46ebd7d7650aee5da1a09cd19f90",
+      "bytes": 870
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-01.zip",
+      "sha256": "63bac6f46fb24d9c2523c2bf3b5c79a03b7f6b35d04b28089242853cba18e721",
+      "bytes": 360752
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-02.zip",
+      "sha256": "1d99928f6340abc95946545f51fadb59f2183f984b8117d5ce39456d26884250",
+      "bytes": 844
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-02.zip",
+      "sha256": "44dd459aaed3c3a2916e364c1c7e8f70ac0a935f4f785512277a5f882b68a5f7",
+      "bytes": 335933
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-03.zip",
+      "sha256": "ae596433406d0e00bf66f4430c7f51f8d03b4d2a395949ce29d8765554ad7195",
+      "bytes": 931
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-03.zip",
+      "sha256": "f496a58f081366b1a607ce221b8c55e2c48ec957252b09f127e5aec948173897",
+      "bytes": 377607
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-04.zip",
+      "sha256": "97e66b580deae706cbf1b56b21a71668d5587a7db68bf69d01ef1db5045125bd",
+      "bytes": 905
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-04.zip",
+      "sha256": "5101781889554b8a06dce51d2445fbf08da45df9ba11198abe6aa8dcfbbec078",
+      "bytes": 360378
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-05.zip",
+      "sha256": "4ebe1a295be42c705739ff3717b113661513eee0560a17936697568cd2c06ae0",
+      "bytes": 867
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-05.zip",
+      "sha256": "c2aef4d97a57227de3e13f282558ceb03b2d87d24fcdbc129c4f64915f6f5f14",
+      "bytes": 361163
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-06.zip",
+      "sha256": "bc5d4b47ffa9c6e6b30147dbb3c93f63a27b071428445ed6e57339a86745a9e0",
+      "bytes": 702
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-06.zip",
+      "sha256": "5c3f9920c1594d8da6b29ff063c8faaa67b60a772ca436c4dd06a977da700f55",
+      "bytes": 352388
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-07.zip",
+      "sha256": "ba2e909430ca421202cc86b658d242bdcb03cf15f729fd5bdaf6b11bc7117243",
+      "bytes": 667
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-07.zip",
+      "sha256": "0a1b19d45607a0d22a030a0575d3758c6c2fbc85be2ae4af4c4c485e1aca0eae",
+      "bytes": 361863
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-08.zip",
+      "sha256": "5b1c28afa6becb9c4303fb2438c39461b199a48a0992bccb5e1e4be344b7a931",
+      "bytes": 706
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-08.zip",
+      "sha256": "9ea3fe3f6952157a662bba7e0e01ca9b4ff30955096fa8a8c7b31a8581a2e5d8",
+      "bytes": 366049
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-09.zip",
+      "sha256": "2c9e13fa39b3956ea76d29074e26e0ccc6abbd3e235d752aa63b383de29a4d80",
+      "bytes": 704
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-09.zip",
+      "sha256": "b294e501b93be46093c2478e841e4b79cb051d28011a5b2b3667c1f18acdf4e2",
+      "bytes": 351509
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-10.zip",
+      "sha256": "ac53012800835002672b559455766f73eb30cce3b4b75a30e8d834f03cc3ba1c",
+      "bytes": 727
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-10.zip",
+      "sha256": "d019b4b304ea4ae96cd6ae80caef349d332cb0af5941c12fbf2ef0f795033aaa",
+      "bytes": 357742
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-11.zip",
+      "sha256": "ca02937135f8d51991e96290cd527ba8cfba3e6ca6bdf08247c88bdc88fdfc09",
+      "bytes": 863
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-11.zip",
+      "sha256": "d276958ca6e52d8eed106baf9435f4b04c5f1c15ed2dee9f52329a13435580d8",
+      "bytes": 362113
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2024-12.zip",
+      "sha256": "9bad523573121ac9a255adac4574e4ea8545ab77807d6ccd8ac132771b6f0c7b",
+      "bytes": 873
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2024-12.zip",
+      "sha256": "eb29e8aef4a3218928b42ae8cca70b0baac63739dd30062f4a77595b3c9ef659",
+      "bytes": 377207
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-01.zip",
+      "sha256": "74544eee335ba817f34c28bad187eabc9c19b730a84e875eb636499944198479",
+      "bytes": 776
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-01.zip",
+      "sha256": "b74f33eb86c083f7304d03635479502af5ca0f96eb3fc2ebb67b295e20b75b6e",
+      "bytes": 363891
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-02.zip",
+      "sha256": "b5094d4dfe17e0b07b4a4cfeca6baef32a96711b824ea45e1c9bcf80db0d2b06",
+      "bytes": 750
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-02.zip",
+      "sha256": "11d76f5a67f7600741da753949d07a4e3f34f6876a9e85a0a8f108fd4b3f6b61",
+      "bytes": 338331
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-03.zip",
+      "sha256": "8bd05f64e15a3f1731d75ad21dea232b6ae9e93cff351a0699a4c1ab0dc0d2ea",
+      "bytes": 843
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-03.zip",
+      "sha256": "e295e714a074cb6f0761759d64a8065d53f392637697ef0f04450c4b12a08552",
+      "bytes": 369042
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-04.zip",
+      "sha256": "d5b35805679bb3a410fce7ddb370ce4b6f69bc37233e4ffde4eec40f524e3ff2",
+      "bytes": 751
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-04.zip",
+      "sha256": "7735dfca3dd690825a743f816be5c3039cd626867eeccf46a3f5e0fd2d8a7683",
+      "bytes": 349001
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-05.zip",
+      "sha256": "fc9a418d195865c4a61e0c858c56dfa62dab80c4d5f0df37cd71aed1173fd37b",
+      "bytes": 745
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-05.zip",
+      "sha256": "6ed5a2bb6143a1c09680b473408b6628663bc7ecad62322d8c1a34532e557941",
+      "bytes": 362556
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-06.zip",
+      "sha256": "2ea8b6a079ab89270eeeecee1bd47128cbf585ada1bc65a1b657b76061e12c04",
+      "bytes": 762
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-06.zip",
+      "sha256": "e683588f2be6c2835a95cc9bfa60616f66e0dd227ebd32c515f677d4ad63e906",
+      "bytes": 342795
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-07.zip",
+      "sha256": "014c717df6ca0fbc5c8850a22741cf07b425af5aeec07de42265f7a70aa9fd39",
+      "bytes": 808
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-07.zip",
+      "sha256": "a2f6d98970824eed785fac826f4d4b817409685c601dc9e14bce9eb0aabf321a",
+      "bytes": 363224
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-08.zip",
+      "sha256": "1ca07a28c070cd092a04c4e002f5d7ae123c45a149f385c3b316ba1b9cd0a7b6",
+      "bytes": 836
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-08.zip",
+      "sha256": "78f8b628e7f22f8b31bad7b00cffeab2b5220dd1ee3fb7582ae4015020f455ca",
+      "bytes": 369394
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-09.zip",
+      "sha256": "e87adf5d21d31f7c49739eb0cffb7347284bdb2d981d4ab8d2cde6cdfe94d4af",
+      "bytes": 809
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-09.zip",
+      "sha256": "5ce670f46a3c87d5770d6d584b66cc2252b5db0f86510ccee12cb8c665059ab3",
+      "bytes": 358373
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-10.zip",
+      "sha256": "6c45db6d53c47e1413c842bffba176aa58d8fe5bef0b1326ce5a4acb5b9abaef",
+      "bytes": 836
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-10.zip",
+      "sha256": "688f1b22151e44487f0966566b02c5f8d30207a8cac32232830da864d40f3d50",
+      "bytes": 390710
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-11.zip",
+      "sha256": "e1bb556f0d0b00f4615c41048dc71377b91ea43351100c90a3750efd519d7682",
+      "bytes": 787
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-11.zip",
+      "sha256": "170e786f15bc6a367a18ba1f636134db7477b3930108860d414e6775e960f78f",
+      "bytes": 364013
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2025-12.zip",
+      "sha256": "18000c78612678f3daf1b493828f2c61f0e680f2a23f6bde34a4624504f228e5",
+      "bytes": 791
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2025-12.zip",
+      "sha256": "fcc7a8f8657fc1d9ae7ad2f41464eac7d4ed1299035aca99479c67d01ee24250",
+      "bytes": 364467
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2026-01.zip",
+      "sha256": "b7fc86f2e15ed637796db819d03ec7fba66f2651ad1077cb143e2cd4bafc7e1d",
+      "bytes": 856
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2026-01.zip",
+      "sha256": "c7f246c1b5ce4e56db910d110914aa01aad24d1d37fe7f4b0783dfa95c477a8f",
+      "bytes": 363441
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2026-02.zip",
+      "sha256": "1b474640f9646c08f2dac80db4b4716303972dbf35613f5c7da948e2f858b646",
+      "bytes": 663
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2026-02.zip",
+      "sha256": "e751e108a6d4ddbab3fa190995b145a36f859fa31327f10d23cf1ff6897b11a7",
+      "bytes": 335546
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2026-03.zip",
+      "sha256": "19e6e88c1a0c318fee6b8c570ed39fbfd4e3dcbcd917e0738347c3b03fad52c3",
+      "bytes": 708
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2026-03.zip",
+      "sha256": "703903aa8d76b80dc9e4ac5e9f6ed3e4abab478227b0f687312f32872f2853ca",
+      "bytes": 361946
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2026-04.zip",
+      "sha256": "64ad28743203161c89a5c64582ed14a599a5d47addcffc3f7e2f07063ef9bb2b",
+      "bytes": 818
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2026-04.zip",
+      "sha256": "bb7773b1f101e4c401118c0d2fe568616d0986398f3747f4762da053e22f1c52",
+      "bytes": 344292
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2026-05.zip",
+      "sha256": "b62dd555a8c1ecc25644f529e4cd351a835aeabaa70258909d9f1c328f427cd8",
+      "bytes": 908
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2026-05.zip",
+      "sha256": "5743a5b7e2b32f5ffad9ccf25dc8e9a57bed3f1a7900f5e477392adf2f44fdc2",
+      "bytes": 359147
+    },
+    {
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/funding/BNBUSDT-fundingRate-2026-06.zip",
+      "sha256": "fffa72378e35dd0fc6faf22e8e7b5b22794201124e4727da92d6cb2b591459be",
+      "bytes": 777
+    },
+    {
+      "kind": "kline",
+      "symbol": "BNBUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/BNBUSDT/kline/BNBUSDT-5m-2026-06.zip",
+      "sha256": "80af68e445cbe8bea60bda211dbc9e83ed3faf938350501ea7fa365277b6e932",
+      "bytes": 352039
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2023-12.zip",
+      "sha256": "8f02fdd2a2da261bbf13ab301c74bdb57fae005f19d5088e9ece5f8824c1a2a7",
+      "bytes": 810
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2023-12.zip",
+      "sha256": "2c6f4d22a095de8df65e7661231eaeb8344345674e65c478ba1efa2f1e0fb5c5",
+      "bytes": 404700
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-01.zip",
+      "sha256": "3e0d30870672aa8f0f937881056e3cfd55913ae5c780cd50b33f2763aa0ba58e",
+      "bytes": 696
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-01.zip",
+      "sha256": "b04981f250c65b97b7fc1b4b699401c0f54b46e98c2f2e30bb14a387a45e9a82",
+      "bytes": 408813
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-02.zip",
+      "sha256": "daf1e4901e3d6436d82ad60f90d007eb5300be8047cfef121007203a7212cde6",
+      "bytes": 776
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-02.zip",
+      "sha256": "1f55bd1995df1173ca96d430b485b721554aca5eaa4d7c644ab4afd695990c2f",
+      "bytes": 382051
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-03.zip",
+      "sha256": "711dcaf2a341aedfd06447b4117b540f60adb0784c5e64a313c718e4cf092bc3",
+      "bytes": 939
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-03.zip",
+      "sha256": "e58017be4762e3b93511dc5ca255c1ddf7c1c4ccbbbb1c313b174e033e2b891e",
+      "bytes": 417900
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-04.zip",
+      "sha256": "6d220b8e2815362a11d294d35dbca28568370d8295351937eceec10f2b359b85",
+      "bytes": 842
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-04.zip",
+      "sha256": "ea177b76e07782ae13e2a26f4a262296e89b3ffd549947c3d6d8bd0c07e3fc2b",
+      "bytes": 400905
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-05.zip",
+      "sha256": "aef8c5fdce1493fd570b5829a72f2f17c7e459483390f25544d16c2a30be592e",
+      "bytes": 830
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-05.zip",
+      "sha256": "219ce6bc8e85a9fa9088eda56a92f5c56361751dd8301dff5ed9fc1232b5c1a2",
+      "bytes": 408532
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-06.zip",
+      "sha256": "43fc4473820d1fb4fe340d1b1951a87555f6841aa352e684fa95d6adffce04c6",
+      "bytes": 721
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-06.zip",
+      "sha256": "f49fdf9f3add26ba70f301cac7d9d3b2e0211eeaaf99f32fa1c92730deae6e8d",
+      "bytes": 388086
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-07.zip",
+      "sha256": "acab0593c1452660ce74a6c239fb215c1192b0a9c6e8c1689e6495de40a0174b",
+      "bytes": 847
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-07.zip",
+      "sha256": "657f79d55b809ca18f242e950c916bbbe93c3d09697f0e330ba26b5a6a75a4e6",
+      "bytes": 411437
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-08.zip",
+      "sha256": "7003d29a43dd5f9357f838da8766834954939e22c1d80af682d9f33984f67b71",
+      "bytes": 904
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-08.zip",
+      "sha256": "5804758756c980445eb6bbba96f10bd98bb7da471b6041bc31337cb0c7236a16",
+      "bytes": 411986
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-09.zip",
+      "sha256": "6ef23b02392b481ef9c3855434bf3644289fb6e228b4f7d9a0dfc6d3cdff1116",
+      "bytes": 924
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-09.zip",
+      "sha256": "15ffdcf3d23f9fb6743c54d9d783cdc20373aaf8f60fd949a85653e7bee29170",
+      "bytes": 394632
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-10.zip",
+      "sha256": "26db65ac8020d80ece35df79c254c5f7e24427529bcceeb2972748c4fe2d2707",
+      "bytes": 801
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-10.zip",
+      "sha256": "024d574aec22d830443dfe557c12137d24423c18b228e2c10045851cd056434d",
+      "bytes": 405740
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-11.zip",
+      "sha256": "e1b19cccfe2cdcba48b022790789b7b01edd86c075f39bc152e44c267d43bd51",
+      "bytes": 746
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-11.zip",
+      "sha256": "bf2ff598c07f5f78a4265c376b3a8f3277e39b42d66bf79610b8b3199a34fa45",
+      "bytes": 402529
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2024-12.zip",
+      "sha256": "069409f525ebf6370ee1c7defe475167de4b97284c5ac8e68768652968cd3dc9",
+      "bytes": 808
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2024-12.zip",
+      "sha256": "261ced4d4a389f680ae730c53ba82b42f97f656b630352713e2d7fd738f57b8c",
+      "bytes": 414182
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-01.zip",
+      "sha256": "df725010d55458866eb5a47e9ee708c6796c9d7e77b14c38342cea11f381815e",
+      "bytes": 825
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-01.zip",
+      "sha256": "0c99422d64fa3cc58564cf77969fc5a96d6f44783c79ecfcf94b103753bf7570",
+      "bytes": 412755
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-02.zip",
+      "sha256": "e918b90fb33df3a3317feea13807a892047f1ec86eeac100bdb7b3dd83285d46",
+      "bytes": 854
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-02.zip",
+      "sha256": "fdd6fb92b75bae5c02dd583b5be44ca6673d1807ce4b0c08160d3c5cf7677a46",
+      "bytes": 370482
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-03.zip",
+      "sha256": "a3b95cfb315641fbfddc61eb32adf2a2588afb7a3973a61f464aca007ad43e3f",
+      "bytes": 938
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-03.zip",
+      "sha256": "46f83773b9cec38a09be429727a5a300ccca6d11c8e8ca5fa9545fad6eda131f",
+      "bytes": 412650
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-04.zip",
+      "sha256": "01dbb7bd0135f98bd63bdde6b943cde1accc1770cabf92f68a1ec0653ced3888",
+      "bytes": 929
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-04.zip",
+      "sha256": "9eda69fd858e9ced7e72cfbb75bffe34458763c37c8ee73910e572b4baba21ed",
+      "bytes": 397231
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-05.zip",
+      "sha256": "e7355e2775b88009c984db1783bb8ed6b5f24ede2b52bb764151b5722d6a5e42",
+      "bytes": 943
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-05.zip",
+      "sha256": "073da284f178e72777abbfbcf79faa99fcf77bd69c4a678938abbf6cd7d14f5b",
+      "bytes": 410658
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-06.zip",
+      "sha256": "a1f4a40953740fa83ee9ad97776ff8325d1958654a67f1325614071a983819d4",
+      "bytes": 946
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-06.zip",
+      "sha256": "da39c04e24a90c87406b9030e1aaf376655ad59d4bc0496f38e4162a9babf514",
+      "bytes": 393987
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-07.zip",
+      "sha256": "b097dff828f6e43fece23db0d3cb98042a9d7bc19693b8cbfd051d88eb973b7b",
+      "bytes": 796
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-07.zip",
+      "sha256": "2cea4750d51d9c064d674ec8d0d8d1f39448960284272fdc74698562c873bf0f",
+      "bytes": 405712
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-08.zip",
+      "sha256": "1180129860b6e196e8d70bb9719e81573aa6b4acb423ba5ee7f82f10c836f7ab",
+      "bytes": 927
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-08.zip",
+      "sha256": "7f78f6f88ae1946f8bd8312a37d1d74b24e24d6b13bc37d2909ad7c8c0c7e9ae",
+      "bytes": 405889
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-09.zip",
+      "sha256": "21dc6570fc6bffad0e7b5f9e99211b82ad07c95ab4f18c3a2daa3b95ec98344c",
+      "bytes": 941
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-09.zip",
+      "sha256": "dbfb8bc2f9343107c7a702acd6919d77060a8f7ea4b25359c71e5fc018a85209",
+      "bytes": 388679
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-10.zip",
+      "sha256": "9ecdedab6344fc4cdb154763266b8e09627a71c3cc5574cf868158b541c259c2",
+      "bytes": 944
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-10.zip",
+      "sha256": "fab262ca4318f8f65164ae33a020458439adc6f7bc2e59bbfce1886118d05a48",
+      "bytes": 412617
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-11.zip",
+      "sha256": "23735400405627d610123e3a43db3e98ae7addb93459cd670e65a7659a5f081b",
+      "bytes": 941
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-11.zip",
+      "sha256": "2759d4be0fe68cc2be3d4d91940fcd95abc69f0c31f25d0b6cb5e0629c625d2d",
+      "bytes": 398908
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2025-12.zip",
+      "sha256": "35318b789f020b0e04c9043112480743855554e52e1d188437cbdaa67246d51d",
+      "bytes": 963
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2025-12.zip",
+      "sha256": "0e923a3d2ac4f6711d8c841220f4e5d2e479c1bdb40b41515eb250e16808304f",
+      "bytes": 404647
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2026-01.zip",
+      "sha256": "fcdc796484f395830d418588a34a26baed8849dbef0ff2b56173247e493ff51f",
+      "bytes": 965
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2026-01.zip",
+      "sha256": "c092f3b26036f203bb5b11c28958574aa8501315ed26dd0f8c017051b9fb3abf",
+      "bytes": 402596
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2026-02.zip",
+      "sha256": "80df1dd669dc1e3afc360c9da8b9a949a127fce088eedbf5bf708bd37b0a1f58",
+      "bytes": 937
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2026-02.zip",
+      "sha256": "8be83befce2cd9bf0959c872d91108debd03e1b51a451bac3a56b8ddca196bb4",
+      "bytes": 374045
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2026-03.zip",
+      "sha256": "5c069d5e9597a44fd0e213395082e59ff223fb99c9eab3a2a5a2a5622ba7867c",
+      "bytes": 1008
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2026-03.zip",
+      "sha256": "0302ccef9b3e5e38c35bc8667a1e890138c9136e89145688220eea99b748200e",
+      "bytes": 411027
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2026-04.zip",
+      "sha256": "51cdeb4de7d5ef1d4eece80b6115e391bdf7a2d0803bf9ad8371ab23340b22d3",
+      "bytes": 960
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2026-04.zip",
+      "sha256": "e2934467bdb6a000124948f4c8fef176e2066520a6b2e5a0522450fed51396f7",
+      "bytes": 391115
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2026-05.zip",
+      "sha256": "445b65fd6b17bfcfb5e4d035db29fad34f729fa078f0449024db42621be84e6e",
+      "bytes": 980
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2026-05.zip",
+      "sha256": "b1a73378796bb62084c32ca5865903beeaf87d521d950d5e7776343f682dea93",
+      "bytes": 400649
+    },
+    {
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/funding/BTCUSDT-fundingRate-2026-06.zip",
+      "sha256": "cff97ce688329592bccbbf5873b5c7021649e093f5f5806e332c5b4fb7fd6a00",
+      "bytes": 964
+    },
+    {
+      "kind": "kline",
+      "symbol": "BTCUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/BTCUSDT/kline/BTCUSDT-5m-2026-06.zip",
+      "sha256": "782c555963c852ca768335de21d5743147e5d50bff449600f8fceb9ebe5273de",
+      "bytes": 395606
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2023-12.zip",
+      "sha256": "d49fa428e457f93c96f6888b589c01372aa6b331da7578b880d103e64a8e9faf",
+      "bytes": 832
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2023-12.zip",
+      "sha256": "fdf67267d4a2aef1fdf03f7c24d048f4333c73965b32847f0dce8c00d562ce86",
+      "bytes": 380738
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-01.zip",
+      "sha256": "08193c8953cef5f0366877b66391483f4076c5927d433af5fbcbb680b407767c",
+      "bytes": 670
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-01.zip",
+      "sha256": "f70e453d5fac905e1286409b18a184e720e34cdca0d98b76b1cd2692f65421a5",
+      "bytes": 373481
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-02.zip",
+      "sha256": "769f0fe177bd531b65ab9a0e15d4b3814deb241e27806f8decfd45735456a823",
+      "bytes": 764
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-02.zip",
+      "sha256": "d25f8bc3860b780dcbc78d3d3dc8bf8629c2bf8905e454c70669d6852a1670e3",
+      "bytes": 346427
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-03.zip",
+      "sha256": "7c8400239b28b1e96439b229bb483cd7de8637bf58f321547f46ceee160dae61",
+      "bytes": 942
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-03.zip",
+      "sha256": "6c2eebc801a61fbb8e2b954e1726470b2bace82236d20476accf62aee816ec33",
+      "bytes": 407002
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-04.zip",
+      "sha256": "b09c688e8f524d879b901f1cba4a15836180af254868b22feabb324268b521cf",
+      "bytes": 904
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-04.zip",
+      "sha256": "cd119492e11f3b11a5fb0b0acb523901e62fbb3f3f64e37a611ccaa35228f8ad",
+      "bytes": 384805
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-05.zip",
+      "sha256": "5df5a4bb6733899a885591106626242a3aab4b5ada077b62dd44ac27d14a9e7c",
+      "bytes": 786
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-05.zip",
+      "sha256": "dea180f6f2d5180b5d737217a20ee6882c94ce22766639fc86ff2c35ca9f5ae2",
+      "bytes": 390389
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-06.zip",
+      "sha256": "c6ba303e7c28db0a2bf2f8121482c7b8813793b860d2ef22ecd08dcd95e8185e",
+      "bytes": 785
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-06.zip",
+      "sha256": "3981baf157b3b6e3456506f24220c345c193b2cf8024a4c3760966422a462f14",
+      "bytes": 365453
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-07.zip",
+      "sha256": "4e9db7b8df1c75627ce56d4010fa84a93fce0162112a93696e98da5138d0f380",
+      "bytes": 816
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-07.zip",
+      "sha256": "e1526e3f5f71c069b22c316d30dca0ab35ca29afb50d742ec255b85e80971488",
+      "bytes": 381212
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-08.zip",
+      "sha256": "7b44b34f863c02066dfbcf3d343e746ea84058a5d76a94d64c256b78358b89ac",
+      "bytes": 935
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-08.zip",
+      "sha256": "4f659025849b5a1ebda7ade2ebf0f29a193a20cdd81837488a42e8fb9d6d940c",
+      "bytes": 377326
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-09.zip",
+      "sha256": "92bc33954530f8d7bcf13a41d736a9480f4082cd1220d976d4a01bdbb52452b4",
+      "bytes": 862
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-09.zip",
+      "sha256": "80e0d227423be267f1827e05b1cef2dcf661cfa3b6d6318a16fa77ab12288e23",
+      "bytes": 364048
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-10.zip",
+      "sha256": "c038f18bf93552ca8432d04482839ab50d5b6e903c1b63083c335d479236ba22",
+      "bytes": 763
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-10.zip",
+      "sha256": "e400116e1d7809cc18c5c58657a1ccfa8ad55f379387b7cbc2452c019c529096",
+      "bytes": 387238
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-11.zip",
+      "sha256": "45d7e6671e7bb1efc2ed557fd7139135468d0bea7dbc7906fe0c8b727c2777a0",
+      "bytes": 798
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-11.zip",
+      "sha256": "e8e7570a05d12f826dc293893f8249dfbb6eb1948678fb72e151d7c44ea1d89e",
+      "bytes": 403006
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2024-12.zip",
+      "sha256": "5b94b4960510e5e217048ee5268038d60a6dbcf45755063790f9c35602231983",
+      "bytes": 897
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2024-12.zip",
+      "sha256": "40400a22042b90f34a929a06b6b232dcc4aa298c5a2dec4b825d606b52986218",
+      "bytes": 408048
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-01.zip",
+      "sha256": "be2ccf953a2fa5e84f49be601917340ba1b220b7ca42566f4066173633c80107",
+      "bytes": 871
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-01.zip",
+      "sha256": "f10783ae5456c2e3c4237608f718fc35c34275b6e78f2d7bd145d8b56da92977",
+      "bytes": 403611
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-02.zip",
+      "sha256": "fa3a34848d0a10af64b9e534bf9209ac317fe0da05378d622dc9d406ca88f69d",
+      "bytes": 872
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-02.zip",
+      "sha256": "1a8e8451cd534b5a11ac7b56f88bf472424fe4337df2739d78eb64bc668192c0",
+      "bytes": 359328
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-03.zip",
+      "sha256": "3d9ac62d34961c5bd7b2e2b9f33abef0bcb295fdfae421bd38abab67598b2482",
+      "bytes": 958
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-03.zip",
+      "sha256": "a02cd29a9261d47c43dfd784360bcb3c8fb31d545d4a6d07e1dcf5f1ea48c521",
+      "bytes": 392759
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-04.zip",
+      "sha256": "ef81cc81573c727ba251f68e73593322ccf16db7055de77856b4dd5cd1e7cfc8",
+      "bytes": 895
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-04.zip",
+      "sha256": "b98b3f647035a6b3080e559860bc6bec52e53966d1cf4636e4641627deeab740",
+      "bytes": 377955
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-05.zip",
+      "sha256": "408322bd25a392d3fb10b66ebf214e2d7c0426456bfa1d3dab79da804a511188",
+      "bytes": 912
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-05.zip",
+      "sha256": "f413a4e1ea8effef2b293bed352297c36b4c879549bd0d41792f18a63549c0e4",
+      "bytes": 396621
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-06.zip",
+      "sha256": "5a18b464cd2d6a6e106c497a5e265327762cff0ee86ebcf8fd20e0150d5a67a5",
+      "bytes": 945
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-06.zip",
+      "sha256": "aca45d60a675c1bd0ca53009470c89899f07fa262431bd184ae6e6592507f4d1",
+      "bytes": 376391
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-07.zip",
+      "sha256": "e56f1173899b2be5b35e14cdd61d6549dfed04bd2eacc1673285fbc067affe11",
+      "bytes": 827
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-07.zip",
+      "sha256": "62528cb8c169ad1780acf0d0efb4fc40d046020900f5b667092fbee19d12fdf7",
+      "bytes": 398816
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-08.zip",
+      "sha256": "c73e14c91a6e44f2a7a4795c845f54f0c82fac1529dd0852c66c52175d76ff53",
+      "bytes": 892
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-08.zip",
+      "sha256": "9d41f89b683ef8bcdca3fe4625858b9cb068451ca78a1b5e75195b4274175314",
+      "bytes": 397704
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-09.zip",
+      "sha256": "1105b391de748f50048b5590f6a5265fcb2a6354ec8a6ac3ba79b5ca734aa9cc",
+      "bytes": 882
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-09.zip",
+      "sha256": "8db747b710a6c70bdeb48f21dea3af8183813bea640997949a41933b389156cd",
+      "bytes": 384666
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-10.zip",
+      "sha256": "6217d0bc8ab8abe35dd0c56d18cc008e8a8e36adef2be37ed9ccbf3c91c71d0a",
+      "bytes": 944
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-10.zip",
+      "sha256": "a5afbc1b3d19db3d0974533a8a58ed4ee1e974ffa9c5754644c06c054765fcb8",
+      "bytes": 397707
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-11.zip",
+      "sha256": "ea4b56653bb13210c5fbdeceb668f632b15a8fe6e7676d1afcbbcb5a019d92f4",
+      "bytes": 967
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-11.zip",
+      "sha256": "d7bd84cc6cce26b250716b58018cba0c10fc5b656cd4a08c443610ed2c221ecb",
+      "bytes": 377498
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2025-12.zip",
+      "sha256": "8e84dea86eb7fe0cb7b2f9278f0df0479b68ae10ac9b6ade872372888769f874",
+      "bytes": 990
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2025-12.zip",
+      "sha256": "6912fd75cc77b271f5879856a280e0eb28c980f1983bef08e0743b90d81c107d",
+      "bytes": 378878
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2026-01.zip",
+      "sha256": "73c2760e0bf4a5dd8af31d1f03ba1e6d213aa1ed42da17a8c537f28c7f033f44",
+      "bytes": 978
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2026-01.zip",
+      "sha256": "983b4dae5818ec0702630222fb6801251a9ff8f42f7ea402d3e69e0922d6881e",
+      "bytes": 381611
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2026-02.zip",
+      "sha256": "5a82031b9e3009265751cf02853ded1e1649bd3c2c3c764d5e50e64edc944a6e",
+      "bytes": 943
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2026-02.zip",
+      "sha256": "108ad54dda7f842e8a67ce85bfbc5ebdad224428ea5f22ffb144a97e4c2553c4",
+      "bytes": 346850
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2026-03.zip",
+      "sha256": "f4b2222b88d3cf518939c38a20fdd224629c3844a8d2f710c8c14e4fe9409d85",
+      "bytes": 996
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2026-03.zip",
+      "sha256": "2f7d394cb12a096921f76afe17d10a223fa170ea3eaca229138751c147d3adb2",
+      "bytes": 380069
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2026-04.zip",
+      "sha256": "1a041267001c6417220e595f9c723919eec3b2e317012a8cfd22f95ac8105ceb",
+      "bytes": 893
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2026-04.zip",
+      "sha256": "f654b612dc08e477ac725124142358bb6768d12081fd54bd48daf212c9a6fd42",
+      "bytes": 363844
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2026-05.zip",
+      "sha256": "99411bbfdc7508a498204faf9ce3f02958f484828a5ffd309b6c267b89c89ba6",
+      "bytes": 979
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2026-05.zip",
+      "sha256": "539d707876d594953f0eeebe0d0fde5c3c1f1966cf5788650498526c31c896e1",
+      "bytes": 377549
+    },
+    {
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/funding/DOGEUSDT-fundingRate-2026-06.zip",
+      "sha256": "b701956a49aa6e9daf692eccbe0c79be94dd3e0dbacde8996852f551a5fbfdba",
+      "bytes": 961
+    },
+    {
+      "kind": "kline",
+      "symbol": "DOGEUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/DOGEUSDT/kline/DOGEUSDT-5m-2026-06.zip",
+      "sha256": "8bae032eb4623decf9029348342eb9f9d73da192c64a51fc50b0d9725b71178c",
+      "bytes": 361917
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2023-12.zip",
+      "sha256": "91bdf41566cebb86c6f0e3646b0037de9c22e14ee2f592c5722c7e4a19c91119",
+      "bytes": 801
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2023-12.zip",
+      "sha256": "df31bb309cdecc733892da2317a121af11a05fdeaf134f84de2e64acb661a429",
+      "bytes": 411585
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-01.zip",
+      "sha256": "5a71469b0b363886df904e784dddefc484dd943334b1fb7454713ce4ed715a4b",
+      "bytes": 685
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-01.zip",
+      "sha256": "ee18594550f61949407da03e79ff4107c3eb528316b6bba47a395e727b2382c1",
+      "bytes": 412641
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-02.zip",
+      "sha256": "915fad950c48935f3875d88992b8d78290bc8a6fada44408e3ed14aef9a56670",
+      "bytes": 770
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-02.zip",
+      "sha256": "a9a23201cd264997e556edce2a043c96935b6a6c36a36ccc20866bb53c7e6bc2",
+      "bytes": 386948
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-03.zip",
+      "sha256": "e9c1d0f3e7e3b493277c7f826afb223482d56bdc7611144d398ac10e47307907",
+      "bytes": 941
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-03.zip",
+      "sha256": "7f76bd08e541a8364672afab2446a563a549be51ae5066b806d01fffed3691a6",
+      "bytes": 422584
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-04.zip",
+      "sha256": "b54c9f05af116ccd921b32b25960ae26954c4983992d44f2390bf1de08b2c724",
+      "bytes": 834
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-04.zip",
+      "sha256": "635ec4eca93d49d9352f13e142f73e706b4823411373fd4d10c862d4fa19bba2",
+      "bytes": 406045
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-05.zip",
+      "sha256": "8350ab4d61b12ec61539611e30809039f54814213bc4c937609360b1ff28b5e0",
+      "bytes": 836
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-05.zip",
+      "sha256": "c89304e9ea46bb4c164bd239593587d40b7b4ccc8bcf41159f7c035cd4f7e61a",
+      "bytes": 415831
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-06.zip",
+      "sha256": "def13f4a478c28b0111fb24c57f95fcee80e71982ed74f12e465d20d328e2275",
+      "bytes": 758
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-06.zip",
+      "sha256": "8687fe1dec24ec105776408c1e2009f7bce8f3055067504b7fd8366e8992ed67",
+      "bytes": 397323
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-07.zip",
+      "sha256": "9d236281ab6430250ad2b472cbbf03812a40aed42e73c8339fc6be55a2417a82",
+      "bytes": 831
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-07.zip",
+      "sha256": "6232f987221a762ced83e01a342e20efd1c2512006c3179ce720249f4dcae34e",
+      "bytes": 415428
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-08.zip",
+      "sha256": "e17684bc761924eb5e1912c52cfa997eddeb99da303e68e28f6f37369f672b9d",
+      "bytes": 944
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-08.zip",
+      "sha256": "ac7339c51ee1ddfb193a2ed60b94c37f26fd992153697cec5dfd7b3fe8442b7f",
+      "bytes": 416226
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-09.zip",
+      "sha256": "ffb6e7441053137cb7ca81cc83bcdd996612f7dbb15aa2e168a7ee521f8cbbca",
+      "bytes": 908
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-09.zip",
+      "sha256": "eada3d2be75540fcb1b5c460ae54dd8e6d19acf663999d1e74588f540af5c3ac",
+      "bytes": 398221
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-10.zip",
+      "sha256": "2124978c335473a5d9c0f0e9f238193d56c21ac7e250e065a36e9d1201beb049",
+      "bytes": 748
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-10.zip",
+      "sha256": "62b30d2d48ce556936a33c7b524dfe2ccf257c514bfd548986da837c4b641e8c",
+      "bytes": 410715
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-11.zip",
+      "sha256": "636a4c7c86445c2774b4eae8598c480fcbc57de7dde5d40f6937c7fac510797c",
+      "bytes": 809
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-11.zip",
+      "sha256": "f6d6855da5a73afba5e8e6b349fbeb7dd676ba7799583c1652032843230b9310",
+      "bytes": 410438
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2024-12.zip",
+      "sha256": "11a0847e8aacb32eeb725611fda4fe6a8419c03eb0c16e14dfc3b9287e78ecc9",
+      "bytes": 837
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2024-12.zip",
+      "sha256": "13f2c88d1a8a110262deae477c45b90550f1dbc3d74e3ad93fdc76232562d763",
+      "bytes": 422990
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-01.zip",
+      "sha256": "88c95b99d2784a7baac529fe578563d7e05038a1b8a498b2f59bf81b216fee20",
+      "bytes": 768
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-01.zip",
+      "sha256": "eca9862b43bf3acaf341334d1b2297f800e62ba083ebdd063fc3e01d1c3416cf",
+      "bytes": 420225
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-02.zip",
+      "sha256": "9e116dd6754484a19ecc41ced40b8dfa7f62c33d41cdc3317336b1e1f043767f",
+      "bytes": 868
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-02.zip",
+      "sha256": "fd6d5b1919b937798227d73f96ee87c33f0181dd279df4652f2c626344ced507",
+      "bytes": 382353
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-03.zip",
+      "sha256": "62464a8bfb7ba515628acb76d3e2172d33b88805faa2e701a22537c51a17d139",
+      "bytes": 934
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-03.zip",
+      "sha256": "9f73747db3c7dd2e48574ddb8696dd2a7b685760ffc62a735d04b758afd09d8b",
+      "bytes": 419754
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-04.zip",
+      "sha256": "7db62cb5e9f32397dacabb3d571b96397024bda3810bde0799c90f61cb773679",
+      "bytes": 940
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-04.zip",
+      "sha256": "08402491b8db2e1e7dcb20cef48fb670706640f1ba5345b366de3522a57d3782",
+      "bytes": 406090
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-05.zip",
+      "sha256": "996aff38f046b50510301532ac5cbdca115afca971c49cb548f50e5d70e18d99",
+      "bytes": 919
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-05.zip",
+      "sha256": "478f3a5333295e8a28864ed3561f5597acdc9d2017077d2e9850ea30e435d2a6",
+      "bytes": 424861
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-06.zip",
+      "sha256": "ae7ca242249ca3df06d1222a0c264fe83b18c4b2c19fe656e864f7d081d5e198",
+      "bytes": 928
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-06.zip",
+      "sha256": "a546295240e8786b3f48670ae5e24f79381b338af97ed904de02adc73c03ce83",
+      "bytes": 408610
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-07.zip",
+      "sha256": "5f2d840c5669ca946529c33f6df32433c5d0cd973eb4adfd40459270c460e7f8",
+      "bytes": 854
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-07.zip",
+      "sha256": "fd2af89a8b6dfddd3a2769bb5bd0244454340487a513ba99c86bb7425979c4d6",
+      "bytes": 425604
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-08.zip",
+      "sha256": "c3fca21c71afb4962e89f8e3d84afe5832019ed8f570ee7c7c299f2436a28b62",
+      "bytes": 922
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-08.zip",
+      "sha256": "f2d7687eecda432ce840b1320f868f56ab9ea0c2304b5fc83cefc5684696b344",
+      "bytes": 430895
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-09.zip",
+      "sha256": "2fa09df245aadc73cf43f837a72c3009fcd7d10c8c4e3db48b2d1021c331841a",
+      "bytes": 934
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-09.zip",
+      "sha256": "71ee9f99652c07dcea827cd8f870cce49e77203d4c938f80b1c15ac9a4cef473",
+      "bytes": 407356
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-10.zip",
+      "sha256": "1ae86c5fb1f15d8792906b746cc7598ebe7e6e7194b74501db79c874e37d7e14",
+      "bytes": 953
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-10.zip",
+      "sha256": "597747fb89e6a6d2ed8029663a7f6310a5b8044b756cc59f4ce83dd3c34e95b2",
+      "bytes": 427064
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-11.zip",
+      "sha256": "a3a8abb219373ec1e02e8d1a47015665d180d6130cfe1df71d2fa8fc9de59e59",
+      "bytes": 956
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-11.zip",
+      "sha256": "49d6fe077f2f2da4febe18952866ff1b607d72a390306cd9fc74863dbfde4b89",
+      "bytes": 412674
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2025-12.zip",
+      "sha256": "ef9e84f53a5fa07702958c8700077c8be0a90ec8b3e25110f5611109c3c0090c",
+      "bytes": 985
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2025-12.zip",
+      "sha256": "0723e20236ff44ecc65bc98b7e344fe6d1bcefd204e72684054064c295ca5c5e",
+      "bytes": 417162
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2026-01.zip",
+      "sha256": "830cf7797ea6ecdc554ac2d9047a141df1a6a544f4ea58e7028227930462b139",
+      "bytes": 979
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2026-01.zip",
+      "sha256": "c0bd8615649919f64250f8a254b4a282933117e203f8cc9a831d3efd5a4e59d0",
+      "bytes": 415616
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2026-02.zip",
+      "sha256": "e445f00c81a7fa8361d99b3660f24b4f58e5d952fe301d70bbc72c319bc01a77",
+      "bytes": 939
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2026-02.zip",
+      "sha256": "606781a505c76025b1be3e7c4a375037f63510293402775efed87a23801398b5",
+      "bytes": 383341
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2026-03.zip",
+      "sha256": "9f5625846c503a1e94fcdecd2deb37dc8852e341add353fa48c2b9a0cc70df6a",
+      "bytes": 1002
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2026-03.zip",
+      "sha256": "ec2694016c1d41b815e9c403519c8971a454ef2276987f4ec5ad949bd33674eb",
+      "bytes": 420323
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2026-04.zip",
+      "sha256": "86160f455478a8b262d96d1516f583355e6e0cec7beeb5784e69dda76f599e98",
+      "bytes": 963
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2026-04.zip",
+      "sha256": "94c890bf844ef6c289bcf6d126869a39bbc457aac139a5e0b8cebdf2bef2e078",
+      "bytes": 401030
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2026-05.zip",
+      "sha256": "ff926ad3fc48493c26c85af16620b19c695cc1854faa1e7f0ea2ab9fdafc2084",
+      "bytes": 980
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2026-05.zip",
+      "sha256": "3a642e9db105c9002210fc4d7f5a99a527d6b52d63823ae17076c1e2d2578eda",
+      "bytes": 408995
+    },
+    {
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/funding/ETHUSDT-fundingRate-2026-06.zip",
+      "sha256": "cc6fb028a811bc423b711f6b89de067bf92a2eda61303e1ce0b219b5d3210e47",
+      "bytes": 967
+    },
+    {
+      "kind": "kline",
+      "symbol": "ETHUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/ETHUSDT/kline/ETHUSDT-5m-2026-06.zip",
+      "sha256": "f26819283e11870b0b206acea9e084bcd7e3c6a5fb2abb8800ac5a424959e49d",
+      "bytes": 402792
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2023-12.zip",
+      "sha256": "4fb2aab7d59f168c3bf8d62e5ebb3f518966ad84c35e9b603def870e099b491e",
+      "bytes": 821
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2023-12.zip",
+      "sha256": "116a277007bfca706bc8c47e5439eced3a5b4360ac90c639829aad105501ab3f",
+      "bytes": 378981
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-01.zip",
+      "sha256": "ee7c31e4df28573cfa78bac09e112191f2ed4ca2ed6a3f2aec9d43bcb0ab34b8",
+      "bytes": 677
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-01.zip",
+      "sha256": "a100996aaa6dc8e2de11df7dd72e1bf04208e177f2edc1b5b1fbc85967b1612c",
+      "bytes": 376110
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-02.zip",
+      "sha256": "cb3d81d514e464571e2b1d0d1b52965dae2f9be7361eb17e579b624aa69d1028",
+      "bytes": 754
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-02.zip",
+      "sha256": "d84c2b373e8672fa9a08530be42c15b8dbeb417b1ac5b55290a3865430d584d4",
+      "bytes": 354597
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-03.zip",
+      "sha256": "997ee3e66fb8778e7eed6b2f587c80d112b8a5d110f7ec59c622ee66704f4f99",
+      "bytes": 934
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-03.zip",
+      "sha256": "973b6c3b4db86069ad5e8998effe40455edc00988f7742324dacfeeb87474fdc",
+      "bytes": 377751
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-04.zip",
+      "sha256": "fd263095594d9092e8d562762242b3d73453cd53fd967a0458c4d7d1b756ca3a",
+      "bytes": 836
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-04.zip",
+      "sha256": "6971887b182b7e4dd6c28a9fcb689cfe5aae60aa9436fc8eecdb6f7a79c9029c",
+      "bytes": 359210
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-05.zip",
+      "sha256": "57e4ff08bdd4a70e775f722f0ef8a104e937e719f6cfdd6557c9628e2ef50895",
+      "bytes": 760
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-05.zip",
+      "sha256": "138b6256b48125587510a55cab6526062ceffa2fe96f5e3ee5246f77100deb4a",
+      "bytes": 370267
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-06.zip",
+      "sha256": "ed259e3baf5dd43e03751fdfc78b35e5978c7c7dd01a61b0dbe29d0d09b2de83",
+      "bytes": 757
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-06.zip",
+      "sha256": "cef2fc472137070a2303bb84a33c3ab536ff87a6ed4ece490660cb2fb15679d7",
+      "bytes": 352553
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-07.zip",
+      "sha256": "84fda29e97f5e126ab3d301d83aadd58a271b9cb7e128eae315629a43fec8040",
+      "bytes": 867
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-07.zip",
+      "sha256": "049bd0c59723ae20b1a0fc385e2994d06cfe184641d12c12ab7a214ae27ca155",
+      "bytes": 366127
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-08.zip",
+      "sha256": "9cb25c7b945c3e0df7f40833e46c893ab10c9e4eff1fcbbd17967fe04571332d",
+      "bytes": 927
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-08.zip",
+      "sha256": "9a89077ffb627d935ce0bf426d2d5b96a7e3bbc3bdb1249e840b2fa4a8b7155e",
+      "bytes": 364907
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-09.zip",
+      "sha256": "82f0d865cf2d02ab345c4254fe59ffeb3e5b6bae39bcb1a0d06dc67ff55a718a",
+      "bytes": 833
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-09.zip",
+      "sha256": "5fff5bee37892156f2b4c0e3eac49928f3a5cb3ab1bf2d389151ff2e4dfa2990",
+      "bytes": 348176
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-10.zip",
+      "sha256": "a79184eb05334084cc4a294881ee74f03556ee1a48115443bd29d77d97a598c1",
+      "bytes": 734
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-10.zip",
+      "sha256": "923f8aa72aee57316694dd1b595a8de8cf0c73cac116c97b7fe93bc12a2ba4f8",
+      "bytes": 361832
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-11.zip",
+      "sha256": "2d9fc1ace268513a0330a170216be245b9fbcc37ec405ba57cc11841bb8c438f",
+      "bytes": 803
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-11.zip",
+      "sha256": "4a282f98574ac16c5f184e413b66bc1d0612b19daa5ca30feddbe236c9a414b8",
+      "bytes": 365728
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2024-12.zip",
+      "sha256": "db162585658485f1107d4d135a8a37714b7e8b33ce99f251ab537fa7c6cf0c61",
+      "bytes": 815
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2024-12.zip",
+      "sha256": "97db9a48ef0a638bb8031b95d0c6c552e7ba30ad1c53e29508b30205ae311690",
+      "bytes": 392353
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-01.zip",
+      "sha256": "13713b66ca784964b080a68c8a944d758202e8ab454fba9bd8b42fc1c8fdb804",
+      "bytes": 765
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-01.zip",
+      "sha256": "0b924e0956f36522216f311984a1263420fa488994fd7a257c8ca31f9e5fce79",
+      "bytes": 384061
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-02.zip",
+      "sha256": "92d748c5583035811fa307d7f0f039d2fdcaabf59c78095ba61f24426328e77c",
+      "bytes": 852
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-02.zip",
+      "sha256": "fd45d546d29dbe9d416a83f3b060b75b2de6f5baf41f0952fbe4d339afbd965f",
+      "bytes": 344459
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-03.zip",
+      "sha256": "bb73dc71a95ee0127f66248f1912b605f8bccaaa52b318be42397b4263c42be7",
+      "bytes": 896
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-03.zip",
+      "sha256": "50fb58e2d1d82d7b04d4fbc06b7e8ee791ee40027320b671862ae667ed4b79b9",
+      "bytes": 377143
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-04.zip",
+      "sha256": "17f6f5f71e62fb2478167db581286c36f298d266b5b73a18d954bfca1a61c874",
+      "bytes": 832
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-04.zip",
+      "sha256": "6ec5234b3bc5b9c74b42757179315e8515a13fab10a27ff3e42a6408b9652699",
+      "bytes": 360876
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-05.zip",
+      "sha256": "7d3b60afb85860117409e2137884e2a01e45a22eb2e4d1353514244f83796002",
+      "bytes": 891
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-05.zip",
+      "sha256": "df4b8b18811de77c95cc43447e04d8615afcd84218dae3f9d7f24e8270715197",
+      "bytes": 375216
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-06.zip",
+      "sha256": "cbdf6273e84d457b4915139e41a278629cbdfc02855e290b6d9ff34218eb36a5",
+      "bytes": 953
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-06.zip",
+      "sha256": "cf790451682a1cd984ecad6fff48527bb88239823d83f978f224516f47e6d785",
+      "bytes": 358369
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-07.zip",
+      "sha256": "56651da01247f19d5e63e6c40f8835934735e60915587068e325f2859101b7e4",
+      "bytes": 791
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-07.zip",
+      "sha256": "7dd71063033210b2b69c2a50867ac5f47b8907c7099917e18711be8dec123e1f",
+      "bytes": 376086
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-08.zip",
+      "sha256": "3fd351cfdd3aa11d1e280740f56a0a244112862fb3a583d7600d658339060f53",
+      "bytes": 865
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-08.zip",
+      "sha256": "9e9cf4f36efbc2d0dadb824ac9b274e13f807865e877e6662575e1609abd3221",
+      "bytes": 387256
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-09.zip",
+      "sha256": "5b90724992ead316299b755ec6ff59e70adb6a61dbfa93b58942470a7cf091df",
+      "bytes": 819
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-09.zip",
+      "sha256": "ddd13bd452dcd799c90b489328bfc12bb778a80301617569af0079003fa9699d",
+      "bytes": 365478
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-10.zip",
+      "sha256": "b13c0df55c83c64e2a8416bd059140f2fbbea0b3b73da9461abbded358c81160",
+      "bytes": 905
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-10.zip",
+      "sha256": "b241fe086d620f7b8da72a04b36bbf7fd8c715d75b735972b4210073b57489d1",
+      "bytes": 380267
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-11.zip",
+      "sha256": "a964d712cdfecb1efeadaab133468d8658be24c420f3b91b91a51d183281fb19",
+      "bytes": 896
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-11.zip",
+      "sha256": "a571b4705b888365b350b64cc05c6b0e4f1bc0e92b1dab3025d555a0440bf5c8",
+      "bytes": 363257
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2025-12.zip",
+      "sha256": "728b6a16940b6189bb1aa97f636160e9b66b4289a8cc1296cefc802e0d0ed098",
+      "bytes": 942
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2025-12.zip",
+      "sha256": "4a30f0034ba51fe70d826e94c2415674e360e441bbe66d10d0e9939454e07c1b",
+      "bytes": 365594
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2026-01.zip",
+      "sha256": "01e4199765b3954d6a110f498ba4dfc015b0e7f92e4b6985cbec9a56b752d66e",
+      "bytes": 922
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2026-01.zip",
+      "sha256": "5c973b903f170f471a602d342406ef6199ab089ed25932f9b6fca9044f67db01",
+      "bytes": 362316
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2026-02.zip",
+      "sha256": "1db75bdf9189111e79c0c4e9df854bb716c14c9609462c054c8046d1e03542f0",
+      "bytes": 914
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2026-02.zip",
+      "sha256": "17795538e7c30349cec5feb086d84d8d0895f7129192fd0fb3329bc91392553b",
+      "bytes": 326404
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2026-03.zip",
+      "sha256": "f9f7bf447ea91651ae9a5f28feb1275c97445d912a958cb8f999847996411262",
+      "bytes": 961
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2026-03.zip",
+      "sha256": "2896a1bf4e7bfe268fd62ac3786b5885738bccc7217d9f7b009f6315517055ca",
+      "bytes": 355199
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2026-04.zip",
+      "sha256": "ff4c11fa47f8a0268f4194e51712a3bc4bb5672d3b1f54860e5d929114a4bf20",
+      "bytes": 928
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2026-04.zip",
+      "sha256": "e79ad0ec274df0de7d32f9861ad43cfed97e8af049c4623b9a5992d5ff5a9f5f",
+      "bytes": 338838
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2026-05.zip",
+      "sha256": "06536cdd66211e1a25629a54d489493aaab6b3613b9d2207a65af44a3826da1b",
+      "bytes": 933
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2026-05.zip",
+      "sha256": "c0e69b6238a7e4a7a57589585902a44a71a3aa362256c39460875a0d4e7e42cb",
+      "bytes": 354129
+    },
+    {
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/funding/LINKUSDT-fundingRate-2026-06.zip",
+      "sha256": "33654b89221e8e9c544632cdee76e38c3eedf40aa2c1536ead56e849781e8d07",
+      "bytes": 964
+    },
+    {
+      "kind": "kline",
+      "symbol": "LINKUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/LINKUSDT/kline/LINKUSDT-5m-2026-06.zip",
+      "sha256": "540c00109a81ea0e018ff110e7f75c619e5801d8c8cf8110f266ae493b2a9bec",
+      "bytes": 340968
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2023-12.zip",
+      "sha256": "820a224d204bbfc17c71681d38a62e2cf2e5a0ce423847f301e8c2defa70c509",
+      "bytes": 850
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2023-12.zip",
+      "sha256": "b316ae690bc9415ab2feb37bb172e6a6d8e62391748b0c01397d51fabb8a7ffc",
+      "bytes": 357314
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-01.zip",
+      "sha256": "563b3ac2db75623a64a097c38c38ee0fedb0503fca5abdc768c1c6c2929cef0d",
+      "bytes": 669
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-01.zip",
+      "sha256": "fbbaa85126819ba18e3e9088dbd8e6aef72fbb45b84941b586c9d1a828b9eda3",
+      "bytes": 356162
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-02.zip",
+      "sha256": "7710a9586b750eeb54c2df13a5b7e4179dd278e1c7e85be7f94f0dd6b0927a54",
+      "bytes": 756
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-02.zip",
+      "sha256": "d95f143f230272fae4433d095eba3b6913960402aef0f8099d62d8c07210aef6",
+      "bytes": 329045
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-03.zip",
+      "sha256": "b27b515d32e4fb842f929714b6c764f09d03f8794dedf2f7cec3976b5cfdb986",
+      "bytes": 944
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-03.zip",
+      "sha256": "a48697b1668999b82d3c9cc4cd8ee2fd66fa6779e343c00218f4a7388285f2b3",
+      "bytes": 373911
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-04.zip",
+      "sha256": "e5b8ec9f7271e6e9ee7026dc25d7cdb9af020aff1b84ca55806ce6111f94dc6a",
+      "bytes": 815
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-04.zip",
+      "sha256": "90d4541f1b135b77ef94e2c4ed5c4c55cfc313b00f104a1522a05e81ebbfc208",
+      "bytes": 357827
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-05.zip",
+      "sha256": "f4c1b77749352ca73babf231758f9d113228f4a336b1264e285a31ca5c2fb815",
+      "bytes": 748
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-05.zip",
+      "sha256": "7037d05ef98196d848c8dc7bccbe0a7955bbcc48a878cb57f1932b0a6f91fbae",
+      "bytes": 351531
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-06.zip",
+      "sha256": "aa4e0d8e5ce40f0ba78946d4149dfbdcee249deb9266704edf8d5baff9d0cbe9",
+      "bytes": 746
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-06.zip",
+      "sha256": "60b8cc9eb0c6ffdb629c9109a65ddc67fdbf83a8e3b065dad5e6bb0f07bfb2f1",
+      "bytes": 335341
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-07.zip",
+      "sha256": "d5838bf2de1bcfa03e9dc22a580a40a946b3dc6ee0a14bc2318dc9aa190d9cfc",
+      "bytes": 873
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-07.zip",
+      "sha256": "86138d0ff47c11e10ba05fcb5f53b3c8a196f47510e5df8fbb7ce8bd8cc2a0d8",
+      "bytes": 350819
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-08.zip",
+      "sha256": "dc4fa08df4e5d16d554a0c7af13730bfeb4890f7736c47774799c87154318014",
+      "bytes": 918
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-08.zip",
+      "sha256": "3b9fc1ef06f67a61b0ed234e816c0843030f4ef9a805ec1b50dc190f546fab36",
+      "bytes": 352417
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-09.zip",
+      "sha256": "31042156b111a01cbc07aa0760a1fc8abcba1104fd581c6e6c60f7d768adc96d",
+      "bytes": 872
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-09.zip",
+      "sha256": "54e70d8c9ae598b50b2037c42b621bfddb924f26384a12fe502efc2e8b28512a",
+      "bytes": 337721
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-10.zip",
+      "sha256": "59cfe0decf8b9b1e1a8904c847302e0d86e8b56cef938ac47514a1c232f889dd",
+      "bytes": 765
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-10.zip",
+      "sha256": "f669c6dcfa6b8040947d0a6fb594ac5b9620ed48421aeb556004ffa474c2cc4e",
+      "bytes": 346519
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-11.zip",
+      "sha256": "436568f53dc359d271647f03ae9de8eadf66e3610472dc0c4858466bd77779ee",
+      "bytes": 765
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-11.zip",
+      "sha256": "c2b6674fe48366f1f94fcc6198417e9517e165b25919be4687fe14837b4f9546",
+      "bytes": 355588
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2024-12.zip",
+      "sha256": "2f3a1b448ee44168eff55ce2f1c613822726084dc625347f5fde5d45f7d08dc2",
+      "bytes": 794
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2024-12.zip",
+      "sha256": "6bb39251b6f5d12d556525440a3c5999a4b757feec908f33a56fbf02eea251a6",
+      "bytes": 380957
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-01.zip",
+      "sha256": "0ba4ae7a317bf2d4d708cdcfabfca13332c9e87ca2875b89e968ab6368234cfb",
+      "bytes": 756
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-01.zip",
+      "sha256": "f956987198056fe72ca3a5bae02c0b75a03fba6ee469ff4ab142394186142753",
+      "bytes": 376474
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-02.zip",
+      "sha256": "8c30729e7412ed01cb0dc5237432f47e6316fbe50465d4a6d95360db04e6c8f6",
+      "bytes": 804
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-02.zip",
+      "sha256": "a091de8ffa78ecb2867e8ead71764629592962466c5c3f21751ffc71ad3cd3e0",
+      "bytes": 349322
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-03.zip",
+      "sha256": "d4b7be682d103815845bd1e6d8d3f7b420577ed55b91a0471ae70581cd7317b6",
+      "bytes": 914
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-03.zip",
+      "sha256": "ca84707b4f02ffa913f59f59dfff590b606cc5de89ed5ee3d048c9573306a90f",
+      "bytes": 369673
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-04.zip",
+      "sha256": "e84071807012cee4af78727a72862e87bfa8afe7993c478a531674358fe15aec",
+      "bytes": 892
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-04.zip",
+      "sha256": "7819872d505eac47e3726303c738475c6f1f1e1cf9f03ff58d043cf74a50cc05",
+      "bytes": 349075
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-05.zip",
+      "sha256": "ade502ee0d0be2a666ec94f8361525808b7b911fa9e576a27bce326e06b4edf6",
+      "bytes": 880
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-05.zip",
+      "sha256": "cf4f04aa20819144df34a3258b1906f57c143591d860a36410fb37c5f7d3765a",
+      "bytes": 366399
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-06.zip",
+      "sha256": "9159d2d6e16e41b82f77f51f0005038d6d718a3b6222604a5209a2ce92e0ad1c",
+      "bytes": 909
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-06.zip",
+      "sha256": "d2dc819b8ac320c0e4eb6f90b402b609314e32f31c0bf1630cf35bbb057416a0",
+      "bytes": 344036
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-07.zip",
+      "sha256": "942cd83f944849728142ce40a74581a59f0652d68d5606a5d073c8c82c552abd",
+      "bytes": 813
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-07.zip",
+      "sha256": "6910a7a20825f4acec152de416bd575a7adac72af118319853aade4642b9bf92",
+      "bytes": 368213
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-08.zip",
+      "sha256": "442ef6b2ac4fd75879f1d9e0dbf7b8c73223778d79049fe557e57b5e3ec3d599",
+      "bytes": 878
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-08.zip",
+      "sha256": "4fdc21baeeabdcc5d1da48219a1000832d9d280fbe5c049a8b0864a172542cf6",
+      "bytes": 373361
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-09.zip",
+      "sha256": "d894fe4b8535b1abd3726a19affb4bc51bcd5414a427c371a88bdd3140d47939",
+      "bytes": 876
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-09.zip",
+      "sha256": "d6951ae54bdebdf458fcb18c4a5df84661e648f116606986a7a45aeeca93d654",
+      "bytes": 349603
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-10.zip",
+      "sha256": "a350099f02341e7feda8bf5c1b89e704234883656147a7643dd1e0d61e72b250",
+      "bytes": 922
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-10.zip",
+      "sha256": "0f163418b4697b2bb82e73baf69c67d3e1dc085ca8a835096b77fbea5dda56c4",
+      "bytes": 368706
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-11.zip",
+      "sha256": "39c5faa4155fd1685fa7cce6889a25b243ac84b4d6851224f41902a4e93d0eb5",
+      "bytes": 963
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-11.zip",
+      "sha256": "b9c4647529f645934476842d4665e6eda098b2eff921111597ddb42b0a955db7",
+      "bytes": 356607
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2025-12.zip",
+      "sha256": "19b12c1ea4d4e179a99eecdff14bafa61197d2c8aee20928735ea95fa385e919",
+      "bytes": 970
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2025-12.zip",
+      "sha256": "46ec9a2afc0bcd40ea51348b469840e30c8df742932842e4d2d9fd1429c88d1f",
+      "bytes": 351733
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2026-01.zip",
+      "sha256": "838f7df6e943284f32d15d8831fd1d752e61e93aefe9d05ca942d690dbe2808c",
+      "bytes": 964
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2026-01.zip",
+      "sha256": "3b36dc6ab7ab67786b94aab8f8cda9a591f0184d74d31e48e2aa0d16b692a4a2",
+      "bytes": 354265
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2026-02.zip",
+      "sha256": "2519014547b6375a5e6ddccec4b1754a33bfa59a2d3427b19a394b7f7a4b82fe",
+      "bytes": 915
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2026-02.zip",
+      "sha256": "80141ea5c302db744ac873e0b01f13ec60b4683ca0ff5fc4521fa72e3892e03e",
+      "bytes": 318781
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2026-03.zip",
+      "sha256": "974389f7a8ad54876da69b018199314aced19f467b2801064ad4c3e664ccd1ee",
+      "bytes": 978
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2026-03.zip",
+      "sha256": "0c31183fd79af3161f5213e6510a2507818bdbecbe473c1342d1d8a782e73128",
+      "bytes": 343313
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2026-04.zip",
+      "sha256": "f8bc5ca888bcd55ab26648c32dc98a3f71a31321255899f632dfa8234623280e",
+      "bytes": 951
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2026-04.zip",
+      "sha256": "b5b7a76eb06394717555d8b2f2706e793a3e70526672518669e4fbf54024c7f3",
+      "bytes": 325350
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2026-05.zip",
+      "sha256": "ee5e2aae6af731b54c2153b9354e53f7a1c6c4702c14caac2de2aa2edae43d5b",
+      "bytes": 987
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2026-05.zip",
+      "sha256": "69197c1dc8aeb17b461fb613fff09ba19467af7f27c44ea65a74c8ed32752b9c",
+      "bytes": 337380
+    },
+    {
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/funding/LTCUSDT-fundingRate-2026-06.zip",
+      "sha256": "0831db478f5045e685514f9362219db7d68aa18ce25305f4acb3838919d6ce9e",
+      "bytes": 972
+    },
+    {
+      "kind": "kline",
+      "symbol": "LTCUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/LTCUSDT/kline/LTCUSDT-5m-2026-06.zip",
+      "sha256": "f1c2a16c8c93b6367bc016753ff66e555339f038ae622963fd644bbac8fb9ead",
+      "bytes": 332302
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2023-12.zip",
+      "sha256": "debe51eb20a3b7d6093baec3b609e7a9f746c64635cfa77aa761e88e84454902",
+      "bytes": 841
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2023-12.zip",
+      "sha256": "196ec98ad695fbe9fabccbe90bc7271fccf440bad5d12207db91e6f14216673a",
+      "bytes": 367090
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-01.zip",
+      "sha256": "6b514b6c2bb67ff04df97d747efb9c6e4bb1bb27e889f1dc51a42ab1419a3d24",
+      "bytes": 697
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-01.zip",
+      "sha256": "b6de9211c3aa0eec104ece5ae83b8756baa3f82f6f1918c54c4ebda24c91bc5c",
+      "bytes": 365635
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-02.zip",
+      "sha256": "7ccaf8d60ddf07e03eba0589ec4f75abfc2a842217722aaefe996ee1bc095706",
+      "bytes": 802
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-02.zip",
+      "sha256": "de2a6d86a06143ce034734f6c5873122b4d6a6e9706351d3b14bdec479584d65",
+      "bytes": 338693
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-03.zip",
+      "sha256": "ff3041b6119af926fc55fc722332240037f1aee9b3a2db25f9cb801ba8e2992c",
+      "bytes": 946
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-03.zip",
+      "sha256": "c0fb0847118e5ae4cf9e31010ac72ada331814be59899acaae8c0cbfcf890047",
+      "bytes": 373609
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-04.zip",
+      "sha256": "591e7c4993e59b60966213efd938f48420cd9b63db815240ffc070ec40470e53",
+      "bytes": 869
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-04.zip",
+      "sha256": "0da3aa71f72cb289dd35a4236c9479f595419884c13d28350b8ae43399ed19c3",
+      "bytes": 357664
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-05.zip",
+      "sha256": "cdd788722e8b85fd6c9d992e7c1c767be87afc91db5b8c07751f898b373cbf29",
+      "bytes": 810
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-05.zip",
+      "sha256": "70677bc8c38db82a6cd8c815485eb440c101ff049c9c8ff007696c0444944264",
+      "bytes": 363462
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-06.zip",
+      "sha256": "8da6c97d67718422a5df9a0d50e37849521fb54de87cbb3b3397e441439dfcc9",
+      "bytes": 803
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-06.zip",
+      "sha256": "403f4ecc8a56603e3784ea3e087c56c7597b6a832fd11b26b9bccb0a82809c72",
+      "bytes": 345471
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-07.zip",
+      "sha256": "2585a0db933c70b62c87cac509de42ac09b98d370238c0d8c68249a20bd2b9a3",
+      "bytes": 850
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-07.zip",
+      "sha256": "1cf50d1c0c02f02a66af61cf3a1fbe6b29b1c8ba1d6dba43c81074abda718215",
+      "bytes": 363847
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-08.zip",
+      "sha256": "ef076200aab768d33f71449957f6cd9c96c0da696708a5f561b97e7a0995e8d2",
+      "bytes": 940
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-08.zip",
+      "sha256": "fc9d21b7e8b0bf8f35701d9f92ae2c293aa23e5631a5d051a07f10a4e51c5a08",
+      "bytes": 365522
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-09.zip",
+      "sha256": "7666e4d3e6ea6dd28011c508cf01421007521e98e96ea551f809836441b43ca0",
+      "bytes": 880
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-09.zip",
+      "sha256": "899d0ad7dd9d0bff796e54e08362d6fee88a24d11333e70b70655da0c3f81f78",
+      "bytes": 348092
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-10.zip",
+      "sha256": "dbece64e8c5bc69c487cc03c00f6a4d4da2cad9152c73860386fcdc7d2ec9d05",
+      "bytes": 839
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-10.zip",
+      "sha256": "b25c0a13911e8bdcc29773048c7a2c4449609489597347623d96eedccbeaf421",
+      "bytes": 350841
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-11.zip",
+      "sha256": "f53a9b637d695a251200e48929a573b4bf04cc2d99d5a3a09fe7bdca622918aa",
+      "bytes": 790
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-11.zip",
+      "sha256": "1a55a42dfd14d5ccc67893fbdeaabb908282fa30bc6cbb4a1bf42c8b4ec18067",
+      "bytes": 341951
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2024-12.zip",
+      "sha256": "bae83020ac2ccfa6dd8d1362d373a92b4d5a7e396cef52e78dc2e7d81e63f621",
+      "bytes": 893
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2024-12.zip",
+      "sha256": "ee126cd9cc6acb4d2c68e415217ea618992427c63530ded287dba56a9a1e35ac",
+      "bytes": 349326
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-01.zip",
+      "sha256": "314888152c16bc2d846f9aaa9ea3ebeec7c67d235ef2671f1a5e6fe0a8b4dbf2",
+      "bytes": 916
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-01.zip",
+      "sha256": "5e746585b0da377582ab9fd3d9926c00dd6bf9708e4ff0963ac69a467fc3ad01",
+      "bytes": 351539
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-02.zip",
+      "sha256": "eeade74c1ca2a6dc9d78ba0d7a1ff145c323be72cfa2c09fcef9edab88baef9f",
+      "bytes": 872
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-02.zip",
+      "sha256": "949401dc2bb45a2129724f76980ac7bf1b727dbd99c11ba2a00dbe5dd1e2d5d7",
+      "bytes": 318337
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-03.zip",
+      "sha256": "3f77a33779c946da6f3082d14fb9a5497e7e4a4e3fff4d68967e6ddf96cf99ea",
+      "bytes": 938
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-03.zip",
+      "sha256": "8cd26ec13a57b7c00b8d7b1841897b3a7cebdf5e3b8a3597eceedf6d2d4acf36",
+      "bytes": 338775
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-04.zip",
+      "sha256": "6cd3fb27bae9313e15734d7214f4a83dc37a7a199cfc12c23f7777a5e27f7fd7",
+      "bytes": 920
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-04.zip",
+      "sha256": "195ff9c242b05b31f57fa26deb539ced27bf073b18f64f46f42c7fc6ff5ada0a",
+      "bytes": 364794
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-05.zip",
+      "sha256": "eb03fd0d0b31eef9ee05544ea8dcce097a807d3475f67d0a5f0859c487c5f5c3",
+      "bytes": 940
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-05.zip",
+      "sha256": "7529a74ab947967b3e197b19bae8f2f8a44b5631e356613317e6e074e7b57770",
+      "bytes": 392293
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-06.zip",
+      "sha256": "4ccee0a6fd67cb775be49d124b9eb038f26acd09426fcb9aaf9d3de74cf3a24e",
+      "bytes": 939
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-06.zip",
+      "sha256": "556c4bf5500f8e38cadd89239cf1b8f7cf84c66846e17d783b7e7d3f691978f3",
+      "bytes": 377695
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-07.zip",
+      "sha256": "66ce38d1a8bc4bdd53af29d8ea5c72493ed48fe9894ee5e9ff4600ccec864c4f",
+      "bytes": 876
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-07.zip",
+      "sha256": "7c3e09670eaa371e8575989bab8c0e73552f44ff390743ab9bea85550f0643ed",
+      "bytes": 392216
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-08.zip",
+      "sha256": "fe9efc3abe1e4be2a2fa9a4008e6957856387f6783a06b97cac3ee271746915f",
+      "bytes": 917
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-08.zip",
+      "sha256": "e3e36ffade2e1919d2e07bbccaa291f9f00b1ad0c2059df167c7a42181dd7860",
+      "bytes": 397785
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-09.zip",
+      "sha256": "f953315124d20dab98ba710d108103fb4cf054d1535787fd76d35d6b9c18e534",
+      "bytes": 947
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-09.zip",
+      "sha256": "4de20e68d09fb85ac8c33aeeb47fa923690c9d9f15a598ff66c8001e36ff3bc9",
+      "bytes": 383240
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-10.zip",
+      "sha256": "d80c5be7660a950ad673a0e82488877c6ca0eb81f084d4c844320f892ad2c020",
+      "bytes": 976
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-10.zip",
+      "sha256": "e218797f9e469136e06517289ebadff27a29a0cfe62209bd6bc3e006c54c422f",
+      "bytes": 397854
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-11.zip",
+      "sha256": "5134fdf4319d629473f8cff1e66dc74180844ae2846ab41a8128466ab3682c2f",
+      "bytes": 963
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-11.zip",
+      "sha256": "e1195984b59422e96b41327e37b4393cdec94c8afeadd9948e6e992b1e44ffc2",
+      "bytes": 380885
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2025-12.zip",
+      "sha256": "01db13c460b0190736e1da019c7fcd7ea0abbf3b047e16d3aa8a9e9acec3101f",
+      "bytes": 957
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2025-12.zip",
+      "sha256": "9caad04f478be09d9e71d51c7d0c1914c7dd5d93ab615f48d98d64593b386ae5",
+      "bytes": 383972
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2026-01.zip",
+      "sha256": "c53be79aae38a1f35e94880f106df4eceab57bfa74a0b5fc5852fdfabf57ab8e",
+      "bytes": 962
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2026-01.zip",
+      "sha256": "cf084f88d2a4fc9d69b3533e6292b22d3f63451d2a8d3a894d5a8abbe02bbb05",
+      "bytes": 382480
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2026-02.zip",
+      "sha256": "84cb9bcf44ba1364b37db876e7c852aa1b831371556b610e2387115addec9d5f",
+      "bytes": 942
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2026-02.zip",
+      "sha256": "7966db75636fb4626dc1e581b496b27e637e0ff43b52a87bc3ad58ce5f6edba0",
+      "bytes": 348471
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2026-03.zip",
+      "sha256": "75cfaea075d97779a577c3744ea63e3d83704f281806fb5f76f2d3e0f089fd2c",
+      "bytes": 1010
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2026-03.zip",
+      "sha256": "b731b706633e248b6ae0c80e93e56cc36df435733051ff730cb9e006cf7bac57",
+      "bytes": 379733
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2026-04.zip",
+      "sha256": "951a280e98b6d20fe4be25bf2b71f3cda1c07c7583a88cb874151e2b1fe941f1",
+      "bytes": 944
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2026-04.zip",
+      "sha256": "99625c8b89405c017813f60929161ddecc097646cf1280d05dcbf3ab882b13cd",
+      "bytes": 360345
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2026-05.zip",
+      "sha256": "c13066e5f7c5d161dbebd488cbeaab1205688c6dc7f9fafcc8f94296f2c1e47b",
+      "bytes": 979
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2026-05.zip",
+      "sha256": "c878f5d988b90a6562259c9b98d709946c3c48b55b7e9c08affebe967238c3e6",
+      "bytes": 371317
+    },
+    {
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/funding/SOLUSDT-fundingRate-2026-06.zip",
+      "sha256": "8d32fa3153d54c58667650e8b2c65e489b3a433b775052a93208bf60541a40d3",
+      "bytes": 973
+    },
+    {
+      "kind": "kline",
+      "symbol": "SOLUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/SOLUSDT/kline/SOLUSDT-5m-2026-06.zip",
+      "sha256": "b1586ec5b540eb38bde1b39d3033f6cff16bb7e62a86f4775401a6134133acc3",
+      "bytes": 366168
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2023-12.zip",
+      "sha256": "49fd3c811e1388693e7dd482972f8b525ba10a90c01d77b04ec9b0631d43feb8",
+      "bytes": 868
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2023-12",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2023-12.zip",
+      "sha256": "2a8ec1dba90490d5949420a17d9b879ba9fa15fb5dddf513f09bc6e077c6b426",
+      "bytes": 366637
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-01.zip",
+      "sha256": "fac75e242671739980886a0f39159562dde076d49244e6f2803c407dc0112570",
+      "bytes": 673
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-01",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-01.zip",
+      "sha256": "a52dee0cd2e27f0bfa3e4e58db710ad103323ee89316d71d744e8c94da928438",
+      "bytes": 364169
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-02.zip",
+      "sha256": "e38e130c6361e5e9d5c67109f22f72812457f2461332a9304d715215576d2d0e",
+      "bytes": 755
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-02",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-02.zip",
+      "sha256": "aff5afbfaed353dbb2afc51e6a12445b8ccd5f1c99db1d17c5eb4a4ba503205d",
+      "bytes": 341748
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-03.zip",
+      "sha256": "31a841c4eaebbb192448838f37819fcc6263ac149df469463c11126b70717e59",
+      "bytes": 957
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-03",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-03.zip",
+      "sha256": "cdb83c0dfd11726c7188c07a1f1e3565efcde27871f25151da0581470f7c1c8f",
+      "bytes": 380101
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-04.zip",
+      "sha256": "d7586ec30b20ca06772ac7fb52dd027e913ce0a26a93669e3a4276522bff9ab5",
+      "bytes": 881
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-04",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-04.zip",
+      "sha256": "0aab0ce5f0e1f1a8bc62cd635f98f135baf54c596d894155e1c98c69eacdc031",
+      "bytes": 359442
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-05.zip",
+      "sha256": "4ca09712c976062effee663d005c27420089003ed5a1c95d8c2b4937fe05fa01",
+      "bytes": 783
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-05",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-05.zip",
+      "sha256": "2b761046a11dd86203b5ad05427b0c922d900cf389f1efb365cf0dc3cfdb7ba2",
+      "bytes": 359162
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-06.zip",
+      "sha256": "fd9055cb8a05ce268c24b91800682091232f0dc285b1240f57e2d66396eb6a5f",
+      "bytes": 753
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-06",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-06.zip",
+      "sha256": "d9361e211f71f77be330e874c784926696ea16f1c6e00464c2ee12e080f31817",
+      "bytes": 342650
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-07.zip",
+      "sha256": "68c8ac31b16c4b1f81a3b70860175e5163e76652ddea9ef1bb6e6f01a369a33e",
+      "bytes": 786
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-07",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-07.zip",
+      "sha256": "d49ce9475e57f33dfd7436412ba92254f127d1bb3ceed77c20fa8d595ffd1338",
+      "bytes": 373335
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-08.zip",
+      "sha256": "fa1318b6213cae7ff5ead4110c4d7c97c3103203b56b2607678e4527dd8ad906",
+      "bytes": 925
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-08",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-08.zip",
+      "sha256": "1a50d973c0de27b165e631fb53c5dd573e8908116fd048b9e4f0fa90a23c2f0b",
+      "bytes": 370594
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-09.zip",
+      "sha256": "69faf312921ce5c88092d8c328b04dc006ea42dabfe68ad5fee542d28c0ae2ca",
+      "bytes": 861
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-09",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-09.zip",
+      "sha256": "1f5d98a481bb73bc3219238967768234ad5e23b68924e2c84ac443ed6852ff16",
+      "bytes": 351501
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-10.zip",
+      "sha256": "f9d62565da4bf7d1caddc9cb09b1a73a4a312a7419c5c0439c662fc3f58dd993",
+      "bytes": 740
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-10",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-10.zip",
+      "sha256": "cb55e0ab53f248d1c44ecf831154605f08fa30d89af29d276d9e2202180750b7",
+      "bytes": 358545
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-11.zip",
+      "sha256": "95c733e5ad58f4c26c75b71a2081de8f692a4ce271006b7f5b3c87854a848c70",
+      "bytes": 771
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-11",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-11.zip",
+      "sha256": "f6c229fb47d41c8f4ba5cff340676f522d7d927342d54b323a48eb6be0ff506f",
+      "bytes": 380520
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2024-12.zip",
+      "sha256": "be526ba15c6c4c3ae8cddda1411a13f665f635be444c992efd2f66e6bbfa37d8",
+      "bytes": 805
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2024-12",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2024-12.zip",
+      "sha256": "04caf62eddf61c88e746e68d133aeda6a0e27a4cab82d2506dbfd03d0002a8cd",
+      "bytes": 406146
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-01.zip",
+      "sha256": "b14759b7a99d6111f819790de938b2b0f3eeeaac57402c2e1ef71fd38302d26d",
+      "bytes": 743
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-01",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-01.zip",
+      "sha256": "2ef9a36345dc39f866342ac38d0a5ccf1ca5abc4bf9832b01ca7da6d7713c134",
+      "bytes": 400377
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-02.zip",
+      "sha256": "927da57e3d0a92fa6e024c00397abac93ab5722ca7a353e92e493cfd28de2f3c",
+      "bytes": 862
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-02",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-02.zip",
+      "sha256": "be6168df3f10489a7fa4f5a027852a2143116a66e581ff78c800c9c93d65f0ab",
+      "bytes": 360981
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-03.zip",
+      "sha256": "690fb0f227c2b8b1467428b2e3340ea9928d8ef81ac461bd6f641f100dd21d66",
+      "bytes": 951
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-03",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-03.zip",
+      "sha256": "eb1664e591ef679f77866c86d507d9ae037f0b5c57e5c76065f06f3566c0cf85",
+      "bytes": 396186
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-04.zip",
+      "sha256": "d47ea402f11ad727be1c1b4adfa8483698151509d90e9cb53b84b0a43ca67de8",
+      "bytes": 907
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-04",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-04.zip",
+      "sha256": "5ac75e26b0eca00ceb65fcd6ee9259166cbf46d0800f88064e06b588dee82824",
+      "bytes": 378746
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-05.zip",
+      "sha256": "7c664b87b0ae630b033f67ab334a46d433374927e74445c56f4b3be7b9b23092",
+      "bytes": 895
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-05",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-05.zip",
+      "sha256": "d7d9a608b3871a762c43df0a210bbf0fe529f8a9d7a5a482ba0cf41c9f1caace",
+      "bytes": 388802
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-06.zip",
+      "sha256": "5bfb1683c2b8c738a0059ee02078706585b62c1e430685af76e3796a0ee58613",
+      "bytes": 907
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-06",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-06.zip",
+      "sha256": "49804ab782f8245ac3d91b206aa06960bc5a6ebedca84f7a994bb4e582284e6a",
+      "bytes": 371799
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-07.zip",
+      "sha256": "039ff5c8dab9d9f2633f1bd4d191e6a727d6d169d897b6cbcd7fc162ff374723",
+      "bytes": 817
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-07",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-07.zip",
+      "sha256": "5869b00e6f64a8fa848ebd80b0383d34b7ee72e3335ec47a0501c8b4251679f2",
+      "bytes": 397479
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-08.zip",
+      "sha256": "07a8182394836928094bb6b476fef9e8858e234d0ff05ef41114ff25bab923ba",
+      "bytes": 910
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-08",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-08.zip",
+      "sha256": "85be15dac005103b9ad573633474cda084eecb93d6b6e5c0a959fa23b0a2ba72",
+      "bytes": 394279
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-09.zip",
+      "sha256": "1f09cb45eadb64731acaaae997167c54b76c3a08b367cd5acbd89f8562593ee3",
+      "bytes": 881
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-09",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-09.zip",
+      "sha256": "5c3b186e6b1f28cad3b11f0fe87d21c4a75d43a47f24c91be030cf4c99c12931",
+      "bytes": 373147
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-10.zip",
+      "sha256": "3fc5b1bcac5579e6cc49e17457282c6bfb970932d2aefcbc0c896d660b81a939",
+      "bytes": 952
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-10",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-10.zip",
+      "sha256": "55ebcdb4149379434796d0cd8c8c3c498233a5ad2b19e240d29b717378829d04",
+      "bytes": 392213
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-11.zip",
+      "sha256": "22040d49b1cdce5337571f5641008a81f1374680226b7c7a5ae63d37dcc449fd",
+      "bytes": 983
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-11",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-11.zip",
+      "sha256": "3fd9fa3976726a95cd774f5f2cec7c2cbfc56c152e9f9f5425c6f70e42cdd279",
+      "bytes": 379354
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2025-12.zip",
+      "sha256": "21c4a5933de28ec693fbe3a43d9ae4504b762e70e7cc0e0de4afd46104abe7f0",
+      "bytes": 1007
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2025-12",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2025-12.zip",
+      "sha256": "2cbffc01c05d216978cd5a48ff5073d8b7d622906b5d46b658e3be8d93d443fe",
+      "bytes": 378852
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2026-01.zip",
+      "sha256": "618977f8e0c4d048292fae038094ea9624c96debfbb1d2bd6463ffcdce2fcd2a",
+      "bytes": 990
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2026-01",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2026-01.zip",
+      "sha256": "df729cb88d94399ecf78f6babe2d51bb3d4423cad17c6fd5e95986711fe83871",
+      "bytes": 382230
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2026-02.zip",
+      "sha256": "8d8be995b48b2085a8384d9e417bfeef2d213b35478baa88cbe5001d0497535d",
+      "bytes": 939
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2026-02",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2026-02.zip",
+      "sha256": "979e85a4a4587e443f2d29293feebcd64ee28b4d7f86b774bb74eb3bd6a15646",
+      "bytes": 351143
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2026-03.zip",
+      "sha256": "e3399c2e5fd5c18a2716b26530bcedc7fb9ce8adb2641c0882c8ba6e0a336567",
+      "bytes": 999
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2026-03",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2026-03.zip",
+      "sha256": "f21fe4a15a4d029e3f4f858f06abd7a6201f40fc5e5e8b07cf3a4c9ef1974400",
+      "bytes": 377015
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2026-04.zip",
+      "sha256": "0e586915d578a977ad69482ddc52c11d9c2c1a767d3865078553b3e91fb7716a",
+      "bytes": 974
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2026-04",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2026-04.zip",
+      "sha256": "1536b6bba6d2f7f59485ccc8c54380cf171fa3b8052b92085931eed2251d6af9",
+      "bytes": 358385
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2026-05.zip",
+      "sha256": "f8c0c09953b112a7f5ac203a826811ead1ac43db8c075b17b2ca69e837828255",
+      "bytes": 1002
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2026-05",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2026-05.zip",
+      "sha256": "75468a31d9fefea81e8c1e324b12638363d4cbf119636d88ef8b03182edb1899",
+      "bytes": 370565
+    },
+    {
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/funding/XRPUSDT-fundingRate-2026-06.zip",
+      "sha256": "f5d1b51767ddc812c4608080adf54cfca0db7cba592d3e62d7416cd358a3ebde",
+      "bytes": 962
+    },
+    {
+      "kind": "kline",
+      "symbol": "XRPUSDT",
+      "month": "2026-06",
+      "path": "data/raw/HY-EXP-0001/XRPUSDT/kline/XRPUSDT-5m-2026-06.zip",
+      "sha256": "1947d7172e0b57b2a28cfe0ac764e9d6ab6bc66e4f19a2ce2295fd049f51660c",
+      "bytes": 362488
+    }
+  ]
+}

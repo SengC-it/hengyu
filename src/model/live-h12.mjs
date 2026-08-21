@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { atrAt } from '../research/h10-trend.mjs';
 import { broadBearRegimeTimes } from '../research/h12-regime.mjs';
 import { estimateFundingCarryBps } from './funding.mjs';
-import { buildNetEdgeAdvisorySignal } from './net-edge-advisory.mjs';
+import { evaluateCandidate } from './candidate-engine.mjs';
 import { H12_CONFIG } from './policy-config.mjs';
 
 const BPS = 10_000;
@@ -350,15 +350,13 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
       fundingIntervalMs: policy.fundingIntervalMs
     });
     const candidate = {
+      experimentId: policy.experimentId,
       hypothesisId: policy.hypothesisId,
       symbol,
       side: 'SELL',
+      regime: 'BEAR',
       quantity: policy.researchNotionalUsdt / entryPrice,
       researchNotionalUsdt: policy.researchNotionalUsdt,
-      expectedPriceEdgeBps: null,
-      edgeSource: UNVERIFIED_EDGE_SOURCE,
-      edgeModelId: null,
-      forecastStandardErrorBps: policy.forecastStandardErrorBps,
       expectedFundingBps,
       fundingStressBps: Math.abs(expectedFundingBps) + policy.fundingStressBufferBps,
       forecastTime: decisionTime,
@@ -368,13 +366,26 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
       expectedExitPrice: null,
       cluster: `H12:${signalTime}`
     };
-    const advisory = buildNetEdgeAdvisorySignal({
+    const evaluation = evaluateCandidate({
       candidate,
+      edge: {
+        expectedPriceEdgeBps: null,
+        standardErrorBps: policy.forecastStandardErrorBps,
+        edgeSource: UNVERIFIED_EDGE_SOURCE,
+        edgeModelId: null,
+        sampleSize: 0,
+        validationWindow: {
+          method: 'independent_edge_model_required',
+          asOf: decisionTime
+        },
+        available: false,
+        rejectionReason: 'EDGE_UNVERIFIED'
+      },
       book,
       now: decisionTime,
       policy: h12NetEdgePolicy(policy)
     });
-    const finalAdvisory = forceUnverifiedEdgeNoTrade(advisory);
+    const finalAdvisory = forceUnverifiedEdgeNoTrade(evaluation.advisory);
     const diagnostic = candidateDiagnostic({
       ...marketBase,
       fundingRate: funding.fundingRate,
@@ -382,17 +393,17 @@ export function evaluateLiveH12Scan(seriesBySymbol, {
       fundingProjectionMs: policy.fundingProjectionMs,
       bookAgeMs: Math.max(0, decisionTime - bookTime),
       atr,
-      edgeSource: candidate.edgeSource,
-      edgeModelId: candidate.edgeModelId,
+      edgeSource: evaluation.edge.edgeSource,
+      edgeModelId: evaluation.edge.edgeModelId,
       candidate: {
         symbol: candidate.symbol,
         side: candidate.side,
         signalTime,
         entryPrice,
         stopPrice: candidate.stopPrice,
-        expectedPriceEdgeBps: candidate.expectedPriceEdgeBps,
-        edgeSource: candidate.edgeSource,
-        edgeModelId: candidate.edgeModelId
+        expectedPriceEdgeBps: evaluation.edge.expectedPriceEdgeBps,
+        edgeSource: evaluation.edge.edgeSource,
+        edgeModelId: evaluation.edge.edgeModelId
       }
     }, finalAdvisory);
     symbols[symbol] = diagnostic;

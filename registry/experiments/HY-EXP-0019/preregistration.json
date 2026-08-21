@@ -1,0 +1,109 @@
+{
+  "experiment_id": "HY-EXP-0019",
+  "title": "Profit Model V3 symmetric regime breakout with causal forward-edge model",
+  "declared_date": "2026-08-21",
+  "status": "PREREGISTERED",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "authorization": "PAPER_ONLY",
+  "independence": {
+    "new_experiment_id": true,
+    "does_not_modify": ["HY-EXP-0018"],
+    "historical_profit_repackaging": false,
+    "selection_disclosure": "This is a new architecture and symmetric trend hypothesis. It is not a validation or relabeling of H12/HY-EXP-0018."
+  },
+  "market": "Binance USD-M perpetual",
+  "data": {
+    "source_experiment": "HY-EXP-0001",
+    "source_manifest": "artifacts/HY-EXP-0001/data-manifest.json",
+    "source_type": "Binance official public 5m contract klines plus realized funding archives",
+    "evaluation_start_utc": "2024-01-01T00:00:00.000Z",
+    "development_end_exclusive_utc": "2025-07-01T00:00:00.000Z",
+    "oos_end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+    "point_in_time_rule": "Only completed bars, prior rolling quote volume and observations available at decisionTime may affect a candidate or universe snapshot.",
+    "quality_rule": "Verify source manifest and every source file hash before parsing; reject missing, duplicate, non-contiguous or incomplete 4h bars."
+  },
+  "universe": {
+    "selection": "All symbols in the locked source manifest are reconsidered at every 4h decision; eligibility is not a fixed six-symbol list.",
+    "min_listing_age_days": 30,
+    "quote_volume_lookback_bars": 6,
+    "min_tier_b_quote_volume_usdt": 1000000,
+    "min_tier_b_depth_usdt": 100000,
+    "max_depth_age_ms": 5000,
+    "max_symbols": 200,
+    "depth_source": "OHLCV_PROXY_NOT_ORDERBOOK",
+    "depth_proxy_fraction_of_rolling_quote_volume": 0.01,
+    "promotion_rule": "A historical OHLCV depth proxy is not sufficient for promotion; real historical order-book depth must be captured in a later experiment."
+  },
+  "strategy": {
+    "bar_interval": "4h",
+    "regime": {
+      "btc_fast_sma_bars": 60,
+      "slow_sma_bars": 180,
+      "breadth_fraction": 0.5,
+      "bull_rule": "BTC fast SMA is strictly above slow SMA, BTC close is above slow SMA and at least half of the current PIT universe is above its own slow SMA.",
+      "bear_rule": "BTC fast SMA is strictly below slow SMA, BTC close is below slow SMA and at least half of the current PIT universe is below its own slow SMA.",
+      "sideways_rule": "Any state not satisfying the bull or bear rule is SIDEWAYS and produces NO_TRADE."
+    },
+    "entry": {
+      "bull": "LONG when completed close is strictly above the prior 120-bar high; fill at the next bar using the executable research book.",
+      "bear": "SHORT when completed close is strictly below the prior 120-bar low; fill at the next bar using the executable research book.",
+      "breakout_distance_role": "Feature metadata only; it is never assigned as expectedPriceEdgeBps.",
+      "one_position_per_symbol": true
+    },
+    "exit": {
+      "initial_stop_atr_multiple": 2,
+      "atr_bars": 30,
+      "long": "Exit on an intrabar two-ATR stop or a close below the prior 60-bar low.",
+      "short": "Exit on an intrabar two-ATR stop or a close above the prior 60-bar high.",
+      "terminal": "Close at the final complete 4h bar; this is separate from edge-model research horizon."
+    }
+  },
+  "edge_model": {
+    "model_id": "HENGYU-EDGE-FORWARD-MEAN-001",
+    "edge_source": "HENGYU-PROFIT-V3-FORWARD-MEAN",
+    "estimator": "Causal expanding mean of prior same-side/same-regime forward price-return labels with sample standard error.",
+    "forward_horizon_bars": 6,
+    "purge_bars": 6,
+    "minimum_samples": 30,
+    "outputs": [
+      "expectedPriceEdgeBps",
+      "standardErrorBps",
+      "edgeSource",
+      "edgeModelId",
+      "sampleSize",
+      "validationWindow"
+    ],
+    "oos_training": "Freeze training at development_end_exclusive_utc; no OOS labels may enter the final OOS edge estimate.",
+    "trade_rule": "Only conservative executable edge after fee, spread, slippage, impact, latency, funding and uncertainty clears the existing Net Edge cost/risk hurdle may become an Advisory."
+  },
+  "execution": {
+    "order_type": "taker_research_fill",
+    "fee_per_fill": 0.0005,
+    "funding": "Use realized funding archives for every event from entry through exit, including holding-period statistics.",
+    "authorization": "PAPER_ONLY",
+    "live_orders_enabled": false
+  },
+  "validation": {
+    "method": "expanding_walk_forward_purged",
+    "development_set": "2024-01-01 through 2025-06-30 completed 4h signal bars",
+    "final_oos_set": "2025-07-01 through 2026-06-30 completed 4h signal bars",
+    "primary_metrics": [
+      "trade_count",
+      "net_profit_factor",
+      "net_return",
+      "mark_to_market_drawdown",
+      "CVaR95",
+      "positive_months",
+      "best_5_concentration",
+      "symbol_breadth",
+      "regime_breadth"
+    ],
+    "win_rate_role": "Supplementary only; not the optimization target.",
+    "threshold_policy": "Do not lower existing thresholds to increase signal count."
+  },
+  "decision": {
+    "first_version": "Research-only result; no promotion decision from this run.",
+    "promotion": "Requires real historical depth, independent forward paper validation and a separately reviewed experiment record.",
+    "change_policy": "Any change to dates, universe filters, regime, breakout channels, edge labels, purge, costs, funding, sizing or risk limits requires a new experiment ID."
+  }
+}
