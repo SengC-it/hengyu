@@ -1,0 +1,82 @@
+{
+  "experiment_id": "HY-EXP-0019",
+  "closure_status": "FAILED_FROZEN",
+  "frozen_at": "2026-08-21T15:06:36.9123095Z",
+  "source_commit": "9d6b5298fab9760a611c2b5e52e86c500a6688a1",
+  "paper_only": true,
+  "live_orders_enabled": false,
+  "parameter_freeze": {
+    "status": "LOCKED",
+    "result_and_pnl_mutation": false,
+    "oos_replay_or_relabel": false,
+    "parameter_rescue": false,
+    "promotion": false
+  },
+  "locked_inputs": {
+    "preregistration_sha256": "6a54a27e2af74a3203a79d217aee2c62a78a65ff0cb003dd37b63d8e0e8c1cb2",
+    "data_manifest_sha256": "136ba1268cb91c700f55cdfa5a487aa3e9bd0c0575996bece314fb5223cf4986",
+    "result_sha256": "3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f",
+    "trades_sha256": "42612ac39dd665373d73d0d111fde15e8984cc32eae1a46e7e551bd57da0ecfa",
+    "scan_diagnostics_sha256": "747de4e4123fcfd2fb4cb14f99870a5a26e6007f2ffcf14bcd85db1a9dd0dff5",
+    "failure_attribution_sha256": "b7eb1311f6d0bf58024d3273bd31f31dee83e0d61ab57917d6eb1e1067dc57b4"
+  },
+  "frozen_results": {
+    "development": {
+      "trade_count": 34,
+      "net_profit_factor": 0.26331881908631055,
+      "net_return": -0.012968525367884683,
+      "positive_months": 1,
+      "observed_months": 18
+    },
+    "oos": {
+      "trade_count": 41,
+      "net_profit_factor": 0,
+      "net_return": -0.012763487537771283,
+      "positive_months": 0,
+      "observed_months": 12,
+      "regimes_traded": ["BULL"],
+      "regimes_available": ["BEAR", "BULL", "SIDEWAYS"]
+    }
+  },
+  "failure_reasons": [
+    {
+      "code": "DEV_FAIL",
+      "detail": "Development net PF 0.26331881908631055 < 1 and net return is negative."
+    },
+    {
+      "code": "OOS_PF_ZERO",
+      "detail": "Frozen OOS net profit factor is 0 across 41 trades."
+    },
+    {
+      "code": "OOS_RETURN_NEGATIVE",
+      "detail": "Frozen OOS net return is -1.2763487537771283%."
+    },
+    {
+      "code": "OOS_POSITIVE_MONTHS_ZERO",
+      "detail": "Frozen OOS positive months are 0 of 12."
+    },
+    {
+      "code": "REGIME_BREADTH_INSUFFICIENT",
+      "detail": "Only BULL produced final trades; BEAR had 188 candidates and 0 final trades, while SIDEWAYS is defined as NO_TRADE."
+    },
+    {
+      "code": "DEPTH_PROXY",
+      "detail": "Historical execution depth is OHLCV_PROXY_NOT_ORDERBOOK and is not sufficient for promotion."
+    }
+  ],
+  "oos_window_reuse_rule": {
+    "interval_start": "2025-07-01T00:00:00.000Z",
+    "interval_end_exclusive": "2026-07-01T00:00:00.000Z",
+    "classification": "DEVELOPMENT_INFORMATION_ONLY",
+    "prohibited": [
+      "Do not use this interval again as an independent OOS set.",
+      "Do not repackage counterfactual exits or altered thresholds as HY-EXP-0019 OOS performance."
+    ]
+  },
+  "failure_attribution": {
+    "path": "artifacts/HY-EXP-0019/failure-attribution.json",
+    "status": "FAILURE_ATTRIBUTION_ONLY",
+    "counterfactual_exits": "EXPLORATORY_ONLY_NOT_OOS_RESULT",
+    "included_in_promotion_metrics": false
+  }
+}
