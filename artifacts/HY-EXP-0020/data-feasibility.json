@@ -1,0 +1,205 @@
+{
+  "experiment_id": "HY-EXP-0020",
+  "phase": "A_EXACT_SPEC_AND_DATA_FEASIBILITY",
+  "audited_at_utc": "2026-08-21T00:00:00.000Z",
+  "status": "DATA_FAIL",
+  "decision": "STOP",
+  "pnl_computed": false,
+  "development_read": false,
+  "final_oos_read": false,
+  "result_artifact_created": false,
+  "failure_reasons": [
+    "NO_LOCKED_HISTORICAL_L2_FOR_2024_01_01_TO_2026_07_01",
+    "BINANCE_OFFICIAL_HISTORICAL_FILES_IN_WORKSPACE_CONTAIN_KLINE_AND_FUNDING_ONLY",
+    "BINANCE_OFFICIAL_DEPTH_ENDPOINTS_ARE_REAL_TIME_CAPTURE_ENDPOINTS_NOT_A_HISTORICAL_ARCHIVE",
+    "NO_LICENSED_HISTORICAL_L2_VENDOR_EXPORT_OR_PROVENANCE_MANIFEST_IN_WORKSPACE",
+    "LOCAL_FORWARD_L2_CAPTURES_START_2026_08_01_AND_DO_NOT_COVER_THE_REQUIRED_WINDOW",
+    "LOCAL_FORWARD_CAPTURES_ARE_SHORT_AND_NOT_A_POINT_IN_TIME_DYNAMIC_UNIVERSE_HISTORY"
+  ],
+  "frozen_requirement": {
+    "historical_window_start_utc": "2024-01-01T00:00:00.000Z",
+    "historical_window_end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+    "book_requirement": "real full L2 bid/ask price levels sufficient to reconstruct the local book, with snapshot and every diff update",
+    "required_depth_level": 1000,
+    "required_fields": [
+      "bid price and quantity levels",
+      "ask price and quantity levels",
+      "exchange event timestamp E",
+      "exchange transaction timestamp T when present",
+      "collector/vendor receipt timestamp",
+      "first update ID U",
+      "final update ID u",
+      "previous final update ID pu",
+      "snapshot lastUpdateId",
+      "symbol",
+      "raw source payload",
+      "per-file SHA-256 and immutable manifest"
+    ],
+    "bookTicker_is_not_full_l2": true,
+    "ohlcv_depth_proxy_allowed": false,
+    "sequence_gap_policy": "Any gap, duplicate, out-of-order update, missing snapshot or crossed reconstructed book is DATA_FAIL; no gap filling."
+  },
+  "local_repository_audit": {
+    "source_manifest": {
+      "path": "artifacts/HY-EXP-0001/data-manifest.json",
+      "sha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544",
+      "vendor": "Binance Data Vision",
+      "source_files": 496,
+      "kline_files": 248,
+      "funding_files": 248,
+      "depth_files": 0,
+      "coverage": "The locked source archive contains 5m contract klines and funding archives for eight symbols; it has no L2 snapshots, L2 diffs, receipt timestamps or update sequences."
+    },
+    "prior_0019_manifest": {
+      "path": "artifacts/HY-EXP-0019/data-manifest.json",
+      "sha256": "136ba1268cb91c700f55cdfa5a487aa3e9bd0c0575996bece314fb5223cf4986",
+      "depth_source": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "depth_files": 0,
+      "eligible_for_0020_l2": false
+    },
+    "forward_l2_capture_manifests": [
+      {
+        "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T035748117Z",
+        "status": "complete",
+        "window_utc": "2026-08-01T03:57:48.118Z/2026-08-01T03:58:29.108Z",
+        "symbols": ["BTCUSDT"],
+        "depth_snapshots": 1,
+        "depth_updates": 292,
+        "manifest_sha256": "0bb589502e283105d68df63bfa2eb5ef32c5bbea840cc9d9eedd2232b2aee8be"
+      },
+      {
+        "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T040230161Z",
+        "status": "complete",
+        "window_utc": "2026-08-01T04:02:30.162Z/2026-08-01T04:03:16.570Z",
+        "symbols": ["BTCUSDT"],
+        "depth_snapshots": 1,
+        "depth_updates": 367,
+        "manifest_sha256": "2373e46691fe08687e665ba0f35ca27965f9b414602482efc67a30ca4f57de7e"
+      },
+      {
+        "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T040953202Z",
+        "status": "complete",
+        "window_utc": "2026-08-01T04:09:53.202Z/2026-08-01T04:15:09.961Z",
+        "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+        "depth_snapshots": 6,
+        "depth_updates": 16520,
+        "manifest_sha256": "e2f39866326f82db42d2078302eff91caf27b47eb6c43418171d85a3209ec90b"
+      },
+      {
+        "run_id": "HY-FWD-MICROSTRUCTURE-001-2026-08-01T043852968Z",
+        "status": "complete",
+        "window_utc": "2026-08-01T04:38:52.969Z/2026-08-01T04:54:06.266Z",
+        "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"],
+        "depth_snapshots": 6,
+        "depth_updates": 49010,
+        "manifest_sha256": "9ec0fa0a66eaa4481f2ed1ad2c0473ab13df54b69e6ccd0daf010068a6c12b00"
+      },
+      {
+        "run_id": "HY-FWD-LIVE-TEST-001-2026-08-02T023824794Z",
+        "status": "complete",
+        "window_utc": "2026-08-02T02:38:24.795Z/2026-08-02T02:43:52.052Z",
+        "symbols": ["BTCUSDT"],
+        "depth_snapshots": 1,
+        "depth_updates": 3123,
+        "manifest_sha256": "f8501cfd3b1945f5dab4e6c535dfc53b839b875fb256dc57c5f03627d2519297"
+      }
+    ],
+    "coverage_conclusion": "The local L2 evidence begins in August 2026, after the required historical window, and consists of seconds-to-minutes captures. It cannot be used as 2024-01-01 through 2026-07-01 historical L2."
+  },
+  "source_audit": {
+    "binance_official": {
+      "vendor": "Binance",
+      "product": "USD-M perpetual public market data",
+      "historical_archive_endpoint": "https://data.binance.vision/data/futures/um/monthly/",
+      "realtime_snapshot_endpoint": "https://fapi.binance.com/fapi/v1/depth?symbol=<symbol>&limit=1000",
+      "realtime_diff_endpoint": "wss://fstream.binance.com/stream?streams=<symbol>@depth@100ms",
+      "snapshot_fields": ["lastUpdateId", "bids", "asks", "receivedAt"],
+      "diff_fields": ["E", "T", "s", "U", "u", "pu", "b", "a", "receivedAt"],
+      "historical_l2_status": "not_available_as_a_locked_historical_archive_in_this_workspace",
+      "receipt_timestamp_status": "official archive files do not provide the collector receipt timestamp required by this specification",
+      "coverage_status": "no full-window historical L2 coverage demonstrated",
+      "license_provenance": "Binance public endpoint documentation; no historical L2 export acquired or hash-locked"
+    },
+    "tardis_candidate": {
+      "vendor": "Tardis.dev",
+      "product": "Binance USDT Futures historical market data",
+      "api_endpoint": "https://api.tardis.dev/v1/data-feeds/binance-futures?from=<date>&to=<date>&filters=[{\"channel\":\"depth\",\"symbols\":[\"btcusdt\"]}]&offset=0",
+      "historical_channels": ["incremental_book_L2/depth", "depthSnapshot"],
+      "documented_coverage": "Vendor documentation states Binance USDT Futures collection since 2019-11-17; BTCUSDT incremental_book_L2 sample coverage begins 2020-02-01, which includes the requested 2024-01-01 to 2026-07-01 window subject to per-symbol availability verification.",
+      "depth_level": "Vendor depthSnapshot is documented as generated full-book snapshots stored with the stream; the exact level retention and per-symbol coverage must be verified from the licensed export before acceptance.",
+      "timestamps": ["exchange event timestamp", "vendor local/receipt timestamp"],
+      "sequence": ["U", "u", "pu", "snapshot lastUpdateId when supplied"],
+      "license_provenance": "Commercial vendor access/license and API key are not present in this workspace; no Tardis files, manifest or hashes were acquired.",
+      "current_status": "IDENTIFIED_BUT_NOT_ACQUIRED",
+      "can_satisfy_current_phase": false,
+      "required_next_audit": "Acquire the exact window for every point-in-time eligible symbol, verify raw payloads, level depth, sequence continuity, receipt timestamps, missing intervals and SHA-256 manifest before any 0020 development run."
+    },
+    "alternative_vendor_status": "No second historical L2 vendor export was acquired or verified in this phase; no substitute is authorized."
+  },
+  "field_feasibility": {
+    "bid_ask_levels": {
+      "required": "full L2 up to 1000 levels per side",
+      "local_status": "FAIL; only short August 2026 forward captures have L2"
+    },
+    "event_and_receipt_timestamps": {
+      "required": "E/T plus local/vendor receipt timestamp for every raw event",
+      "local_status": "FAIL for historical window"
+    },
+    "update_sequence": {
+      "required": "snapshot lastUpdateId plus U/u/pu continuity",
+      "local_status": "FAIL for historical window"
+    },
+    "symbol_coverage": {
+      "required": "point-in-time dynamic universe across every eligible symbol",
+      "local_status": "FAIL; local historical archive has eight fixed symbols without L2, forward captures have at most six symbols"
+    },
+    "missing_intervals": {
+      "required": "zero unclassified intervals across the complete development window",
+      "local_status": "FAIL; complete historical L2 interval is absent"
+    },
+    "depth_level": {
+      "required": 1000,
+      "local_status": "FAIL for historical window"
+    },
+    "checksum_hash": {
+      "required": "raw files, immutable manifest and per-file SHA-256",
+      "local_status": "FAIL; only short forward-capture manifests are locally hash-locked"
+    },
+    "license_provenance": {
+      "required": "source/vendor terms, acquisition record and reproducible provenance",
+      "local_status": "FAIL for a historical vendor export"
+    },
+    "funding_coverage": {
+      "required": "official realized funding rows through every candidate holding period",
+      "local_status": "PARTIAL PASS; Binance Data Vision funding archives cover the existing eight-symbol price archive, but funding does not compensate for missing L2"
+    },
+    "point_in_time_integrity": {
+      "required": "all features and books available no later than decisionTime, with receipt timestamps",
+      "local_status": "FAIL for historical L2"
+    }
+  },
+  "final_oos_capture": {
+    "window_start_utc": "2026-09-01T00:00:00.000Z",
+    "window_end_exclusive_utc": "2027-03-01T00:00:00.000Z",
+    "early_read": false,
+    "start_date_shift_on_failure": false,
+    "capture_design": "REST snapshot plus buffered WebSocket depth diff reconstruction; raw files and snapshot/diff manifest are write-once and SHA-256 hashed.",
+    "reconnect_and_gap_policy": "Reconnect before the 24-hour WebSocket limit; every new segment requires a fresh snapshot; any U/u/pu gap invalidates the segment and stops data use.",
+    "deployment": "Not deployed in Phase A; PAPER_ONLY."
+  },
+  "promotion_effect": {
+    "data_feasible": false,
+    "data_feasible_label": "DATA_FAIL",
+    "development_allowed": false,
+    "final_oos_allowed": false,
+    "backtest_allowed": false,
+    "fallback_to_bookTicker": false,
+    "fallback_to_ohlcv_proxy": false,
+    "required_action": "STOP. Acquire and independently verify licensed historical full L2 data, then create a new data-feasibility lock or a new experiment record; do not run HY-EXP-0020 development/backtest/OOS from this failed audit."
+  },
+  "source_urls": [
+    "https://binance-docs.github.io/apidocs/delivery_testnet/en/",
+    "https://docs.tardis.dev/historical-data-details/binance-futures",
+    "https://docs.tardis.dev/api/http-api-reference"
+  ]
+}
