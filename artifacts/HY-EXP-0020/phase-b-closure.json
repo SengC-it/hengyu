@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0020",
+  "artifactType": "PHASE_B_CLOSURE",
+  "sourceCommit": "e412c73ad39807b77351c7f1c72109cdaa733026",
+  "status": "PHASE_B_COLLECTOR_PASS",
+  "reliability": {
+    "requiredRuns": 3,
+    "completedRuns": 3,
+    "passedRuns": 3,
+    "result": "PHASE_B_RELIABILITY_PASS",
+    "manifestSha256": [
+      "ca43abd173896e7bd76121b11651c339ca6a071d3f9a3c6805ff1ccbf34c8780",
+      "17a99db51a112bbf58a75b1d805cbaf55c0a6fab4053c4cea6a695a89db55c47",
+      "87575a60d4d476be0796c6420488fa46c0181dafc8c48a1b07aa1ecaaef9b1af"
+    ],
+    "runsPreserved": true
+  },
+  "quality": {
+    "snapshotAlignmentFailures": 0,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0
+  },
+  "safety": {
+    "authorization": "PAPER_ONLY",
+    "pnlComputed": false,
+    "developmentAllowed": false,
+    "finalOosEligible": false,
+    "productionDeployed": false,
+    "realMoneyOrderApi": false,
+    "dataStatus": "DATA_FAIL"
+  },
+  "scope": {
+    "phaseBCollectorEvidenceUnmodified": true,
+    "historicalSourceQualificationOnly": true,
+    "developmentBacktestOosRun": false,
+    "frozenEvidence": [
+      "artifacts/HY-EXP-0020/phase-b-reliability.json",
+      "artifacts/HY-EXP-0020/phase-b-dry-run.json",
+      "artifacts/HY-EXP-0020/data-feasibility.json"
+    ]
+  },
+  "closureDecision": "PHASE_B_CLOSED_PHASE_C_HISTORICAL_DATA_SOURCE_QUALIFICATION_ONLY"
+}

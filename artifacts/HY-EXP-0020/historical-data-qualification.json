@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0020",
+  "artifactType": "HISTORICAL_DATA_SOURCE_QUALIFICATION",
+  "auditAtUtc": "2026-08-21T23:34:44.752Z",
+  "qualificationWindow": {
+    "start": "2024-01-01T00:00:00.000Z",
+    "endExclusive": "2026-07-01T00:00:00.000Z",
+    "finalOosStart": "2026-09-01T00:00:00.000Z",
+    "finalOosEndExclusive": "2027-03-01T00:00:00.000Z",
+    "finalOosRead": false
+  },
+  "phase": "C_HISTORICAL_DATA_SOURCE_QUALIFICATION_ONLY",
+  "historicalL2": "NOT_ACQUIRED",
+  "historicalExchangeInfo": "NOT_ACQUIRED",
+  "funding": "PARTIAL",
+  "fullWindowCoverage": false,
+  "developmentDataFeasible": false,
+  "developmentAllowed": false,
+  "pnlComputed": false,
+  "sourcePolicy": {
+    "vendorNeutral": true,
+    "commercialDataPurchased": false,
+    "commercialDataDownloaded": false,
+    "apiKeysCommitted": false,
+    "apiKeyPolicy": "Environment injection only; no credential is stored in this repository.",
+    "ohlcvDepthProxyAccepted": false,
+    "bookTickerAcceptedAsL2": false,
+    "currentExchangeInfoBackfillAccepted": false,
+    "syntheticSequenceOrGapFillAccepted": false
+  },
+  "candidateSources": [
+    {
+      "sourceId": "TARDIS_BINANCE_USDS_M_NATIVE",
+      "vendor": "Tardis.dev",
+      "dataset": "Binance USDT Futures raw historical market data",
+      "qualification": "NOT_ACQUIRED",
+      "status": "IDENTIFIED_BUT_NOT_ACQUIRED",
+      "officialUrls": [
+        "https://docs.tardis.dev/historical-data-details/binance-futures",
+        "https://docs.tardis.dev/api/http",
+        "https://api.tardis.dev/v1/exchanges/binance-futures"
+      ],
+      "documentedCapabilities": {
+        "nativeDepthChannel": true,
+        "generatedDepthSnapshotChannel": true,
+        "nativeBinanceSequenceFields": ["U", "u", "pu"],
+        "exchangeEventFields": ["E", "T"],
+        "localReceiptTimestamp": true,
+        "snapshotDepth": "Top 1000 levels according to the source documentation",
+        "sequenceValidation": "Source documents validation using pu/u and restart on missed messages"
+      },
+      "localVerification": {
+        "rawFilesPresent": false,
+        "licensedManifestPresent": false,
+        "accessAuthorized": false,
+        "licenseAccepted": false,
+        "perSymbolWindowAuditRun": false,
+        "continuityAuditRun": false,
+        "rawFileSha256Present": false
+      },
+      "qualificationReason": "Documentation establishes a plausible source path, but no authorized export, raw native payload, per-symbol full-window coverage evidence, or immutable hash manifest was acquired. Source documentation also records collection incidents and reconnect gaps; those intervals require independent fail-closed verification."
+    },
+    {
+      "sourceId": "BINANCE_DATA_VISION_ARCHIVE",
+      "vendor": "Binance",
+      "dataset": "Official Binance Data Vision USD-M public archive in the workspace",
+      "qualification": "NOT_QUALIFIED",
+      "officialUrls": [
+        "https://data.binance.vision/data/futures/um/monthly/",
+        "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/market-data"
+      ],
+      "localEvidence": {
+        "manifest": "artifacts/HY-EXP-0001/data-manifest.json",
+        "manifestSha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544",
+        "files": 496,
+        "symbols": 8,
+        "fileKinds": ["kline", "funding"],
+        "depthFiles": 0,
+        "coverageMonths": "2023-12 through 2026-06 for the fixed eight-symbol archive"
+      },
+      "qualificationReason": "The locked official archive contains no historical L2 snapshot or diff files, no native U/u/pu chain, and no collector receipt timestamps. It cannot satisfy HY-EXP-0020 even though it contains realized funding rows for a subset of symbols."
+    },
+    {
+      "sourceId": "TARDIS_NORMALIZED_INCREMENTAL_BOOK_L2_CSV",
+      "vendor": "Tardis.dev",
+      "dataset": "Normalized incremental_book_L2 CSV format",
+      "qualification": "NOT_QUALIFIED_FOR_HY_EXP_0020",
+      "officialUrls": [
+        "https://docs.tardis.dev/downloadable-csv-files/api",
+        "https://docs.tardis.dev/downloadable-csv-files/data-types"
+      ],
+      "observedSchema": [
+        "exchange",
+        "symbol",
+        "timestamp",
+        "local_timestamp",
+        "is_snapshot",
+        "side",
+        "price",
+        "amount"
+      ],
+      "missingFrozenFields": ["E", "T", "U", "u", "pu", "snapshot.lastUpdateId"],
+      "qualificationReason": "The normalized CSV does not preserve the Binance-native update-ID chain required by the frozen specification. It may be used only for an audit that fails closed; it cannot be treated as native sequence data or unlock Development."
+    }
+  ],
+  "historicalL2Audit": {
+    "requiredRawContract": {
+      "market": "Binance USD-M perpetuals",
+      "recordTypes": ["snapshot", "diff"],
+      "sides": ["bid", "ask"],
+      "depthLevelsPerSide": 1000,
+      "timestamps": ["E", "T", "receivedAt"],
+      "sequence": ["U", "u", "pu", "snapshot.lastUpdateId"],
+      "rawPayloadPreserved": true,
+      "perFileSha256": true,
+      "immutableManifest": true
+    },
+    "requiredChecks": {
+      "missingInterval": "REQUIRED_ZERO_UNCLASSIFIED_INTERVALS",
+      "duplicate": "REQUIRED_FAIL_CLOSED",
+      "outOfOrder": "REQUIRED_FAIL_CLOSED",
+      "sequenceGap": "REQUIRED_FAIL_CLOSED",
+      "crossedReconstructedBook": "REQUIRED_FAIL_CLOSED",
+      "syntheticSequence": "FORBIDDEN",
+      "gapFill": "FORBIDDEN",
+      "normalizedCsvAsNative": "FORBIDDEN"
+    },
+    "localEvidence": {
+      "historicalL2Files": 0,
+      "historicalL2Manifest": null,
+      "forwardEngineeringCaptures": "Present only after the frozen historical window; not usable as historical coverage",
+      "fullWindowContinuityAudit": false,
+      "fullWindowReceiptAudit": false,
+      "fullWindowDepthAudit": false
+    },
+    "decision": "NOT_ACQUIRED"
+  },
+  "symbolCoverageAudit": {
+    "status": "NOT_ACQUIRED",
+    "scope": "All point-in-time eligible USD-M USDT/USDC perpetuals; no current symbol list was used to backfill history",
+    "candidateSourceInventory": {
+      "source": "Tardis /v1/exchanges/binance-futures",
+      "status": "NOT_ACQUIRED",
+      "allPossibleHistoricalPerpetualsEnumerated": false,
+      "currentSymbolListBackfillUsed": false,
+      "rows": [],
+      "reason": "The source inventory endpoint was not converted into a locked historical universe because no authorized dataset/provenance package was acquired. A current or vendor availability list cannot answer the frozen point-in-time universe question."
+    },
+    "requiredRowFields": [
+      "symbol",
+      "coverageStart",
+      "coverageEnd",
+      "nativeSequenceAvailable",
+      "snapshotAvailable",
+      "1000LevelConfirmed",
+      "receiptTimestampAvailable",
+      "missingIntervalsKnown"
+    ],
+    "rows": [
+      {"symbol":"BNBUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"BTCUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"DOGEUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"ETHUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"LINKUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"LTCUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"SOLUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false},
+      {"symbol":"XRPUSDT","coverageStart":"2023-12","coverageEnd":"2026-06","nativeSequenceAvailable":false,"snapshotAvailable":false,"1000LevelConfirmed":false,"receiptTimestampAvailable":false,"missingIntervalsKnown":false}
+    ],
+    "rowInterpretation": "These are the eight symbols represented by the local fixed archive only. They are evidence of missing L2, not the frozen point-in-time universe. The full candidate symbol inventory and per-symbol L2 coverage were not acquired."
+  },
+  "historicalExchangeInfoAudit": {
+    "requiredPITFields": [
+      "listingDate",
+      "status",
+      "contractType",
+      "quoteAsset",
+      "tickSize",
+      "stepSize",
+      "minQty",
+      "minNotional"
+    ],
+    "requiredQuestion": "What rules were in force for this symbol at each historical decisionTime?",
+    "localEvidence": {
+      "historicalSnapshots": false,
+      "currentSnapshots": "Only engineering dry-run exchangeInfo snapshots exist",
+      "historicalManifest": false,
+      "currentExchangeInfoUsedAsBackfill": false
+    },
+    "candidateSource": {
+      "vendor": "Tardis.dev",
+      "product": "Instruments Metadata API",
+      "url": "https://docs.tardis.dev/api/instruments-metadata-api",
+      "status": "NOT_ACQUIRED",
+      "blocker": "The documented metadata includes listing/active and increment fields, but it is not a locally acquired, immutable, per-decision-time Binance exchangeInfo history and does not by itself prove every required minNotional/status change."
+    },
+    "decision": "NOT_ACQUIRED"
+  },
+  "fundingAudit": {
+    "requiredFields": ["symbol", "fundingTime", "fundingRate", "markPrice", "PIT availability"],
+    "localEvidence": {
+      "source": "Binance Data Vision",
+      "manifest": "artifacts/HY-EXP-0001/data-manifest.json",
+      "symbols": 8,
+      "files": 248,
+      "coverageMonths": "2023-12 through 2026-06",
+      "observedSchema": ["calc_time", "funding_interval_hours", "last_funding_rate"],
+      "fundingTimeAndRatePresent": true,
+      "markPricePresent": false,
+      "allPITUniverseSymbolsCovered": false,
+      "receiptTimestampPresent": false
+    },
+    "qualificationReason": "Realized funding time/rate rows exist for the fixed eight-symbol archive, but the frozen requirement also needs mark price and complete coverage for every point-in-time eligible symbol. No predicted funding is substituted.",
+    "decision": "PARTIAL"
+  },
+  "sampleValidation": {
+    "status": "DATA_FAIL",
+    "sampleOnly": true,
+    "dataFeasible": false,
+    "developmentUnlocked": false,
+    "sampleSource": "No authorized raw native Tardis sample was acquired in this phase. Public normalized sample schema was audited and is explicitly not qualified for HY-EXP-0020.",
+    "validatorPath": "src/model/hy-exp-0020-historical-l2.mjs",
+    "failureReasons": [
+      "no_authorized_raw_sample_manifest",
+      "normalized_sample_missing_native_U_u_pu_and_snapshot_lastUpdateId",
+      "sample_cannot_establish_full_window_coverage"
+    ]
+  },
+  "provenanceAndLicense": {
+    "required": ["vendor/source", "dataset/product", "license/authorization", "acquisition timestamp", "exact URL/API", "raw file SHA256", "immutable manifest"],
+    "historicalL2": {
+      "vendorAndUrlIdentified": true,
+      "authorization": false,
+      "licenseAccepted": false,
+      "acquisitionTimestamp": null,
+      "rawFileSha256": null,
+      "immutableManifest": false
+    },
+    "historicalExchangeInfo": {
+      "vendorAndUrlIdentified": true,
+      "authorization": false,
+      "licenseAccepted": false,
+      "acquisitionTimestamp": null,
+      "rawFileSha256": null,
+      "immutableManifest": false
+    },
+    "decision": "FAIL_CLOSED"
+  },
+  "decision": "STOP_HY_EXP_0020_DATA_INFEASIBLE",
+  "remainingBlockers": [
+    "Acquire an authorized historical native Binance USD-M L2 export for the entire frozen window.",
+    "Prove every required historical symbol's snapshot/diff coverage, 1000 levels, E/T/receipt timestamps, U/u/pu continuity and zero unclassified gaps.",
+    "Acquire a full point-in-time exchangeInfo history covering listing/status/contract/quote and all tick/step/minQty/minNotional changes; current exchangeInfo cannot be used as backfill.",
+    "Extend realized funding coverage to every point-in-time eligible symbol and provide the required mark price and causal timestamps.",
+    "Provide license/authorization, acquisition timestamp, exact source URL/API, raw-file SHA-256 values and an immutable manifest before any Development read."
+  ],
+  "promotion": {
+    "allCoreConditionsSatisfied": false,
+    "phaseCDataLockAuthorized": false,
+    "recommendedDecision": "STOP_HY_EXP_0020_DATA_INFEASIBLE",
+    "developmentRead": false,
+    "backtestRun": false,
+    "oosRead": false,
+    "pnlComputed": false,
+    "paperOnly": true
+  },
+  "sourceUrls": [
+    "https://docs.tardis.dev/historical-data-details/binance-futures",
+    "https://docs.tardis.dev/api/http",
+    "https://docs.tardis.dev/downloadable-csv-files/data-types",
+    "https://docs.tardis.dev/api/instruments-metadata-api",
+    "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/market-data",
+    "https://data.binance.vision/data/futures/um/monthly/"
+  ]
+}
