@@ -29,6 +29,8 @@ const DEFAULT_MAX_EVENT_GAP_MS = 1_000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1_000;
 const MAX_COMBINED_SEGMENT_MS = 3 * 60 * 60 * 1_000 + 55 * 60 * 1_000;
 const DEPTH_SNAPSHOT_MIN_INTERVAL_MS = 500;
+const MAX_BUFFERED_EVENTS_PER_SYMBOL = 10_000;
+const MAX_BUFFERED_EVENTS_TOTAL = 100_000;
 
 function finite(name, value, { minimum = -Infinity, exclusiveMinimum = false } = {}) {
   const parsed = Number(value);
@@ -459,29 +461,107 @@ async function collectCombinedDepthSegment({
   onUniverseSnapshot
 }) {
   const candidateSymbols = normalizeSymbols(symbols);
-  const states = new Map();
-  const buffered = [];
+  const buffers = new Map(candidateSymbols.map(symbol => [symbol, []]));
+  const contexts = new Map(candidateSymbols.map(symbol => [symbol, {
+    symbol,
+    buffer: buffers.get(symbol),
+    state: null,
+    snapshotId: null,
+    snapshotRequestStartedAt: null,
+    snapshotReceivedAt: null,
+    status: 'WAITING_SNAPSHOT',
+    aligned: false,
+    staleBufferedDropped: 0,
+    alignmentLatencyMs: null,
+    alignmentFailure: null
+  }]));
   const depthSnapshots = [];
   const snapshotErrors = [];
-  const invalidSnapshotSymbols = new Set();
   let nextSnapshotRequestAt = Date.now();
+  let bufferedEventsCurrent = 0;
+  let bufferedEventsPeak = 0;
+  let staleBufferedDropped = 0;
+  let bufferedEventsDiscarded = 0;
   let socket;
-  let snapshotReady = false;
   let failure = null;
+  let terminalResult = null;
   let settled = false;
   let resolveOutcome;
   const outcome = new Promise(resolve => { resolveOutcome = resolve; });
   const finish = result => {
     if (settled) return;
     settled = true;
+    terminalResult = result;
     if (result.status !== 'VALID') failure = result.reason;
     closeSocket(socket);
     resolveOutcome(result);
   };
+  const failSegment = (reason, context = null) => {
+    const message = String(reason ?? 'invalid_segment');
+    if (context && message.includes('snapshot_alignment')) context.alignmentFailure = message;
+    failure = failure ?? message;
+    finish({ status: 'INVALID', reason: failure });
+  };
+  const sequenceBounds = (context, envelope) => {
+    const U = Number(envelope?.data?.U);
+    const u = Number(envelope?.data?.u);
+    if (!Number.isSafeInteger(U) || !Number.isSafeInteger(u) || U > u) {
+      throw new Error(`${context.symbol}:invalid_sequence_range`);
+    }
+    return { U, u };
+  };
+  const takeBuffered = context => {
+    const envelope = context.buffer.shift();
+    if (envelope) bufferedEventsCurrent--;
+    return envelope;
+  };
+  const discardUnreconstructableBuffer = context => {
+    bufferedEventsDiscarded += context.buffer.length;
+    bufferedEventsCurrent -= context.buffer.length;
+    context.buffer.length = 0;
+  };
+  const enqueueBuffered = (context, envelope) => {
+    context.buffer.push(envelope);
+    bufferedEventsCurrent++;
+    bufferedEventsPeak = Math.max(bufferedEventsPeak, bufferedEventsCurrent);
+    if (context.buffer.length > MAX_BUFFERED_EVENTS_PER_SYMBOL || bufferedEventsCurrent > MAX_BUFFERED_EVENTS_TOTAL) {
+      failSegment(`${context.symbol}:buffer_limit_exceeded`, context);
+    }
+  };
+  const processBuffered = context => {
+    if (settled || context.status === 'EXCLUDED' || !context.state) return;
+    if (!context.aligned) {
+      while (context.buffer.length && !settled && !context.aligned) {
+        const head = context.buffer[0];
+        const { U, u } = sequenceBounds(context, head);
+        if (u < context.snapshotId) {
+          takeBuffered(context);
+          context.staleBufferedDropped++;
+          staleBufferedDropped++;
+          continue;
+        }
+        if (U > context.snapshotId) {
+          failSegment(`${context.symbol}:snapshot_alignment`, context);
+          return;
+        }
+        const first = takeBuffered(context);
+        context.state.ingestDiff({ data: first.data, receivedAt: first.receivedAt });
+        context.aligned = true;
+        context.status = 'ALIGNED';
+        context.alignmentLatencyMs = Math.max(0, Date.now() - context.snapshotRequestStartedAt);
+      }
+    }
+    while (context.aligned && context.buffer.length && !settled) {
+      const next = takeBuffered(context);
+      context.state.ingestDiff({ data: next.data, receivedAt: next.receivedAt });
+    }
+  };
   const onMessage = message => {
+    let context = null;
     try {
       const { symbol, stream, payload } = combinedMessage(message);
       if (!candidateSymbols.includes(symbol)) throw new Error(`${symbol}:universe_stream_mismatch`);
+      context = contexts.get(symbol);
       const receivedAt = Date.now();
       const envelope = buildDepthRecordEnvelope({
         symbol,
@@ -492,55 +572,55 @@ async function collectCombinedDepthSegment({
         kind: 'diff'
       });
       depthWriter.append(envelope);
-      buffered.push(envelope);
-      if (snapshotReady) {
-        const state = states.get(symbol);
-        if (!state && invalidSnapshotSymbols.has(symbol)) {
-          buffered.pop();
-          return;
-        }
-        if (!state) throw new Error(`${symbol}:snapshot_missing`);
-        state.ingestDiff({ data: payload, receivedAt });
-        buffered.pop();
+      if (settled || context.status === 'EXCLUDED') return;
+      if (!context.state || !context.aligned) {
+        enqueueBuffered(context, envelope);
+        processBuffered(context);
+        return;
       }
+      context.state.ingestDiff({ data: payload, receivedAt });
     } catch (error) {
-      finish({ status: 'INVALID', reason: error.message });
+      failSegment(error.message, context);
     }
   };
-  const onError = error => finish({ status: 'INVALID', reason: error?.message ?? 'websocket_error' });
+  const onError = error => failSegment(error?.message ?? 'websocket_error');
   const onClose = () => {
     if (settled) return;
     if (Date.now() >= segmentDeadline) {
-      const missing = candidateSymbols.filter(symbol => !invalidSnapshotSymbols.has(symbol) && (states.get(symbol)?.summary.updates ?? 0) < 1);
-      const validSymbolCount = candidateSymbols.length - invalidSnapshotSymbols.size;
+      const unaligned = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && !context.aligned);
+      for (const context of unaligned) context.alignmentFailure ??= `${context.symbol}:snapshot_alignment`;
+      const missing = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && context.aligned && (context.state?.summary.updates ?? 0) < 1);
+      const validSymbolCount = [...contexts.values()].filter(context => context.status !== 'EXCLUDED').length;
       finish({
-        status: validSymbolCount > 0 && !missing.length ? 'VALID' : 'INVALID',
-        reason: validSymbolCount === 0
-          ? `no_valid_depth_snapshots:${[...invalidSnapshotSymbols].sort().join(',')}`
-          : (missing.length ? `no_depth_updates:${missing.join(',')}` : 'utc_4h_rotation')
+        status: validSymbolCount > 0 && !unaligned.length && !missing.length ? 'VALID' : 'INVALID',
+        reason: unaligned.length
+          ? `snapshot_alignment:${unaligned.map(context => context.symbol).sort().join(',')}`
+          : (validSymbolCount === 0
+            ? 'no_valid_depth_snapshots'
+            : (missing.length ? `no_depth_updates:${missing.map(context => context.symbol).sort().join(',')}` : 'utc_4h_rotation'))
       });
     } else {
-      finish({ status: 'INVALID', reason: 'connection_closed' });
+      failSegment('connection_closed');
     }
   };
-  try {
-    socket = await openDepthSocket({ WebSocketImpl, url: combinedDepthUrl(candidateSymbols), onMessage, onError, onClose });
-    if (settled) throw new Error(failure ?? 'combined_socket_closed_before_snapshot');
-    const snapshotRows = await mapWithConcurrency(candidateSymbols, 8, async symbol => {
-      const slot = Math.max(Date.now(), nextSnapshotRequestAt);
-      nextSnapshotRequestAt = slot + DEPTH_SNAPSHOT_MIN_INTERVAL_MS;
-      if (slot > Date.now()) await delay(slot - Date.now());
-      let response;
-      try {
-        response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.depthSnapshot, {
-          symbol,
-          limit: DEFAULT_DEPTH_LEVELS
-        }));
-      } catch (error) {
-        invalidSnapshotSymbols.add(symbol);
-        snapshotErrors.push({ symbol, reason: error.message, code: 'snapshot_request_failed' });
-        return { symbol, valid: false };
-      }
+  const processSnapshot = async symbol => {
+    const context = contexts.get(symbol);
+    const slot = Math.max(Date.now(), nextSnapshotRequestAt);
+    nextSnapshotRequestAt = slot + DEPTH_SNAPSHOT_MIN_INTERVAL_MS;
+    if (slot > Date.now()) await delay(slot - Date.now());
+    let response;
+    try {
+      response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.depthSnapshot, {
+        symbol,
+        limit: DEFAULT_DEPTH_LEVELS
+      }));
+    } catch (error) {
+      context.status = 'EXCLUDED';
+      discardUnreconstructableBuffer(context);
+      snapshotErrors.push({ symbol, reason: error.message, code: 'snapshot_request_failed' });
+      return { symbol, valid: false };
+    }
+    try {
       const envelope = buildDepthRecordEnvelope({
         symbol,
         data: { s: symbol, lastUpdateId: response.data.lastUpdateId, bids: response.data.bids ?? response.data.b, asks: response.data.asks ?? response.data.a },
@@ -556,97 +636,111 @@ async function collectCombinedDepthSegment({
         state.ingestSnapshot({ data: envelope.data, receivedAt: response.receivedAt });
       } catch (error) {
         if (error.code !== 'insufficient_depth_levels') throw error;
-        invalidSnapshotSymbols.add(symbol);
+        context.status = 'EXCLUDED';
+        discardUnreconstructableBuffer(context);
         snapshotErrors.push({ symbol, reason: error.message, code: error.code });
-        return {
-          symbol,
-          payload: envelope.data,
-          requestStartedAt: response.requestStartedAt,
-          receivedAt: response.receivedAt,
-          valid: false
-        };
+        return { symbol, valid: false };
       }
-      states.set(symbol, state);
+      context.state = state;
+      context.snapshotId = envelope.data.lastUpdateId;
+      context.snapshotRequestStartedAt = response.requestStartedAt;
+      context.snapshotReceivedAt = response.receivedAt;
+      context.status = 'WAITING_ALIGNMENT';
+      try {
+        processBuffered(context);
+      } catch (error) {
+        failSegment(error.message, context);
+      }
       return {
         symbol,
         payload: envelope.data,
         requestStartedAt: response.requestStartedAt,
         receivedAt: response.receivedAt,
-        exchangeObservedAt: response.serverTime
+        exchangeObservedAt: response.serverTime,
+        valid: true
       };
-    });
-    depthSnapshots.push(...snapshotRows.filter(row => row.valid !== false));
-    const universeSnapshot = await onUniverseSnapshot({ depthSnapshots, snapshotErrors, boundaryAt, segmentId });
-    snapshotReady = true;
-    for (const envelope of buffered) {
-      if (invalidSnapshotSymbols.has(envelope.symbol)) continue;
-      if (!states.has(envelope.symbol)) throw new Error(`${envelope.symbol}:snapshot_missing`);
-      states.get(envelope.symbol).ingestDiff({ data: envelope.data, receivedAt: envelope.receivedAt });
+    } catch (error) {
+      snapshotErrors.push({ symbol, reason: error.message, code: error.code ?? 'snapshot_failure' });
+      failSegment(error.message, context);
+      return { symbol, valid: false };
     }
-    buffered.length = 0;
+  };
+  const buildResult = universeSnapshot => {
+    const perSymbol = Object.fromEntries([...contexts.values()].map(context => [context.symbol, {
+      symbol: context.symbol,
+      snapshotId: context.snapshotId,
+      snapshotRequestStartedAt: context.snapshotRequestStartedAt,
+      snapshotReceivedAt: context.snapshotReceivedAt,
+      ...(context.state?.summary ?? { updates: 0, maxDepthLevel: 0, lastUpdateId: null }),
+      status: context.status,
+      aligned: context.aligned,
+      bufferedEventsRemaining: context.buffer.length,
+      staleBufferedDropped: context.staleBufferedDropped,
+      alignmentLatencyMs: context.alignmentLatencyMs,
+      alignmentFailure: context.alignmentFailure
+    }]));
+    const alignmentLatencyMs = Object.fromEntries([...contexts.values()]
+      .filter(context => context.alignmentLatencyMs != null)
+      .map(context => [context.symbol, context.alignmentLatencyMs]));
+    const alignmentFailures = Object.fromEntries([...contexts.values()]
+      .filter(context => context.alignmentFailure)
+      .map(context => [context.symbol, context.alignmentFailure]));
+    const status = failure || terminalResult?.status === 'INVALID' ? 'INVALID' : 'VALID';
+    return {
+      segmentId,
+      boundaryAt,
+      segmentDeadline,
+      symbols: candidateSymbols,
+      status,
+      reason: failure ?? terminalResult?.reason ?? 'utc_4h_rotation',
+      universeSnapshot,
+      snapshots: depthSnapshots.length,
+      snapshotErrors: snapshotErrors.sort((left, right) => left.symbol.localeCompare(right.symbol)),
+      staleBufferedDropped,
+      bufferedEventsDiscarded,
+      bufferedEventsPeak,
+      alignmentLatencyMs,
+      alignmentFailures,
+      perSymbol
+    };
+  };
+  try {
+    socket = await openDepthSocket({ WebSocketImpl, url: combinedDepthUrl(candidateSymbols), onMessage, onError, onClose });
+    if (settled) throw new Error(failure ?? 'combined_socket_closed_before_snapshot');
+    const snapshotRows = await Promise.all(candidateSymbols.map(processSnapshot));
+    depthSnapshots.push(...snapshotRows.filter(row => row.valid !== false));
+    let universeSnapshot = null;
+    try {
+      universeSnapshot = await onUniverseSnapshot({ depthSnapshots, snapshotErrors, boundaryAt, segmentId });
+    } catch (error) {
+      failSegment(error.message);
+    }
+    if (settled) {
+      return buildResult(universeSnapshot);
+    }
     const remaining = Math.max(1, segmentDeadline - Date.now());
     const timer = setTimeout(() => {
-      const missing = candidateSymbols.filter(symbol => !invalidSnapshotSymbols.has(symbol) && (states.get(symbol)?.summary.updates ?? 0) < 1);
-      const validSymbolCount = candidateSymbols.length - invalidSnapshotSymbols.size;
+      const unaligned = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && !context.aligned);
+      for (const context of unaligned) context.alignmentFailure ??= `${context.symbol}:snapshot_alignment`;
+      const missing = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && context.aligned && (context.state?.summary.updates ?? 0) < 1);
+      const validSymbolCount = [...contexts.values()].filter(context => context.status !== 'EXCLUDED').length;
       finish({
-        status: validSymbolCount > 0 && !missing.length ? 'VALID' : 'INVALID',
-        reason: validSymbolCount === 0
-          ? `no_valid_depth_snapshots:${[...invalidSnapshotSymbols].sort().join(',')}`
-          : (missing.length ? `no_depth_updates:${missing.join(',')}` : 'utc_4h_rotation')
+        status: validSymbolCount > 0 && !unaligned.length && !missing.length ? 'VALID' : 'INVALID',
+        reason: unaligned.length
+          ? `snapshot_alignment:${unaligned.map(context => context.symbol).sort().join(',')}`
+          : (validSymbolCount === 0
+            ? 'no_valid_depth_snapshots'
+            : (missing.length ? `no_depth_updates:${missing.map(context => context.symbol).sort().join(',')}` : 'utc_4h_rotation'))
       });
     }, remaining);
     await outcome;
     clearTimeout(timer);
-    const perSymbol = Object.fromEntries(candidateSymbols.map(symbol => {
-      const state = states.get(symbol);
-      return [symbol, {
-        symbol,
-        ...(state?.summary ?? {
-          updates: 0,
-          maxDepthLevel: 0,
-          lastUpdateId: null,
-          status: invalidSnapshotSymbols.has(symbol) ? 'EXCLUDED' : 'INVALID',
-          reason: snapshotErrors.find(error => error.symbol === symbol)?.reason ?? failure
-        })
-      }];
-    }));
-    return {
-      segmentId,
-      boundaryAt,
-      segmentDeadline,
-      symbols: candidateSymbols,
-      status: failure ? 'INVALID' : 'VALID',
-      reason: failure ?? 'utc_4h_rotation',
-      universeSnapshot,
-      snapshots: depthSnapshots.length,
-      snapshotErrors: snapshotErrors.sort((left, right) => left.symbol.localeCompare(right.symbol)),
-      perSymbol
-    };
+    return buildResult(universeSnapshot);
   } catch (error) {
     failure = failure ?? error.message;
     finish({ status: 'INVALID', reason: failure });
     await outcome;
-    return {
-      segmentId,
-      boundaryAt,
-      segmentDeadline,
-      symbols: candidateSymbols,
-      status: 'INVALID',
-      reason: failure,
-      universeSnapshot: null,
-      snapshots: depthSnapshots.length,
-      snapshotErrors: snapshotErrors.sort((left, right) => left.symbol.localeCompare(right.symbol)),
-      perSymbol: Object.fromEntries(candidateSymbols.map(symbol => [symbol, {
-        symbol,
-        ...(states.get(symbol)?.summary ?? {
-          updates: 0,
-          maxDepthLevel: 0,
-          lastUpdateId: null,
-          status: invalidSnapshotSymbols.has(symbol) ? 'EXCLUDED' : 'INVALID',
-          reason: snapshotErrors.find(error => error.symbol === symbol)?.reason ?? failure
-        })
-      }]))
-    };
+    return buildResult(null);
   }
 }
 
@@ -900,20 +994,6 @@ export function selectHyExp0020CaptureCandidates({ exchangeInfo, tickers, observ
   };
 }
 
-async function mapWithConcurrency(items, limit, worker) {
-  const output = new Array(items.length);
-  let nextIndex = 0;
-  const workers = Array.from({ length: Math.min(Math.max(1, limit), items.length) }, async () => {
-    while (true) {
-      const index = nextIndex++;
-      if (index >= items.length) return;
-      output[index] = await worker(items[index], index);
-    }
-  });
-  await Promise.all(workers);
-  return output;
-}
-
 function combinedDepthUrl(symbols) {
   const streams = symbols.map(symbol => `${symbol.toLowerCase()}@depth@100ms`).join('/');
   return `wss://fstream.binance.com/stream?streams=${streams}`;
@@ -1089,6 +1169,12 @@ function captureQualityDiagnostics({ segments, exchangeInfoSnapshots, universeSn
   }
   const reasons = segments.map(segment => String(segment.reason ?? ''));
   const snapshotErrors = segments.flatMap(segment => segment.snapshotErrors ?? []);
+  const alignmentLatencyMs = {};
+  for (const segment of segments) {
+    for (const [symbol, latency] of Object.entries(segment.alignmentLatencyMs ?? {})) {
+      alignmentLatencyMs[symbol] = Math.max(alignmentLatencyMs[symbol] ?? 0, Number(latency));
+    }
+  }
   const countReason = (...needles) => reasons.filter(reason => needles.some(needle => reason.includes(needle))).length;
   return {
     symbolsCaptured: [...symbols].sort(),
@@ -1101,6 +1187,10 @@ function captureQualityDiagnostics({ segments, exchangeInfoSnapshots, universeSn
     snapshotExclusions: snapshotErrors.length,
     snapshotRequestFailures: snapshotErrors.filter(error => error.code === 'snapshot_request_failed').length,
     insufficientDepthSymbols: snapshotErrors.filter(error => error.code === 'insufficient_depth_levels').length,
+    staleBufferedDropped: segments.reduce((total, segment) => total + Number(segment.staleBufferedDropped ?? 0), 0),
+    bufferedEventsDiscarded: segments.reduce((total, segment) => total + Number(segment.bufferedEventsDiscarded ?? 0), 0),
+    bufferedEventsPeak: Math.max(0, ...segments.map(segment => Number(segment.bufferedEventsPeak ?? 0))),
+    alignmentLatencyMs,
     exchangeInfoSnapshots,
     universeSnapshots
   };

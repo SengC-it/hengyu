@@ -93,6 +93,117 @@ class FakeWebSocket {
   }
 }
 
+class ScenarioWebSocket {
+  static config = null;
+  static connections = 0;
+
+  constructor() {
+    this.listeners = new Map();
+    this.closed = false;
+    const config = ScenarioWebSocket.config;
+    const connectionNumber = ++ScenarioWebSocket.connections;
+    setImmediate(() => {
+      if (this.closed) return;
+      this.emit('open', {});
+      const events = typeof config.events === 'function'
+        ? config.events({ connectionNumber })
+        : config.events;
+      for (const event of events ?? []) {
+        setTimeout(() => {
+          if (this.closed) return;
+          const at = Date.now();
+          config.timeline.emissions.push({ symbol: event.symbol, U: event.U, u: event.u, at });
+          this.emit('message', { data: JSON.stringify({
+            e: 'depthUpdate',
+            E: at,
+            T: at,
+            s: event.symbol,
+            U: event.U,
+            u: event.u,
+            pu: event.pu ?? null,
+            b: event.bids ?? [['1000', '2']],
+            a: event.asks ?? []
+          }) });
+        }, event.atMs);
+      }
+    });
+  }
+
+  addEventListener(name, handler) {
+    const handlers = this.listeners.get(name) ?? [];
+    handlers.push(handler);
+    this.listeners.set(name, handlers);
+  }
+
+  emit(name, event) {
+    for (const handler of this.listeners.get(name) ?? []) handler(event);
+  }
+
+  close() {
+    if (this.closed) return;
+    this.closed = true;
+    this.emit('close', {});
+  }
+}
+
+async function runCombinedScenario({
+  symbols,
+  snapshotIds = {},
+  snapshotDelays = {},
+  events,
+  maxRuntimeMs = 500
+}) {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0020-alignment-'));
+  const levels = book();
+  const timeline = { emissions: [], snapshots: {} };
+  const exchangeSymbols = symbols.map(symbol => ({
+    symbol,
+    onboardDate: Date.parse('2023-01-01T00:00:00.000Z'),
+    status: 'TRADING',
+    contractType: 'PERPETUAL',
+    baseAsset: symbol.replace(/USDT$/, ''),
+    quoteAsset: 'USDT'
+  }));
+  const fetchImpl = async input => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith('/depth')) {
+      const symbol = url.searchParams.get('symbol');
+      await new Promise(resolve => setTimeout(resolve, snapshotDelays[symbol] ?? 0));
+      return response(
+        { lastUpdateId: snapshotIds[symbol] ?? 100, bids: levels.bids, asks: levels.asks },
+        () => { timeline.snapshots[symbol] = Date.now(); }
+      );
+    }
+    if (url.pathname.endsWith('/fundingRate')) {
+      return response([{ symbol: url.searchParams.get('symbol'), fundingRate: '0.0001', fundingTime: Date.now() }]);
+    }
+    if (url.pathname.endsWith('/exchangeInfo')) return response({ symbols: exchangeSymbols });
+    if (url.pathname.endsWith('/ticker/24hr')) {
+      return response(symbols.map(symbol => ({ symbol, quoteVolume: '10000000' })));
+    }
+    throw new Error(`unexpected scenario endpoint: ${url}`);
+  };
+  ScenarioWebSocket.connections = 0;
+  ScenarioWebSocket.config = { events, timeline };
+  try {
+    const result = await runHyExp0020Capture({
+      projectRoot,
+      requestedMode: 'ENGINEERING_DRY_RUN',
+      now: BEFORE_FINAL,
+      maxRuntimeMs,
+      fundingPollMs: 10_000,
+      exchangeInfoPollMs: 10_000,
+      reconnectBackoffMs: 1,
+      universePolicy: { ...DEFAULT_UNIVERSE_POLICY, maxSymbols: symbols.length, minTierBQuoteVolumeUsdt: 0 },
+      fetchImpl,
+      WebSocketImpl: ScenarioWebSocket
+    });
+    return { result, timeline };
+  } finally {
+    ScenarioWebSocket.config = null;
+  }
+}
+
 test('capture mode is forced to engineering dry-run before final OOS and rejects final mode', () => {
   assert.equal(resolveHyExp0020CaptureMode({ requestedMode: 'ENGINEERING_DRY_RUN', now: BEFORE_FINAL }), 'ENGINEERING_DRY_RUN');
   assert.throws(
@@ -275,7 +386,7 @@ test('engineering dry-run collector captures public snapshot/diff/funding/exchan
     projectRoot,
     requestedMode: 'ENGINEERING_DRY_RUN',
     now: BEFORE_FINAL,
-    maxRuntimeMs: 200,
+    maxRuntimeMs: 2_000,
     fundingPollMs: 10_000,
     exchangeInfoPollMs: 10_000,
     reconnectBackoffMs: 1,
@@ -309,4 +420,86 @@ test('engineering dry-run collector captures public snapshot/diff/funding/exchan
   assert.ok(result.manifest.files.some(file => file.path === 'funding.ndjson'));
   assert.ok(result.directory.includes(path.join('data', 'raw', 'engineering-dry-run', 'HY-EXP-0020')));
   assert.equal(fs.existsSync(path.join(result.directory, 'manifest.sha256')), true);
+});
+
+test('combined depth alignment drops only stale per-symbol buffered events before the covering event', async () => {
+  const { result } = await runCombinedScenario({
+    symbols: ['BTCUSDT'],
+    snapshotIds: { BTCUSDT: 100 },
+    events: [
+      { symbol: 'BTCUSDT', atMs: 1, U: 80, u: 90 },
+      { symbol: 'BTCUSDT', atMs: 3, U: 91, u: 99 },
+      { symbol: 'BTCUSDT', atMs: 60, U: 99, u: 101 },
+      { symbol: 'BTCUSDT', atMs: 80, U: 102, u: 102, pu: 101 }
+    ],
+    maxRuntimeMs: 300
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(segment.status, 'VALID');
+  assert.equal(segment.perSymbol.BTCUSDT.status, 'ALIGNED');
+  assert.equal(segment.perSymbol.BTCUSDT.alignmentFailure, null);
+  assert.equal(segment.perSymbol.BTCUSDT.bufferedEventsRemaining, 0);
+  assert.equal(segment.perSymbol.BTCUSDT.staleBufferedDropped, 2);
+  assert.equal(segment.perSymbol.BTCUSDT.updates, 2);
+  assert.equal(result.manifest.diagnostics.snapshotAlignmentFailures, 0);
+});
+
+test('combined depth snapshots align independently while another symbol remains buffered', async () => {
+  const { result, timeline } = await runCombinedScenario({
+    symbols: ['BTCUSDT', 'ETHUSDT'],
+    snapshotIds: { BTCUSDT: 100, ETHUSDT: 100 },
+    snapshotDelays: { BTCUSDT: 10, ETHUSDT: 500 },
+    events: [
+      { symbol: 'BTCUSDT', atMs: 30, U: 99, u: 101 },
+      { symbol: 'ETHUSDT', atMs: 40, U: 99, u: 101 },
+      { symbol: 'BTCUSDT', atMs: 100, U: 102, u: 102, pu: 101 },
+      { symbol: 'ETHUSDT', atMs: 120, U: 102, u: 102, pu: 101 }
+    ],
+    maxRuntimeMs: 1_700
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(segment.status, 'VALID');
+  assert.equal(segment.perSymbol.BTCUSDT.status, 'ALIGNED');
+  assert.equal(segment.perSymbol.ETHUSDT.status, 'ALIGNED');
+  assert.equal(segment.perSymbol.BTCUSDT.updates, 2);
+  assert.equal(segment.perSymbol.ETHUSDT.updates, 2);
+  assert.equal(segment.perSymbol.BTCUSDT.bufferedEventsRemaining, 0);
+  assert.equal(segment.perSymbol.ETHUSDT.bufferedEventsRemaining, 0);
+  assert.ok(result.manifest.diagnostics.alignmentLatencyMs.BTCUSDT < result.manifest.diagnostics.alignmentLatencyMs.ETHUSDT);
+  assert.ok(result.manifest.diagnostics.bufferedEventsPeak >= 2);
+  assert.ok(segment.perSymbol.BTCUSDT.alignmentLatencyMs < segment.perSymbol.ETHUSDT.alignmentLatencyMs);
+  assert.ok(timeline.emissions.find(event => event.symbol === 'BTCUSDT' && event.u === 102).at < timeline.snapshots.ETHUSDT);
+  assert.ok(result.manifest.diagnostics.snapshotAlignmentFailures === 0);
+});
+
+test('combined depth alignment fails closed when no buffered event covers the snapshot update id', async () => {
+  const { result } = await runCombinedScenario({
+    symbols: ['BTCUSDT'],
+    snapshotIds: { BTCUSDT: 100 },
+    events: [{ symbol: 'BTCUSDT', atMs: 1, U: 80, u: 90 }],
+    maxRuntimeMs: 250
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(result.manifest.status, 'DATA_FAIL');
+  assert.equal(segment.status, 'INVALID');
+  assert.match(segment.reason, /snapshot_alignment/);
+  assert.match(segment.perSymbol.BTCUSDT.alignmentFailure, /snapshot_alignment/);
+  assert.ok(result.manifest.diagnostics.snapshotAlignmentFailures >= 1);
+});
+
+test('combined depth alignment fails closed on a post-alignment pu chain interruption', async () => {
+  const { result } = await runCombinedScenario({
+    symbols: ['BTCUSDT'],
+    snapshotIds: { BTCUSDT: 100 },
+    events: [
+      { symbol: 'BTCUSDT', atMs: 20, U: 99, u: 101 },
+      { symbol: 'BTCUSDT', atMs: 60, U: 103, u: 103, pu: 102 }
+    ],
+    maxRuntimeMs: 250
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(result.manifest.status, 'DATA_FAIL');
+  assert.equal(segment.status, 'INVALID');
+  assert.match(segment.reason, /sequence_gap/);
+  assert.ok(result.manifest.diagnostics.sequenceGaps >= 1);
 });

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0020",
+  "runId": "engineering_dry_run-20260821171748528-289eb7cd",
+  "runWindow": {
+    "mode": "ENGINEERING_DRY_RUN",
+    "startedAt": "2026-08-21T17:17:48.528Z",
+    "finishedAt": "2026-08-21T17:18:01.336Z",
+    "maxSymbolsPolicy": 3
+  },
+  "symbolsCaptured": [
+    "BTCUSDC",
+    "BTCUSDT",
+    "ETHUSDT"
+  ],
+  "validSegments": 0,
+  "invalidSegments": 1,
+  "sequenceGaps": 0,
+  "snapshotAlignmentFailures": 1,
+  "staleBufferedDropped": 43,
+  "bufferedEventsPeak": 26,
+  "alignmentLatencyMs": {
+    "BTCUSDC": 1067,
+    "ETHUSDT": 1684
+  },
+  "exchangeInfoSnapshots": 1,
+  "universeSnapshots": 1,
+  "rawFileSha256": [
+    {
+      "path": "depth.ndjson",
+      "sha256": "807db005f7473870eb56e35665a1629a3eb02d3c9c0f8c450f601cd32460a303"
+    },
+    {
+      "path": "depth-snapshots.ndjson",
+      "sha256": "36ede7b0a035ba6c61503693899bb8b8b60d4f34c73994f5175407fcb928268c"
+    },
+    {
+      "path": "funding.ndjson",
+      "sha256": "34b701a212272d0746c1dbb9728acca265f7d13a777a13201e78de456d925bca"
+    },
+    {
+      "path": "exchange-info.ndjson",
+      "sha256": "9076e4f5daa478d63cdc429217f3d67f11bddbe513ce00f7e34beb12000e6fe4"
+    },
+    {
+      "path": "ticker.ndjson",
+      "sha256": "0919d146ecc0956bf291e5c301fcf1b1b3a413ddd7aa35adc507fe1751a6e5db"
+    },
+    {
+      "path": "universe.ndjson",
+      "sha256": "ca6466306ae9767d408b7285ab4f66c420cf29c28c2b0279b7c06e52c3ae80ff"
+    },
+    {
+      "path": "universe-audit.ndjson",
+      "sha256": "e410a496794fa0b05d17beb5200ba1ff52695bd7500f587958390701513fe282"
+    },
+    {
+      "path": "segments.ndjson",
+      "sha256": "c5d3805980907668c33a1864ba8e91748bee7c2c968ff45d4a5412bcaade81a3"
+    }
+  ],
+  "manifestSha256": "64e8316e685c8af20d2c5621abb821b7d235790087ab0fdfb11c2a2db6cd1c7b",
+  "status": "DATA_FAIL",
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "finalOosEligible": false,
+  "authorization": "PAPER_ONLY",
+  "rawDataPath": "data/raw/engineering-dry-run/HY-EXP-0020/engineering_dry_run-20260821171748528-289eb7cd",
+  "notes": [
+    "Dynamic candidate selection used point-in-time exchangeInfo and ticker; no fixed symbol list was supplied.",
+    "BTCUSDT had no buffered event covering the REST snapshot lastUpdateId and was fail-closed as snapshot_alignment.",
+    "This audit is engineering-only and cannot unlock Development or Final OOS."
+  ]
+}
