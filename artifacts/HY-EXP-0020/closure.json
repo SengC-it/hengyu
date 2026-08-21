@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0020_CLOSURE",
+  "experimentId": "HY-EXP-0020",
+  "sourceCommit": "7847dac70e85a15f11836f219c14a58f738c0879",
+  "status": "DATA_FAIL_FROZEN",
+  "reason": "HISTORICAL_PIT_EXCHANGE_INFO_UNAVAILABLE_OR_NOT_PROVABLY_COMPLETE",
+  "historicalExchangeInfo": "NOT_QUALIFIED",
+  "canEverSatisfyFrozen0020WithoutChangingSpec": false,
+  "decision": "CLOSE_HY_EXP_0020_DATA_FAIL",
+  "safety": {
+    "paperOnly": true,
+    "tardisL2Purchase": false,
+    "developmentRun": false,
+    "finalOosRead": false,
+    "pnlComputed": false,
+    "preregistrationModified": false,
+    "specificationModified": false,
+    "currentExchangeInfoBackfillUsed": false,
+    "announcementStitchingUsed": false,
+    "mergePerformed": false,
+    "productionDeployed": false
+  },
+  "closureStatements": [
+    "No Tardis L2 purchase was made.",
+    "Development was not run.",
+    "Final OOS was not read.",
+    "No PnL, result.json or trades.jsonl was created.",
+    "HY-EXP-0020 preregistration and frozen specification were not modified.",
+    "HY-EXP-0020 cannot be rescued by lowering or substituting its frozen metadata requirement.",
+    "Any next experiment must use a new experiment ID."
+  ],
+  "nextExperimentRule": "A new experiment ID is required for any changed data requirement or metadata fallback."
+}

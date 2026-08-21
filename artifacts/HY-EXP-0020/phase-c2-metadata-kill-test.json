@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0020_PHASE_C2_HISTORICAL_PIT_METADATA_KILL_TEST",
+  "experimentId": "HY-EXP-0020",
+  "sourceCommit": "7847dac70e85a15f11836f219c14a58f738c0879",
+  "auditAtUtc": "2026-08-21T23:48:09.020Z",
+  "mode": "HISTORICAL_PIT_METADATA_KILL_TEST_ONLY",
+  "frozenWindow": {
+    "start": "2024-01-01T00:00:00.000Z",
+    "endExclusive": "2026-07-01T00:00:00.000Z",
+    "finalOosStart": "2026-09-01T00:00:00.000Z",
+    "finalOosEndExclusive": "2027-03-01T00:00:00.000Z",
+    "finalOosRead": false
+  },
+  "requiredFields": [
+    "listingOnboardDate",
+    "status",
+    "contractType",
+    "quoteAsset",
+    "tickSize",
+    "stepSize",
+    "minQty",
+    "minNotional"
+  ],
+  "qualificationRule": {
+    "everyRequiredSymbol": true,
+    "everyHistoricalDecisionTime": true,
+    "completeTimestampedChangeHistory": true,
+    "allRequiredFieldsPresentAtEachDecisionTime": true,
+    "nativeHistoricalSourceRequired": true,
+    "currentExchangeInfoBackfillAllowed": false,
+    "announcementStitchingAllowed": false,
+    "bestEffortHistoryAllowed": false,
+    "futureDataBackfillAllowed": false
+  },
+  "historicalExchangeInfo": "NOT_QUALIFIED",
+  "sourcesAudited": [
+    {
+      "sourceId": "BINANCE_OFFICIAL_USDM_API_ARCHIVE_CHANGELOG",
+      "vendor": "Binance",
+      "product": "USD-M Futures exchangeInfo API, official documentation, announcements/changelogs and Binance Data Vision",
+      "officialUrls": [
+        "https://developers.binance.com/en/docs/catalog",
+        "https://developers.binance.com/zh-CN/docs/products/derivatives-trading-usds-futures/common-definition",
+        "https://github.com/binance/binance-public-data",
+        "https://data.binance.vision/data/futures/um/monthly/"
+      ],
+      "observedEvidence": [
+        "The official exchangeInfo documentation defines the current symbol filters and contract fields, but does not expose a historical decision-time query or a complete timestamped filter-change ledger.",
+        "The official Binance historical futures order-book download documentation is market-data history, not historical exchangeInfo; its documented depth data has gaps and the snapshot product is limited, so it cannot establish the required metadata history.",
+        "Announcements and changelogs provide individual notices, but no evidence was found that they form a complete, lossless, field-level effective-time history for every USD-M perpetual in the frozen window."
+      ],
+      "fieldCoverage": {
+        "listingOnboardDate": "current_or_event_specific_only",
+        "status": "current_or_event_specific_only",
+        "contractType": "current_schema_only",
+        "quoteAsset": "current_schema_only",
+        "tickSize": "current_schema_or_event_specific_only",
+        "stepSize": "current_schema_only",
+        "minQty": "current_schema_only",
+        "minNotional": "current_schema_or_event_specific_only"
+      },
+      "historical": false,
+      "completeTimestampedChanges": false,
+      "completenessGuarantee": false,
+      "effectiveTimestampAvailable": false,
+      "qualification": "NOT_QUALIFIED",
+      "whyNotQualified": [
+        "No official historical exchangeInfo archive or per-symbol effective-time snapshot series was identified.",
+        "Current exchangeInfo cannot answer what rules were in force at each historical decisionTime.",
+        "Announcement/changelog dates are not a proven complete filter-effective history."
+      ]
+    },
+    {
+      "sourceId": "TARDIS_INSTRUMENTS_METADATA",
+      "vendor": "Tardis.dev",
+      "product": "Instruments Metadata API",
+      "officialUrls": [
+        "https://docs.tardis.dev/api/instruments-metadata-api",
+        "https://docs.tardis.dev/historical-data-details/binance-futures",
+        "https://docs.tardis.dev/api/http"
+      ],
+      "observedEvidence": [
+        "The API documents listing, active, availableSince/availableTo, priceIncrement, amountIncrement, minTradeAmount, contractType and normalized quote currency metadata.",
+        "The documented changes array is accurate and complete only for contractMultiplier; priceIncrement and amountIncrement changes are explicitly best effort and not always complete.",
+        "active is current status, and availableTo may be updated after the fact and lag the actual exchange delisting. The documented metadata does not provide a complete historical status/filter record for the frozen decision-time requirement.",
+        "minNotional is not documented as a complete historical Binance instrument field in this API."
+      ],
+      "fieldCoverage": {
+        "listingOnboardDate": "listing_if_known; completeness_not_guaranteed",
+        "status": "current_active_only; historical_changes_not_complete",
+        "contractType": "documented_metadata; complete_PIT_history_not_guaranteed",
+        "quoteAsset": "normalized_quote_currency; complete_PIT_history_not_guaranteed",
+        "tickSize": "priceIncrement; changes_best_effort",
+        "stepSize": "amountIncrement; changes_best_effort",
+        "minQty": "minTradeAmount; complete_PIT_history_not_guaranteed",
+        "minNotional": "not_documented_as_complete_historical_field"
+      },
+      "historical": "partial_metadata_history",
+      "completeTimestampedChanges": false,
+      "completenessGuarantee": false,
+      "effectiveTimestampAvailable": "partial_change_timestamps_without_required_completeness",
+      "qualification": "NOT_QUALIFIED",
+      "whyNotQualified": [
+        "The vendor's own documentation excludes the required completeness guarantee for price and amount increment changes.",
+        "The API does not prove complete historical status and minNotional changes at every decisionTime.",
+        "A Tardis L2 qualification, if later obtained, would not imply metadata qualification."
+      ]
+    },
+    {
+      "sourceId": "KAIKO_REFERENCE_AND_DERIVATIVES_METADATA",
+      "vendor": "Kaiko",
+      "product": "Exchange trading-pair reference data and derivatives contract details",
+      "officialUrls": [
+        "https://docs.kaiko.com/rest-api/data-feeds/reference-data/basic-tier/exchange-trading-pair-codes-instruments",
+        "https://docs.kaiko.com/rest-api/data-feeds/reference-data/advanced-tier/derivatives-contract-details",
+        "https://docs.kaiko.com/explore-our-data/data-dictionary/data-feeds/reference-data"
+      ],
+      "observedEvidence": [
+        "The derivatives contract endpoint documents base, quote, contract size, listing_timestamp, expiry, strike and underlying index.",
+        "The reference-data documentation describes historical derivatives contract information, but does not document a Binance USD-M per-decisionTime history of exchange status or order filters.",
+        "No documented fields or completeness guarantee were found for tickSize, stepSize, minQty, minNotional, or timestamped changes to those rules."
+      ],
+      "fieldCoverage": {
+        "listingOnboardDate": "listing_timestamp_documented",
+        "status": "not_documented_as_historical_change_field",
+        "contractType": "instrument_class_or_contract_metadata",
+        "quoteAsset": "quote_documented",
+        "tickSize": "not_documented",
+        "stepSize": "not_documented",
+        "minQty": "not_documented",
+        "minNotional": "not_documented"
+      },
+      "historical": "contract_reference_history_documented",
+      "completeTimestampedChanges": false,
+      "completenessGuarantee": false,
+      "effectiveTimestampAvailable": false,
+      "qualification": "NOT_QUALIFIED",
+      "whyNotQualified": [
+        "Contract listing information is not equivalent to a complete point-in-time exchangeInfo rule history.",
+        "The required Binance filter fields and their effective timestamps are not documented as available and complete."
+      ]
+    },
+    {
+      "sourceId": "AMBERDATA_FUTURES_EXCHANGES_REFERENCE",
+      "vendor": "Amberdata",
+      "product": "Futures exchanges reference API",
+      "officialUrls": [
+        "https://docs.amberdata.io/http/market/futures-exchanges-reference",
+        "https://docs.amberdata.io/asset-and-pair-data"
+      ],
+      "observedEvidence": [
+        "The official reference response documents exchangeEnabled, price and volume limits, precision, contract terms and listingTimestamp; the example may return listingTimestamp null.",
+        "The endpoint supports includeInactive and pagination, but the documentation does not provide a versioned per-decisionTime snapshot stream or a complete timestamped change history for Binance USD-M rules.",
+        "The documented response does not establish exact tickSize/stepSize/minQty/minNotional history, historical status transitions, or an all-field completeness guarantee."
+      ],
+      "fieldCoverage": {
+        "listingOnboardDate": "listingTimestamp_documented_but_not_complete_PIT_history",
+        "status": "exchangeEnabled_current_or_snapshot_value_only",
+        "contractType": "contractPeriod_documented",
+        "quoteAsset": "quoteSymbol_documented",
+        "tickSize": "precisionPrice_not_proven_native_filter_history",
+        "stepSize": "precisionVolume_not_proven_native_filter_history",
+        "minQty": "limitsVolumeMin_not_proven_complete_PIT_history",
+        "minNotional": "limitsCostMin_may_be_null_and_not_proven_complete_PIT_history"
+      },
+      "historical": "reference_metadata_only",
+      "completeTimestampedChanges": false,
+      "completenessGuarantee": false,
+      "effectiveTimestampAvailable": false,
+      "qualification": "NOT_QUALIFIED",
+      "whyNotQualified": [
+        "Current/reference instrument metadata is not a historical exchangeInfo event log.",
+        "The required field-level effective-time completeness guarantee is absent."
+      ]
+    },
+    {
+      "sourceId": "OTHER_PUBLIC_SOURCES",
+      "vendor": "Vendor-neutral search scope",
+      "product": "Public exchange/reference-data candidates beyond the named sources",
+      "officialUrls": [],
+      "observedEvidence": [
+        "No additional public source was identified in the audit that explicitly guarantees all eight frozen fields, complete Binance USD-M historical changes from 2024-01-01 through 2026-07-01, and exact effective timestamps at every decisionTime.",
+        "No unverified or marketing-only source is promoted to qualified status."
+      ],
+      "fieldCoverage": "not_established",
+      "historical": "not_established",
+      "completeTimestampedChanges": false,
+      "completenessGuarantee": false,
+      "effectiveTimestampAvailable": false,
+      "qualification": "NOT_QUALIFIED",
+      "whyNotQualified": [
+        "No auditable source contract satisfying the frozen requirement was found."
+      ]
+    }
+  ],
+  "fieldCoverage": {
+    "listingOnboardDate": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "No source proves complete per-symbol listing/onboard history and exact validity at every decisionTime."
+    },
+    "status": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "No source proves complete historical status transitions with effective timestamps."
+    },
+    "contractType": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "Contract type is available as current/reference metadata, not as a complete PIT change history."
+    },
+    "quoteAsset": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "Quote asset is documented by several reference APIs, but no source proves a complete PIT history for every symbol."
+    },
+    "tickSize": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "Tardis explicitly marks non-contractMultiplier increment changes best effort; other sources expose current precision or omit the field."
+    },
+    "stepSize": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "No audited source provides complete, timestamped Binance USD-M step-size history."
+    },
+    "minQty": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "No audited source provides complete, timestamped Binance USD-M minimum-quantity history."
+    },
+    "minNotional": {
+      "required": true,
+      "qualifiedSource": null,
+      "blocker": "No audited source provides complete, timestamped Binance USD-M minimum-notional history."
+    }
+  },
+  "completenessGuarantee": {
+    "required": true,
+    "qualifiedSource": null,
+    "allEightFieldsGuaranteed": false,
+    "completeSymbolChangeHistoryGuaranteed": false,
+    "completeEffectiveTimeHistoryGuaranteed": false,
+    "sources": {
+      "BINANCE_OFFICIAL_USDM_API_ARCHIVE_CHANGELOG": false,
+      "TARDIS_INSTRUMENTS_METADATA": false,
+      "KAIKO_REFERENCE_AND_DERIVATIVES_METADATA": false,
+      "AMBERDATA_FUTURES_EXCHANGES_REFERENCE": false,
+      "OTHER_PUBLIC_SOURCES": false
+    },
+    "announcementStitchingSufficient": false
+  },
+  "effectiveTimestampAvailable": {
+    "required": true,
+    "allEightFieldsAtEveryDecisionTime": false,
+    "sources": {
+      "BINANCE_OFFICIAL_USDM_API_ARCHIVE_CHANGELOG": false,
+      "TARDIS_INSTRUMENTS_METADATA": false,
+      "KAIKO_REFERENCE_AND_DERIVATIVES_METADATA": false,
+      "AMBERDATA_FUTURES_EXCHANGES_REFERENCE": false,
+      "OTHER_PUBLIC_SOURCES": false
+    },
+    "announcementDatesAreNotFilterEffectiveHistory": true
+  },
+  "remainingUnknowns": [
+    "Complete historical status transitions for every Binance USD-M perpetual and their exact effective timestamps.",
+    "Complete tickSize and stepSize changes with native rule values and exact effective timestamps.",
+    "Complete minQty and minNotional changes with exact effective timestamps.",
+    "A lossless symbol listing/delisting inventory for the whole frozen window, including symbols no longer present in current exchangeInfo.",
+    "A source-level completeness guarantee covering all required fields, all symbols and all changes rather than best effort or announcement-derived inference.",
+    "Immutable licensed exports, acquisition provenance and hashes for any source that might later be considered for Development."
+  ],
+  "decision": "CLOSE_HY_EXP_0020_DATA_FAIL",
+  "canEverSatisfyFrozen0020WithoutChangingSpec": false,
+  "recommendedDecision": "CLOSE_HY_EXP_0020_DATA_FAIL",
+  "safety": {
+    "paperOnly": true,
+    "dataPurchased": false,
+    "tardisL2Purchased": false,
+    "developmentRun": false,
+    "backtestRun": false,
+    "finalOosRead": false,
+    "pnlComputed": false,
+    "currentExchangeInfoBackfillUsed": false,
+    "announcementStitchingUsed": false,
+    "preregistrationModified": false,
+    "specificationModified": false,
+    "mergePerformed": false,
+    "productionDeployed": false
+  },
+  "nextExperimentRule": "Any relaxation, substitution or alternative metadata requirement must use a new experiment ID; HY-EXP-0020 remains frozen and closed."
+}
