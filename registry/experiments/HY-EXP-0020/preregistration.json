@@ -1,0 +1,178 @@
+{
+  "experiment_id": "HY-EXP-0020",
+  "title": "Independent calibrated two-sided trend with real historical depth",
+  "declared_date": "2026-08-21",
+  "status": "PREREGISTERED_PENDING_ACCEPTANCE",
+  "evidence_class": "D0_DEVELOPMENT_ONLY",
+  "authorization": "PAPER_ONLY",
+  "live_orders_enabled": false,
+  "independence": {
+    "new_experiment_id": true,
+    "parent_failed_experiment": "HY-EXP-0019",
+    "parameter_rescue": false,
+    "promotion_of_0019": false,
+    "selection_rule": "No 0019 parameter, exit, threshold or result may be changed or relabeled. Any material change to this preregistration requires a new experiment ID and a new preregistration commit."
+  },
+  "data_policy": {
+    "prior_0019_oos_interval": {
+      "start_utc": "2025-07-01T00:00:00.000Z",
+      "end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+      "classification": "DEVELOPMENT_INFORMATION_ONLY",
+      "independent_oos_reuse": false
+    },
+    "development_window": {
+      "start_utc": "2024-01-01T00:00:00.000Z",
+      "end_exclusive_utc": "2026-07-01T00:00:00.000Z",
+      "purpose": "Development information only, including the downgraded 0019 OOS interval; no promotion claim may use it as independent OOS."
+    },
+    "final_oos_window": {
+      "start_utc": "2026-09-01T00:00:00.000Z",
+      "end_exclusive_utc": "2027-03-01T00:00:00.000Z",
+      "fresh_data_required": true,
+      "data_lock_required_after_acceptance": true,
+      "current_commit_contains_final_oos": false
+    },
+    "point_in_time_rule": "Only completed bars, prior labels, prior universe observations and market data received no later than decisionTime may affect a candidate, edge estimate or risk decision.",
+    "leakage_controls": [
+      "Purged forward labels with an embargo at least equal to the label horizon.",
+      "Walk-forward model fitting; no final-OOS labels or thresholds may enter development.",
+      "Separate development and final-OOS manifests and hashes.",
+      "Reject future timestamps, missing receipt times, duplicate events and incomplete market windows."
+    ]
+  },
+  "universe": {
+    "policy": "Point-in-time dynamic universe; reconsider all eligible symbols at each decision boundary.",
+    "required_filters": [
+      "prior rolling quote volume",
+      "listing age",
+      "real historical two-sided order-book depth",
+      "depth freshness and sequence integrity"
+    ],
+    "depth_proxy_allowed": false,
+    "fixed_symbol_list_allowed": false,
+    "minimum_symbol_breadth": 5
+  },
+  "strategy": {
+    "candidate_engine": "Candidate -> Edge Model -> Net Edge Gate -> Portfolio Risk Gate -> Advisory",
+    "candidate_never_decides_trade": true,
+    "regime": {
+      "BULL": "LONG breakout candidate only",
+      "BEAR": "SHORT breakout candidate only",
+      "SIDEWAYS": "NO_TRADE; no candidate may bypass this state"
+    },
+    "entry": {
+      "breakout_distance_role": "Feature only; never an expected edge or direct PnL estimate.",
+      "executable_price": "Decision-time bid/ask/depth execution model; no bar open substitution.",
+      "one_position_per_symbol": true
+    },
+    "exit": {
+      "policy": "A separately preregistered dynamic exit rule must be evaluated causally; no counterfactual exit may enter a promotion metric.",
+      "research_expiry": "Separate from position holding period.",
+      "max_hold": "Not enabled by this preregistration unless explicitly specified in a new experiment ID."
+    }
+  },
+  "edge_model": {
+    "model_id": "HENGYU-EDGE-FORWARD-CALIBRATED-0020",
+    "edge_source": "HENGYU-PROFIT-V3-INDEPENDENT-CALIBRATED-FORWARD",
+    "hypothesis": "An independently specified, calibrated forward-return edge model plus real historical depth may distinguish executable trend candidates from gross breakout moves after costs.",
+    "estimator": "Causal walk-forward conditional forward-return estimator with uncertainty calibration; exact fit is frozen before the development run.",
+    "features": [
+      "regime",
+      "side",
+      "volatility-normalized breakout distance",
+      "prior trend and breadth",
+      "point-in-time volume tier",
+      "real depth and liquidity features"
+    ],
+    "breakout_distance_is_not_edge": true,
+    "required_outputs": [
+      "expectedPriceEdgeBps",
+      "standardErrorBps",
+      "edgeSource",
+      "edgeModelId",
+      "sampleSize",
+      "validationWindow"
+    ],
+    "label_policy": "Forward executable-price return over the frozen horizon, with purging and no labels whose observation window crosses the decision boundary.",
+    "trade_rule": "Only conservative executable edge after fee, spread, slippage, impact, latency, funding and uncertainty clears every frozen Net Edge and portfolio-risk hurdle may become a PAPER advisory."
+  },
+  "costs_and_risk": {
+    "required_costs": [
+      "entry and exit fee",
+      "bid-ask spread",
+      "observed and stressed slippage",
+      "market impact",
+      "scheduler and data latency",
+      "realized holding-period funding",
+      "edge uncertainty penalty"
+    ],
+    "required_trade_fields": [
+      "executablePrice",
+      "fundingPnl",
+      "fundingEvents",
+      "MAE",
+      "MFE",
+      "markToMarketDrawdown",
+      "rejectionReasons"
+    ],
+    "sizing": "Paper-only portfolio risk gate with frozen notional, concentration, event-cluster and drawdown limits; no account or order controls."
+  },
+  "validation": {
+    "method": "Walk-forward with purged labels and an embargo; development and final OOS are separate locked datasets.",
+    "primary_objective": "Net risk-adjusted expectancy and robustness, not win rate.",
+    "counterfactual_policy": "Counterfactual exits and alternative thresholds are exploratory annotations only and cannot satisfy any gate or be reported as OOS performance.",
+    "development_gates": {
+      "min_trade_count": 50,
+      "net_profit_factor_gte": 1.1,
+      "net_return_bps_gt": 0,
+      "mark_to_market_drawdown_bps_gte": -1500,
+      "cvar95_bps_gte": -2000,
+      "positive_month_share_gte": 0.5,
+      "best5_concentration_lte": 0.4,
+      "minimum_symbol_breadth": 5,
+      "minimum_regime_breadth": 2,
+      "real_depth_coverage_fraction_eq": 1,
+      "data_quality_failures_eq": 0
+    },
+    "final_oos_gates": {
+      "min_trade_count": 50,
+      "net_profit_factor_gte": 1.2,
+      "net_return_bps_gt": 0,
+      "mark_to_market_drawdown_bps_gte": -1500,
+      "cvar95_bps_gte": -2000,
+      "positive_month_share_gte": 0.5,
+      "best5_concentration_lte": 0.35,
+      "minimum_symbol_breadth": 5,
+      "minimum_regime_breadth": 2,
+      "real_depth_coverage_fraction_eq": 1,
+      "data_quality_failures_eq": 0
+    },
+    "promotion_gates": {
+      "all_development_gates_pass": true,
+      "all_final_oos_gates_pass": true,
+      "independent_final_oos_manifest_locked": true,
+      "real_depth_not_proxy": true,
+      "forward_paper_validation_required": true,
+      "paper_only": true
+    }
+  },
+  "stop_rules": {
+    "development_failure": "If any development gate fails, STOP. Do not consume, inspect or optimize against the final OOS window.",
+    "data_failure": "If real depth, funding, receipt timestamps or point-in-time integrity is incomplete, STOP and do not estimate promotion PnL.",
+    "threshold_rescue": "Do not lower thresholds, change exits, alter costs or remove breadth/risk gates to create signals.",
+    "acceptance": "This preregistration commit must be accepted before any HY-EXP-0020 data lock, backtest or OOS evaluation."
+  },
+  "execution_authority": {
+    "paper_only": true,
+    "live_orders_enabled": false,
+    "real_money_trading": false,
+    "deployment": false,
+    "promotion": false
+  },
+  "artifacts": {
+    "preregistration_only": true,
+    "backtest_result_present": false,
+    "oos_result_present": false,
+    "data_manifest_present": false
+  }
+}
