@@ -31,6 +31,8 @@ const MAX_COMBINED_SEGMENT_MS = 3 * 60 * 60 * 1_000 + 55 * 60 * 1_000;
 const DEPTH_SNAPSHOT_MIN_INTERVAL_MS = 500;
 const MAX_BUFFERED_EVENTS_PER_SYMBOL = 10_000;
 const MAX_BUFFERED_EVENTS_TOTAL = 100_000;
+const MAX_SNAPSHOT_ATTEMPTS = 5;
+const MAX_SNAPSHOT_ACQUISITION_MS = 10_000;
 
 function finite(name, value, { minimum = -Infinity, exclusiveMinimum = false } = {}) {
   const parsed = Number(value);
@@ -261,6 +263,7 @@ export function buildDepthRecordEnvelope({
   requestStartedAt = null,
   exchangeObservedAt = null,
   serverTime = null,
+  snapshotAttempt = null,
   stream,
   segmentId,
   kind = 'diff'
@@ -277,6 +280,7 @@ export function buildDepthRecordEnvelope({
     receivedAt: receipt,
     exchangeObservedAt,
     serverTime,
+    ...(snapshotAttempt == null ? {} : { snapshotAttempt }),
     data
   };
 }
@@ -469,6 +473,12 @@ async function collectCombinedDepthSegment({
     snapshotId: null,
     snapshotRequestStartedAt: null,
     snapshotReceivedAt: null,
+    snapshotAttempts: 0,
+    snapshotTooOldRetries: 0,
+    alignmentSuccesses: 0,
+    alignmentFailureCount: 0,
+    acquisitionStartedAt: null,
+    waiters: [],
     status: 'WAITING_SNAPSHOT',
     aligned: false,
     staleBufferedDropped: 0,
@@ -488,17 +498,30 @@ async function collectCombinedDepthSegment({
   let settled = false;
   let resolveOutcome;
   const outcome = new Promise(resolve => { resolveOutcome = resolve; });
+  const notifyContext = (context, reason = 'event') => {
+    const waiters = context.waiters.splice(0);
+    for (const resolve of waiters) resolve(reason);
+  };
   const finish = result => {
     if (settled) return;
     settled = true;
     terminalResult = result;
     if (result.status !== 'VALID') failure = result.reason;
     closeSocket(socket);
+    for (const context of contexts.values()) notifyContext(context, 'settled');
     resolveOutcome(result);
+  };
+  const markAlignmentFailure = (context, reason) => {
+    if (!context) return;
+    if (!context.alignmentFailure) {
+      context.status = 'FAILED';
+      context.alignmentFailure = String(reason);
+      context.alignmentFailureCount++;
+    }
   };
   const failSegment = (reason, context = null) => {
     const message = String(reason ?? 'invalid_segment');
-    if (context && message.includes('snapshot_alignment')) context.alignmentFailure = message;
+    if (context && message.includes('snapshot_alignment')) markAlignmentFailure(context, message);
     failure = failure ?? message;
     finish({ status: 'INVALID', reason: failure });
   };
@@ -528,8 +551,22 @@ async function collectCombinedDepthSegment({
       failSegment(`${context.symbol}:buffer_limit_exceeded`, context);
     }
   };
+  const waitForContextEvent = (context, timeoutMs) => new Promise(resolve => {
+    let settledWait = false;
+    let timer;
+    const wake = reason => {
+      if (settledWait) return;
+      settledWait = true;
+      clearTimeout(timer);
+      const index = context.waiters.indexOf(wake);
+      if (index >= 0) context.waiters.splice(index, 1);
+      resolve(reason);
+    };
+    context.waiters.push(wake);
+    timer = setTimeout(() => wake('timeout'), Math.max(1, timeoutMs));
+  });
   const processBuffered = context => {
-    if (settled || context.status === 'EXCLUDED' || !context.state) return;
+    if (settled || context.status === 'EXCLUDED' || context.status === 'FAILED' || !context.state) return 'WAITING';
     if (!context.aligned) {
       while (context.buffer.length && !settled && !context.aligned) {
         const head = context.buffer[0];
@@ -541,13 +578,13 @@ async function collectCombinedDepthSegment({
           continue;
         }
         if (U > context.snapshotId) {
-          failSegment(`${context.symbol}:snapshot_alignment`, context);
-          return;
+          return 'SNAPSHOT_TOO_OLD';
         }
         const first = takeBuffered(context);
         context.state.ingestDiff({ data: first.data, receivedAt: first.receivedAt });
         context.aligned = true;
         context.status = 'ALIGNED';
+        context.alignmentSuccesses++;
         context.alignmentLatencyMs = Math.max(0, Date.now() - context.snapshotRequestStartedAt);
       }
     }
@@ -555,6 +592,7 @@ async function collectCombinedDepthSegment({
       const next = takeBuffered(context);
       context.state.ingestDiff({ data: next.data, receivedAt: next.receivedAt });
     }
+    return context.aligned ? 'ALIGNED' : 'WAITING';
   };
   const onMessage = message => {
     let context = null;
@@ -576,6 +614,7 @@ async function collectCombinedDepthSegment({
       if (!context.state || !context.aligned) {
         enqueueBuffered(context, envelope);
         processBuffered(context);
+        notifyContext(context);
         return;
       }
       context.state.ingestDiff({ data: payload, receivedAt });
@@ -588,7 +627,7 @@ async function collectCombinedDepthSegment({
     if (settled) return;
     if (Date.now() >= segmentDeadline) {
       const unaligned = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && !context.aligned);
-      for (const context of unaligned) context.alignmentFailure ??= `${context.symbol}:snapshot_alignment`;
+      for (const context of unaligned) markAlignmentFailure(context, `${context.symbol}:snapshot_alignment`);
       const missing = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && context.aligned && (context.state?.summary.updates ?? 0) < 1);
       const validSymbolCount = [...contexts.values()].filter(context => context.status !== 'EXCLUDED').length;
       finish({
@@ -605,65 +644,121 @@ async function collectCombinedDepthSegment({
   };
   const processSnapshot = async symbol => {
     const context = contexts.get(symbol);
-    const slot = Math.max(Date.now(), nextSnapshotRequestAt);
-    nextSnapshotRequestAt = slot + DEPTH_SNAPSHOT_MIN_INTERVAL_MS;
-    if (slot > Date.now()) await delay(slot - Date.now());
-    let response;
-    try {
-      response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.depthSnapshot, {
-        symbol,
-        limit: DEFAULT_DEPTH_LEVELS
-      }));
-    } catch (error) {
-      context.status = 'EXCLUDED';
-      discardUnreconstructableBuffer(context);
-      snapshotErrors.push({ symbol, reason: error.message, code: 'snapshot_request_failed' });
-      return { symbol, valid: false };
-    }
-    try {
-      const envelope = buildDepthRecordEnvelope({
-        symbol,
-        data: { s: symbol, lastUpdateId: response.data.lastUpdateId, bids: response.data.bids ?? response.data.b, asks: response.data.asks ?? response.data.a },
-        requestStartedAt: response.requestStartedAt,
-        receivedAt: response.receivedAt,
-        stream: `${symbol.toLowerCase()}@depthSnapshot`,
-        segmentId,
-        kind: 'snapshot'
-      });
-      snapshotWriter.append(envelope);
-      const state = createDepthSegmentReconstructor({ symbol });
+    context.acquisitionStartedAt = Date.now();
+    let latestSnapshotRow = null;
+    const acquisitionDeadline = () => Math.min(
+      segmentDeadline,
+      context.acquisitionStartedAt + MAX_SNAPSHOT_ACQUISITION_MS
+    );
+    const failAlignment = () => {
+      markAlignmentFailure(context, `${context.symbol}:snapshot_alignment`);
+      failSegment(`${context.symbol}:snapshot_alignment`, context);
+      return latestSnapshotRow ?? { symbol, valid: false };
+    };
+    const scheduleSnapshotRetry = () => {
+      if (context.snapshotAttempts >= MAX_SNAPSHOT_ATTEMPTS || Date.now() >= acquisitionDeadline()) return false;
+      context.snapshotTooOldRetries++;
+      return true;
+    };
+    while (!settled && !context.aligned && context.status !== 'EXCLUDED' && context.status !== 'FAILED') {
+      if (context.snapshotAttempts >= MAX_SNAPSHOT_ATTEMPTS || Date.now() >= acquisitionDeadline()) return failAlignment();
+      const slot = Math.max(Date.now(), nextSnapshotRequestAt);
+      nextSnapshotRequestAt = slot + DEPTH_SNAPSHOT_MIN_INTERVAL_MS;
+      if (slot > Date.now()) {
+        await delay(Math.min(slot - Date.now(), Math.max(1, acquisitionDeadline() - Date.now())));
+      }
+      if (settled || Date.now() >= acquisitionDeadline()) return failAlignment();
+      const snapshotAttempt = ++context.snapshotAttempts;
+      let response;
       try {
-        state.ingestSnapshot({ data: envelope.data, receivedAt: response.receivedAt });
+        response = await fetchJson(fetchImpl, publicUrl(HY_EXP_0020_PUBLIC_ENDPOINTS.depthSnapshot, {
+          symbol,
+          limit: DEFAULT_DEPTH_LEVELS
+        }));
       } catch (error) {
-        if (error.code !== 'insufficient_depth_levels') throw error;
         context.status = 'EXCLUDED';
         discardUnreconstructableBuffer(context);
-        snapshotErrors.push({ symbol, reason: error.message, code: error.code });
+        snapshotErrors.push({ symbol, reason: error.message, code: 'snapshot_request_failed', snapshotAttempt });
+        notifyContext(context, 'snapshot_request_failed');
         return { symbol, valid: false };
       }
-      context.state = state;
-      context.snapshotId = envelope.data.lastUpdateId;
-      context.snapshotRequestStartedAt = response.requestStartedAt;
-      context.snapshotReceivedAt = response.receivedAt;
-      context.status = 'WAITING_ALIGNMENT';
       try {
-        processBuffered(context);
+        const envelope = buildDepthRecordEnvelope({
+          symbol,
+          data: { s: symbol, lastUpdateId: response.data.lastUpdateId, bids: response.data.bids ?? response.data.b, asks: response.data.asks ?? response.data.a },
+          requestStartedAt: response.requestStartedAt,
+          receivedAt: response.receivedAt,
+          snapshotAttempt,
+          stream: `${symbol.toLowerCase()}@depthSnapshot`,
+          segmentId,
+          kind: 'snapshot'
+        });
+        snapshotWriter.append(envelope);
+        const state = createDepthSegmentReconstructor({ symbol });
+        try {
+          state.ingestSnapshot({ data: envelope.data, receivedAt: response.receivedAt });
+        } catch (error) {
+          if (error.code !== 'insufficient_depth_levels') throw error;
+          context.status = 'EXCLUDED';
+          discardUnreconstructableBuffer(context);
+          snapshotErrors.push({ symbol, reason: error.message, code: error.code, snapshotAttempt });
+          notifyContext(context, 'snapshot_excluded');
+          return { symbol, valid: false };
+        }
+        const snapshotRow = {
+          symbol,
+          payload: envelope.data,
+          requestStartedAt: response.requestStartedAt,
+          receivedAt: response.receivedAt,
+          exchangeObservedAt: response.serverTime,
+          snapshotAttempt,
+          valid: true
+        };
+        latestSnapshotRow = snapshotRow;
+        context.state = state;
+        context.snapshotId = envelope.data.lastUpdateId;
+        context.snapshotRequestStartedAt = response.requestStartedAt;
+        context.snapshotReceivedAt = response.receivedAt;
+        context.status = 'ALIGNING';
+        let alignment;
+        try {
+          alignment = processBuffered(context);
+        } catch (error) {
+          failSegment(error.message, context);
+          return snapshotRow;
+        }
+        notifyContext(context, alignment);
+        if (alignment === 'ALIGNED') return snapshotRow;
+        if (alignment === 'SNAPSHOT_TOO_OLD') {
+          if (!scheduleSnapshotRetry()) return failAlignment();
+          continue;
+        }
+        while (!settled && !context.aligned) {
+          const waitMs = Math.max(1, acquisitionDeadline() - Date.now());
+          const wakeReason = await waitForContextEvent(context, waitMs);
+          if (settled) return latestSnapshotRow;
+          if (wakeReason === 'timeout' || Date.now() >= acquisitionDeadline()) return failAlignment();
+          let nextAlignment;
+          try {
+            nextAlignment = processBuffered(context);
+          } catch (error) {
+            failSegment(error.message, context);
+            return latestSnapshotRow;
+          }
+          if (nextAlignment === 'ALIGNED') return latestSnapshotRow;
+          if (nextAlignment === 'SNAPSHOT_TOO_OLD') {
+            if (!scheduleSnapshotRetry()) return failAlignment();
+            break;
+          }
+        }
+        if (context.aligned) return latestSnapshotRow;
       } catch (error) {
+        snapshotErrors.push({ symbol, reason: error.message, code: error.code ?? 'snapshot_failure', snapshotAttempt });
         failSegment(error.message, context);
+        return latestSnapshotRow ?? { symbol, valid: false };
       }
-      return {
-        symbol,
-        payload: envelope.data,
-        requestStartedAt: response.requestStartedAt,
-        receivedAt: response.receivedAt,
-        exchangeObservedAt: response.serverTime,
-        valid: true
-      };
-    } catch (error) {
-      snapshotErrors.push({ symbol, reason: error.message, code: error.code ?? 'snapshot_failure' });
-      failSegment(error.message, context);
-      return { symbol, valid: false };
     }
+    return latestSnapshotRow ?? { symbol, valid: false };
   };
   const buildResult = universeSnapshot => {
     const perSymbol = Object.fromEntries([...contexts.values()].map(context => [context.symbol, {
@@ -671,6 +766,10 @@ async function collectCombinedDepthSegment({
       snapshotId: context.snapshotId,
       snapshotRequestStartedAt: context.snapshotRequestStartedAt,
       snapshotReceivedAt: context.snapshotReceivedAt,
+      snapshotAttempts: context.snapshotAttempts,
+      snapshotTooOldRetries: context.snapshotTooOldRetries,
+      alignmentSuccesses: context.alignmentSuccesses,
+      alignmentFailureCount: context.alignmentFailureCount,
       ...(context.state?.summary ?? { updates: 0, maxDepthLevel: 0, lastUpdateId: null }),
       status: context.status,
       aligned: context.aligned,
@@ -685,6 +784,10 @@ async function collectCombinedDepthSegment({
     const alignmentFailures = Object.fromEntries([...contexts.values()]
       .filter(context => context.alignmentFailure)
       .map(context => [context.symbol, context.alignmentFailure]));
+    const snapshotAttempts = [...contexts.values()].reduce((total, context) => total + context.snapshotAttempts, 0);
+    const snapshotTooOldRetries = [...contexts.values()].reduce((total, context) => total + context.snapshotTooOldRetries, 0);
+    const alignmentSuccesses = [...contexts.values()].reduce((total, context) => total + context.alignmentSuccesses, 0);
+    const alignmentFailureCount = [...contexts.values()].reduce((total, context) => total + context.alignmentFailureCount, 0);
     const status = failure || terminalResult?.status === 'INVALID' ? 'INVALID' : 'VALID';
     return {
       segmentId,
@@ -699,6 +802,10 @@ async function collectCombinedDepthSegment({
       staleBufferedDropped,
       bufferedEventsDiscarded,
       bufferedEventsPeak,
+      snapshotAttempts,
+      snapshotTooOldRetries,
+      alignmentSuccesses,
+      alignmentFailureCount,
       alignmentLatencyMs,
       alignmentFailures,
       perSymbol
@@ -721,7 +828,7 @@ async function collectCombinedDepthSegment({
     const remaining = Math.max(1, segmentDeadline - Date.now());
     const timer = setTimeout(() => {
       const unaligned = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && !context.aligned);
-      for (const context of unaligned) context.alignmentFailure ??= `${context.symbol}:snapshot_alignment`;
+      for (const context of unaligned) markAlignmentFailure(context, `${context.symbol}:snapshot_alignment`);
       const missing = [...contexts.values()].filter(context => context.status !== 'EXCLUDED' && context.aligned && (context.state?.summary.updates ?? 0) < 1);
       const validSymbolCount = [...contexts.values()].filter(context => context.status !== 'EXCLUDED').length;
       finish({
@@ -1190,6 +1297,11 @@ function captureQualityDiagnostics({ segments, exchangeInfoSnapshots, universeSn
     staleBufferedDropped: segments.reduce((total, segment) => total + Number(segment.staleBufferedDropped ?? 0), 0),
     bufferedEventsDiscarded: segments.reduce((total, segment) => total + Number(segment.bufferedEventsDiscarded ?? 0), 0),
     bufferedEventsPeak: Math.max(0, ...segments.map(segment => Number(segment.bufferedEventsPeak ?? 0))),
+    snapshotAttempts: segments.reduce((total, segment) => total + Number(segment.snapshotAttempts ?? 0), 0),
+    snapshotTooOldRetries: segments.reduce((total, segment) => total + Number(segment.snapshotTooOldRetries ?? 0), 0),
+    alignmentSuccesses: segments.reduce((total, segment) => total + Number(segment.alignmentSuccesses ?? 0), 0),
+    alignmentFailures: segments.reduce((total, segment) => total + Number(segment.alignmentFailureCount ?? 0), 0),
+    bufferLimitFailures: countReason('buffer_limit_exceeded'),
     alignmentLatencyMs,
     exchangeInfoSnapshots,
     universeSnapshots

@@ -155,7 +155,8 @@ async function runCombinedScenario({
 }) {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0020-alignment-'));
   const levels = book();
-  const timeline = { emissions: [], snapshots: {} };
+  const timeline = { emissions: [], snapshots: {}, snapshotRecords: [] };
+  const snapshotRequestCounts = new Map();
   const exchangeSymbols = symbols.map(symbol => ({
     symbol,
     onboardDate: Date.parse('2023-01-01T00:00:00.000Z'),
@@ -168,10 +169,24 @@ async function runCombinedScenario({
     const url = new URL(String(input));
     if (url.pathname.endsWith('/depth')) {
       const symbol = url.searchParams.get('symbol');
-      await new Promise(resolve => setTimeout(resolve, snapshotDelays[symbol] ?? 0));
+      const snapshotAttempt = (snapshotRequestCounts.get(symbol) ?? 0) + 1;
+      snapshotRequestCounts.set(symbol, snapshotAttempt);
+      const configuredDelay = snapshotDelays[symbol];
+      const delayMs = Array.isArray(configuredDelay)
+        ? (configuredDelay[snapshotAttempt - 1] ?? configuredDelay.at(-1) ?? 0)
+        : (typeof configuredDelay === 'function' ? configuredDelay(snapshotAttempt) : (configuredDelay ?? 0));
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      const configuredId = snapshotIds[symbol];
+      const lastUpdateId = Array.isArray(configuredId)
+        ? (configuredId[snapshotAttempt - 1] ?? configuredId.at(-1))
+        : (typeof configuredId === 'function' ? configuredId(snapshotAttempt) : (configuredId ?? 100));
       return response(
-        { lastUpdateId: snapshotIds[symbol] ?? 100, bids: levels.bids, asks: levels.asks },
-        () => { timeline.snapshots[symbol] = Date.now(); }
+        { lastUpdateId, bids: levels.bids, asks: levels.asks },
+        () => {
+          const receivedAt = Date.now();
+          timeline.snapshots[symbol] = receivedAt;
+          timeline.snapshotRecords.push({ symbol, snapshotAttempt, receivedAt, lastUpdateId });
+        }
       );
     }
     if (url.pathname.endsWith('/fundingRate')) {
@@ -502,4 +517,82 @@ test('combined depth alignment fails closed on a post-alignment pu chain interru
   assert.equal(segment.status, 'INVALID');
   assert.match(segment.reason, /sequence_gap/);
   assert.ok(result.manifest.diagnostics.sequenceGaps >= 1);
+});
+
+test('snapshot-too-old initialization reacquires a fresh snapshot and aligns from the retained buffer', async () => {
+  const { result } = await runCombinedScenario({
+    symbols: ['BTCUSDT'],
+    snapshotIds: { BTCUSDT: [100, 121] },
+    events: [{ symbol: 'BTCUSDT', atMs: 1, U: 120, u: 130 }],
+    maxRuntimeMs: 1_000
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(segment.status, 'VALID');
+  assert.equal(segment.perSymbol.BTCUSDT.status, 'ALIGNED');
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotAttempts, 2);
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotTooOldRetries, 1);
+  assert.equal(segment.perSymbol.BTCUSDT.alignmentSuccesses, 1);
+  assert.equal(segment.perSymbol.BTCUSDT.updates, 1);
+  assert.equal(result.manifest.diagnostics.snapshotAlignmentFailures, 0);
+  const snapshots = fs.readFileSync(path.join(result.directory, 'depth-snapshots.ndjson'), 'utf8')
+    .trim().split(/\r?\n/).map(line => JSON.parse(line));
+  assert.deepEqual(snapshots.map(row => row.snapshotAttempt), [1, 2]);
+});
+
+test('bounded snapshot reacquisition fails closed after five non-overlapping snapshots', async () => {
+  const { result } = await runCombinedScenario({
+    symbols: ['BTCUSDT'],
+    snapshotIds: { BTCUSDT: [100, 101, 102, 103, 104] },
+    events: [{ symbol: 'BTCUSDT', atMs: 1, U: 120, u: 130 }],
+    maxRuntimeMs: 3_000
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(result.manifest.status, 'DATA_FAIL');
+  assert.equal(segment.status, 'INVALID');
+  assert.match(segment.reason, /snapshot_alignment/);
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotAttempts, 5);
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotTooOldRetries, 4);
+  assert.equal(segment.perSymbol.BTCUSDT.alignmentSuccesses, 0);
+  assert.ok(result.manifest.diagnostics.snapshotAlignmentFailures >= 1);
+});
+
+test('an aligned pu gap fails the segment without snapshot refetch', async () => {
+  const { result } = await runCombinedScenario({
+    symbols: ['BTCUSDT'],
+    snapshotIds: { BTCUSDT: 100 },
+    events: [
+      { symbol: 'BTCUSDT', atMs: 20, U: 99, u: 101 },
+      { symbol: 'BTCUSDT', atMs: 60, U: 103, u: 103, pu: 102 }
+    ],
+    maxRuntimeMs: 300
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(result.manifest.status, 'DATA_FAIL');
+  assert.match(segment.reason, /sequence_gap/);
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotAttempts, 1);
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotTooOldRetries, 0);
+  assert.equal(result.manifest.diagnostics.snapshotAlignmentFailures, 0);
+  assert.ok(result.manifest.diagnostics.sequenceGaps >= 1);
+});
+
+test('one symbol can reacquire while another symbol is already aligned and processing live diffs', async () => {
+  const { result, timeline } = await runCombinedScenario({
+    symbols: ['BTCUSDT', 'ETHUSDT'],
+    snapshotIds: { BTCUSDT: [100, 121], ETHUSDT: 100 },
+    events: [
+      { symbol: 'BTCUSDT', atMs: 1, U: 120, u: 130 },
+      { symbol: 'ETHUSDT', atMs: 30, U: 99, u: 101 },
+      { symbol: 'ETHUSDT', atMs: 650, U: 102, u: 102, pu: 101 }
+    ],
+    maxRuntimeMs: 1_800
+  });
+  const segment = result.manifest.segments[0];
+  assert.equal(segment.status, 'VALID');
+  assert.equal(segment.perSymbol.BTCUSDT.snapshotAttempts, 2);
+  assert.equal(segment.perSymbol.BTCUSDT.alignmentSuccesses, 1);
+  assert.equal(segment.perSymbol.ETHUSDT.status, 'ALIGNED');
+  assert.equal(segment.perSymbol.ETHUSDT.snapshotAttempts, 1);
+  assert.equal(segment.perSymbol.ETHUSDT.updates, 2);
+  assert.ok(timeline.snapshotRecords.some(row => row.symbol === 'BTCUSDT' && row.snapshotAttempt === 2));
+  assert.equal(result.manifest.diagnostics.snapshotAlignmentFailures, 0);
 });

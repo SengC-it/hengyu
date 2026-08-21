@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0020",
+  "analysisType": "INITIAL_ALIGNMENT_ROOT_CAUSE",
+  "status": "DATA_FAIL",
+  "sourceRun": {
+    "runId": "engineering_dry_run-20260821171748528-289eb7cd",
+    "manifestSha256": "64e8316e685c8af20d2c5621abb821b7d235790087ab0fdfb11c2a2db6cd1c7b",
+    "rawDataPath": "data/raw/engineering-dry-run/HY-EXP-0020/engineering_dry_run-20260821171748528-289eb7cd",
+    "segmentId": "engineering_dry_run-20260821171748528-289eb7cd:boundary:1787328000000:attempt:1",
+    "segmentDeadline": 1787332680528
+  },
+  "symbol": "BTCUSDT",
+  "websocket": {
+    "stream": "btcusdt@depth@100ms",
+    "first": {
+      "receivedAt": 1787332677217,
+      "U": 11346583223015,
+      "u": 11346583234012,
+      "pu": 11346583222856
+    },
+    "lastBuffered": {
+      "receivedAt": 1787332680622,
+      "U": 11346583449809,
+      "u": 11346583457928,
+      "pu": 11346583449763
+    },
+    "bufferedEventCount": 22,
+    "bufferedSequence": [
+      { "receivedAt": 1787332677217, "U": 11346583223015, "u": 11346583234012, "pu": 11346583222856 },
+      { "receivedAt": 1787332677311, "U": 11346583234199, "u": 11346583239929, "pu": 11346583234012 },
+      { "receivedAt": 1787332677462, "U": 11346583239997, "u": 11346583244453, "pu": 11346583239929 },
+      { "receivedAt": 1787332677570, "U": 11346583244556, "u": 11346583250835, "pu": 11346583244453 },
+      { "receivedAt": 1787332677742, "U": 11346583251257, "u": 11346583265861, "pu": 11346583250835 },
+      { "receivedAt": 1787332677921, "U": 11346583265862, "u": 11346583286058, "pu": 11346583265861 },
+      { "receivedAt": 1787332678121, "U": 11346583286249, "u": 11346583302283, "pu": 11346583286058 },
+      { "receivedAt": 1787332678271, "U": 11346583302394, "u": 11346583311247, "pu": 11346583302283 },
+      { "receivedAt": 1787332678453, "U": 11346583311504, "u": 11346583320838, "pu": 11346583311247 },
+      { "receivedAt": 1787332678579, "U": 11346583320870, "u": 11346583334963, "pu": 11346583320838 },
+      { "receivedAt": 1787332678754, "U": 11346583336486, "u": 11346583353129, "pu": 11346583334963 },
+      { "receivedAt": 1787332678938, "U": 11346583353315, "u": 11346583364030, "pu": 11346583353129 },
+      { "receivedAt": 1787332679113, "U": 11346583364196, "u": 11346583376714, "pu": 11346583364030 },
+      { "receivedAt": 1787332679356, "U": 11346583376799, "u": 11346583388445, "pu": 11346583376714 },
+      { "receivedAt": 1787332679540, "U": 11346583388455, "u": 11346583397489, "pu": 11346583388445 },
+      { "receivedAt": 1787332679714, "U": 11346583397584, "u": 11346583408041, "pu": 11346583397489 },
+      { "receivedAt": 1787332679881, "U": 11346583408148, "u": 11346583414798, "pu": 11346583408041 },
+      { "receivedAt": 1787332680030, "U": 11346583415012, "u": 11346583423746, "pu": 11346583414798 },
+      { "receivedAt": 1787332680173, "U": 11346583423815, "u": 11346583434081, "pu": 11346583423746 },
+      { "receivedAt": 1787332680321, "U": 11346583434255, "u": 11346583442894, "pu": 11346583434081 },
+      { "receivedAt": 1787332680468, "U": 11346583443090, "u": 11346583449763, "pu": 11346583442894 },
+      { "receivedAt": 1787332680622, "U": 11346583449809, "u": 11346583457928, "pu": 11346583449763 }
+    ]
+  },
+  "restSnapshot": {
+    "snapshotAttempt": 1,
+    "requestStartedAt": 1787332677683,
+    "receivedAt": 1787332680731,
+    "bodyLatencyMs": 3048,
+    "lastUpdateId": 11346583606589
+  },
+  "staleDropped": {
+    "count": 22,
+    "first": { "U": 11346583223015, "u": 11346583234012 },
+    "last": { "U": 11346583449809, "u": 11346583457928 },
+    "maxBufferedU": 11346583449809,
+    "maxBufferedUInclusiveEnd": 11346583457928
+  },
+  "firstRemaining": null,
+  "coverageCheck": {
+    "snapshotLastUpdateId": 11346583606589,
+    "bufferedMaxU": 11346583449809,
+    "bufferedMaxUInclusiveEnd": 11346583457928,
+    "missingUpdateIdSpan": 148661,
+    "snapshotReceivedAfterSegmentDeadlineMs": 203,
+    "overlapCondition": "U <= snapshot.lastUpdateId <= u",
+    "overlapObserved": false
+  },
+  "rootCause": [
+    "The REST snapshot body completed after the 12-second engineering segment deadline.",
+    "All 22 BTCUSDT diff events received before the snapshot were stale relative to lastUpdateId and were correctly unusable for reconstruction.",
+    "No diff event covering the snapshot lastUpdateId was received before the segment ended; this was an unaligned initialization timeout, not a post-alignment sequence gap.",
+    "The previous collector had no bounded fresh-snapshot reacquisition path for snapshot-too-old initialization and therefore marked the segment snapshot_alignment failure."
+  ],
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "finalOosEligible": false,
+  "authorization": "PAPER_ONLY"
+}
