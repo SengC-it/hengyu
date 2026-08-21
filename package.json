@@ -50,6 +50,7 @@
     "universe:snapshot": "node scripts/universe-snapshot.mjs",
     "forward:capture:dynamic": "node scripts/forward-capture-dynamic.mjs",
     "forward:capture:dynamic:proxy": "node --use-env-proxy scripts/forward-capture-dynamic.mjs",
+    "hy-exp-0020:capture": "node scripts/hy-exp-0020-capture.mjs",
     "advisory:server": "node scripts/advisory-server.mjs",
     "advisory:evaluate": "node scripts/advisory-evaluate.mjs",
     "advisory:replay": "node scripts/advisory-replay.mjs",
