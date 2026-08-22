@@ -14,9 +14,9 @@ Live H12 edge fields are null/UNVERIFIED/sampleSize=0; forceUnverifiedEdgeNoTrad
 - Current H12 strict historical executable candidates: 0
 - Current H12 edge/net-edge/risk/Gmail pass: 0/0/0/0
 - Proposed 1h family observations: 9982; unique candidate slots: 8823; family overlap slots: 1117; edge/net-edge/risk/Gmail pass remains 0 until a separately validated edge model exists.
-- Controlled counts: baseline=112; +bidirectional=459; +observed-universe=587; 1h breakout unique=1533; all-family observations=9982; all-family unique=8823.
+- Controlled counts: baseline=112; +bidirectional=459; +universe-only(2/3 breadth)=577; +breadth50%=587; 1h breakout unique=1533; all-family observations=9982; all-family unique=8823.
 - Direction attribution: bear/SELL=112; bull/BUY=347; bidirectional=459; SELL_ONLY impact is bull/BUY only under fixed-six 4h semantics.
-- Edge/exit alignment: REVIEW_REQUIRED_NOT_ACCEPTED_FOR_PREREGISTRATION_AS_IS; recommended resolution=B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP; no Edge Model training or horizon tuning was run.
+- Edge/exit alignment: ALIGNED_PROPOSAL_PENDING_PREREGISTRATION_REVIEW; recommended resolution=B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP; no Edge Model training or horizon tuning was run.
 
 ## Cost/profitability interpretation
 

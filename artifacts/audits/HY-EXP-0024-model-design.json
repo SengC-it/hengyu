@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "experimentId": "HY-EXP-0024",
   "status": "not_preregistered_not_promoted",
   "authorization": "PAPER_ONLY",
@@ -8,6 +8,11 @@
   "pnlComputed": false,
   "promotionEligible": false,
   "promotion": "FORBIDDEN_UNTIL_SEPARATE_PREREGISTRATION_AND_OOS",
+  "invariants": {
+    "EDGE_TARGET_MUST_EXCLUDE_NET_EDGE_COST_COMPONENTS": true,
+    "PAPER_ONLY": true,
+    "NO_TRAINING_IN_THIS_CORRECTION": true
+  },
   "objective": "Increase usable high-quality signal count while preserving net expectancy after conservative costs; trade count alone is not an objective.",
   "baseline": "Current H12 remains HY-EXP-0018 SELL_ONLY 4h and is not modified.",
   "candidateEngine": [
@@ -55,8 +60,22 @@
   "edgeModel": {
     "modelId": "HENGYU-EDGE-HY-EXP-0024-RIDGE-001",
     "edgeSource": "HENGYU-HY-EXP-0024-PURGED-RIDGE-FORWARD",
-    "target": "CURRENT AUDIT DESIGN MISMATCH: directional executable forward return after six 1h bars is not the same label as the current unbounded stop/channel exit",
+    "target": "GROSS_DIRECTIONAL_PRICE_RETURN_BPS from executable entry reference to the exact frozen stop/channel/terminal exit, before fees, before funding, before spread/book cost, before slippage, before impact and before latency buffers",
     "horizonBars": 6,
+    "targetType": "GROSS_PRICE_EDGE_ONLY",
+    "expectedPriceEdgeBpsSemantics": "predicted gross directional price return; it must not contain any Net Edge cost component",
+    "standardErrorBpsSemantics": "uncertainty of the same gross price-return target, before fees/funding/execution costs",
+    "separateFundingOutput": "expectedFundingBps is separate from expectedPriceEdgeBps and is supplied to the shared Net Edge engine",
+    "targetCostExclusions": [
+      "fee",
+      "funding",
+      "spread",
+      "book_cost",
+      "slippage",
+      "impact",
+      "latency",
+      "funding_stress"
+    ],
     "features": [
       "trend strength: (close - SMA60) / ATR20",
       "distance to fast/slow SMA in bps",
@@ -92,7 +111,7 @@
     "validation": "expanding walk-forward; purge=6 bars; embargo=6 bars; development and final untouched OOS are separate; no OOS reads before development PASS"
   },
   "edgeExitAlignment": {
-    "status": "REVIEW_REQUIRED_NOT_ACCEPTED_FOR_PREREGISTRATION_AS_IS",
+    "status": "ALIGNED_PROPOSAL_PENDING_PREREGISTRATION_REVIEW",
     "currentMismatch": {
       "edgeTarget": "six completed 1h directional forward-return bars",
       "currentTradeExit": "2 ATR20 stop or prior-60 completed-1h channel exit with no maximum holding period",
@@ -100,16 +119,18 @@
     },
     "recommendedArchitecture": "B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP",
     "proposedArchitecture": {
-      "label": "net realized return from the exact frozen stop/channel execution policy",
-      "stop": "2.0 ATR20 from executable entry",
+      "label": "gross directional price return from the exact frozen stop/channel/terminal execution policy",
+      "stop": "initial stop = 2.0 ATR20 from executable entry",
       "dynamicChannel": "prior-60 completed 1h channel adverse close",
+      "maximumHoldBars": 6,
       "evaluationCapBars": 6,
       "terminalRule": "if neither stop nor channel exit occurs by the sixth completed 1h bar, use a terminal exit at that bar close; this cap is fixed for alignment, not tuned from outcomes",
       "holdingPeriod": "actual entry-to-stop/channel/terminal exit interval",
       "funding": "include every realized funding event whose fundingTime falls within that same actual holding interval; missing required funding fails closed",
-      "target": "net executable return after fee, conservative slippage/impact, funding and latency proxy for the exact labeled exit",
+      "target": "gross price return only; shared Net Edge adds fees, funding, spread/book cost, slippage, impact, latency, uncertainty and funding stress exactly once",
       "noHorizonTuning": true
     },
+    "researchExpirySeparation": "research expiry is a read/evaluation boundary and is not the trade holding-period exit",
     "reviewerDecisionRequired": true,
     "notRunInThisCorrection": true
   },
@@ -121,14 +142,27 @@
     "latencyBpsRoundTrip": 2,
     "totalProxyBps": 18,
     "funding": "realized funding events known at decision/holding time; missing event fails closed",
-    "rule": "conservative executable edge must exceed costs + funding stress + uncertainty + minimum net hurdle"
+    "rule": "conservative executable edge must exceed costs + funding stress + uncertainty + minimum net hurdle",
+    "netEdgeResponsibilities": [
+      "fees",
+      "spread/book cost",
+      "slippage",
+      "impact",
+      "latency",
+      "expectedFundingBps",
+      "uncertainty",
+      "fundingStressBps"
+    ],
+    "noDoubleCountingRule": "expectedPriceEdgeBps and standardErrorBps are gross price-target quantities; every listed Net Edge component is applied exactly once after the Edge Model"
   },
   "exits": {
-    "stop": "2.0 ATR20 from executable entry",
+    "stop": "initial stop = 2.0 ATR20 from executable entry",
     "dynamicChannel": "exit on completed 1h close through prior 60 completed 1h channel in adverse direction",
     "profitProtection": "none in primary model; any trailing/profit-protection variant is a separate family/experiment",
-    "maxHold": "none in primary model; research expiry is not a holding-period exit",
-    "alignmentStatus": "current exit is not aligned with the six-bar edge target; see edgeExitAlignment; no Edge Model training is authorized by this audit correction",
+    "maximumHoldBars": 6,
+    "maxHold": "6 completed 1h bars; terminal exit at the sixth bar if stop/channel has not fired",
+    "researchExpiry": "separate research expiry boundary; it is not a trade holding-period exit",
+    "alignmentStatus": "proposed Edge target and proposed trade holding cap are both fixed at the exact six-bar stop/channel/terminal policy; no Edge Model training is authorized by this audit correction",
     "boundary": "open positions at evaluation boundary are censored/held out, never force-labeled as profitable"
   },
   "riskAndDelivery": {

@@ -28,6 +28,10 @@ function monthKey(time) {
   return new Date(time).toISOString().slice(0, 7);
 }
 
+function requiredBreadthForFraction(eligibleSymbols, breadthFraction) {
+  return Math.ceil(eligibleSymbols * breadthFraction);
+}
+
 function mean(values) {
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 }
@@ -126,7 +130,7 @@ function regimeAt({ barsBySymbol, indexesBySymbol, time, symbols, fastBars = 60,
   const fast = btcIndex == null ? null : sma(btc, btcIndex, fastBars);
   const slow = btcIndex == null ? null : sma(btc, btcIndex, slowBars);
   if (btcIndex == null || fast == null || slow == null || symbols.length === 0) {
-    return { regime: 'INSUFFICIENT_HISTORY', fast, slow, breadthAbove: 0, breadthBelow: 0, completedCloseTime: null, breadthBySymbol: [] };
+    return { regime: 'INSUFFICIENT_HISTORY', fast, slow, breadthAbove: 0, breadthBelow: 0, breadthFraction, completedCloseTime: null, breadthBySymbol: [] };
   }
   const snapshots = symbols.flatMap(symbol => {
     const rows = barsBySymbol[symbol];
@@ -137,11 +141,11 @@ function regimeAt({ barsBySymbol, indexesBySymbol, time, symbols, fastBars = 60,
     return [{ symbol, close: rows[index].close, slowSma: value, aboveSlow: rows[index].close > value, belowSlow: rows[index].close < value }];
   });
   if (snapshots.length !== symbols.length) {
-    return { regime: 'INSUFFICIENT_HISTORY', fast, slow, breadthAbove: 0, breadthBelow: 0, completedCloseTime: null, breadthBySymbol: snapshots };
+    return { regime: 'INSUFFICIENT_HISTORY', fast, slow, breadthAbove: 0, breadthBelow: 0, breadthFraction, completedCloseTime: null, breadthBySymbol: snapshots };
   }
   const breadthAbove = snapshots.filter(row => row.aboveSlow).length;
   const breadthBelow = snapshots.filter(row => row.belowSlow).length;
-  const requiredBreadth = Math.ceil(symbols.length * breadthFraction);
+  const requiredBreadth = requiredBreadthForFraction(symbols.length, breadthFraction);
   const bull = fast > slow && btc[btcIndex].close > slow && breadthAbove >= requiredBreadth;
   const bear = fast < slow && btc[btcIndex].close < slow && breadthBelow >= requiredBreadth;
   return {
@@ -150,6 +154,7 @@ function regimeAt({ barsBySymbol, indexesBySymbol, time, symbols, fastBars = 60,
     slow,
     breadthAbove,
     breadthBelow,
+    breadthFraction,
     requiredBreadth,
     completedCloseTime: btc[btcIndex].closeTime,
     breadthBySymbol: snapshots
@@ -215,10 +220,10 @@ function buildDynamicUniverse({ barsBySymbol, indexesBySymbol, time, symbols = A
   };
 }
 
-function buildPITSnapshots({ barsBySymbol, indexesBySymbol, times4h }) {
+function buildPITSnapshots({ barsBySymbol, indexesBySymbol, times4h, breadthFraction = 0.5 }) {
   return new Map(times4h.map(time => {
     const universe = buildDynamicUniverse({ barsBySymbol, indexesBySymbol, time });
-    const regime = regimeAt({ barsBySymbol, indexesBySymbol, time, symbols: universe.symbols });
+    const regime = regimeAt({ barsBySymbol, indexesBySymbol, time, symbols: universe.symbols, breadthFraction });
     return [time, { ...universe, regime }];
   }));
 }
@@ -436,7 +441,8 @@ function buildAudit() {
   const times1h = commonTimes(bars1h, AVAILABLE_SYMBOLS).filter(time => time >= DEVELOPMENT_START && time < DEVELOPMENT_END);
   const indexes4h = Object.fromEntries(AVAILABLE_SYMBOLS.map(symbol => [symbol, new Map(bars4h[symbol].map((row, index) => [row.openTime, index]))]));
   const indexes1h = Object.fromEntries(AVAILABLE_SYMBOLS.map(symbol => [symbol, new Map(bars1h[symbol].map((row, index) => [row.openTime, index]))]));
-  const dynamicSnapshots = buildPITSnapshots({ barsBySymbol: bars4h, indexesBySymbol: indexes4h, times4h });
+  const dynamicSnapshots = buildPITSnapshots({ barsBySymbol: bars4h, indexesBySymbol: indexes4h, times4h, breadthFraction: 0.5 });
+  const equivalentBreadthSnapshots = buildPITSnapshots({ barsBySymbol: bars4h, indexesBySymbol: indexes4h, times4h, breadthFraction: 2 / 3 });
 
   let currentScanCount = 0;
   let currentRegimePassScans = 0;
@@ -456,6 +462,13 @@ function buildAudit() {
   const currentRows = buildFixedSixBreakoutRows({ barsBySymbol: bars4h, fundingBySymbol, bars4h, indexes4h, times4h, regime: 'BEAR' });
   const fixedSixBullRows = buildFixedSixBreakoutRows({ barsBySymbol: bars4h, fundingBySymbol, bars4h, indexes4h, times4h, regime: 'BULL' });
   const fixedSixBidirectionalRows = [...currentRows, ...fixedSixBullRows];
+  const observedUniverseEquivalentBreadth4hRows = buildFourHourBreakoutRows({
+    barsBySymbol: bars4h,
+    fundingBySymbol,
+    times: times4h,
+    indexesBySymbol: indexes4h,
+    snapshots: equivalentBreadthSnapshots
+  });
   const observedUniverse4hRows = buildFourHourBreakoutRows({
     barsBySymbol: bars4h,
     fundingBySymbol,
@@ -479,8 +492,10 @@ function buildAudit() {
   const trendStats = summarizeCandidateSet(trendRows);
   const directionStats = summarizeCandidateSet(fixedSixBidirectionalRows);
   const dynamic4hStats = summarizeCandidateSet(observedUniverse4hRows);
+  const equivalentDynamic4hStats = summarizeCandidateSet(observedUniverseEquivalentBreadth4hRows);
   const currentStats = summarizeCandidateSet(currentRows);
-  const observedUniverseIncrementalCount = observedUniverse4hRows.length - fixedSixBidirectionalRows.length;
+  const observedUniverseIncrementalCount = observedUniverseEquivalentBreadth4hRows.length - fixedSixBidirectionalRows.length;
+  const breadth50IncrementalCount = observedUniverse4hRows.length - observedUniverseEquivalentBreadth4hRows.length;
 
   const currentFunnel = {
     unit: 'completed 4h scan-symbol slot; historical audit uses HY-EXP-0019 development window only',
@@ -527,6 +542,7 @@ function buildAudit() {
       snapshotsWithEligibleSymbols: [...dynamicSnapshots.values()].filter(snapshot => snapshot.symbols.length > 0).length,
       observedUniverseCoverage: AVAILABLE_SYMBOLS.length,
       top20CapacityNotDemonstrated: AVAILABLE_SYMBOLS.length < 20,
+      appliedBreadthFraction: 0.5,
       membershipFrozenUntilNextCompleted4hBoundary: true,
       depthSource: 'OHLCV_PROXY_NOT_ORDERBOOK'
     },
@@ -576,11 +592,26 @@ function buildAudit() {
       directions: ['BUY', 'SELL'],
       timeframe: '4h',
       family: 'PROPOSED_4H_BREAKOUT',
-      candidateCount: observedUniverse4hRows.length,
-      uniqueCandidateSlots: dynamic4hStats.uniqueCandidateSlots,
+      breadthFraction: 2 / 3,
+      requiredBreadthRule: 'ceil(eligibleSymbols * 2/3), equivalent to current H12 4/6 breadth fraction',
+      candidateCount: observedUniverseEquivalentBreadth4hRows.length,
+      uniqueCandidateSlots: equivalentDynamic4hStats.uniqueCandidateSlots,
       incrementalCandidateCount: observedUniverseIncrementalCount,
       observedUniverseCoverage: AVAILABLE_SYMBOLS.length,
       top20CapacityNotDemonstrated: AVAILABLE_SYMBOLS.length < 20
+    },
+    breadth50: {
+      label: '+ PROPOSED BREADTH 50%',
+      universe: 'same causal eligible observed-universe snapshots',
+      directions: ['BUY', 'SELL'],
+      timeframe: '4h',
+      family: 'same 4h breakout family',
+      previousBreadthFraction: 2 / 3,
+      breadthFraction: 0.5,
+      requiredBreadthRule: 'ceil(eligibleSymbols * 0.50)',
+      candidateCount: observedUniverse4hRows.length,
+      uniqueCandidateSlots: dynamic4hStats.uniqueCandidateSlots,
+      incrementalCandidateCount: breadth50IncrementalCount
     },
     oneHourBreakout: {
       label: '+ 1H TIMEFRAME',
@@ -674,7 +705,11 @@ function buildAudit() {
       bearSellCandidates: currentRows.length,
       bullBuyCandidates: fixedSixBullRows.length,
       fixedSixBidirectional4h: fixedSixBidirectionalRows.length,
+      observedUniverseEquivalentBreadth4h: observedUniverseEquivalentBreadth4hRows.length,
       observedUniverseBidirectional4h: observedUniverse4hRows.length,
+      directionImpact: fixedSixBullRows.length,
+      universeImpact: observedUniverseIncrementalCount,
+      breadth50Impact: breadth50IncrementalCount,
       observedUniverse1hTrendBreakoutFamilyObservations: trendRows.length,
       observedUniverse1hTrendBreakoutUniqueCandidateSlots: trendStats.uniqueCandidateSlots,
       observedUniverse1hAllFamilyObservations: proposedRows.length,
@@ -688,7 +723,8 @@ function buildAudit() {
     scarcityCauses: [
       { cause: 'EDGE_UNVERIFIED', impact: 'structural_zero_live_advisories', evidence: 'live H12 edge is null/UNVERIFIED/sampleSize 0 and forceUnverifiedEdgeNoTrade remains active' },
       { cause: 'SELL_ONLY', impact: fixedSixBullRows.length, evidence: 'fixed-six, same 4h Donchian semantics, BULL/BUY candidates only; no universe or timeframe expansion mixed into this count' },
-      { cause: 'FIXED_SIX_SYMBOL_UNIVERSE', impact: observedUniverseIncrementalCount, evidence: 'controlled fixed-six bidirectional versus causal eligible observed-universe 4h comparison; only eight symbols are available and top-20 capacity is not demonstrated' },
+      { cause: 'FIXED_SIX_SYMBOL_UNIVERSE', impact: observedUniverseIncrementalCount, evidence: 'controlled fixed-six bidirectional versus causal eligible observed-universe 4h comparison with equivalent 2/3 breadth; only eight symbols are available and top-20 capacity is not demonstrated' },
+      { cause: 'BREADTH_50_PERCENT_MODEL_CHANGE', impact: breadth50IncrementalCount, evidence: 'separate same-universe/same-direction/same-4h-family comparison from equivalent 2/3 breadth to proposed 50% breadth; not attributed to universe' },
       { cause: '4H_ONLY_TIMING', impact: controlledComparisons.oneHourBreakout.incrementalCandidateCount, evidence: 'controlled 1h TREND_BREAKOUT-only comparison; order-dependent candidate count, no profitability claim' },
       { cause: 'ADDITIONAL_FAMILY_OVERLAP', impact: allFamilyStats.familyOverlapSlots, evidence: 'family observations are deduplicated into unique symbol/time/side slots before signal-count interpretation' },
       { cause: 'BEAR_BREADTH_4_OF_6', impact: currentBreadthRejectedScans, evidence: 'trend-qualified scans rejected by current fixed-six breadth threshold' },
@@ -720,7 +756,7 @@ function buildAudit() {
 
 function buildModelDesign() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     experimentId: 'HY-EXP-0024',
     status: 'DESIGN_ONLY_PENDING_PREREGISTRATION',
     authorization: 'PAPER_ONLY',
@@ -729,6 +765,11 @@ function buildModelDesign() {
     pnlComputed: false,
     promotionEligible: false,
     promotion: 'FORBIDDEN_UNTIL_SEPARATE_PREREGISTRATION_AND_OOS',
+    invariants: {
+      EDGE_TARGET_MUST_EXCLUDE_NET_EDGE_COST_COMPONENTS: true,
+      PAPER_ONLY: true,
+      NO_TRAINING_IN_THIS_CORRECTION: true
+    },
     objective: 'Increase usable high-quality signal count while preserving net expectancy after conservative costs; trade count alone is not an objective.',
     baseline: 'Current H12 remains HY-EXP-0018 SELL_ONLY 4h and is not modified.',
     candidateEngine: ['Candidate', 'Edge Model', 'Net Edge Gate', 'Portfolio Risk Gate', 'Advisory'],
@@ -764,8 +805,13 @@ function buildModelDesign() {
     edgeModel: {
       modelId: 'HENGYU-EDGE-HY-EXP-0024-RIDGE-001',
       edgeSource: 'HENGYU-HY-EXP-0024-PURGED-RIDGE-FORWARD',
-      target: 'CURRENT AUDIT DESIGN MISMATCH: directional executable forward return after six 1h bars is not the same label as the current unbounded stop/channel exit',
+      target: 'GROSS_DIRECTIONAL_PRICE_RETURN_BPS from executable entry reference to the exact frozen stop/channel/terminal exit, before fees, before funding, before spread/book cost, before slippage, before impact and before latency buffers',
       horizonBars: 6,
+      targetType: 'GROSS_PRICE_EDGE_ONLY',
+      expectedPriceEdgeBpsSemantics: 'predicted gross directional price return; it must not contain any Net Edge cost component',
+      standardErrorBpsSemantics: 'uncertainty of the same gross price-return target, before fees/funding/execution costs',
+      separateFundingOutput: 'expectedFundingBps is separate from expectedPriceEdgeBps and is supplied to the shared Net Edge engine',
+      targetCostExclusions: ['fee', 'funding', 'spread', 'book_cost', 'slippage', 'impact', 'latency', 'funding_stress'],
       features: [
         'trend strength: (close - SMA60) / ATR20',
         'distance to fast/slow SMA in bps',
@@ -788,7 +834,7 @@ function buildModelDesign() {
       validation: 'expanding walk-forward; purge=6 bars; embargo=6 bars; development and final untouched OOS are separate; no OOS reads before development PASS'
     },
     edgeExitAlignment: {
-      status: 'REVIEW_REQUIRED_NOT_ACCEPTED_FOR_PREREGISTRATION_AS_IS',
+      status: 'ALIGNED_PROPOSAL_PENDING_PREREGISTRATION_REVIEW',
       currentMismatch: {
         edgeTarget: 'six completed 1h directional forward-return bars',
         currentTradeExit: '2 ATR20 stop or prior-60 completed-1h channel exit with no maximum holding period',
@@ -796,16 +842,18 @@ function buildModelDesign() {
       },
       recommendedArchitecture: 'B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP',
       proposedArchitecture: {
-        label: 'net realized return from the exact frozen stop/channel execution policy',
-        stop: '2.0 ATR20 from executable entry',
+        label: 'gross directional price return from the exact frozen stop/channel/terminal execution policy',
+        stop: 'initial stop = 2.0 ATR20 from executable entry',
         dynamicChannel: 'prior-60 completed 1h channel adverse close',
+        maximumHoldBars: 6,
         evaluationCapBars: 6,
         terminalRule: 'if neither stop nor channel exit occurs by the sixth completed 1h bar, use a terminal exit at that bar close; this cap is fixed for alignment, not tuned from outcomes',
         holdingPeriod: 'actual entry-to-stop/channel/terminal exit interval',
         funding: 'include every realized funding event whose fundingTime falls within that same actual holding interval; missing required funding fails closed',
-        target: 'net executable return after fee, conservative slippage/impact, funding and latency proxy for the exact labeled exit',
+        target: 'gross price return only; shared Net Edge adds fees, funding, spread/book cost, slippage, impact, latency, uncertainty and funding stress exactly once',
         noHorizonTuning: true
       },
+      researchExpirySeparation: 'research expiry is a read/evaluation boundary and is not the trade holding-period exit',
       reviewerDecisionRequired: true,
       notRunInThisCorrection: true
     },
@@ -817,14 +865,18 @@ function buildModelDesign() {
       latencyBpsRoundTrip: 2,
       totalProxyBps: 18,
       funding: 'realized funding events known at decision/holding time; missing event fails closed',
-      rule: 'conservative executable edge must exceed costs + funding stress + uncertainty + minimum net hurdle'
+      rule: 'conservative executable edge must exceed costs + funding stress + uncertainty + minimum net hurdle',
+      netEdgeResponsibilities: ['fees', 'spread/book cost', 'slippage', 'impact', 'latency', 'expectedFundingBps', 'uncertainty', 'fundingStressBps'],
+      noDoubleCountingRule: 'expectedPriceEdgeBps and standardErrorBps are gross price-target quantities; every listed Net Edge component is applied exactly once after the Edge Model'
     },
     exits: {
-      stop: '2.0 ATR20 from executable entry',
+      stop: 'initial stop = 2.0 ATR20 from executable entry',
       dynamicChannel: 'exit on completed 1h close through prior 60 completed 1h channel in adverse direction',
       profitProtection: 'none in primary model; any trailing/profit-protection variant is a separate family/experiment',
-      maxHold: 'none in primary model; research expiry is not a holding-period exit',
-      alignmentStatus: 'current exit is not aligned with the six-bar edge target; see edgeExitAlignment; no Edge Model training is authorized by this audit correction',
+      maximumHoldBars: 6,
+      maxHold: '6 completed 1h bars; terminal exit at the sixth bar if stop/channel has not fired',
+      researchExpiry: 'separate research expiry boundary; it is not a trade holding-period exit',
+      alignmentStatus: 'proposed Edge target and proposed trade holding cap are both fixed at the exact six-bar stop/channel/terminal policy; no Edge Model training is authorized by this audit correction',
       boundary: 'open positions at evaluation boundary are censored/held out, never force-labeled as profitable'
     },
     riskAndDelivery: {
@@ -872,7 +924,7 @@ function writeOutputs() {
     `- Current H12 strict historical executable candidates: ${audit.currentH12Funnel.strictHistoricalExecutableCandidates}`,
     `- Current H12 edge/net-edge/risk/Gmail pass: ${audit.currentH12Funnel.edgeEligible}/${audit.currentH12Funnel.netEdgePass}/${audit.currentH12Funnel.portfolioRiskPass}/${audit.currentH12Funnel.gmailAdvisories}`,
     `- Proposed 1h family observations: ${audit.proposedExpansionFunnel.candidateFamilyObservations}; unique candidate slots: ${audit.proposedExpansionFunnel.uniqueCandidateSlots}; family overlap slots: ${audit.proposedExpansionFunnel.familyOverlapSlots}; edge/net-edge/risk/Gmail pass remains 0 until a separately validated edge model exists.`,
-    `- Controlled counts: baseline=${audit.controlledComparisons.baseline.candidateCount}; +bidirectional=${audit.controlledComparisons.bidirectional.bidirectionalTotal}; +observed-universe=${audit.controlledComparisons.observedUniverse.candidateCount}; 1h breakout unique=${audit.controlledComparisons.oneHourBreakout.uniqueCandidateSlots}; all-family observations=${audit.controlledComparisons.additionalFamilies.candidateFamilyObservations}; all-family unique=${audit.controlledComparisons.additionalFamilies.uniqueCandidateSlots}.`,
+    `- Controlled counts: baseline=${audit.controlledComparisons.baseline.candidateCount}; +bidirectional=${audit.controlledComparisons.bidirectional.bidirectionalTotal}; +universe-only(2/3 breadth)=${audit.controlledComparisons.observedUniverse.candidateCount}; +breadth50%=${audit.controlledComparisons.breadth50.candidateCount}; 1h breakout unique=${audit.controlledComparisons.oneHourBreakout.uniqueCandidateSlots}; all-family observations=${audit.controlledComparisons.additionalFamilies.candidateFamilyObservations}; all-family unique=${audit.controlledComparisons.additionalFamilies.uniqueCandidateSlots}.`,
     `- Direction attribution: bear/SELL=${audit.currentH12Funnel.directionOnlyComparison.bearSellCandidates}; bull/BUY=${audit.currentH12Funnel.directionOnlyComparison.bullBuyCandidates}; bidirectional=${audit.currentH12Funnel.directionOnlyComparison.bidirectionalTotal}; SELL_ONLY impact is bull/BUY only under fixed-six 4h semantics.`,
     `- Edge/exit alignment: ${design.edgeExitAlignment.status}; recommended resolution=${design.edgeExitAlignment.recommendedArchitecture}; no Edge Model training or horizon tuning was run.`,
     '',
@@ -909,6 +961,7 @@ export {
   buildDynamicUniverse,
   buildModelDesign,
   familyOverlapStats,
+  requiredBreadthForFraction,
   selectCompletedFourHourSnapshot,
   summarizeCandidateSet
 };

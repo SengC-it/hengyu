@@ -2,10 +2,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import { evaluateLiveH12Scan, H12_PRODUCTION_POLICY } from '../src/model/live-h12.mjs';
-import { buildDynamicUniverse, familyOverlapStats, selectCompletedFourHourSnapshot } from '../scripts/hy-exp-0024-audit.mjs';
+import { buildDynamicUniverse, familyOverlapStats, requiredBreadthForFraction, selectCompletedFourHourSnapshot } from '../scripts/hy-exp-0024-audit.mjs';
+import { evaluateNetEdge } from '../src/model/net-edge.mjs';
 
 const audit = JSON.parse(fs.readFileSync('artifacts/audits/HY-EXP-0024-signal-funnel.json', 'utf8'));
 const design = JSON.parse(fs.readFileSync('artifacts/audits/HY-EXP-0024-model-design.json', 'utf8'));
+const BOOK = {
+  bids: [[99.9, 2], [99.8, 5]],
+  asks: [[100.1, 1], [100.2, 5]]
+};
 
 function fallingSeries(symbol, breakout = false) {
   const step = 4 * 60 * 60 * 1000;
@@ -79,11 +84,17 @@ test('HY-EXP-0024 design keeps candidate families separate and requires candidat
   assert.deepEqual(design.candidateEngine, ['Candidate', 'Edge Model', 'Net Edge Gate', 'Portfolio Risk Gate', 'Advisory']);
   assert.equal(design.edgeModel.training, 'separate ridge regression for each candidate family x regime x side; intercept included; lambda=1.0 frozen; no pooled BUY/BULL mean');
   assert.deepEqual(Object.keys(design.entry.families).sort(), ['PULLBACK_CONTINUATION', 'TREND_BREAKOUT', 'VOLATILITY_EXPANSION']);
-  assert.equal(design.exits.maxHold, 'none in primary model; research expiry is not a holding-period exit');
-  assert.equal(design.edgeExitAlignment.status, 'REVIEW_REQUIRED_NOT_ACCEPTED_FOR_PREREGISTRATION_AS_IS');
+  assert.equal(design.exits.maximumHoldBars, 6);
+  assert.equal(design.exits.maxHold, '6 completed 1h bars; terminal exit at the sixth bar if stop/channel has not fired');
+  assert.match(design.exits.researchExpiry, /not a trade holding-period exit/);
+  assert.equal(design.edgeExitAlignment.status, 'ALIGNED_PROPOSAL_PENDING_PREREGISTRATION_REVIEW');
   assert.equal(design.edgeExitAlignment.recommendedArchitecture, 'B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP');
   assert.equal(design.edgeExitAlignment.proposedArchitecture.evaluationCapBars, 6);
+  assert.equal(design.edgeExitAlignment.proposedArchitecture.maximumHoldBars, 6);
   assert.equal(design.edgeExitAlignment.proposedArchitecture.noHorizonTuning, true);
+  assert.equal(design.invariants.EDGE_TARGET_MUST_EXCLUDE_NET_EDGE_COST_COMPONENTS, true);
+  assert.equal(design.edgeModel.targetType, 'GROSS_PRICE_EDGE_ONLY');
+  assert.deepEqual(design.edgeModel.targetCostExclusions, ['fee', 'funding', 'spread', 'book_cost', 'slippage', 'impact', 'latency', 'funding_stress']);
   assert.equal(design.riskAndDelivery.orderApi, false);
   assert.equal(design.riskAndDelivery.accountApi, false);
 });
@@ -94,6 +105,61 @@ test('SELL_ONLY attribution is fixed-six BULL/BUY only', () => {
   assert.equal(direction.bullBuyCandidates, direction.sellOnlyImpact);
   assert.equal(direction.bidirectionalTotal, direction.bearSellCandidates + direction.bullBuyCandidates);
   assert.equal(audit.historicalCandidateCounts.fixedSixBidirectional4h, direction.bidirectionalTotal);
+});
+
+test('direction, universe-only and 50% breadth increments reconcile independently', () => {
+  const stages = audit.controlledComparisons;
+  assert.equal(stages.bidirectional.incrementalCandidateCount, stages.bidirectional.bidirectionalTotal - stages.baseline.candidateCount);
+  assert.equal(stages.observedUniverse.breadthFraction, 2 / 3);
+  assert.match(stages.observedUniverse.requiredBreadthRule, /2\/3/);
+  assert.equal(stages.observedUniverse.incrementalCandidateCount, stages.observedUniverse.candidateCount - stages.bidirectional.bidirectionalTotal);
+  assert.equal(stages.breadth50.previousBreadthFraction, 2 / 3);
+  assert.equal(stages.breadth50.breadthFraction, 0.5);
+  assert.equal(stages.breadth50.incrementalCandidateCount, stages.breadth50.candidateCount - stages.observedUniverse.candidateCount);
+  assert.equal(audit.historicalCandidateCounts.directionImpact, stages.bidirectional.incrementalCandidateCount);
+  assert.equal(audit.historicalCandidateCounts.universeImpact, stages.observedUniverse.incrementalCandidateCount);
+  assert.equal(audit.historicalCandidateCounts.breadth50Impact, stages.breadth50.incrementalCandidateCount);
+});
+
+test('universe-only control preserves H12 4/6 as equivalent 2/3 breadth', () => {
+  assert.equal(requiredBreadthForFraction(6, 2 / 3), 4);
+  assert.equal(requiredBreadthForFraction(8, 2 / 3), 6);
+  assert.equal(requiredBreadthForFraction(8, 0.5), 4);
+  assert.equal(audit.controlledComparisons.observedUniverse.breadthFraction, 2 / 3);
+  assert.equal(audit.controlledComparisons.breadth50.previousBreadthFraction, 2 / 3);
+});
+
+test('gross Edge target excludes Net Edge costs and is not double-counted', () => {
+  const candidate = {
+    symbol: 'BTCUSDT',
+    side: 'BUY',
+    expectedPriceEdgeBps: 50,
+    forecastStandardErrorBps: 0,
+    expectedFundingBps: 0,
+    fundingStressBps: 0,
+    quantity: 1,
+    forecastTime: 9_000,
+    bookTime: 9_500,
+    edgeSource: 'VALIDATED_GROSS_PRICE_MODEL'
+  };
+  const policy = {
+    confidenceZ: 1.645,
+    minimumConservativeNetBps: 0,
+    minimumGrossToCostRatio: 1,
+    maximumForecastAgeMs: 5_000,
+    maximumBookAgeMs: 1_000,
+    maximumVisibleBookFraction: 1,
+    feeRatePerFill: 0.0005,
+    bookStressMultiplier: 2,
+    impactBufferBpsPerFill: 1,
+    latencyBufferBpsPerFill: 1
+  };
+  const result = evaluateNetEdge({ candidate, book: BOOK, policy, now: 10_000 });
+  assert.equal(candidate.expectedPriceEdgeBps, 50);
+  assert.equal(result.metrics.expectedGrossEdgeBps, 50);
+  assert.ok(result.metrics.execution.totalExecutionCostBps > 0);
+  assert.equal(result.metrics.expectedNetEdgeBps, 50 - result.metrics.execution.totalExecutionCostBps);
+  assert.ok(result.metrics.expectedNetEdgeBps < candidate.expectedPriceEdgeBps);
 });
 
 test('dynamic universe is applied and candidate denominators are not conflated', () => {

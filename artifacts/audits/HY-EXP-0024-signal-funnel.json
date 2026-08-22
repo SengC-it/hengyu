@@ -3,7 +3,7 @@
   "experimentId": "HY-EXP-0024",
   "status": "AUDIT_ONLY_NOT_PREREGISTERED",
   "evidenceClass": "D0_DESCRIPTIVE_DEVELOPMENT_INFORMATION",
-  "generatedAt": "2026-08-22T16:19:02.143Z",
+  "generatedAt": "2026-08-22T17:23:11.013Z",
   "authorization": "PAPER_ONLY",
   "liveOrdersEnabled": false,
   "pnlComputed": false,
@@ -132,6 +132,7 @@
       "snapshotsWithEligibleSymbols": 3282,
       "observedUniverseCoverage": 8,
       "top20CapacityNotDemonstrated": true,
+      "appliedBreadthFraction": 0.5,
       "membershipFrozenUntilNextCompleted4hBoundary": true,
       "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK"
     },
@@ -237,11 +238,29 @@
       ],
       "timeframe": "4h",
       "family": "PROPOSED_4H_BREAKOUT",
-      "candidateCount": 587,
-      "uniqueCandidateSlots": 587,
-      "incrementalCandidateCount": 128,
+      "breadthFraction": 0.6666666666666666,
+      "requiredBreadthRule": "ceil(eligibleSymbols * 2/3), equivalent to current H12 4/6 breadth fraction",
+      "candidateCount": 577,
+      "uniqueCandidateSlots": 577,
+      "incrementalCandidateCount": 118,
       "observedUniverseCoverage": 8,
       "top20CapacityNotDemonstrated": true
+    },
+    "breadth50": {
+      "label": "+ PROPOSED BREADTH 50%",
+      "universe": "same causal eligible observed-universe snapshots",
+      "directions": [
+        "BUY",
+        "SELL"
+      ],
+      "timeframe": "4h",
+      "family": "same 4h breakout family",
+      "previousBreadthFraction": 0.6666666666666666,
+      "breadthFraction": 0.5,
+      "requiredBreadthRule": "ceil(eligibleSymbols * 0.50)",
+      "candidateCount": 587,
+      "uniqueCandidateSlots": 587,
+      "incrementalCandidateCount": 10
     },
     "oneHourBreakout": {
       "label": "+ 1H TIMEFRAME",
@@ -277,7 +296,11 @@
     "bearSellCandidates": 112,
     "bullBuyCandidates": 347,
     "fixedSixBidirectional4h": 459,
+    "observedUniverseEquivalentBreadth4h": 577,
     "observedUniverseBidirectional4h": 587,
+    "directionImpact": 347,
+    "universeImpact": 118,
+    "breadth50Impact": 10,
     "observedUniverse1hTrendBreakoutFamilyObservations": 1533,
     "observedUniverse1hTrendBreakoutUniqueCandidateSlots": 1533,
     "observedUniverse1hAllFamilyObservations": 9982,
@@ -359,8 +382,13 @@
     },
     {
       "cause": "FIXED_SIX_SYMBOL_UNIVERSE",
-      "impact": 128,
-      "evidence": "controlled fixed-six bidirectional versus causal eligible observed-universe 4h comparison; only eight symbols are available and top-20 capacity is not demonstrated"
+      "impact": 118,
+      "evidence": "controlled fixed-six bidirectional versus causal eligible observed-universe 4h comparison with equivalent 2/3 breadth; only eight symbols are available and top-20 capacity is not demonstrated"
+    },
+    {
+      "cause": "BREADTH_50_PERCENT_MODEL_CHANGE",
+      "impact": 10,
+      "evidence": "separate same-universe/same-direction/same-4h-family comparison from equivalent 2/3 breadth to proposed 50% breadth; not attributed to universe"
     },
     {
       "cause": "4H_ONLY_TIMING",
