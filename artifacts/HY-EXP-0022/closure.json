@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0022_CLOSURE",
+  "experimentId": "HY-EXP-0022",
+  "sourceCommit": "a914210f979901ac30381bf2f3a8898f31b63504",
+  "failureEvidence": {
+    "artifactPath": "artifacts/HY-EXP-0022/first-prospective-bar-smoke.json",
+    "runId": "engineering-dry-run-20260822093216509-b920a189",
+    "targetBar": {
+      "openTime": "2026-08-22T04:00:00.000Z",
+      "closeTime": "2026-08-22T07:59:59.999Z"
+    },
+    "finalWebsocketBars": 0,
+    "restConfirmations": 0,
+    "sequenceGaps": 2,
+    "historicalBackfillUsed": false
+  },
+  "status": "DATA_FAIL_FROZEN",
+  "primaryReasons": [
+    "TARGET_BAR_FINAL_WS_NOT_CAPTURED_BEFORE_CLOSE",
+    "REQUIRED_PROSPECTIVE_BAR_COVERAGE_LOST",
+    "NO_HISTORICAL_BACKFILL_ALLOWED"
+  ],
+  "secondaryFindings": [
+    "DEPTH_SEQUENCE_GAPS_OBSERVED = 2"
+  ],
+  "developmentRun": false,
+  "developmentResult": false,
+  "developmentAllowed": false,
+  "pnlComputed": false,
+  "finalOosRead": false,
+  "liveOrdersEnabled": false,
+  "productionDeploy": false,
+  "paperOnly": true,
+  "rawHistoricalBackfillUsed": false,
+  "preregistrationModified": false,
+  "strategyModified": false,
+  "resultJsonPresent": false,
+  "tradesJsonlPresent": false,
+  "closureStatements": [
+    "HY-EXP-0022 is frozen DATA_FAIL and must not be rescued.",
+    "The frozen first prospective 4h bar was not captured live before its close boundary.",
+    "Historical REST backfill, captureStart changes and target-bar reruns are forbidden.",
+    "HY-EXP-0022 Development, PnL and Final-OOS research reads did not occur.",
+    "HY-EXP-0022 remains PAPER_ONLY with no live orders or account API.",
+    "Any changed capture timing or data requirement must use a new experiment ID."
+  ],
+  "nextExperimentRule": "HY-EXP-0023 must be independently preregistered; HY-EXP-0022 raw data and failure evidence are not Development or OOS evidence for it."
+}
