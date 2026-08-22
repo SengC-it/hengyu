@@ -67,3 +67,24 @@ Vercel serverless execution is not suitable for continuous 100ms depth capture o
 7. alerts for sequence gaps, crossed books, stale books, missing bars, missing funding, missing receipts, and manifest incompleteness.
 
 The collector must stop a segment on a gap or crossed book and start a new segment only after a fresh snapshot. It must never repair a gap synthetically. Development and Final-OOS capture use separate credentials, roots, manifests, and operation policies even though both remain paper-only.
+
+## Phase A collector engineering
+
+Phase A exposes an executable command:
+
+```text
+npm run hy-exp-0022:engineering-dry-run -- --duration-ms 300000 --max-symbols 3
+```
+
+It writes only to `data/raw/engineering-dry-run/HY-EXP-0022/<runId>`. That root is canonical, distinct from both prospective roots, and is always marked `developmentEligible=false`; it can never be passed to a Development reader. Raw files are not committed. The command writes the small engineering result to `artifacts/HY-EXP-0022/collector-engineering-readiness.json`.
+
+The current Binance transport endpoints are verified at runtime and no legacy `/stream` fallback exists:
+
+- depth combined subscriptions: `wss://fstream.binance.com/public/stream`;
+- kline combined subscriptions: `wss://fstream.binance.com/market/stream`.
+
+Both connections use a bounded `SUBSCRIBE` batch. Every message is capability-checked before reconstruction. If `st` is present it must equal `1`; `st=2` fails closed. `st` and `ps` are retained in the raw record. A reconnect closes the old segment and starts a new segment with fresh snapshots; an invalid segment is never repaired or relabeled as valid.
+
+The five-minute dry run verifies dynamic exchangeInfo/ticker sampling, REST depth limit 1000, per-symbol snapshot alignment, `U/u/pu` continuity, real kline stream receipt, exchangeInfo, funding, append-only NDJSON, raw-file hashes, and an immutable manifest. It does not fabricate a completed 4h bar. An open current 4h kline is recorded only as an engineering schema/transport observation. If the currently open bar began before the frozen `captureStart`, it is retained in the engineering root but reported as `PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED`; it is never a Development input. A final kline is eligible for REST confirmation only when it is closed and its `openTime` is at or after `captureStart`; the REST request is bounded to that exact `openTime`/`closeTime` pair. A mismatch is `BAR_SOURCE_CONFLICT`, a timeout is `BAR_CONFIRMATION_MISSING`, and neither condition has a fallback.
+
+The OOS workflow is intentionally stricter than a generic “PASS” flag. Before Development PASS, Final-OOS raw data may only be written, hashed, and integrity-checked. The system rejects a Development PASS decision while Final-OOS capture is not sealed. Once the full Final-OOS capture is sealed, Development may be evaluated; only a real Development PASS then unlocks the explicit Final-OOS research-read allowlist. No Phase A command marks Development PASS, reads OOS, computes PnL, or enables order/account APIs.

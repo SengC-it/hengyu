@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0022_COLLECTOR_ENGINEERING_READINESS",
+  "experimentId": "HY-EXP-0022",
+  "status": "PASS",
+  "runId": "engineering-dry-run-20260822011408494-6dc54f85",
+  "runWindow": {
+    "startedAt": "2026-08-22T01:14:08.494Z",
+    "finishedAt": "2026-08-22T01:19:08.713Z",
+    "durationMs": 300219
+  },
+  "symbols": [
+    "BTCUSDC",
+    "BTCUSDT",
+    "ETHUSDT"
+  ],
+  "endpoints": {
+    "depth": {
+      "endpoint": "wss://fstream.binance.com/public/stream",
+      "kind": "depth",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 8394,
+      "stValues": [
+        1
+      ],
+      "psValues": [
+        "BTCUSDT",
+        "BTCUSDC",
+        "ETHUSDT"
+      ],
+      "status": "VERIFIED"
+    },
+    "kline": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "kind": "kline",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 1804,
+      "stValues": [],
+      "psValues": [],
+      "status": "VERIFIED"
+    }
+  },
+  "checks": {
+    "documentedDepthEndpoint": true,
+    "documentedKlineEndpoint": true,
+    "minimumDuration": true,
+    "minimumDynamicSymbols": true,
+    "validSegments": true,
+    "snapshotAlignmentFailures": true,
+    "sequenceGaps": true,
+    "crossedBooks": true,
+    "bufferLimitFailures": true,
+    "receivedAtPresent": true,
+    "exchangeInfoCaptured": true,
+    "fundingCaptured": true,
+    "barSourceStreamVerified": true,
+    "immutableManifest": true,
+    "noPnl": true,
+    "noDevelopment": true,
+    "noOrders": true
+  },
+  "diagnostics": {
+    "validSegments": 1,
+    "invalidSegments": 0,
+    "snapshotAlignmentFailures": 0,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "staleBufferedDropped": 27,
+    "bufferedEventsPeak": 26,
+    "snapshotAttempts": 4,
+    "snapshotTooOldRetries": 1,
+    "alignmentSuccesses": 3,
+    "alignmentFailures": 0,
+    "symbolsCaptured": [
+      "BTCUSDC",
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "exchangeInfoCaptured": true,
+    "universeSnapshots": 2,
+    "fundingMissing": 0,
+    "missingReceivedAt": 0,
+    "klineWebsocketEvents": 1804,
+    "barSourceStatus": "PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED",
+    "transport": {
+      "depth": {
+        "endpoint": "wss://fstream.binance.com/public/stream",
+        "kind": "depth",
+        "opened": true,
+        "subscriptionAck": true,
+        "dataMessages": 8394,
+        "stValues": [
+          1
+        ],
+        "psValues": [
+          "BTCUSDT",
+          "BTCUSDC",
+          "ETHUSDT"
+        ],
+        "status": "VERIFIED"
+      },
+      "kline": {
+        "endpoint": "wss://fstream.binance.com/market/stream",
+        "kind": "kline",
+        "opened": true,
+        "subscriptionAck": true,
+        "dataMessages": 1804,
+        "stValues": [],
+        "psValues": [],
+        "status": "VERIFIED"
+      }
+    }
+  },
+  "barSourceVerification": {
+    "transport": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "kind": "kline",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 1804,
+      "stValues": [],
+      "psValues": [],
+      "status": "OPEN"
+    },
+    "websocketEvents": 1804,
+    "openCurrentBarEvents": 0,
+    "finalBarEvents": 0,
+    "confirmedBars": 0,
+    "sourceConflicts": 0,
+    "confirmationMissing": 0,
+    "preCaptureBarsRejected": 1804,
+    "errors": [],
+    "status": "PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED",
+    "developmentEligible": false,
+    "historicalBackfillUsed": false,
+    "preCaptureOnly": true
+  },
+  "validSegments": 1,
+  "invalidSegments": 0,
+  "snapshotAlignmentFailures": 0,
+  "sequenceGaps": 0,
+  "crossedBooks": 0,
+  "bufferLimitFailures": 0,
+  "receivedAtMissing": 0,
+  "files": [
+    {
+      "path": "depth.diff.ndjson",
+      "bytes": 20877162,
+      "sha256": "098203b505218252bed8822f0df18b8091dda2cd020103fc0c7a12f128f03023"
+    },
+    {
+      "path": "depth.snapshot.ndjson",
+      "bytes": 164340,
+      "sha256": "c413de35376b12fd649702b7e7ca1329ac1918784299d8194f023f1a32cc2ae3"
+    },
+    {
+      "path": "kline.4h.ndjson",
+      "bytes": 962269,
+      "sha256": "676e66a9b59927f89996590da2a7f691eb10f7c44803da9dc2a579d3be0d8176"
+    },
+    {
+      "path": "kline.4h.confirmation.ndjson",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "exchangeInfo.ndjson",
+      "bytes": 1077740,
+      "sha256": "9114268498dcbbca821cc7ab8c320c0ae7befc52c8e269d29207e60789991e84"
+    },
+    {
+      "path": "funding.ndjson",
+      "bytes": 869,
+      "sha256": "469242118e0a648692784ebbef5e885c254ea7785093be230a81e3d75ae8efcb"
+    },
+    {
+      "path": "ticker.diagnostic.ndjson",
+      "bytes": 276961,
+      "sha256": "e7790be17b3d5ef824bf4551ac60c9d8269e602021e7c55ee3c66f428f7e53cd"
+    },
+    {
+      "path": "universe.snapshot.ndjson",
+      "bytes": 149576,
+      "sha256": "de44b4100fd9f3d69040994dce4bb7040f376bc84633793eed2d2a77423076ed"
+    },
+    {
+      "path": "universe.audit.ndjson",
+      "bytes": 149214,
+      "sha256": "735332e0a25efe973016325bd46e8d9d7a945357acff098b103082d9199681bb"
+    },
+    {
+      "path": "segment.audit.ndjson",
+      "bytes": 2088,
+      "sha256": "5f3364d6034d0319d27700a4fa6e657f11cc6046092335bb9da392f04259ac6e"
+    }
+  ],
+  "rawFileSha256": {
+    "depth.diff.ndjson": "098203b505218252bed8822f0df18b8091dda2cd020103fc0c7a12f128f03023",
+    "depth.snapshot.ndjson": "c413de35376b12fd649702b7e7ca1329ac1918784299d8194f023f1a32cc2ae3",
+    "kline.4h.ndjson": "676e66a9b59927f89996590da2a7f691eb10f7c44803da9dc2a579d3be0d8176",
+    "kline.4h.confirmation.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exchangeInfo.ndjson": "9114268498dcbbca821cc7ab8c320c0ae7befc52c8e269d29207e60789991e84",
+    "funding.ndjson": "469242118e0a648692784ebbef5e885c254ea7785093be230a81e3d75ae8efcb",
+    "ticker.diagnostic.ndjson": "e7790be17b3d5ef824bf4551ac60c9d8269e602021e7c55ee3c66f428f7e53cd",
+    "universe.snapshot.ndjson": "de44b4100fd9f3d69040994dce4bb7040f376bc84633793eed2d2a77423076ed",
+    "universe.audit.ndjson": "735332e0a25efe973016325bd46e8d9d7a945357acff098b103082d9199681bb",
+    "segment.audit.ndjson": "5f3364d6034d0319d27700a4fa6e657f11cc6046092335bb9da392f04259ac6e"
+  },
+  "manifestSha256": "e6fc98e0fe3be3d44a8d24f66b1adcb6f2986240dbeaf28d8d1a4251cfe544d6",
+  "manifestFileSha256": "b51aa0c647a5bd1a37f194babfdba848f193be3b73ef940027b99102ec039d3b",
+  "root": "data\\raw\\engineering-dry-run\\HY-EXP-0022",
+  "developmentEligible": false,
+  "developmentAllowed": false,
+  "finalOosEligible": false,
+  "pnlComputed": false,
+  "paperOnly": true,
+  "liveOrdersEnabled": false,
+  "orderApiEnabled": false,
+  "accountApiEnabled": false,
+  "oosWorkflow": {
+    "developmentPassBeforeFinalOosCaptureComplete": false,
+    "finalOosResearchReadRequiresDevelopmentPassAndSealedCapture": true,
+    "finalOosWindow": {
+      "start": "2027-03-01T00:00:00.000Z",
+      "endExclusive": "2027-09-01T00:00:00.000Z"
+    }
+  },
+  "errors": []
+}
