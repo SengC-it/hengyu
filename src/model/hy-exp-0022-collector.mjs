@@ -64,6 +64,8 @@ const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_SYMBOLS = 3;
 const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = 200;
 const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = 200;
+export const HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY = 8;
+export const HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS = 10_000;
 
 export const HY_EXP_0022_COLLECTOR_PROFILE = Object.freeze({
   experimentId: HY_EXP_0022_ID,
@@ -280,7 +282,15 @@ export async function fetchJsonCompleted({ fetchImpl = globalThis.fetch, url, si
   if (typeof fetchImpl !== 'function') throw new Error('fetch implementation is unavailable');
   const requestStartedAt = Date.now();
   const response = await fetchImpl(url, { method: 'GET', signal });
-  if (response?.ok === false) throw new Error(`public request failed: ${response.status}`);
+  if (response?.ok === false) {
+    const status = Number(response.status);
+    const error = errorWithCode(status === 429 ? 'HTTP_429' : 'HTTP_STATUS', `public request failed: ${response.status}`);
+    error.status = status;
+    error.requestStartedAt = requestStartedAt;
+    error.receivedAt = Date.now();
+    error.bodyCompleted = false;
+    throw error;
+  }
   let data;
   if (typeof response?.text === 'function') {
     const body = await response.text();
@@ -548,7 +558,13 @@ function upper(value) {
 
 const STABLE_BASES = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'FDUSD', 'TUSD', 'USDP', 'USDE', 'USD1']);
 
-/** Select a capture candidate set from current PIT exchangeInfo/ticker, never a hard-coded list. */
+/**
+ * Select a capture candidate set from current PIT exchangeInfo, never a hard-coded list.
+ *
+ * Ticker is deliberately diagnostic-only.  It may rank a bounded engineering
+ * sample, but it must never decide whether an otherwise valid PIT instrument is
+ * eligible for the all-symbol universe.
+ */
 export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, observedAt = Date.now(), maxSymbols = DEFAULT_MAX_SYMBOLS } = {}) {
   const at = timestamp('universe observedAt', observedAt);
   const boundedMaxSymbols = maxSymbols == null ? null : integer('maxSymbols', maxSymbols, 1);
@@ -566,16 +582,22 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
     if (!Number.isFinite(onboardDate) || onboardDate > at - 30 * DAY_MS) reasons.push('listing_age_under_30d');
     const ticker = tickerBySymbol.get(symbol);
     const quoteVolume = Number(ticker?.quoteVolume ?? ticker?.q);
-    if (!ticker || !Number.isFinite(quoteVolume)) reasons.push('missing_ticker_diagnostic');
     if (reasons.length) {
-      rows.push({ symbol, eligible: false, reasons: [...new Set(reasons)], quoteVolumeUsdt: Number.isFinite(quoteVolume) ? quoteVolume : null });
+      rows.push({
+        symbol,
+        eligible: false,
+        reasons: [...new Set(reasons)],
+        quoteVolumeUsdt: Number.isFinite(quoteVolume) ? quoteVolume : null,
+        tickerAvailable: Boolean(ticker) && Number.isFinite(quoteVolume)
+      });
       continue;
     }
     rows.push({
       symbol,
       eligible: true,
       reasons: [],
-      quoteVolumeUsdt: quoteVolume,
+      quoteVolumeUsdt: Number.isFinite(quoteVolume) ? quoteVolume : null,
+      tickerAvailable: Boolean(ticker) && Number.isFinite(quoteVolume),
       onboardDate,
       quoteAsset: upper(row.quoteAsset ?? row.marginAsset),
       contractType: upper(row.contractType),
@@ -585,12 +607,23 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
   }
   const eligible = rows
     .filter(row => row.eligible)
-    .sort((left, right) => right.quoteVolumeUsdt - left.quoteVolumeUsdt || left.symbol.localeCompare(right.symbol));
+    .sort((left, right) => {
+      if (boundedMaxSymbols == null) return left.symbol.localeCompare(right.symbol);
+      const leftVolume = Number.isFinite(left.quoteVolumeUsdt) ? left.quoteVolumeUsdt : -1;
+      const rightVolume = Number.isFinite(right.quoteVolumeUsdt) ? right.quoteVolumeUsdt : -1;
+      return rightVolume - leftVolume || left.symbol.localeCompare(right.symbol);
+    });
   const selected = boundedMaxSymbols == null ? eligible : eligible.slice(0, boundedMaxSymbols);
   const selectedSymbols = selected.map(row => row.symbol).sort();
   return {
-    selectionSource: 'PIT_EXCHANGE_INFO_PLUS_TICKER_FOR_ENGINEERING_CAPTURE_SAMPLING_ONLY',
+    eligibilitySource: 'PIT_EXCHANGE_INFO',
+    selectionSource: boundedMaxSymbols == null
+      ? 'PIT_EXCHANGE_INFO_ALL_ELIGIBLE'
+      : 'PIT_EXCHANGE_INFO_PLUS_TICKER_SAMPLE_RANKING_ONLY',
+    selectionMode: boundedMaxSymbols == null ? 'ALL_ELIGIBLE' : 'SAMPLE_SELECTION_ONLY',
     tickerDiagnosticOnly: true,
+    tickerUsedForEligibility: false,
+    tickerUsedForSelection: boundedMaxSymbols != null,
     tickerDefinesVolume6: false,
     symbols: selectedSymbols,
     selected: selected.sort((left, right) => left.symbol.localeCompare(right.symbol)),
@@ -1069,6 +1102,23 @@ function nextUtcBoundary(value) {
   return (Math.floor(parsed / FOUR_HOURS_MS) + 1) * FOUR_HOURS_MS;
 }
 
+function buildDepthConnectionMetrics({ symbols = [], depthSymbolsPerConnection, segments = [] } = {}) {
+  const initialBatchCount = splitDepthSymbols(symbols, depthSymbolsPerConnection).length;
+  const websocketConnectionAttempts = segments.length;
+  return {
+    initialBatchCount,
+    activeConnectionBatchCount: segments.length > 0 ? initialBatchCount : 0,
+    websocketConnectionAttempts,
+    reconnectCount: Math.max(0, websocketConnectionAttempts - initialBatchCount),
+    totalSegments: segments.length,
+    invalidSegments: segments.filter(segment => segment.status !== 'VALID').length,
+    validSegments: segments.filter(segment => segment.status === 'VALID').length,
+    connectionBatchLimit: depthSymbolsPerConnection,
+    maxSymbolsPerConnection: Math.max(0, ...segments.map(segment => segment.symbols.length)),
+    symbolsPerConnection: [...new Set(segments.map(segment => segment.symbols.length))].sort((left, right) => left - right)
+  };
+}
+
 async function collectDepthSegments({
   symbols,
   deadline,
@@ -1347,10 +1397,30 @@ async function collectKlineStream({
 }
 
 async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWriter, experimentId = HY_EXP_0022_ID }) {
-  const [exchangeResponse, tickerResponse] = await Promise.all([
-    fetchJsonCompleted({ fetchImpl, url: 'https://fapi.binance.com/fapi/v1/exchangeInfo' }),
-    fetchJsonCompleted({ fetchImpl, url: 'https://fapi.binance.com/fapi/v1/ticker/24hr' })
-  ]);
+  const exchangeResponse = await fetchJsonCompleted({
+    fetchImpl,
+    url: 'https://fapi.binance.com/fapi/v1/exchangeInfo'
+  });
+  let tickerResponse;
+  let tickerError = null;
+  try {
+    tickerResponse = await fetchJsonCompleted({
+      fetchImpl,
+      url: 'https://fapi.binance.com/fapi/v1/ticker/24hr'
+    });
+  } catch (error) {
+    tickerError = error;
+    const receivedAt = Number.isFinite(error.receivedAt) ? error.receivedAt : Date.now();
+    tickerResponse = {
+      data: [],
+      requestStartedAt: Number.isFinite(error.requestStartedAt) ? error.requestStartedAt : receivedAt,
+      receivedAt,
+      exchangeObservedAt: null,
+      bodyCompleted: error.bodyCompleted === true,
+      error: error.message,
+      code: error.code ?? 'TICKER_DIAGNOSTIC_UNAVAILABLE'
+    };
+  }
   exchangeWriter.append({
     experimentId,
     stream: 'exchangeInfo',
@@ -1366,55 +1436,114 @@ async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWri
     requestStartedAt: tickerResponse.requestStartedAt,
     receivedAt: tickerResponse.receivedAt,
     exchangeObservedAt: serverObservedAt(tickerResponse),
-    data: tickerResponse.data
+    valid: tickerError == null,
+    data: tickerResponse.data,
+    error: tickerError?.message ?? null
   });
   const observedAt = Math.min(
     exchangeResponse.exchangeObservedAt ?? exchangeResponse.receivedAt,
-    exchangeResponse.receivedAt,
-    tickerResponse.exchangeObservedAt ?? tickerResponse.receivedAt,
-    tickerResponse.receivedAt
+    exchangeResponse.receivedAt
   );
   return {
     exchangeResponse,
     tickerResponse,
+    tickerError,
     observedAt,
     exchangeInfo: Array.isArray(exchangeResponse.data?.symbols) ? exchangeResponse.data.symbols : [],
     tickers: Array.isArray(tickerResponse.data) ? tickerResponse.data : []
   };
 }
 
-async function captureFunding({ symbols, fetchImpl, fundingWriter, experimentId = HY_EXP_0022_ID }) {
-  const rows = await Promise.all(symbols.map(async symbol => {
-    try {
-      const response = await fetchJsonCompleted({ fetchImpl, url: buildFundingUrl(symbol) });
-      const sourceRows = Array.isArray(response.data) ? response.data : [];
-      const sourceRow = sourceRows.find(row => String(row?.symbol ?? '').toUpperCase() === symbol);
-      const validated = validateHyExp0022FundingRow({ symbol, row: sourceRow, receivedAt: response.receivedAt });
-      fundingWriter.append({
-        experimentId,
-        stream: 'funding',
-        symbol,
-        requestStartedAt: response.requestStartedAt,
-        receivedAt: response.receivedAt,
-        exchangeObservedAt: serverObservedAt(response),
-        valid: true,
-        validation: validated,
-        data: response.data
-      });
-      return { symbol, ok: true, response, validation: validated };
-    } catch (error) {
-      fundingWriter.append({
-        experimentId,
-        stream: 'funding',
-        symbol,
-        valid: false,
-        receivedAt: Date.now(),
-        error: error.message
-      });
-      return { symbol, ok: false, error: error.message, code: error.code ?? 'FUNDING_SCHEMA_INVALID' };
+/**
+ * Capture one realized funding row per symbol with bounded public-API concurrency.
+ * Missing/invalid rows remain fail-closed; no forecast or historical fallback is used.
+ */
+export async function captureHyExp0022Funding({
+  symbols = [],
+  fetchImpl,
+  fundingWriter,
+  experimentId = HY_EXP_0022_ID,
+  concurrency = HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY,
+  timeoutMs = HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS
+} = {}) {
+  const normalizedSymbols = [...new Set((Array.isArray(symbols) ? symbols : []).map(symbolOf))];
+  const maxConcurrency = Math.min(
+    normalizedSymbols.length || 1,
+    integer('funding concurrency', concurrency, 1)
+  );
+  const requestTimeoutMs = integer('funding timeoutMs', timeoutMs, 1);
+  const rows = new Array(normalizedSymbols.length);
+  const diagnostics = {
+    fundingAttemptCount: normalizedSymbols.length,
+    fundingSuccessCount: 0,
+    fundingFailureCount: 0,
+    funding429Count: 0,
+    fundingTimeoutCount: 0,
+    maxConcurrentFundingRequests: 0,
+    fundingFailureCodes: {}
+  };
+  let nextIndex = 0;
+  let active = 0;
+  const recordFailureCode = code => {
+    const normalized = String(code ?? 'FUNDING_SCHEMA_INVALID');
+    diagnostics.fundingFailureCodes[normalized] = (diagnostics.fundingFailureCodes[normalized] ?? 0) + 1;
+    if (normalized === 'HTTP_429') diagnostics.funding429Count++;
+    if (normalized === 'FUNDING_TIMEOUT') diagnostics.fundingTimeoutCount++;
+  };
+  const worker = async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= normalizedSymbols.length) return;
+      const symbol = normalizedSymbols[index];
+      const requestStartedAt = Date.now();
+      active++;
+      diagnostics.maxConcurrentFundingRequests = Math.max(diagnostics.maxConcurrentFundingRequests, active);
+      try {
+        const response = await withTimeout(
+          fetchJsonCompleted({ fetchImpl, url: buildFundingUrl(symbol) }),
+          requestTimeoutMs,
+          'FUNDING_TIMEOUT'
+        );
+        const sourceRows = Array.isArray(response.data) ? response.data : [];
+        const sourceRow = sourceRows.find(row => String(row?.symbol ?? '').toUpperCase() === symbol);
+        const validated = validateHyExp0022FundingRow({ symbol, row: sourceRow, receivedAt: response.receivedAt });
+        fundingWriter.append({
+          experimentId,
+          stream: 'funding',
+          symbol,
+          requestStartedAt: response.requestStartedAt,
+          receivedAt: response.receivedAt,
+          exchangeObservedAt: serverObservedAt(response),
+          valid: true,
+          validation: validated,
+          data: response.data
+        });
+        rows[index] = { symbol, ok: true, response, validation: validated };
+        diagnostics.fundingSuccessCount++;
+      } catch (error) {
+        const code = error.code ?? 'FUNDING_SCHEMA_INVALID';
+        recordFailureCode(code);
+        diagnostics.fundingFailureCount++;
+        const receivedAt = Number.isFinite(error.receivedAt) ? error.receivedAt : Date.now();
+        fundingWriter.append({
+          experimentId,
+          stream: 'funding',
+          symbol,
+          requestStartedAt: Number.isFinite(error.requestStartedAt) ? error.requestStartedAt : requestStartedAt,
+          receivedAt,
+          bodyCompleted: error.bodyCompleted === true,
+          valid: false,
+          code,
+          error: error.message
+        });
+        rows[index] = { symbol, ok: false, error: error.message, code };
+      } finally {
+        active--;
+      }
     }
-  }));
-  return rows;
+  };
+  await Promise.all(Array.from({ length: maxConcurrency }, () => worker()));
+  return { rows, diagnostics };
 }
 
 function aggregateDepthDiagnostics(segments) {
@@ -1437,6 +1566,88 @@ function aggregateDepthDiagnostics(segments) {
     gapDiagnostics: segments.flatMap(segment => segment.diagnostics?.gapDiagnostics ?? []),
     symbolsCaptured: [...new Set(contexts.map(context => context.symbol))].sort()
   };
+}
+
+export const HY_EXP_0022_FAILURE_ROOT_CAUSES = Object.freeze([
+  'depth_socket_open_failure',
+  'subscription_failure',
+  'snapshot_http_failure',
+  'snapshot_alignment_failure',
+  'receipt_stall',
+  'native_sequence_gap',
+  'funding_http_failure',
+  'funding_schema_failure',
+  'rate_limit_429',
+  'timeout',
+  'kline_transport_failure',
+  'other'
+]);
+
+function emptyFailureRootCauseCounts() {
+  return Object.fromEntries(HY_EXP_0022_FAILURE_ROOT_CAUSES.map(reason => [reason, 0]));
+}
+
+function classifyFundingFailure(code = '', error = '') {
+  const normalized = `${code} ${error}`.toLowerCase();
+  if (String(code).toUpperCase() === 'HTTP_429' || normalized.includes('429')) return 'rate_limit_429';
+  if (String(code).toUpperCase().includes('TIMEOUT') || normalized.includes('timed out')) return 'timeout';
+  if (normalized.includes('http_') || normalized.includes('public request failed')) return 'funding_http_failure';
+  return 'funding_schema_failure';
+}
+
+function classifyDepthFailure(code = '', segment = {}) {
+  const normalized = String(code).toLowerCase();
+  if (normalized.includes('subscription')) return 'subscription_failure';
+  if (normalized.includes('snapshot_alignment')) return 'snapshot_alignment_failure';
+  if (['sequence_gap', 'duplicate_update', 'out_of_order_update'].includes(normalized)) return 'native_sequence_gap';
+  if (['receipt_stall', 'missing_interval', 'out_of_order_receipt'].includes(normalized)) return 'receipt_stall';
+  if (normalized.includes('http_') || normalized.includes('public request failed')) return 'snapshot_http_failure';
+  if (normalized.includes('timeout')) return 'timeout';
+  if (normalized.includes('websocket') || normalized.includes('socket')) return 'depth_socket_open_failure';
+  if (segment.status !== 'VALID' && !segment.diagnostics?.transport) return 'depth_socket_open_failure';
+  return null;
+}
+
+/** Keep stage diagnostics actionable instead of collapsing every failure into invalidSegments. */
+export function buildHyExp0022FailureRootCauseCounts({
+  segments = [],
+  fundingRows = [],
+  fundingDiagnostics = {},
+  klineDiagnostics = {},
+  errors = []
+} = {}) {
+  const counts = emptyFailureRootCauseCounts();
+  const increment = reason => { counts[reason ?? 'other']++; };
+  for (const segment of segments) {
+    const contexts = Object.values(segment?.contexts ?? {});
+    for (const context of contexts) {
+      if (context?.failureCode) increment(classifyDepthFailure(context.failureCode, segment));
+    }
+    if (segment?.status !== 'VALID' && contexts.every(context => !context?.failureCode)) {
+      increment(classifyDepthFailure(segment.reason, segment));
+    }
+    for (const diagnostic of segment?.diagnostics?.gapDiagnostics ?? []) {
+      if (diagnostic?.failureCode) increment(classifyDepthFailure(diagnostic.failureCode, segment));
+    }
+  }
+  for (const row of fundingRows.filter(row => row?.ok !== true)) {
+    increment(classifyFundingFailure(row.code, row.error));
+  }
+  for (const [code, count] of Object.entries(fundingDiagnostics.fundingFailureCodes ?? {})) {
+    const observedRows = fundingRows.filter(row => row?.ok !== true && row?.code === code).length;
+    for (let index = observedRows; index < Number(count); index++) increment(classifyFundingFailure(code));
+  }
+  if (klineDiagnostics?.transport?.status === 'FAIL' || (klineDiagnostics?.errors?.length ?? 0) > 0) {
+    increment('kline_transport_failure');
+  }
+  for (const error of errors) {
+    const normalized = String(error).toLowerCase();
+    if (normalized.includes('funding')) increment(classifyFundingFailure('', normalized));
+    else if (normalized.includes('kline')) increment('kline_transport_failure');
+    else if (normalized.includes('snapshot')) increment('snapshot_http_failure');
+    else increment('other');
+  }
+  return counts;
 }
 
 function rawFileEntries(directory, writers) {
@@ -1768,7 +1979,21 @@ export async function runCollectorEngineeringDryRun({
   let selection = null;
   let exchangeInfoValidation = {};
   let fundingRows = [];
+  let fundingDiagnostics = {
+    fundingAttemptCount: 0,
+    fundingSuccessCount: 0,
+    fundingFailureCount: 0,
+    funding429Count: 0,
+    fundingTimeoutCount: 0,
+    maxConcurrentFundingRequests: 0,
+    fundingFailureCodes: {}
+  };
   let segments = [];
+  let depthConnectionMetrics = buildDepthConnectionMetrics({
+    symbols: [],
+    depthSymbolsPerConnection: normalizedProfile.depthSymbolsPerConnection,
+    segments
+  });
   let klineDiagnostics = {
     status: 'FAIL',
     websocketEvents: 0,
@@ -1828,12 +2053,16 @@ export async function runCollectorEngineeringDryRun({
         futureDataUsed: false,
         developmentEligible: false
       });
-      fundingRows = await captureFunding({
+      const fundingCapture = await captureHyExp0022Funding({
         symbols: selection.symbols,
         fetchImpl,
         fundingWriter: writers.funding,
-        experimentId: normalizedProfile.experimentId
+        experimentId: normalizedProfile.experimentId,
+        concurrency: normalizedProfile.fundingConcurrency ?? HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY,
+        timeoutMs: normalizedProfile.fundingTimeoutMs ?? HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS
       });
+      fundingRows = fundingCapture.rows;
+      fundingDiagnostics = fundingCapture.diagnostics;
     } catch (error) {
       errors.push(`universe_or_metadata:${error.message}`);
     }
@@ -1864,6 +2093,11 @@ export async function runCollectorEngineeringDryRun({
         })
       ]);
       segments = depthResult;
+      depthConnectionMetrics = buildDepthConnectionMetrics({
+        symbols,
+        depthSymbolsPerConnection: normalizedProfile.depthSymbolsPerConnection,
+        segments
+      });
       klineDiagnostics = klineResult;
       const depthCapability = segments.find(segment => segment.diagnostics?.transport)?.diagnostics?.transport;
       if (depthCapability) transport.depth = {
@@ -1904,15 +2138,27 @@ export async function runCollectorEngineeringDryRun({
   const finishedAt = Date.now();
   const depthDiagnostics = aggregateDepthDiagnostics(segments);
   const rawFiles = rawFileEntries(runDirectory, allWriters);
+  const requestedFundingCount = selection?.symbols?.length ?? 0;
   const diagnostics = {
     ...depthDiagnostics,
+    ...depthConnectionMetrics,
     exchangeInfoCaptured: Boolean(universeInputs),
     exchangeInfoValidation,
     exchangeInfoSchemaValid: Object.keys(exchangeInfoValidation).length === (selection?.symbols?.length ?? 0)
       && Object.values(exchangeInfoValidation).every(row => row.valid === true),
     universeSnapshots: fs.readFileSync(writers.universe.filePath, 'utf8').trim() ? 2 : 0,
-    fundingMissing: fundingRows.filter(row => !row.ok).length,
-    fundingRowsValid: fundingRows.length > 0 && fundingRows.every(row => row.ok === true),
+    fundingMissing: Math.max(0, requestedFundingCount - Number(fundingDiagnostics.fundingSuccessCount ?? 0)),
+    fundingRowsValid: requestedFundingCount > 0
+      && fundingRows.length === requestedFundingCount
+      && fundingRows.every(row => row.ok === true),
+    ...fundingDiagnostics,
+    failureRootCauseCounts: buildHyExp0022FailureRootCauseCounts({
+      segments,
+      fundingRows,
+      fundingDiagnostics,
+      klineDiagnostics,
+      errors: [...errors, ...(klineDiagnostics.errors ?? [])]
+    }),
     missingReceivedAt: countMissingReceivedAt(allWriters),
     klineWebsocketEvents: klineDiagnostics.websocketEvents ?? 0,
     barSourceStatus: klineDiagnostics.status,

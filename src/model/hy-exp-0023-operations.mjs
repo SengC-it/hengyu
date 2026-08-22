@@ -13,6 +13,11 @@ export const HY_EXP_0023_REQUIRED_ALERTS = Object.freeze([
   'missing_receivedAt'
 ]);
 
+export const HY_EXP_0023_DIAGNOSTIC_ALERTS = Object.freeze([
+  'receipt_stall',
+  'stale_data'
+]);
+
 function timestamp(value) {
   const parsed = typeof value === 'number' ? value : Date.parse(String(value ?? ''));
   if (!Number.isFinite(parsed)) throw new Error('invalid timestamp');
@@ -253,10 +258,31 @@ export async function measureHyExp0023ClockReadiness({
   };
 }
 
-export function evaluateHyExp0023Alerts({ activeAlerts = [] } = {}) {
+export function evaluateHyExp0023Alerts({
+  activeAlerts = [],
+  configuredAlertTypes = activeAlerts,
+  verifiedRuntimeAlertTypes = activeAlerts,
+  faultInjectedAlertTypes = [],
+  alertSinkWritable = true
+} = {}) {
   const active = new Set(activeAlerts);
+  const configured = new Set(configuredAlertTypes);
+  const verifiedRuntime = new Set(verifiedRuntimeAlertTypes);
   const missing = HY_EXP_0023_REQUIRED_ALERTS.filter(alert => !active.has(alert));
-  return { ready: missing.length === 0, required: [...HY_EXP_0023_REQUIRED_ALERTS], active: [...active].sort(), missing };
+  const missingConfigured = HY_EXP_0023_REQUIRED_ALERTS.filter(alert => !configured.has(alert));
+  const missingRuntime = HY_EXP_0023_REQUIRED_ALERTS.filter(alert => !verifiedRuntime.has(alert));
+  return {
+    ready: alertSinkWritable === true && missingRuntime.length === 0,
+    required: [...HY_EXP_0023_REQUIRED_ALERTS],
+    configured: [...configured].sort(),
+    verifiedRuntime: [...verifiedRuntime].sort(),
+    faultInjected: [...new Set(faultInjectedAlertTypes)].sort(),
+    active: [...active].sort(),
+    missing,
+    missingConfigured,
+    missingRuntime,
+    alertSinkWritable: alertSinkWritable === true
+  };
 }
 
 export function appendHyExp0023Alert(filePath, event = {}) {

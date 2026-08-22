@@ -11,6 +11,7 @@ import {
   buildHyExp0023SafetyMetadata
 } from '../src/model/hy-exp-0023-prospective.mjs';
 import {
+  HY_EXP_0023_DIAGNOSTIC_ALERTS,
   HY_EXP_0023_REQUIRED_ALERTS,
   appendHyExp0023Alert,
   evaluateHyExp0023Alerts,
@@ -159,11 +160,13 @@ async function main() {
   const artifactDirectory = path.resolve(projectRoot, 'artifacts', HY_EXP_0023_ID);
   fs.mkdirSync(artifactDirectory, { recursive: true });
   const alertFile = options['alert-file'] ?? path.join(artifactDirectory, `engineering-alerts-${Date.now()}.ndjson`);
-  let alertSinkActive = false;
+  let alertSinkWritable = false;
+  let alertSinkErrorCount = 0;
   try {
     appendHyExp0023Alert(alertFile, { type: 'alert_sink_active', runId: null, processId: process.pid });
-    alertSinkActive = true;
+    alertSinkWritable = true;
   } catch (error) {
+    alertSinkErrorCount++;
     console.error(JSON.stringify({ alertSinkError: error.message }));
   }
   const heartbeatState = {
@@ -217,9 +220,17 @@ async function main() {
   const capacity = probeHyExp0023StorageCapacity(result.directory);
   const clock = await measureHyExp0023ClockReadiness();
   const alertCounts = {};
-  const emitDiagnosticAlert = (type, details) => {
+  const verifiedRuntimeAlertTypes = new Set();
+  const emitDiagnosticAlert = (type, details, { runtime = true } = {}) => {
     alertCounts[type] = (alertCounts[type] ?? 0) + 1;
-    if (alertSinkActive) appendHyExp0023Alert(alertFile, { type, runId: result.runId, ...details });
+    if (!alertSinkWritable) return;
+    try {
+      appendHyExp0023Alert(alertFile, { type, runId: result.runId, ...details });
+      if (runtime) verifiedRuntimeAlertTypes.add(type);
+    } catch (error) {
+      alertSinkErrorCount++;
+      console.error(JSON.stringify({ alertSinkError: error.message, type }));
+    }
   };
   for (const diagnostic of result.diagnostics.gapDiagnostics ?? []) {
     const alertType = diagnostic.failureCode === 'sequence_gap'
@@ -229,16 +240,20 @@ async function main() {
         : diagnostic.failureCode === 'SNAPSHOT_ALIGNMENT'
           ? 'snapshot_alignment_failure'
           : diagnostic.failureCode === 'receipt_stall'
-            ? 'stale_data'
+            ? 'receipt_stall'
             : null;
     if (alertType) emitDiagnosticAlert(alertType, diagnostic);
   }
   if (result.diagnostics.missingReceivedAt > 0) {
     emitDiagnosticAlert('missing_receivedAt', { count: result.diagnostics.missingReceivedAt });
   }
-  for (const type of faultInjection) emitDiagnosticAlert(type, { faultInjection: true });
+  for (const type of faultInjection) emitDiagnosticAlert(type, { faultInjection: true }, { runtime: false });
   const alerts = evaluateHyExp0023Alerts({
-    activeAlerts: alertSinkActive ? [...HY_EXP_0023_REQUIRED_ALERTS] : []
+    activeAlerts: [...verifiedRuntimeAlertTypes],
+    configuredAlertTypes: [...HY_EXP_0023_REQUIRED_ALERTS, ...HY_EXP_0023_DIAGNOSTIC_ALERTS],
+    verifiedRuntimeAlertTypes: [...verifiedRuntimeAlertTypes],
+    faultInjectedAlertTypes: faultInjection,
+    alertSinkWritable
   });
   const checks = diagnosticGate(result);
   const segmentSummary = result.segments.map(segment => ({
@@ -279,18 +294,28 @@ async function main() {
     diagnostics: result.diagnostics,
     capacityPilot: maxSymbols == null,
     alertSink: {
-      active: alertSinkActive,
+      active: alertSinkWritable,
+      alertSinkWritable,
       file: alertFile,
-      sha256: alertSinkActive ? sha256File(alertFile) : null,
+      sha256: alertSinkWritable ? sha256File(alertFile) : null,
       counts: alertCounts,
-      errorCount: 0,
-      faultInjection
+      errorCount: alertSinkErrorCount,
+      configuredAlertTypes: [...HY_EXP_0023_REQUIRED_ALERTS, ...HY_EXP_0023_DIAGNOSTIC_ALERTS],
+      verifiedRuntimeAlertTypes: [...verifiedRuntimeAlertTypes].sort(),
+      faultInjectedAlertTypes: [...faultInjection].sort()
     },
     eligibleUniverseCount: result.selection?.eligibleCount ?? 0,
     capturedSymbolCount: result.symbols.length,
-    connectionCount: result.segments.length,
-    maxSymbolsPerConnection: result.profile.maxSymbolsPerConnection,
-    symbolsPerConnection: [...new Set(result.segments.map(segment => segment.symbols.length))].sort((left, right) => left - right),
+    initialBatchCount: result.diagnostics.initialBatchCount ?? 0,
+    activeConnectionBatchCount: result.diagnostics.activeConnectionBatchCount ?? 0,
+    websocketConnectionAttempts: result.diagnostics.websocketConnectionAttempts ?? 0,
+    reconnectCount: result.diagnostics.reconnectCount ?? 0,
+    totalSegments: result.diagnostics.totalSegments ?? result.segments.length,
+    invalidSegments: result.diagnostics.invalidSegments ?? 0,
+    validSegments: result.diagnostics.validSegments ?? 0,
+    connectionBatchLimit: result.diagnostics.connectionBatchLimit ?? result.profile.depthSymbolsPerConnection,
+    maxSymbolsPerConnection: result.diagnostics.maxSymbolsPerConnection ?? 0,
+    symbolsPerConnection: result.diagnostics.symbolsPerConnection ?? [],
     transport: result.transport,
     barSourceVerification: result.barSourceVerification,
     storage: {
@@ -340,7 +365,15 @@ async function main() {
       status: artifact.status,
       eligibleUniverseCount: artifact.eligibleUniverseCount,
       capturedSymbolCount: artifact.capturedSymbolCount,
-      connectionCount: artifact.connectionCount,
+      initialBatchCount: artifact.initialBatchCount,
+      activeConnectionBatchCount: artifact.activeConnectionBatchCount,
+      websocketConnectionAttempts: artifact.websocketConnectionAttempts,
+      reconnectCount: artifact.reconnectCount,
+      totalSegments: artifact.totalSegments,
+      invalidSegments: artifact.invalidSegments,
+      validSegments: artifact.validSegments,
+      connectionBatchLimit: artifact.connectionBatchLimit,
+      maxSymbolsPerConnection: artifact.maxSymbolsPerConnection,
       symbolsPerConnection: artifact.symbolsPerConnection,
       diagnostics: Object.fromEntries(Object.entries(artifact.diagnostics).filter(([key]) => key !== 'gapDiagnostics' && key !== 'exchangeInfoValidation')),
       alertSink: artifact.alertSink,

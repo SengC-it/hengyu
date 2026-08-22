@@ -10,9 +10,11 @@ import {
   HY_EXP_0022_FIRST_PROSPECTIVE_BAR,
   HY_EXP_0022_ORDER_ENDPOINTS,
   HY_EXP_0022_TRANSPORT_ENDPOINTS,
+  captureHyExp0022Funding,
   assertHyExp0022EngineeringNeverDevelopmentInput,
   assertHyExp0022EngineeringRoot,
   buildCollectorEngineeringReadiness,
+  buildHyExp0022FailureRootCauseCounts,
   buildHyExp0022FirstProspectiveBarSmoke,
   buildDepthSnapshotUrl,
   buildHyExp0022OosWorkflowDecision,
@@ -292,6 +294,79 @@ test('dynamic engineering selection is not a fixed symbol list and ticker cannot
   assert.equal(selection.tickerDefinesVolume6, false);
 });
 
+test('all-eligible universe does not exclude a valid PIT symbol when ticker is missing', () => {
+  const observedAt = Date.parse('2026-08-22T00:00:00.000Z');
+  const selection = selectHyExp0022EngineeringSymbols({
+    observedAt,
+    maxSymbols: null,
+    exchangeInfo: [{
+      symbol: 'XRPUSDT',
+      baseAsset: 'XRP',
+      quoteAsset: 'USDT',
+      contractType: 'PERPETUAL',
+      status: 'TRADING',
+      onboardDate: observedAt - 31 * 86_400_000
+    }],
+    tickers: []
+  });
+  assert.deepEqual(selection.symbols, ['XRPUSDT']);
+  assert.equal(selection.eligibilitySource, 'PIT_EXCHANGE_INFO');
+  assert.equal(selection.selectionMode, 'ALL_ELIGIBLE');
+  assert.equal(selection.tickerUsedForEligibility, false);
+  assert.equal(selection.selected[0].tickerAvailable, false);
+});
+
+test('funding capture uses bounded concurrency and records fail-closed diagnostics', async () => {
+  let active = 0;
+  let maximumActive = 0;
+  const writer = { append() {} };
+  const capture = await captureHyExp0022Funding({
+    symbols: ['AUSDT', 'BUSDT', 'CUSDT', 'DUSDT', 'EUSDT'],
+    concurrency: 2,
+    fetchImpl: async url => {
+      active++;
+      maximumActive = Math.max(maximumActive, active);
+      await delay(3);
+      active--;
+      const symbol = new URL(url).searchParams.get('symbol');
+      return response([{ symbol, fundingTime: Date.now() - 1, fundingRate: '0.0001' }]);
+    },
+    fundingWriter: writer
+  });
+  assert.ok(maximumActive <= 2);
+  assert.equal(capture.diagnostics.fundingAttemptCount, 5);
+  assert.equal(capture.diagnostics.fundingSuccessCount, 5);
+  assert.equal(capture.diagnostics.fundingFailureCount, 0);
+  assert.ok(capture.diagnostics.maxConcurrentFundingRequests <= 2);
+  assert.equal(capture.rows.every(row => row.ok === true), true);
+});
+
+test('engineering diagnostics retain actionable depth, funding and kline failure root causes', () => {
+  const counts = buildHyExp0022FailureRootCauseCounts({
+    segments: [{
+      status: 'INVALID',
+      reason: 'snapshot_alignment:BTCUSDT',
+      contexts: {
+        BTCUSDT: { failureCode: 'SNAPSHOT_ALIGNMENT' },
+        ETHUSDT: { failureCode: 'receipt_stall' },
+        SOLUSDT: { failureCode: 'sequence_gap' }
+      },
+      diagnostics: { transport: { opened: true }, gapDiagnostics: [] }
+    }],
+    fundingRows: [
+      { symbol: 'BTCUSDT', ok: false, code: 'HTTP_429', error: 'rate limited' },
+      { symbol: 'ETHUSDT', ok: false, code: 'FUNDING_SCHEMA_INVALID', error: 'empty row' }
+    ],
+    klineDiagnostics: { transport: { status: 'FAIL' }, errors: ['transport failed'] }
+  });
+  assert.equal(counts.snapshot_alignment_failure, 1);
+  assert.equal(counts.receipt_stall, 1);
+  assert.equal(counts.native_sequence_gap, 1);
+  assert.equal(counts.rate_limit_429, 1);
+  assert.equal(counts.funding_schema_failure, 1);
+  assert.equal(counts.kline_transport_failure, 1);
+});
+
 test('collector reconnect creates a new segment and leaves an invalid segment invalid', async () => {
   ScenarioWebSocket.depthConnections = 0;
   ScenarioWebSocket.klineConnections = 0;
@@ -317,6 +392,11 @@ test('collector reconnect creates a new segment and leaves an invalid segment in
   assert.equal(result.manifest.pnlComputed, false);
   assert.equal(result.manifest.developmentAllowed, false);
   assert.equal(result.manifest.finalOosEligible, false);
+  assert.equal(result.diagnostics.initialBatchCount, 1);
+  assert.equal(result.diagnostics.activeConnectionBatchCount, 1);
+  assert.equal(result.diagnostics.totalSegments, result.segments.length);
+  assert.equal(result.diagnostics.websocketConnectionAttempts, result.segments.length);
+  assert.equal(result.diagnostics.maxSymbolsPerConnection, 3);
   const readiness = buildCollectorEngineeringReadiness({ result, requiredDurationMs: 0 });
   assert.equal(readiness.status, 'COLLECTOR_NOT_READY');
 });

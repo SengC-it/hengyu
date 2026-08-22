@@ -235,6 +235,25 @@ test('0023 alert sink is append-only and exposes every required fault channel', 
   assert.deepEqual(evaluateHyExp0023Alerts({ activeAlerts: HY_EXP_0023_REQUIRED_ALERTS }).missing, []);
 });
 
+test('0023 alert readiness does not pass from a writable file alone', () => {
+  const configured = [...HY_EXP_0023_REQUIRED_ALERTS];
+  const failClosed = evaluateHyExp0023Alerts({
+    activeAlerts: configured,
+    configuredAlertTypes: configured,
+    verifiedRuntimeAlertTypes: [],
+    alertSinkWritable: true
+  });
+  assert.equal(failClosed.ready, false);
+  assert.deepEqual(failClosed.missingRuntime, HY_EXP_0023_REQUIRED_ALERTS);
+  const verified = evaluateHyExp0023Alerts({
+    activeAlerts: configured,
+    configuredAlertTypes: configured,
+    verifiedRuntimeAlertTypes: configured,
+    alertSinkWritable: true
+  });
+  assert.equal(verified.ready, true);
+});
+
 test('0023 clock readiness records multiple Binance server-time RTT and midpoint drift samples', async () => {
   const readiness = await measureHyExp0023ClockReadiness({
     clockSyncStateProvider: async () => ({ synchronized: true, source: 'test-ntp' }),

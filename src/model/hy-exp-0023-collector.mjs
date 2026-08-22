@@ -1,5 +1,7 @@
 import {
   buildCollectorEngineeringReadiness,
+  HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY,
+  HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS,
   runCollectorEngineeringDryRun
 } from './hy-exp-0022-collector.mjs';
 import {
@@ -17,6 +19,7 @@ import {
   HY_EXP_0023_TRANSPORT_ENDPOINTS,
   HY_EXP_0023_WINDOWS
 } from './hy-exp-0023-prospective.mjs';
+import { HY_EXP_0023_REQUIRED_ALERTS } from './hy-exp-0023-operations.mjs';
 
 export const HY_EXP_0023_COLLECTOR_PROFILE = Object.freeze({
   experimentId: HY_EXP_0023_ID,
@@ -32,6 +35,8 @@ export const HY_EXP_0023_COLLECTOR_PROFILE = Object.freeze({
   finalOosEndExclusive: HY_EXP_0023_FINAL_OOS_END_EXCLUSIVE,
   maxSymbolsPerConnection: 20,
   depthSymbolsPerConnection: 20,
+  fundingConcurrency: HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY,
+  fundingTimeoutMs: HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS,
   manifestType: 'HY-EXP-0023-ENGINEERING-DIAGNOSTIC',
   readinessArtifactType: 'HY_EXP_0023_ENGINEERING_READINESS'
 });
@@ -77,13 +82,18 @@ export function buildHyExp0023CollectorReadiness({
     minimumDynamicSymbols,
     profile: HY_EXP_0023_COLLECTOR_PROFILE
   });
+  const runtimeAlerts = new Set(operations.verifiedRuntimeAlertTypes ?? operations.alerts?.verifiedRuntime ?? []);
+  const alertsActive = operations.alerts?.ready === true
+    || (operations.alertsActive === true
+      && operations.alertSinkWritable === true
+      && HY_EXP_0023_REQUIRED_ALERTS.every(type => runtimeAlerts.has(type)));
   const checks = {
     ...base.checks,
     collectorProcessHealthy: operations.collectorProcessHealthy === true,
     automaticRestartVerified: operations.automaticRestartVerified === true,
     websocketReconnectVerified: operations.websocketReconnectVerified === true,
     segmentRotationVerified: operations.segmentRotationVerified === true,
-    alertsActive: operations.alertsActive === true,
+    alertsActive,
     clockReady: operations.clockReady === true,
     storageReady: operations.storageReady === true
   };
