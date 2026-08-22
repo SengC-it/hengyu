@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0021_CAPTURE_READINESS",
+  "experimentId": "HY-EXP-0021",
+  "phase": "PROSPECTIVE_DATA_CAPTURE_DESIGN_ONLY",
+  "preregistrationCommit": "518530097a6205e58c540dc2b14adb28b4fe2cf1",
+  "preregistrationSha256": "75a2533e9c00e917f7aa1207f75b961efa9d0410c51f65ebea59df4cd8c216a7",
+  "registryPreregisteredSequence": 72,
+  "preregistrationCommittedAt": "2026-08-22T00:10:47.000Z",
+  "captureStart": "2026-08-22T04:00:00.000Z",
+  "captureStartRule": "First complete UTC 4h boundary strictly after the preregistration commit timestamp.",
+  "developmentWindow": {
+    "start": "2026-08-24T00:00:00.000Z",
+    "endExclusive": "2027-03-01T00:00:00.000Z",
+    "adjustmentRule": "max(2026-08-24T00:00:00Z, captureStart)"
+  },
+  "finalOosWindow": {
+    "start": "2027-03-01T00:00:00.000Z",
+    "endExclusive": "2027-09-01T00:00:00.000Z",
+    "humanEnd": "2027-08-31T23:59:59Z",
+    "immutable": true
+  },
+  "status": "READY_FOR_PROSPECTIVE_CAPTURE_AFTER_ACCEPTANCE",
+  "developmentAllowed": false,
+  "pnlComputed": false,
+  "finalOosEligible": false,
+  "paperOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApiEnabled": false,
+  "orderApiEnabled": false,
+  "orderEndpoints": [],
+  "dataProhibitions": [
+    "HY-EXP-0020 raw data or manifests",
+    "pre-capture L2",
+    "pre-capture exchangeInfo",
+    "pre-capture funding",
+    "pre-capture universe snapshots",
+    "current-state backfill",
+    "future backfill",
+    "synthetic metadata",
+    "OHLCV depth proxy",
+    "bookTicker depth proxy"
+  ],
+  "roots": {
+    "development": "data/raw/prospective-development/HY-EXP-0021",
+    "finalOos": "data/raw/prospective-final-oos/HY-EXP-0021",
+    "manifests": "artifacts/HY-EXP-0021/manifests",
+    "0020RootAllowed": false
+  },
+  "inheritedEngineeringCapabilities": {
+    "source": "HY-EXP-0020 Phase B collector implementation only; no 0020 data or result is inherited.",
+    "dynamicPitUniverse": true,
+    "restDepth1000": true,
+    "combinedDepth100ms": true,
+    "uUPuContinuity": true,
+    "receivedAt": true,
+    "perSymbolSnapshotAlignment": true,
+    "boundedSnapshotRetry": true,
+    "failClosedGapHandling": true,
+    "funding": true,
+    "appendOnlyNdjson": true,
+    "immutableManifest": true,
+    "sha256": true
+  },
+  "requiredRawStreams": [
+    "depth.diff",
+    "depth.snapshot",
+    "exchangeInfo",
+    "ticker",
+    "funding",
+    "universe.snapshot",
+    "universe.audit",
+    "segment.audit"
+  ],
+  "requiredDepthFields": ["E", "T", "s", "U", "u", "pu", "b", "a", "receivedAt", "stream", "segmentId"],
+  "qualityGates": {
+    "pitExchangeInfoCoverageFraction": 1,
+    "requiredL2CoverageFraction": 1,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "missingReceiptTimestamps": 0,
+    "fundingRequiredEventMissing": 0,
+    "rawHashAndProvenanceCoverageFraction": 1,
+    "futureData": 0,
+    "proxyDepth": 0,
+    "syntheticMetadata": 0,
+    "invalidSegmentHandling": "Exclude, append reason, and fail required-window coverage closed if the exclusion leaves a gap. Never silently repair."
+  },
+  "oosFirewall": {
+    "beforeDevelopmentPass": {
+      "allowed": ["write", "hash", "integrity_check"],
+      "blocked": ["query", "summarize", "inspect", "calculate", "optimize", "generate_metrics", "train", "backtest"]
+    },
+    "developmentFail": "PERMANENT_STOP_HY_EXP_0021_FINAL_OOS_LOCKED",
+    "rawOosWriteIsNotRead": true
+  },
+  "collectorDeploymentProposal": {
+    "status": "DESIGN_ONLY_NOT_DEPLOYED",
+    "runtime": "Long-running container or VM process, not Vercel serverless.",
+    "processSupervisor": "systemd or Kubernetes StatefulSet with restartPolicy=Always and a bounded graceful-shutdown checkpoint.",
+    "components": [
+      "combined WebSocket depth collector",
+      "per-symbol snapshot/buffer/reconstructor state",
+      "REST exchangeInfo/ticker/funding pollers",
+      "UTC 4h boundary scheduler and segment rotator",
+      "append-only journal writer",
+      "hash/manifest finalizer",
+      "health and NTP drift exporter",
+      "OOS firewall and immutable object-store writer"
+    ],
+    "restart": "On process restart, recover only the last sealed manifest and open a new segment with a fresh REST snapshot; never repair an old invalid segment.",
+    "network": "Multiplex combined depth streams with bounded symbol batches; rotate at every UTC 4h boundary and proactively before exchange connection limits.",
+    "time": "NTP-synchronized host; alert at 100ms offset and fail capture at 500ms offset until synchronized.",
+    "storage": "Local append-only spool plus immutable object storage with write-once manifests; raw bytes are hashed before sealing.",
+    "monitoring": [
+      "process liveness and restart count",
+      "last raw receipt age by symbol",
+      "sequence gaps, duplicate/out-of-order, crossed books",
+      "snapshot alignment latency and retry count",
+      "NTP offset",
+      "disk/object-store usage",
+      "manifest sealing lag",
+      "universe membership changes",
+      "funding and exchangeInfo freshness"
+    ],
+    "alerts": ["data_gap", "stale_receipt", "crossed_book", "snapshot_failure", "clock_drift", "storage_80_percent", "manifest_not_sealed"],
+    "productionDeployed": false
+  },
+  "capacityEstimate": {
+    "planningOnly": true,
+    "assumptions": {
+      "maxSymbols": 200,
+      "maxDepthEventsPerSymbolPerSecond": 10,
+      "rawNdjsonBytesPerEventRange": [1024, 5120],
+      "snapshotAndMetadataExcludedFromDominantEstimate": true
+    },
+    "developmentDays": 189,
+    "finalOosDays": 184,
+    "developmentDepthEventCountAtMax": 32659200000,
+    "finalOosDepthEventCountAtMax": 31795200000,
+    "uncompressedRawDecimalTbAtMax": {
+      "developmentRange": [33.4430208, 167.215104],
+      "finalOosRange": [32.5582848, 162.791424]
+    },
+    "recommendedProvisioningWithTwoXHeadroomDecimalTb": {
+      "developmentRange": [66.8860416, 334.430208],
+      "finalOosRange": [65.1165696, 325.582848]
+    },
+    "note": "This is a conservative upper-envelope capacity calculation, not observed usage. A short authorized pilot must measure actual event rate and serialized bytes before any six-to-twelve-month reservation."
+  },
+  "captureStageArtifacts": {
+    "rawAppendOnlyNdjson": true,
+    "immutableManifest": true,
+    "perFileSha256": true,
+    "invalidSegmentAudit": true,
+    "resultJson": false,
+    "tradesJsonl": false,
+    "pnl": false
+  }
+}
