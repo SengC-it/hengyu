@@ -62,6 +62,7 @@ const SNAPSHOT_RETRY_DELAY_MS = 250;
 const DEFAULT_SEGMENT_MAX_MS = 4 * 60 * 60 * 1_000 - 60_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
 const KLINE_RECONNECT_DELAY_MS = 50;
+const DEFAULT_KLINE_CONFIRMATION_CONCURRENCY = 8;
 const DEFAULT_MAX_SYMBOLS = 3;
 const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = 200;
 const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = 200;
@@ -84,6 +85,7 @@ export const HY_EXP_0022_COLLECTOR_PROFILE = Object.freeze({
   maxSymbolsPerConnection: DEFAULT_MAX_SYMBOLS_PER_CONNECTION,
   depthSymbolsPerConnection: DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION,
   klineSymbolsPerConnection: DEFAULT_KLINE_SYMBOLS_PER_CONNECTION,
+  klineConfirmationConcurrency: DEFAULT_KLINE_CONFIRMATION_CONCURRENCY,
   manifestType: 'HY-EXP-0022-ENGINEERING-DRY-RUN',
   readinessArtifactType: 'HY_EXP_0022_COLLECTOR_ENGINEERING_READINESS'
 });
@@ -314,14 +316,6 @@ export async function fetchJsonCompleted({ fetchImpl = globalThis.fetch, url, si
     exchangeObservedAt: serverTime,
     bodyCompleted: true
   };
-}
-
-function withTimeout(promise, timeoutMs, code) {
-  let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(errorWithCode(code, `operation timed out after ${timeoutMs}ms`)), timeoutMs);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 function attach(socket, event, handler) {
@@ -1192,7 +1186,8 @@ async function collectKlineStream({
   targetBar = null,
   experimentId = HY_EXP_0022_ID,
   captureStart = HY_EXP_0022_CAPTURE_START,
-  klineSymbolsPerConnection = DEFAULT_KLINE_SYMBOLS_PER_CONNECTION
+  klineSymbolsPerConnection = DEFAULT_KLINE_SYMBOLS_PER_CONNECTION,
+  confirmationConcurrency = DEFAULT_KLINE_CONFIRMATION_CONCURRENCY
 }) {
   const expectedBar = targetBar == null ? null : {
     openTime: integer('target bar openTime', targetBar.openTime),
@@ -1229,15 +1224,157 @@ async function collectKlineStream({
     errors: [],
     klineBatchFailures: [],
     klineFailedBatchCount: 0,
+    klineSelectedSymbolCount: [...new Set(symbols)].length,
+    klineCapturedSymbolCount: 0,
+    klineMissingSymbols: [],
+    klineUnexpectedSymbols: [],
+    klineCoverageRatio: 0,
     klineInitialBatchCount: splitKlineSymbols(symbols, klineSymbolsPerConnection).length,
     klineWebsocketConnectionAttempts: 0,
     klineReconnectCount: 0,
     klineMaxSymbolsPerConnection: Math.max(0, ...splitKlineSymbols(symbols, klineSymbolsPerConnection).map(batch => batch.length)),
-    klineSymbolsCaptured: []
+    klineSymbolsCaptured: [],
+    confirmationConcurrency: integer('confirmationConcurrency', confirmationConcurrency, 1),
+    confirmationAttemptCount: 0,
+    confirmationSuccessCount: 0,
+    confirmationFailureCount: 0,
+    confirmationTimeoutCount: 0,
+    confirmationAbortedCount: 0,
+    confirmationPeakInflight: 0,
+    confirmationQueueDelayMaxMs: 0
   };
   const batches = splitKlineSymbols(symbols, klineSymbolsPerConnection);
   let connectionIndex = 0;
   let hardFailure = false;
+
+  const confirmationQueue = [];
+  let confirmationInflight = 0;
+  const runNextConfirmation = () => {
+    while (confirmationInflight < diagnostics.confirmationConcurrency && confirmationQueue.length) {
+      const item = confirmationQueue.shift();
+      confirmationInflight++;
+      diagnostics.confirmationPeakInflight = Math.max(diagnostics.confirmationPeakInflight, confirmationInflight);
+      Promise.resolve()
+        .then(() => item.run())
+        .then(item.resolve, item.reject)
+        .finally(() => {
+          confirmationInflight--;
+          runNextConfirmation();
+        });
+    }
+  };
+  const enqueueConfirmation = run => new Promise((resolve, reject) => {
+    confirmationQueue.push({ run, resolve, reject });
+    runNextConfirmation();
+  });
+
+  const confirmFinalBar = async ({ raw, symbol, payload, wsReceivedAt, enqueuedAt, symbolDiagnostics }) => {
+    const openTime = Number(payload.k.t);
+    const closeTime = Number(payload.k.T);
+    const restUrl = buildJustClosedKlineUrl({ symbol, openTime: payload.k.t, closeTime: payload.k.T });
+    diagnostics.confirmationAttemptCount++;
+    symbolDiagnostics.restConfirmationAttempts++;
+    let restResponse = null;
+    let restRow = null;
+    try {
+      restResponse = await fetchJsonWithAbortTimeout({
+        fetchImpl,
+        url: restUrl,
+        timeoutMs: confirmationTimeoutMs,
+        timeoutCode: 'BAR_CONFIRMATION_MISSING'
+      });
+      const rows = Array.isArray(restResponse.data) ? restResponse.data : [];
+      restRow = rows.find(row => Number(row?.[0]) === openTime);
+      if (!restRow) {
+        const missing = errorWithCode('BAR_CONFIRMATION_MISSING', 'REST did not return the just-closed prospective bar');
+        missing.requestStartedAt = restResponse.requestStartedAt;
+        missing.receivedAt = restResponse.receivedAt;
+        missing.bodyCompleted = restResponse.bodyCompleted === true;
+        throw missing;
+      }
+      const websocketBar = normalizeHyExp0022ContractKline({
+        raw: { ...raw, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
+        receivedAt: wsReceivedAt,
+        source: 'CONTRACT_PRICE',
+        captureStart,
+        mode: 'DEVELOPMENT_CAPTURE'
+      });
+      const restBar = normalizeHyExp0022ContractKline({
+        raw: { values: restRow, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
+        receivedAt: restResponse.receivedAt,
+        sourceTimestamp: Number(restRow[6]),
+        source: 'CONTRACT_PRICE',
+        captureStart,
+        mode: 'DEVELOPMENT_CAPTURE'
+      });
+      try {
+        reconcileHyExp0022BarSources({ websocketBar, restBar });
+      } catch (error) {
+        error.requestStartedAt = restResponse.requestStartedAt;
+        error.receivedAt = restResponse.receivedAt;
+        error.bodyCompleted = restResponse.bodyCompleted === true;
+        throw error;
+      }
+      const queueDelayMs = Math.max(0, restResponse.requestStartedAt - enqueuedAt);
+      diagnostics.confirmationQueueDelayMaxMs = Math.max(diagnostics.confirmationQueueDelayMaxMs, queueDelayMs);
+      diagnostics.confirmationSuccessCount++;
+      symbolDiagnostics.restConfirmations++;
+      confirmationWriter.append({
+        experimentId,
+        stream: 'kline.4h',
+        kind: 'rest_confirmation',
+        symbol,
+        wsReceivedAt,
+        enqueuedAt,
+        queueDelayMs,
+        roundTripMs: restResponse.receivedAt - restResponse.requestStartedAt,
+        openTime,
+        closeTime,
+        requestStartedAt: restResponse.requestStartedAt,
+        receivedAt: restResponse.receivedAt,
+        endpoint: restUrl,
+        source: 'CONTRACT_PRICE',
+        priceType: 'CONTRACT_PRICE',
+        result: 'CONFIRMED',
+        data: restRow
+      });
+      return { websocketBar, restReceivedAt: restResponse.receivedAt };
+    } catch (error) {
+      diagnostics.confirmationFailureCount++;
+      if (error.code === 'BAR_CONFIRMATION_MISSING') {
+        diagnostics.confirmationMissing++;
+        if (error.aborted === true) {
+          diagnostics.confirmationTimeoutCount++;
+          diagnostics.confirmationAbortedCount++;
+        }
+      }
+      const requestStartedAt = Number.isFinite(error.requestStartedAt) ? error.requestStartedAt : null;
+      const receivedAt = Number.isFinite(error.receivedAt) ? error.receivedAt : Date.now();
+      const queueDelayMs = requestStartedAt == null ? null : Math.max(0, requestStartedAt - enqueuedAt);
+      if (queueDelayMs != null) diagnostics.confirmationQueueDelayMaxMs = Math.max(diagnostics.confirmationQueueDelayMaxMs, queueDelayMs);
+      confirmationWriter.append({
+        experimentId,
+        stream: 'kline.4h',
+        kind: 'rest_confirmation',
+        symbol,
+        wsReceivedAt,
+        enqueuedAt,
+        queueDelayMs,
+        roundTripMs: requestStartedAt == null ? null : Math.max(0, receivedAt - requestStartedAt),
+        openTime,
+        closeTime,
+        requestStartedAt,
+        receivedAt,
+        endpoint: restUrl,
+        source: 'CONTRACT_PRICE',
+        priceType: 'CONTRACT_PRICE',
+        result: error.code ?? 'BAR_CONFIRMATION_ERROR',
+        bodyCompleted: error.bodyCompleted === true,
+        data: restRow
+      });
+      throw error;
+    }
+  };
 
   const processMessage = async ({ raw, verified, segmentId, batchSymbols }) => {
     const { payload, stream } = transportPayload(raw);
@@ -1247,6 +1384,7 @@ async function collectKlineStream({
     }
     const symbol = symbolOf(payload.s ?? payload.k.s);
     if (!batchSymbols.includes(symbol)) {
+      if (!diagnostics.klineUnexpectedSymbols.includes(symbol)) diagnostics.klineUnexpectedSymbols.push(symbol);
       diagnostics.errors.push(`kline_symbol_not_selected:${symbol}`);
       return;
     }
@@ -1280,54 +1418,22 @@ async function collectKlineStream({
       diagnostics.errors.push(`BAR_RECEIPT_BEFORE_CLOSE:${symbol}`);
       return;
     }
+    const enqueuedAt = Date.now();
     try {
-      const restUrl = buildJustClosedKlineUrl({ symbol, openTime: payload.k.t, closeTime: payload.k.T });
-      symbolDiagnostics.restConfirmationAttempts++;
-      const restResponse = await withTimeout(
-        fetchJsonCompleted({ fetchImpl, url: restUrl }),
-        confirmationTimeoutMs,
-        'BAR_CONFIRMATION_MISSING'
-      );
-      const rows = Array.isArray(restResponse.data) ? restResponse.data : [];
-      const restRow = rows.find(row => Number(row?.[0]) === openTime);
-      confirmationWriter.append({
-        experimentId,
-        stream: 'kline.4h',
-        kind: 'rest_confirmation',
+      const { websocketBar, restReceivedAt } = await enqueueConfirmation(() => confirmFinalBar({
+        raw,
         symbol,
-        openTime,
-        closeTime: Number(payload.k.T),
-        requestStartedAt: restResponse.requestStartedAt,
-        receivedAt: restResponse.receivedAt,
-        endpoint: restUrl,
-        source: 'CONTRACT_PRICE',
-        priceType: 'CONTRACT_PRICE',
-        data: restRow ?? null
-      });
-      if (!restRow) throw errorWithCode('BAR_CONFIRMATION_MISSING', 'REST did not return the just-closed prospective bar');
-      symbolDiagnostics.restConfirmations++;
-      const websocketBar = normalizeHyExp0022ContractKline({
-        raw: { ...raw, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
-        receivedAt,
-        source: 'CONTRACT_PRICE',
-        captureStart,
-        mode: 'DEVELOPMENT_CAPTURE'
-      });
-      const restBar = normalizeHyExp0022ContractKline({
-        raw: { values: restRow, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
-        receivedAt: restResponse.receivedAt,
-        sourceTimestamp: Number(restRow[6]),
-        source: 'CONTRACT_PRICE',
-        captureStart,
-        mode: 'DEVELOPMENT_CAPTURE'
-      });
-      reconcileHyExp0022BarSources({ websocketBar, restBar });
+        payload,
+        wsReceivedAt: receivedAt,
+        enqueuedAt,
+        symbolDiagnostics
+      }));
       diagnostics.confirmedBars++;
       symbolDiagnostics.confirmedBars++;
       symbolDiagnostics.bars.push({
         ...websocketBar,
         source: 'CONTRACT_PRICE',
-        restReceivedAt: restResponse.receivedAt
+        restReceivedAt
       });
     } catch (error) {
       if (error.code === 'BAR_SOURCE_CONFLICT') {
@@ -1335,7 +1441,6 @@ async function collectKlineStream({
         symbolDiagnostics.sourceConflicts++;
       }
       if (error.code === 'BAR_CONFIRMATION_MISSING') {
-        diagnostics.confirmationMissing++;
         symbolDiagnostics.confirmationMissing++;
       }
       diagnostics.errors.push(`${error.code ?? 'BAR_CONFIRMATION_ERROR'}:${symbol}`);
@@ -1437,10 +1542,23 @@ async function collectKlineStream({
   };
   await Promise.all(batches.map((batch, batchIndex) => runKlineBatchUntilDeadline(batch, batchIndex)));
 
-  diagnostics.klineSymbolsCaptured.sort();
+  const selectedSymbols = [...new Set(symbols)].sort();
+  diagnostics.klineSymbolsCaptured = [...new Set(diagnostics.klineSymbolsCaptured)].sort();
+  diagnostics.klineSelectedSymbolCount = selectedSymbols.length;
+  diagnostics.klineCapturedSymbolCount = diagnostics.klineSymbolsCaptured.filter(symbol => selectedSymbols.includes(symbol)).length;
+  diagnostics.klineMissingSymbols = selectedSymbols.filter(symbol => !diagnostics.klineSymbolsCaptured.includes(symbol));
+  diagnostics.klineUnexpectedSymbols.sort();
+  diagnostics.klineCoverageRatio = selectedSymbols.length === 0
+    ? 0
+    : diagnostics.klineCapturedSymbolCount / selectedSymbols.length;
+  const klineCoverageComplete = diagnostics.klineMissingSymbols.length === 0
+    && diagnostics.klineUnexpectedSymbols.length === 0
+    && diagnostics.klineCoverageRatio === 1;
   diagnostics.status = diagnostics.websocketEvents > 0
     && !hardFailure
     && diagnostics.klineBatchFailures.length === 0
+    && diagnostics.confirmationFailureCount === 0
+    && klineCoverageComplete
     && diagnostics.errors.every(error => !error.startsWith('BINANCE_TRANSPORT_STATUS_REJECTED'))
     ? (diagnostics.confirmedBars > 0
       ? 'PASS_FINAL_WS_REST_CONFIRMATION'
@@ -1511,7 +1629,7 @@ async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWri
   };
 }
 
-async function fetchFundingWithAbortTimeout({ fetchImpl, url, timeoutMs } = {}) {
+async function fetchJsonWithAbortTimeout({ fetchImpl, url, timeoutMs, timeoutCode } = {}) {
   const controller = new AbortController();
   const requestStartedAt = Date.now();
   let timedOut = false;
@@ -1522,7 +1640,7 @@ async function fetchFundingWithAbortTimeout({ fetchImpl, url, timeoutMs } = {}) 
   try {
     const response = await fetchJsonCompleted({ fetchImpl, url, signal: controller.signal });
     if (!timedOut && !controller.signal.aborted) return response;
-    const timeoutError = errorWithCode('FUNDING_TIMEOUT', `funding request timed out after ${timeoutMs}ms`);
+    const timeoutError = errorWithCode(timeoutCode, `public request timed out after ${timeoutMs}ms`);
     timeoutError.requestStartedAt = Number.isFinite(response?.requestStartedAt)
       ? response.requestStartedAt
       : requestStartedAt;
@@ -1531,9 +1649,9 @@ async function fetchFundingWithAbortTimeout({ fetchImpl, url, timeoutMs } = {}) 
     timeoutError.aborted = true;
     throw timeoutError;
   } catch (error) {
-    if (error?.code === 'FUNDING_TIMEOUT' && error.aborted === true) throw error;
+    if (error?.code === timeoutCode && error.aborted === true) throw error;
     if (timedOut || controller.signal.aborted) {
-      const timeoutError = errorWithCode('FUNDING_TIMEOUT', `funding request timed out after ${timeoutMs}ms`);
+      const timeoutError = errorWithCode(timeoutCode, `public request timed out after ${timeoutMs}ms`);
       timeoutError.requestStartedAt = Number.isFinite(error?.requestStartedAt)
         ? error.requestStartedAt
         : requestStartedAt;
@@ -1546,6 +1664,15 @@ async function fetchFundingWithAbortTimeout({ fetchImpl, url, timeoutMs } = {}) 
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function fetchFundingWithAbortTimeout({ fetchImpl, url, timeoutMs } = {}) {
+  return fetchJsonWithAbortTimeout({
+    fetchImpl,
+    url,
+    timeoutMs,
+    timeoutCode: 'FUNDING_TIMEOUT'
+  });
 }
 
 /**
@@ -1892,8 +2019,12 @@ export function buildCollectorEngineeringReadiness({
     receivedAtPresent: diagnostics.missingReceivedAt === 0,
     exchangeInfoCaptured: diagnostics.exchangeInfoCaptured === true,
     fundingCaptured: diagnostics.fundingMissing === 0,
+    klineSymbolCoverage: diagnostics.klineCoverageRatio === 1
+      && (diagnostics.klineMissingSymbols?.length ?? 0) === 0
+      && (diagnostics.klineUnexpectedSymbols?.length ?? 0) === 0,
     barSourceStreamVerified: ['PASS_OPEN_CURRENT_4H_STREAM', 'PASS_FINAL_WS_REST_CONFIRMATION', 'PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED']
-      .includes(result.barSourceVerification.status),
+      .includes(result.barSourceVerification.status)
+      && diagnostics.klineCoverageRatio === 1,
     immutableManifest: Boolean(result.manifestWrite?.manifestFileSha256),
     noPnl: manifest.pnlComputed === false,
     noDevelopment: manifest.developmentAllowed === false,
@@ -2216,7 +2347,8 @@ export async function runCollectorEngineeringDryRun({
           targetBar,
           experimentId: normalizedProfile.experimentId,
           captureStart: normalizedProfile.captureStart,
-          klineSymbolsPerConnection: normalizedProfile.klineSymbolsPerConnection ?? DEFAULT_KLINE_SYMBOLS_PER_CONNECTION
+          klineSymbolsPerConnection: normalizedProfile.klineSymbolsPerConnection ?? DEFAULT_KLINE_SYMBOLS_PER_CONNECTION,
+          confirmationConcurrency: normalizedProfile.klineConfirmationConcurrency ?? DEFAULT_KLINE_CONFIRMATION_CONCURRENCY
         })
       ]);
       segments = depthResult;
@@ -2237,6 +2369,10 @@ export async function runCollectorEngineeringDryRun({
           && klineDiagnostics.transport?.subscriptionAck
           && klineDiagnostics.websocketEvents > 0
           && (klineDiagnostics.klineBatchFailures?.length ?? 0) === 0
+          && (klineDiagnostics.confirmationFailureCount ?? 0) === 0
+          && (klineDiagnostics.klineMissingSymbols?.length ?? 0) === 0
+          && (klineDiagnostics.klineUnexpectedSymbols?.length ?? 0) === 0
+          && klineDiagnostics.klineCoverageRatio === 1
           ? 'VERIFIED'
           : 'FAIL'
       };
@@ -2292,6 +2428,24 @@ export async function runCollectorEngineeringDryRun({
     missingReceivedAt: countMissingReceivedAt(allWriters),
     klineWebsocketEvents: klineDiagnostics.websocketEvents ?? 0,
     barSourceStatus: klineDiagnostics.status,
+    klineSelectedSymbolCount: klineDiagnostics.klineSelectedSymbolCount ?? 0,
+    klineCapturedSymbolCount: klineDiagnostics.klineCapturedSymbolCount ?? 0,
+    klineMissingSymbols: klineDiagnostics.klineMissingSymbols ?? [],
+    klineUnexpectedSymbols: klineDiagnostics.klineUnexpectedSymbols ?? [],
+    klineCoverageRatio: klineDiagnostics.klineCoverageRatio ?? 0,
+    klineInitialBatchCount: klineDiagnostics.klineInitialBatchCount ?? 0,
+    klineWebsocketConnectionAttempts: klineDiagnostics.klineWebsocketConnectionAttempts ?? 0,
+    klineReconnectCount: klineDiagnostics.klineReconnectCount ?? 0,
+    klineMaxSymbolsPerConnection: klineDiagnostics.klineMaxSymbolsPerConnection ?? 0,
+    klineSymbolsCaptured: klineDiagnostics.klineSymbolsCaptured ?? [],
+    klineFailedBatchCount: klineDiagnostics.klineFailedBatchCount ?? 0,
+    confirmationAttemptCount: klineDiagnostics.confirmationAttemptCount ?? 0,
+    confirmationSuccessCount: klineDiagnostics.confirmationSuccessCount ?? 0,
+    confirmationFailureCount: klineDiagnostics.confirmationFailureCount ?? 0,
+    confirmationTimeoutCount: klineDiagnostics.confirmationTimeoutCount ?? 0,
+    confirmationAbortedCount: klineDiagnostics.confirmationAbortedCount ?? 0,
+    confirmationPeakInflight: klineDiagnostics.confirmationPeakInflight ?? 0,
+    confirmationQueueDelayMaxMs: klineDiagnostics.confirmationQueueDelayMaxMs ?? 0,
     symbolsCaptured: selection?.symbols ?? [],
     transport
   };

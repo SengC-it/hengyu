@@ -6,7 +6,9 @@ import test from 'node:test';
 
 import {
   HY_EXP_0023_COLLECTOR_PROFILE,
-  buildHyExp0023CollectorReadiness
+  buildHyExp0023CollectorReadiness,
+  createHyExp0023ProspectiveCaptureController,
+  sha256HyExp0023Artifact
 } from '../src/model/hy-exp-0023-collector.mjs';
 import {
   HY_EXP_0023_CAPTURE_START,
@@ -34,7 +36,14 @@ import {
   probeHyExp0023OsClockSyncState,
   probeHyExp0023StorageCapacity
 } from '../src/model/hy-exp-0023-operations.mjs';
-import { splitDepthSymbols, splitKlineSymbols } from '../src/model/hy-exp-0022-collector.mjs';
+import {
+  hashCaptureFile,
+  buildJustClosedKlineUrl,
+  openHyExp0022AppendOnlyNdjson,
+  splitDepthSymbols,
+  splitKlineSymbols,
+  writeImmutableHyExp0022Manifest
+} from '../src/model/hy-exp-0022-collector.mjs';
 
 function fakeReadinessResult({ sequenceGaps = 0 } = {}) {
   return {
@@ -86,6 +95,43 @@ function fakeReadinessResult({ sequenceGaps = 0 } = {}) {
   };
 }
 
+function readinessFixture(directory, overrides = {}) {
+  const filePath = path.join(directory, 'engineering-readiness.json');
+  fs.writeFileSync(filePath, `${JSON.stringify({
+    schemaVersion: 1,
+    experimentId: HY_EXP_0023_ID,
+    status: 'PASS',
+    officialCaptureAuthorized: false,
+    pnlComputed: false,
+    orderApiEnabled: false,
+    accountApiEnabled: false,
+    ...overrides
+  })}\n`);
+  return { filePath, sha256: sha256HyExp0023Artifact(filePath) };
+}
+
+function copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture = false } = {}) {
+  const preregistrationDirectory = path.join(projectRoot, 'registry', 'experiments', HY_EXP_0023_ID);
+  const resolutionDirectory = path.join(projectRoot, 'artifacts', HY_EXP_0023_ID);
+  fs.mkdirSync(preregistrationDirectory, { recursive: true });
+  fs.mkdirSync(resolutionDirectory, { recursive: true });
+  fs.copyFileSync(
+    path.join('registry', 'experiments', HY_EXP_0023_ID, 'preregistration.json'),
+    path.join(preregistrationDirectory, 'preregistration.json')
+  );
+  fs.copyFileSync(
+    path.join('artifacts', HY_EXP_0023_ID, 'preregistration-resolution.json'),
+    path.join(resolutionDirectory, 'preregistration-resolution.json')
+  );
+  if (repairHashForFixture) {
+    const preregistrationPath = path.join(preregistrationDirectory, 'preregistration.json');
+    const resolutionPath = path.join(resolutionDirectory, 'preregistration-resolution.json');
+    const resolution = JSON.parse(fs.readFileSync(resolutionPath, 'utf8'));
+    resolution.preregFileSha256 = sha256HyExp0023Artifact(preregistrationPath);
+    fs.writeFileSync(resolutionPath, `${JSON.stringify(resolution, null, 2)}\n`);
+  }
+}
+
 test('0023 resolution freezes the preregistration hash, capture start and candidate warmup', () => {
   const resolution = JSON.parse(fs.readFileSync('artifacts/HY-EXP-0023/preregistration-resolution.json', 'utf8'));
   assertHyExp0023FrozenResolution({ resolution });
@@ -120,6 +166,217 @@ test('0023 engineering data is isolated, never Development input, and official c
   assert.equal(safety.pnlComputed, false);
   assert.equal(HY_EXP_0023_COLLECTOR_PROFILE.maxSymbolsPerConnection, 20);
   assert.equal(HY_EXP_0023_COLLECTOR_PROFILE.klineSymbolsPerConnection, 20);
+});
+
+test('0023 real frozen resolution hash mismatch blocks official capture fail-closed', () => {
+  const readinessDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-frozen-hash-'));
+  const readiness = readinessFixture(readinessDirectory);
+  const controller = createHyExp0023ProspectiveCaptureController({
+    projectRoot: process.cwd(),
+    outputRoot: path.resolve(process.cwd(), 'data', 'raw', 'prospective-development', HY_EXP_0023_ID),
+    readinessPath: readiness.filePath,
+    readinessSha256: readiness.sha256,
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  });
+  assert.throws(() => controller.arm(), error => error.code === 'HY_EXP_0023_PREREGISTRATION_HASH_MISMATCH');
+});
+
+test('0023 prospective capture gate fails closed on missing, non-pass or tampered readiness', () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-gate-fail-'));
+  copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture: true });
+  const missing = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    readinessPath: path.join(projectRoot, 'missing-readiness.json'),
+    readinessSha256: '0'.repeat(64),
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  });
+  assert.throws(() => missing.arm(), error => error.code === 'HY_EXP_0023_ARTIFACT_MISSING');
+
+  const notReady = readinessFixture(projectRoot, { status: 'COLLECTOR_NOT_READY' });
+  const notReadyController = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    readinessPath: notReady.filePath,
+    readinessSha256: notReady.sha256,
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  });
+  assert.throws(() => notReadyController.arm(), error => error.code === 'HY_EXP_0023_READINESS_NOT_PASS');
+
+  const pass = readinessFixture(projectRoot);
+  const tamperedHashController = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    readinessPath: pass.filePath,
+    readinessSha256: 'f'.repeat(64),
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  });
+  assert.throws(() => tamperedHashController.arm(), error => error.code === 'HY_EXP_0023_READINESS_HASH_MISMATCH');
+
+  assert.throws(() => createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    outputRoot: path.join(projectRoot, 'lookalike-HY-EXP-0023'),
+    readinessPath: pass.filePath,
+    readinessSha256: pass.sha256,
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  }), error => error.code === 'HY_EXP_0023_DEVELOPMENT_ROOT_MISMATCH');
+});
+
+test('0023 arms before captureStart, rejects pre-capture writes, and atomically starts Development', () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-gate-transition-'));
+  copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture: true });
+  const readiness = readinessFixture(projectRoot);
+  let now = Date.parse('2026-08-23T11:59:59.000Z');
+  const written = [];
+  const controller = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    readinessPath: readiness.filePath,
+    readinessSha256: readiness.sha256,
+    now: () => now,
+    appendRecord: record => written.push(record)
+  });
+  assert.equal(controller.arm().state, 'ARMED_PROSPECTIVE_CAPTURE');
+  assert.throws(() => controller.writeRecord({
+    stream: 'kline.4h',
+    sourceExchangeTimestamp: now,
+    receivedAt: now
+  }), error => error.code === 'HY_EXP_0023_PRE_CAPTURE_WRITE_REJECTED');
+  assert.equal(written.length, 0);
+  now = Date.parse('2026-08-23T12:00:00.000Z');
+  assert.equal(controller.start().state, 'DEVELOPMENT_CAPTURE');
+  const record = controller.writeRecord({
+    stream: 'kline.4h',
+    sourceExchangeTimestamp: now,
+    receivedAt: now + 1,
+    symbol: 'BTCUSDT'
+  });
+  assert.equal(record.captureMode, 'DEVELOPMENT_CAPTURE');
+  assert.equal(record.authorization, 'PAPER_ONLY');
+  assert.equal(written.length, 1);
+  assert.equal(controller.diagnostics().rejectedPreCaptureCount, 1);
+  assert.equal(controller.getGate().officialCaptureAuthorized, false);
+  assert.equal(controller.getGate().developmentAllowed, true);
+  assert.throws(() => controller.writeRecord({
+    stream: 'depth.diff',
+    sourceExchangeTimestamp: now + 10,
+    receivedAt: now + 5,
+    symbol: 'BTCUSDT'
+  }), error => error.code === 'HY_EXP_0023_FUTURE_SOURCE_TIMESTAMP');
+});
+
+test('0023 boundary integration simulation keeps raw/manifest isolated and admits only causal records', () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-boundary-simulation-'));
+  copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture: true });
+  const readiness = readinessFixture(projectRoot);
+  const outputRoot = path.join(projectRoot, 'data', 'raw', 'prospective-development', HY_EXP_0023_ID);
+  const rawPath = path.join(outputRoot, 'boundary.ndjson');
+  const rawWriter = openHyExp0022AppendOnlyNdjson(rawPath);
+  let now = Date.parse('2026-08-23T11:59:59.000Z');
+  const controller = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    outputRoot,
+    readinessPath: readiness.filePath,
+    readinessSha256: readiness.sha256,
+    now: () => now,
+    appendRecord: record => rawWriter.append(record)
+  });
+  assert.equal(controller.arm().state, 'ARMED_PROSPECTIVE_CAPTURE');
+  assert.throws(() => controller.writeRecord({
+    stream: 'depth.diff',
+    sourceExchangeTimestamp: now,
+    receivedAt: now
+  }), error => error.code === 'HY_EXP_0023_PRE_CAPTURE_WRITE_REJECTED');
+
+  now = Date.parse('2026-08-23T12:00:00.000Z');
+  assert.equal(controller.start().state, 'DEVELOPMENT_CAPTURE');
+  now = Date.parse('2026-08-23T16:00:00.000Z');
+  const barOpen = Date.parse('2026-08-23T12:00:00.000Z');
+  const barClose = barOpen + 4 * 60 * 60 * 1_000 - 1;
+  const restUrl = buildJustClosedKlineUrl({ symbol: 'BTCUSDT', openTime: barOpen, closeTime: barClose });
+  controller.writeRecord({
+    stream: 'depth.diff',
+    segmentId: 'boundary-depth-segment-1',
+    symbol: 'BTCUSDT',
+    sourceExchangeTimestamp: now,
+    receivedAt: now + 1,
+    aligned: true,
+    U: 100,
+    u: 101,
+    pu: null
+  });
+  controller.writeRecord({
+    stream: 'kline.4h',
+    kind: 'websocket',
+    segmentId: 'boundary-kline-segment-1',
+    symbol: 'BTCUSDT',
+    sourceExchangeTimestamp: barClose,
+    receivedAt: now + 2,
+    source: 'CONTRACT_PRICE',
+    finalClosed: true,
+    openTime: barOpen,
+    closeTime: barClose,
+    open: '100',
+    high: '102',
+    low: '99',
+    close: '101',
+    volume: '1',
+    quoteVolume: '100',
+    tradeCount: 10
+  });
+  controller.writeRecord({
+    stream: 'kline.4h',
+    kind: 'rest_confirmation',
+    symbol: 'BTCUSDT',
+    sourceExchangeTimestamp: barClose,
+    receivedAt: now + 3,
+    requestStartedAt: now + 2,
+    endpoint: restUrl,
+    source: 'CONTRACT_PRICE',
+    openTime: barOpen,
+    closeTime: barClose,
+    open: '100',
+    high: '102',
+    low: '99',
+    close: '101',
+    volume: '1',
+    quoteVolume: '100',
+    tradeCount: 10,
+    result: 'CONFIRMED'
+  });
+  controller.writeRecord({
+    stream: 'funding',
+    symbol: 'BTCUSDT',
+    sourceExchangeTimestamp: now,
+    receivedAt: now + 4,
+    fundingTime: now,
+    fundingRate: '0.0001'
+  });
+  rawWriter.close();
+
+  const selectedSymbols = Array.from({ length: 41 }, (_, index) => `S${String(index).padStart(2, '0')}USDT`);
+  const klineBatches = splitKlineSymbols(selectedSymbols, 20);
+  assert.deepEqual(klineBatches.map(batch => batch.length), [20, 20, 1]);
+  assert.deepEqual(klineBatches.flat().sort(), selectedSymbols.sort());
+  const rawFile = hashCaptureFile(rawPath);
+  const manifest = {
+    schemaVersion: 1,
+    experimentId: HY_EXP_0023_ID,
+    captureMode: 'DEVELOPMENT_CAPTURE',
+    root: path.relative(projectRoot, outputRoot).replaceAll(path.sep, '/'),
+    files: [{ path: 'boundary.ndjson', ...rawFile }],
+    officialCaptureAuthorized: false,
+    authorization: 'PAPER_ONLY',
+    developmentAllowed: false,
+    pnlComputed: false,
+    historicalBackfillUsed: false,
+    proxyDepthUsed: false,
+    noOrderOrAccountApi: true
+  };
+  const sealed = writeImmutableHyExp0022Manifest({ directory: outputRoot, manifest });
+  assert.ok(fs.existsSync(sealed.manifestPath));
+  assert.ok(fs.existsSync(sealed.hashPath));
+  assert.equal(controller.diagnostics().officialCaptureAuthorized, false);
+  assert.equal(controller.diagnostics().pnlComputed, false);
+  assert.equal(controller.diagnostics().rejectedPreCaptureCount, 1);
+  assert.deepEqual(HY_EXP_0023_COLLECTOR_PROFILE.orderEndpoints, []);
+  assert.deepEqual(HY_EXP_0023_COLLECTOR_PROFILE.accountEndpoints, []);
 });
 
 test('0023 splits a dynamic universe into bounded depth connections without a total-universe cap', () => {

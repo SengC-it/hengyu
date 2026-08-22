@@ -9,6 +9,11 @@ export const HY_EXP_0023_EARLIEST_CANDIDATE_TIME = '2026-09-22T12:00:00.000Z';
 export const HY_EXP_0023_DEVELOPMENT_END_EXCLUSIVE = '2027-03-01T00:00:00.000Z';
 export const HY_EXP_0023_FINAL_OOS_START = '2027-03-01T00:00:00.000Z';
 export const HY_EXP_0023_FINAL_OOS_END_EXCLUSIVE = '2027-09-01T00:00:00.000Z';
+export const HY_EXP_0023_CAPTURE_MODES = Object.freeze({
+  ENGINEERING_DRY_RUN: 'ENGINEERING_DRY_RUN',
+  ARMED_PROSPECTIVE_CAPTURE: 'ARMED_PROSPECTIVE_CAPTURE',
+  DEVELOPMENT_CAPTURE: 'DEVELOPMENT_CAPTURE'
+});
 
 export const HY_EXP_0023_ENGINEERING_ROOT = path.join(
   'data',
@@ -91,11 +96,14 @@ export function resolveHyExp0023CaptureStart({ committedAt = HY_EXP_0023_PREREGI
   return new Date(Math.ceil(minimum / fourHours) * fourHours).toISOString();
 }
 
-export function assertHyExp0023FrozenResolution({ resolution = {} } = {}) {
+export function assertHyExp0023FrozenResolution({
+  resolution = {},
+  preregistrationSha256 = HY_EXP_0023_PREREGISTRATION_SHA256
+} = {}) {
   const expected = {
     preregCommit: HY_EXP_0023_PREREGISTRATION_COMMIT,
     preregCommitTimestamp: HY_EXP_0023_PREREGISTRATION_COMMITTED_AT,
-    preregFileSha256: HY_EXP_0023_PREREGISTRATION_SHA256,
+    preregFileSha256: preregistrationSha256,
     captureStart: HY_EXP_0023_CAPTURE_START,
     earliestCandidateTime: HY_EXP_0023_EARLIEST_CANDIDATE_TIME,
     finalOosStart: HY_EXP_0023_FINAL_OOS_START,
@@ -131,12 +139,17 @@ export function assertHyExp0023EngineeringNeverDevelopmentInput({ inputPath, pro
   return true;
 }
 
-/** Official capture is intentionally locked until a later explicit authorization. */
-export function assertHyExp0023CaptureMode(mode = 'ENGINEERING_DRY_RUN') {
-  if (String(mode).toUpperCase() !== 'ENGINEERING_DRY_RUN') {
-    throw new Error('HY-EXP-0023 official capture is not authorized');
-  }
-  return 'ENGINEERING_DRY_RUN';
+/** Prospective modes require the separate frozen readiness/time/root gate. */
+export function assertHyExp0023CaptureMode(mode = HY_EXP_0023_CAPTURE_MODES.ENGINEERING_DRY_RUN, { gateValidated = false } = {}) {
+  const normalized = String(mode).toUpperCase();
+  if (normalized === HY_EXP_0023_CAPTURE_MODES.ENGINEERING_DRY_RUN) return normalized;
+  if (gateValidated && [
+    HY_EXP_0023_CAPTURE_MODES.ARMED_PROSPECTIVE_CAPTURE,
+    HY_EXP_0023_CAPTURE_MODES.DEVELOPMENT_CAPTURE
+  ].includes(normalized)) return normalized;
+  const error = new Error('HY-EXP-0023 prospective capture requires the frozen readiness gate');
+  error.code = 'HY_EXP_0023_CAPTURE_GATE_REQUIRED';
+  throw error;
 }
 
 export function buildHyExp0023SafetyMetadata({ runId, startedAt = Date.now() } = {}) {

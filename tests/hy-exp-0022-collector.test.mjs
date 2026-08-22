@@ -10,6 +10,7 @@ import {
   HY_EXP_0022_FIRST_PROSPECTIVE_BAR,
   HY_EXP_0022_ORDER_ENDPOINTS,
   HY_EXP_0022_TRANSPORT_ENDPOINTS,
+  HY_EXP_0022_COLLECTOR_PROFILE,
   captureHyExp0022Funding,
   assertHyExp0022EngineeringNeverDevelopmentInput,
   assertHyExp0022EngineeringRoot,
@@ -23,6 +24,7 @@ import {
   fetchJsonCompleted,
   openHyExp0022AppendOnlyNdjson,
   runHyExp0022EngineeringDryRun,
+  runCollectorEngineeringDryRun,
   splitKlineSymbols,
   selectHyExp0022EngineeringSymbols,
   validateHyExp0022ExchangeInfoSymbol,
@@ -66,6 +68,8 @@ class ScenarioWebSocket {
   static klineConnections = 0;
   static invalidFirstDepthSegment = true;
   static closeFirstKlineConnection = false;
+  static skipKlineSymbol = null;
+  static finalKline = false;
 
   constructor(url) {
     this.url = url;
@@ -106,12 +110,15 @@ class ScenarioWebSocket {
     } else if (this.url.includes('/market/stream')) {
       for (const stream of request.params) {
         const symbol = stream.split('@')[0].toUpperCase();
-        const openTime = Math.floor(Date.now() / FOUR_HOURS_MS) * FOUR_HOURS_MS;
+        if (ScenarioWebSocket.skipKlineSymbol === symbol) continue;
+        const openTime = ScenarioWebSocket.finalKline
+          ? Math.floor(Date.now() / FOUR_HOURS_MS) * FOUR_HOURS_MS - FOUR_HOURS_MS
+          : Math.floor(Date.now() / FOUR_HOURS_MS) * FOUR_HOURS_MS;
         const payload = {
           e: 'kline', E: Date.now(), s: symbol, ps: symbol, st: 1,
           k: {
             t: openTime, T: openTime + FOUR_HOURS_MS - 1, s: symbol, i: '4h',
-            o: '100', c: '101', h: '102', l: '99', v: '1', q: '100', n: 10, x: false
+            o: '100', c: '101', h: '102', l: '99', v: '1', q: '100', n: 10, x: ScenarioWebSocket.finalKline
           }
         };
         setTimeout(() => this.emit('message', { data: JSON.stringify({ stream, data: payload }) }), 5);
@@ -136,9 +143,9 @@ class ScenarioWebSocket {
   }
 }
 
-function scenarioFetch() {
+function scenarioFetch(selectedSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'], { klineBodyDelay = 3 } = {}) {
   const levels = bookLevels();
-  const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+  const symbols = selectedSymbols;
   return async input => {
     const url = String(input);
     await delay(3);
@@ -168,7 +175,7 @@ function scenarioFetch() {
     }
     if (url.includes('/klines')) {
       const openTime = Number(new URL(url).searchParams.get('startTime'));
-      return response([[openTime, '100', '102', '99', '101', '1', openTime + FOUR_HOURS_MS - 1, '100', 10]], 3);
+      return response([[openTime, '100', '102', '99', '101', '1', openTime + FOUR_HOURS_MS - 1, '100', 10]], klineBodyDelay);
     }
     throw new Error(`unexpected endpoint: ${url}`);
   };
@@ -529,6 +536,154 @@ test('kline batch reconnects independently before the shared deadline', async ()
     assert.equal(result.barSourceVerification.status, 'FAIL');
   } finally {
     ScenarioWebSocket.closeFirstKlineConnection = false;
+  }
+});
+
+test('kline transport fails when one of twenty selected symbols has no event', async () => {
+  const symbols = Array.from({ length: 20 }, (_, index) => `S${String(index).padStart(2, '0')}USDT`);
+  ScenarioWebSocket.depthConnections = 0;
+  ScenarioWebSocket.klineConnections = 0;
+  ScenarioWebSocket.invalidFirstDepthSegment = false;
+  ScenarioWebSocket.closeFirstKlineConnection = false;
+  ScenarioWebSocket.skipKlineSymbol = 'S19USDT';
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0022-kline-coverage-'));
+  try {
+    const result = await runCollectorEngineeringDryRun({
+      projectRoot,
+      maxRuntimeMs: 500,
+      segmentMaxMs: 70,
+      maxSymbols: 20,
+      fetchImpl: scenarioFetch(symbols),
+      WebSocketImpl: ScenarioWebSocket,
+      profile: { ...HY_EXP_0022_COLLECTOR_PROFILE, klineSymbolsPerConnection: 20 }
+    });
+    assert.equal(result.barSourceVerification.klineSelectedSymbolCount, 20);
+    assert.equal(result.barSourceVerification.klineCapturedSymbolCount, 19);
+    assert.deepEqual(result.barSourceVerification.klineMissingSymbols, ['S19USDT']);
+    assert.deepEqual(result.barSourceVerification.klineUnexpectedSymbols, []);
+    assert.equal(result.barSourceVerification.klineCoverageRatio, 19 / 20);
+    assert.equal(result.transport.kline.status, 'FAIL');
+    const readiness = buildCollectorEngineeringReadiness({
+      result,
+      requiredDurationMs: 0,
+      minimumDynamicSymbols: 20
+    });
+    assert.equal(readiness.checks.klineSymbolCoverage, false);
+    assert.notEqual(readiness.status, 'PASS');
+  } finally {
+    ScenarioWebSocket.skipKlineSymbol = null;
+  }
+});
+
+test('final-bar confirmations use a bounded scheduler and retain queue timing', async () => {
+  const symbols = Array.from({ length: 20 }, (_, index) => `S${String(index).padStart(2, '0')}USDT`);
+  let active = 0;
+  let peak = 0;
+  const baseFetch = scenarioFetch(symbols, { klineBodyDelay: 20 });
+  const fetchImpl = async (input, options) => {
+    const url = String(input);
+    const body = await baseFetch(input, options);
+    if (!url.includes('/klines')) return body;
+    active++;
+    peak = Math.max(peak, active);
+    const text = body.text.bind(body);
+    return {
+      ...body,
+      async text() {
+        try {
+          return await text();
+        } finally {
+          active--;
+        }
+      }
+    };
+  };
+  ScenarioWebSocket.depthConnections = 0;
+  ScenarioWebSocket.klineConnections = 0;
+  ScenarioWebSocket.invalidFirstDepthSegment = false;
+  ScenarioWebSocket.closeFirstKlineConnection = false;
+  ScenarioWebSocket.skipKlineSymbol = null;
+  ScenarioWebSocket.finalKline = true;
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0022-confirmation-scheduler-'));
+  try {
+    const result = await runCollectorEngineeringDryRun({
+      projectRoot,
+      maxRuntimeMs: 900,
+      segmentMaxMs: 70,
+      maxSymbols: 20,
+      fetchImpl,
+      WebSocketImpl: ScenarioWebSocket,
+      profile: { ...HY_EXP_0022_COLLECTOR_PROFILE, klineSymbolsPerConnection: 20, klineConfirmationConcurrency: 2 }
+    });
+    const bar = result.barSourceVerification;
+    assert.equal(peak, 2);
+    assert.equal(active, 0);
+    assert.equal(bar.confirmationAttemptCount, 20);
+    assert.equal(bar.confirmationSuccessCount, 20);
+    assert.equal(bar.confirmationFailureCount, 0);
+    assert.equal(bar.confirmationTimeoutCount, 0);
+    assert.equal(bar.confirmationAbortedCount, 0);
+    assert.equal(bar.confirmationPeakInflight, 2);
+    assert.ok(bar.confirmationQueueDelayMaxMs > 0);
+    assert.equal(bar.klineCoverageRatio, 1);
+    assert.equal(bar.status, 'PASS_FINAL_WS_REST_CONFIRMATION');
+  } finally {
+    ScenarioWebSocket.finalKline = false;
+  }
+});
+
+test('final-bar confirmation timeout aborts bounded requests without leaks', async () => {
+  const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+  let active = 0;
+  let peak = 0;
+  let aborted = 0;
+  const baseFetch = scenarioFetch(symbols);
+  const fetchImpl = async (input, { signal } = {}) => {
+    const url = String(input);
+    if (!url.includes('/klines')) return baseFetch(input, { signal });
+    active++;
+    peak = Math.max(peak, active);
+    return new Promise((_, reject) => {
+      signal.addEventListener('abort', () => {
+        active--;
+        aborted++;
+        const error = new Error('aborted');
+        error.name = 'AbortError';
+        reject(error);
+      }, { once: true });
+    });
+  };
+  ScenarioWebSocket.depthConnections = 0;
+  ScenarioWebSocket.klineConnections = 0;
+  ScenarioWebSocket.invalidFirstDepthSegment = false;
+  ScenarioWebSocket.closeFirstKlineConnection = false;
+  ScenarioWebSocket.skipKlineSymbol = null;
+  ScenarioWebSocket.finalKline = true;
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0022-confirmation-timeout-'));
+  try {
+    const result = await runCollectorEngineeringDryRun({
+      projectRoot,
+      maxRuntimeMs: 400,
+      segmentMaxMs: 70,
+      maxSymbols: 3,
+      confirmationTimeoutMs: 5,
+      fetchImpl,
+      WebSocketImpl: ScenarioWebSocket,
+      profile: { ...HY_EXP_0022_COLLECTOR_PROFILE, klineConfirmationConcurrency: 2 }
+    });
+    const bar = result.barSourceVerification;
+    assert.equal(peak, 2);
+    assert.equal(active, 0);
+    assert.equal(aborted, 3);
+    assert.equal(bar.confirmationAttemptCount, 3);
+    assert.equal(bar.confirmationSuccessCount, 0);
+    assert.equal(bar.confirmationTimeoutCount, 3);
+    assert.equal(bar.confirmationAbortedCount, 3);
+    assert.equal(bar.confirmationPeakInflight, 2);
+    assert.equal(bar.confirmationFailureCount, 3);
+    assert.equal(bar.status, 'FAIL');
+  } finally {
+    ScenarioWebSocket.finalKline = false;
   }
 });
 

@@ -21,6 +21,14 @@ import {
 } from './hy-exp-0023-prospective.mjs';
 import { HY_EXP_0023_REQUIRED_ALERTS } from './hy-exp-0023-operations.mjs';
 
+export {
+  createHyExp0023ProspectiveCaptureController,
+  sha256HyExp0023Artifact,
+  validateHyExp0023ProspectiveCaptureGate,
+  validateHyExp0023ProspectiveRecord,
+  verifyHyExp0023Readiness
+} from './hy-exp-0023-capture-gate.mjs';
+
 export const HY_EXP_0023_COLLECTOR_PROFILE = Object.freeze({
   experimentId: HY_EXP_0023_ID,
   engineeringRoot: HY_EXP_0023_ENGINEERING_ROOT,
