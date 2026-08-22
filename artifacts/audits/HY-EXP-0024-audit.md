@@ -13,11 +13,14 @@ Live H12 edge fields are null/UNVERIFIED/sampleSize=0; forceUnverifiedEdgeNoTrad
 - Current H12 theoretical 4h breakout candidates: 112
 - Current H12 strict historical executable candidates: 0
 - Current H12 edge/net-edge/risk/Gmail pass: 0/0/0/0
-- Proposed 1h family candidates: 9926; edge/net-edge/risk/Gmail pass remains 0 until a separately validated edge model exists.
+- Proposed 1h family observations: 9982; unique candidate slots: 8823; family overlap slots: 1117; edge/net-edge/risk/Gmail pass remains 0 until a separately validated edge model exists.
+- Controlled counts: baseline=112; +bidirectional=459; +observed-universe=587; 1h breakout unique=1533; all-family observations=9982; all-family unique=8823.
+- Direction attribution: bear/SELL=112; bull/BUY=347; bidirectional=459; SELL_ONLY impact is bull/BUY only under fixed-six 4h semantics.
+- Edge/exit alignment: REVIEW_REQUIRED_NOT_ACCEPTED_FOR_PREREGISTRATION_AS_IS; recommended resolution=B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP; no Edge Model training or horizon tuning was run.
 
 ## Cost/profitability interpretation
 
-The JSON reports candidate-level descriptive forward outcomes using an 18 bps round-trip OHLCV execution proxy plus archived funding. These are not deployable PnL, not OOS results, and cannot promote HY-EXP-0024 because historical L2 and candidate-level validated edge are absent.
+The JSON reports candidate-level descriptive forward outcomes using an 18 bps round-trip OHLCV execution proxy plus archived funding. These are DESCRIPTIVE_ONLY, NOT_PNL, NOT_OOS, and NOT_PROMOTION_ELIGIBLE. Overlapping family observations are not portfolio returns or portfolio drawdown; no validated candidate-level edge is available.
 
 ## Decision
 

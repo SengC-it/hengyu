@@ -4,6 +4,9 @@
   "status": "not_preregistered_not_promoted",
   "authorization": "PAPER_ONLY",
   "liveOrdersEnabled": false,
+  "developmentAllowed": false,
+  "pnlComputed": false,
+  "promotionEligible": false,
   "promotion": "FORBIDDEN_UNTIL_SEPARATE_PREREGISTRATION_AND_OOS",
   "objective": "Increase usable high-quality signal count while preserving net expectancy after conservative costs; trade count alone is not an objective.",
   "baseline": "Current H12 remains HY-EXP-0018 SELL_ONLY 4h and is not modified.",
@@ -52,7 +55,7 @@
   "edgeModel": {
     "modelId": "HENGYU-EDGE-HY-EXP-0024-RIDGE-001",
     "edgeSource": "HENGYU-HY-EXP-0024-PURGED-RIDGE-FORWARD",
-    "target": "directional executable forward return in bps after the preregistered horizon, before fees/funding",
+    "target": "CURRENT AUDIT DESIGN MISMATCH: directional executable forward return after six 1h bars is not the same label as the current unbounded stop/channel exit",
     "horizonBars": 6,
     "features": [
       "trend strength: (close - SMA60) / ATR20",
@@ -88,6 +91,28 @@
     ],
     "validation": "expanding walk-forward; purge=6 bars; embargo=6 bars; development and final untouched OOS are separate; no OOS reads before development PASS"
   },
+  "edgeExitAlignment": {
+    "status": "REVIEW_REQUIRED_NOT_ACCEPTED_FOR_PREREGISTRATION_AS_IS",
+    "currentMismatch": {
+      "edgeTarget": "six completed 1h directional forward-return bars",
+      "currentTradeExit": "2 ATR20 stop or prior-60 completed-1h channel exit with no maximum holding period",
+      "consequence": "a six-hour prediction is not the realized advisory return when the channel exit occurs later and funding continues"
+    },
+    "recommendedArchitecture": "B_EXACT_EXECUTION_LABEL_WITH_FROZEN_EVALUATION_CAP",
+    "proposedArchitecture": {
+      "label": "net realized return from the exact frozen stop/channel execution policy",
+      "stop": "2.0 ATR20 from executable entry",
+      "dynamicChannel": "prior-60 completed 1h channel adverse close",
+      "evaluationCapBars": 6,
+      "terminalRule": "if neither stop nor channel exit occurs by the sixth completed 1h bar, use a terminal exit at that bar close; this cap is fixed for alignment, not tuned from outcomes",
+      "holdingPeriod": "actual entry-to-stop/channel/terminal exit interval",
+      "funding": "include every realized funding event whose fundingTime falls within that same actual holding interval; missing required funding fails closed",
+      "target": "net executable return after fee, conservative slippage/impact, funding and latency proxy for the exact labeled exit",
+      "noHorizonTuning": true
+    },
+    "reviewerDecisionRequired": true,
+    "notRunInThisCorrection": true
+  },
   "costs": {
     "source": "config/net-edge-model.json",
     "feeBpsRoundTrip": 10,
@@ -103,6 +128,7 @@
     "dynamicChannel": "exit on completed 1h close through prior 60 completed 1h channel in adverse direction",
     "profitProtection": "none in primary model; any trailing/profit-protection variant is a separate family/experiment",
     "maxHold": "none in primary model; research expiry is not a holding-period exit",
+    "alignmentStatus": "current exit is not aligned with the six-bar edge target; see edgeExitAlignment; no Edge Model training is authorized by this audit correction",
     "boundary": "open positions at evaluation boundary are censored/held out, never force-labeled as profitable"
   },
   "riskAndDelivery": {

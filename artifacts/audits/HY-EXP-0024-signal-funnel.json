@@ -1,12 +1,13 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "experimentId": "HY-EXP-0024",
   "status": "AUDIT_ONLY_NOT_PREREGISTERED",
   "evidenceClass": "D0_DESCRIPTIVE_DEVELOPMENT_INFORMATION",
-  "generatedAt": "2026-08-22T16:00:12.276Z",
+  "generatedAt": "2026-08-22T16:19:02.143Z",
   "authorization": "PAPER_ONLY",
   "liveOrdersEnabled": false,
   "pnlComputed": false,
+  "promotionEligible": false,
   "auditWindow": {
     "start": "2024-01-01T00:00:00.000Z",
     "endExclusive": "2025-07-01T00:00:00.000Z",
@@ -43,6 +44,7 @@
     "unit": "completed 4h scan-symbol slot; historical audit uses HY-EXP-0019 development window only",
     "barsScanned": 19692,
     "scanCount": 3282,
+    "insufficientHistoryScans": 0,
     "regimeTrendEligibleScans": 1069,
     "regimePassScans": 1029,
     "breadthRejectedScans": 40,
@@ -54,8 +56,7 @@
     "portfolioRiskPass": 0,
     "gmailAdvisories": 0,
     "fixedSixSymbolCandidates": 112,
-    "additionalDynamicSymbolsObserved": 41,
-    "sellOnlyBullCandidatesExcluded": 587,
+    "sellOnlyBullBuyCandidatesExcluded": 347,
     "fourHourOnlyCandidateCount": 112,
     "schedulerDelay": {
       "status": "NOT_OBSERVABLE_FROM_ARCHIVED_DATA",
@@ -73,6 +74,15 @@
     "riskGate": {
       "status": "NOT_REACHED_FOR_LIVE_H12_UNVERIFIED_EDGE",
       "count": 0
+    },
+    "directionOnlyComparison": {
+      "bearSellCandidates": 112,
+      "bullBuyCandidates": 347,
+      "bidirectionalTotal": 459,
+      "sellOnlyImpact": 347,
+      "universe": "fixed six",
+      "timeframe": "4h",
+      "breakoutSemantics": "same Donchian-120 semantics"
     },
     "by": {
       "total": 112,
@@ -111,78 +121,230 @@
     }
   },
   "proposedExpansionFunnel": {
-    "unit": "completed 1h candidate; regime is the last completed 4h snapshot; dynamic universe uses OHLCV liquidity proxy",
-    "barsScanned": 105024,
-    "scanCount": 13128,
+    "unit": "completed 1h candidate-family observation; regime and universe are the latest completed 4h PIT snapshots",
+    "barsScanned": 99264,
+    "scanCount": 12408,
     "dynamicUniverseMaxSymbols": 20,
     "observedUniverseSymbols": 8,
-    "regimeEligibleSymbolSlots": 9926,
-    "candidateCount": 9926,
-    "proxyExecutableCandidates": 9926,
+    "universeApplication": {
+      "applied": true,
+      "snapshotCount": 3282,
+      "snapshotsWithEligibleSymbols": 3282,
+      "observedUniverseCoverage": 8,
+      "top20CapacityNotDemonstrated": true,
+      "membershipFrozenUntilNextCompleted4hBoundary": true,
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK"
+    },
+    "regimeEligibleSymbolSlots": 75704,
+    "candidateFamilyObservations": 9982,
+    "uniqueCandidateSlots": 8823,
+    "familyOverlapSlots": 1117,
+    "oneFamily": 7706,
+    "twoFamilies": 1075,
+    "threeFamilies": 42,
+    "pairwiseFamilyOverlaps": {
+      "TREND_BREAKOUT_PLUS_PULLBACK": 51,
+      "TREND_BREAKOUT_PLUS_VOL_EXPANSION": 634,
+      "PULLBACK_PLUS_VOL_EXPANSION": 516
+    },
+    "proxyExecutableCandidates": 9982,
     "strictHistoricalExecutableCandidates": 0,
     "edgeEligible": 0,
     "netEdgePass": 0,
     "portfolioRiskPass": 0,
     "gmailAdvisories": 0,
     "by": {
-      "total": 9926,
+      "total": 9982,
       "bySymbol": {
-        "BNBUSDT": 1240,
-        "BTCUSDT": 1365,
-        "DOGEUSDT": 1232,
-        "ETHUSDT": 1309,
-        "LINKUSDT": 1192,
-        "LTCUSDT": 1148,
-        "SOLUSDT": 1176,
-        "XRPUSDT": 1264
+        "BNBUSDT": 1249,
+        "BTCUSDT": 1370,
+        "DOGEUSDT": 1240,
+        "ETHUSDT": 1318,
+        "LINKUSDT": 1199,
+        "LTCUSDT": 1150,
+        "SOLUSDT": 1184,
+        "XRPUSDT": 1272
       },
       "byMonth": {
-        "2024-01": 9,
-        "2024-02": 828,
-        "2024-03": 872,
-        "2024-04": 460,
-        "2024-05": 657,
+        "2024-01": 8,
+        "2024-02": 833,
+        "2024-03": 874,
+        "2024-04": 463,
+        "2024-05": 658,
         "2024-06": 525,
-        "2024-07": 497,
-        "2024-08": 327,
-        "2024-09": 614,
-        "2024-10": 563,
-        "2024-11": 877,
-        "2024-12": 702,
-        "2025-01": 517,
-        "2025-02": 584,
+        "2024-07": 498,
+        "2024-08": 328,
+        "2024-09": 613,
+        "2024-10": 569,
+        "2024-11": 884,
+        "2024-12": 703,
+        "2025-01": 536,
+        "2025-02": 587,
         "2025-03": 478,
-        "2025-04": 444,
+        "2025-04": 451,
         "2025-05": 671,
-        "2025-06": 301
+        "2025-06": 303
       },
       "byRegime": {
-        "BEAR": 3776,
-        "BULL": 6150
+        "BEAR": 3800,
+        "BULL": 6182
       },
       "bySide": {
-        "BUY": 6150,
-        "SELL": 3776
+        "BUY": 6182,
+        "SELL": 3800
       },
       "byFamily": {
-        "PULLBACK_CONTINUATION": 6307,
-        "TREND_BREAKOUT": 1525,
-        "VOLATILITY_EXPANSION": 2094
+        "PULLBACK_CONTINUATION": 6327,
+        "TREND_BREAKOUT": 1533,
+        "VOLATILITY_EXPANSION": 2122
       }
     }
   },
+  "controlledComparisons": {
+    "baseline": {
+      "label": "BASELINE",
+      "universe": "fixed six",
+      "directions": [
+        "SELL"
+      ],
+      "timeframe": "4h",
+      "family": "H12_4H_DONCHIAN_SELL",
+      "candidateCount": 112,
+      "uniqueCandidateSlots": 112,
+      "incrementalCandidateCount": null
+    },
+    "bidirectional": {
+      "label": "+ BIDIRECTIONAL",
+      "universe": "fixed six",
+      "directions": [
+        "BUY",
+        "SELL"
+      ],
+      "timeframe": "4h",
+      "family": "same 4h Donchian semantics",
+      "bearSellCandidates": 112,
+      "bullBuyCandidates": 347,
+      "bidirectionalTotal": 459,
+      "incrementalCandidateCount": 347,
+      "uniqueCandidateSlots": 459
+    },
+    "observedUniverse": {
+      "label": "+ OBSERVED_UNIVERSE",
+      "universe": "causal eligible observed symbols, frozen per completed 4h snapshot",
+      "directions": [
+        "BUY",
+        "SELL"
+      ],
+      "timeframe": "4h",
+      "family": "PROPOSED_4H_BREAKOUT",
+      "candidateCount": 587,
+      "uniqueCandidateSlots": 587,
+      "incrementalCandidateCount": 128,
+      "observedUniverseCoverage": 8,
+      "top20CapacityNotDemonstrated": true
+    },
+    "oneHourBreakout": {
+      "label": "+ 1H TIMEFRAME",
+      "universe": "same causal observed-universe snapshots",
+      "directions": [
+        "BUY",
+        "SELL"
+      ],
+      "timeframe": "1h",
+      "family": "TREND_BREAKOUT only",
+      "candidateFamilyObservations": 1533,
+      "uniqueCandidateSlots": 1533,
+      "incrementalCandidateCount": 946
+    },
+    "additionalFamilies": {
+      "label": "+ ADDITIONAL FAMILIES",
+      "universe": "same causal observed-universe snapshots",
+      "directions": [
+        "BUY",
+        "SELL"
+      ],
+      "timeframe": "1h",
+      "family": "TREND_BREAKOUT + PULLBACK_CONTINUATION + VOLATILITY_EXPANSION",
+      "candidateFamilyObservations": 9982,
+      "uniqueCandidateSlots": 8823,
+      "incrementalFamilyObservations": 8449,
+      "incrementalUniqueCandidateSlots": 7290
+    },
+    "note": "Order-dependent counts only; they are not causal profitability claims and are not independent trades."
+  },
   "historicalCandidateCounts": {
     "currentH12": 112,
-    "proposed4hBidirectionalBreakout": 587,
-    "proposed1hFamilies": 9926,
-    "proposed1hByFamily": {
-      "PULLBACK_CONTINUATION": 6307,
-      "TREND_BREAKOUT": 1525,
-      "VOLATILITY_EXPANSION": 2094
+    "bearSellCandidates": 112,
+    "bullBuyCandidates": 347,
+    "fixedSixBidirectional4h": 459,
+    "observedUniverseBidirectional4h": 587,
+    "observedUniverse1hTrendBreakoutFamilyObservations": 1533,
+    "observedUniverse1hTrendBreakoutUniqueCandidateSlots": 1533,
+    "observedUniverse1hAllFamilyObservations": 9982,
+    "observedUniverse1hAllFamilyUniqueCandidateSlots": 8823,
+    "observedUniverse1hFamilyOverlapSlots": 1117,
+    "observedUniverse1hFamilyOverlap": {
+      "candidateFamilyObservations": 9982,
+      "uniqueCandidateSlots": 8823,
+      "familyOverlapSlots": 1117,
+      "oneFamily": 7706,
+      "twoFamilies": 1075,
+      "threeFamilies": 42,
+      "pairwise": {
+        "TREND_BREAKOUT_PLUS_PULLBACK": 51,
+        "TREND_BREAKOUT_PLUS_VOL_EXPANSION": 634,
+        "PULLBACK_PLUS_VOL_EXPANSION": 516
+      },
+      "by": {
+        "total": 9982,
+        "bySymbol": {
+          "BNBUSDT": 1249,
+          "BTCUSDT": 1370,
+          "DOGEUSDT": 1240,
+          "ETHUSDT": 1318,
+          "LINKUSDT": 1199,
+          "LTCUSDT": 1150,
+          "SOLUSDT": 1184,
+          "XRPUSDT": 1272
+        },
+        "byMonth": {
+          "2024-01": 8,
+          "2024-02": 833,
+          "2024-03": 874,
+          "2024-04": 463,
+          "2024-05": 658,
+          "2024-06": 525,
+          "2024-07": 498,
+          "2024-08": 328,
+          "2024-09": 613,
+          "2024-10": 569,
+          "2024-11": 884,
+          "2024-12": 703,
+          "2025-01": 536,
+          "2025-02": 587,
+          "2025-03": 478,
+          "2025-04": 451,
+          "2025-05": 671,
+          "2025-06": 303
+        },
+        "byRegime": {
+          "BEAR": 3800,
+          "BULL": 6182
+        },
+        "bySide": {
+          "BUY": 6182,
+          "SELL": 3800
+        },
+        "byFamily": {
+          "PULLBACK_CONTINUATION": 6327,
+          "TREND_BREAKOUT": 1533,
+          "VOLATILITY_EXPANSION": 2122
+        }
+      }
     },
     "fixedSixSymbolCandidates": 112,
-    "dynamicAdditionalSymbolBreakouts": 41,
-    "note": "Counts are causal candidate observations in the development-information window, not approved signals or trades."
+    "dynamicAdditionalSymbolBreakouts": 127,
+    "note": "Counts are causal candidate observations in the development-information window, not approved signals or trades; family observations are not independent opportunities."
   },
   "scarcityCauses": [
     {
@@ -192,32 +354,37 @@
     },
     {
       "cause": "SELL_ONLY",
-      "impact": 587,
-      "evidence": "bull-side theoretical breakouts are excluded by current H12 direction policy"
-    },
-    {
-      "cause": "4H_ONLY_TIMING",
-      "impact": 9814,
-      "evidence": "1h candidate families are counted separately; no claim that every extra candidate is independent"
+      "impact": 347,
+      "evidence": "fixed-six, same 4h Donchian semantics, BULL/BUY candidates only; no universe or timeframe expansion mixed into this count"
     },
     {
       "cause": "FIXED_SIX_SYMBOL_UNIVERSE",
-      "impact": 41,
-      "evidence": "additional observed symbols in locked archive; not a full 20-30 symbol universe"
+      "impact": 128,
+      "evidence": "controlled fixed-six bidirectional versus causal eligible observed-universe 4h comparison; only eight symbols are available and top-20 capacity is not demonstrated"
+    },
+    {
+      "cause": "4H_ONLY_TIMING",
+      "impact": 946,
+      "evidence": "controlled 1h TREND_BREAKOUT-only comparison; order-dependent candidate count, no profitability claim"
+    },
+    {
+      "cause": "ADDITIONAL_FAMILY_OVERLAP",
+      "impact": 1117,
+      "evidence": "family observations are deduplicated into unique symbol/time/side slots before signal-count interpretation"
     },
     {
       "cause": "BEAR_BREADTH_4_OF_6",
       "impact": 40,
-      "evidence": "trend-qualified scans rejected by current breadth threshold"
+      "evidence": "trend-qualified scans rejected by current fixed-six breadth threshold"
     },
     {
       "cause": "SCHEDULER_DELAY",
       "impact": null,
-      "evidence": "not measurable from archived market data; live diagnostic telemetry is required"
+      "evidence": "not measurable from archived data; live diagnostic telemetry is required"
     },
     {
       "cause": "HISTORICAL_EXECUTABLE_DEPTH",
-      "impact": 10038,
+      "impact": 10094,
       "evidence": "no historical L2; strict executable candidate count is zero, proxy count is reported separately"
     },
     {
@@ -227,16 +394,62 @@
     }
   ],
   "proxyProfitabilityComparison": {
-    "H12_4H_DONCHIAN_SELL": {
-      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+    "FIXED6_4H_DONCHIAN_BUY": {
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS_NOT_PROMOTION_ELIGIBLE",
       "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "overlapWarning": "candidate-family observations may share symbol/time/side slots and are not portfolio returns",
       "costModel": {
         "roundTripCostBps": 18,
         "fundingIncluded": true,
         "fundingStressBufferBps": 1
       },
       "summary": {
-        "candidateCount": 112,
+        "observationCount": 347,
+        "outcomeCount": 347,
+        "outcomeCoverage": 1,
+        "meanNetReturnBps": 128.1580541327742,
+        "cumulativeEqualNotionalNetReturnBps": 44470.84478407265,
+        "netProfitFactor": 1.8565941786049627,
+        "positiveMonths": 9,
+        "observedMonths": 14,
+        "positiveMonthShare": 0.6428571428571429,
+        "maxCumulativeDrawdownBps": -10027.045889705107,
+        "cvar95Bps": -948.4109168611444,
+        "best5Concentration": 0.139920098599681,
+        "symbolBreadth": 6,
+        "regimeBreadth": 1,
+        "byMonth": {
+          "2024-01": 505.1202064494505,
+          "2024-02": 8962.536395952204,
+          "2024-03": -2211.257232290865,
+          "2024-04": -1238.2024154957498,
+          "2024-05": -939.1715227450258,
+          "2024-06": 1762.2166542251775,
+          "2024-07": -2100.521819607561,
+          "2024-09": 560.1687075549162,
+          "2024-10": 326.6615069611487,
+          "2024-11": 25872.200413952254,
+          "2024-12": 4482.977785470573,
+          "2025-01": 401.62663965158407,
+          "2025-04": -1749.105929667263,
+          "2025-05": 9835.59539366185
+        },
+        "byFamily": {
+          "FIXED6_4H_DONCHIAN_BUY": 347
+        }
+      }
+    },
+    "H12_4H_DONCHIAN_SELL": {
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS_NOT_PROMOTION_ELIGIBLE",
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "overlapWarning": "candidate-family observations may share symbol/time/side slots and are not portfolio returns",
+      "costModel": {
+        "roundTripCostBps": 18,
+        "fundingIncluded": true,
+        "fundingStressBufferBps": 1
+      },
+      "summary": {
+        "observationCount": 112,
         "outcomeCount": 112,
         "outcomeCoverage": 1,
         "meanNetReturnBps": -216.97867760246734,
@@ -270,146 +483,197 @@
         }
       }
     },
-    "PULLBACK_CONTINUATION": {
-      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+    "PROPOSED_4H_BREAKOUT": {
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS_NOT_PROMOTION_ELIGIBLE",
       "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "overlapWarning": "candidate-family observations may share symbol/time/side slots and are not portfolio returns",
       "costModel": {
         "roundTripCostBps": 18,
         "fundingIncluded": true,
         "fundingStressBufferBps": 1
       },
       "summary": {
-        "candidateCount": 6307,
-        "outcomeCount": 6307,
+        "observationCount": 587,
+        "outcomeCount": 587,
         "outcomeCoverage": 1,
-        "meanNetReturnBps": -23.30192845639495,
-        "cumulativeEqualNotionalNetReturnBps": -146965.26277448295,
-        "netProfitFactor": 0.7310205402124891,
-        "positiveMonths": 2,
-        "observedMonths": 18,
-        "positiveMonthShare": 0.1111111111111111,
-        "maxCumulativeDrawdownBps": -155343.15248480404,
-        "cvar95Bps": -527.1527570249781,
-        "best5Concentration": 0.021914424823569388,
+        "meanNetReturnBps": 10.61665942105576,
+        "cumulativeEqualNotionalNetReturnBps": 6231.979080159731,
+        "netProfitFactor": 1.0506351644513552,
+        "positiveMonths": 4,
+        "observedMonths": 17,
+        "positiveMonthShare": 0.23529411764705882,
+        "maxCumulativeDrawdownBps": -28107.244978473143,
+        "cvar95Bps": -1102.8111696321457,
+        "best5Concentration": 0.10573695521081748,
         "symbolBreadth": 8,
         "regimeBreadth": 2,
         "byMonth": {
-          "2024-01": 29.13220978744922,
-          "2024-02": -297.0645353385171,
-          "2024-03": -16760.19597864433,
-          "2024-04": -3372.1264935302975,
-          "2024-05": -15379.492790593838,
-          "2024-06": -10684.764306596848,
-          "2024-07": -138.72520226881275,
-          "2024-08": -14255.452432452379,
-          "2024-09": -6383.288714894823,
-          "2024-10": -9005.132361501153,
-          "2024-11": 10785.509474890274,
-          "2024-12": -7195.114847347983,
-          "2025-01": -20855.67939280975,
-          "2025-02": -5958.66298934194,
-          "2025-03": -16235.148473844534,
-          "2025-04": -15262.484237706667,
-          "2025-05": -13342.811799452242,
-          "2025-06": -2653.759902837489
+          "2024-01": -583.3263486143269,
+          "2024-02": 8898.031224500253,
+          "2024-03": -4771.588311236144,
+          "2024-04": -858.4873213299732,
+          "2024-05": -3148.559932008915,
+          "2024-06": -266.83911871631585,
+          "2024-07": -4298.120144701901,
+          "2024-09": -3817.948023465139,
+          "2024-10": -1265.5549984774361,
+          "2024-11": 22797.785585891972,
+          "2024-12": 8459.06920264583,
+          "2025-01": -4836.3539184009405,
+          "2025-02": -6484.386556875705,
+          "2025-03": -1838.051571994171,
+          "2025-04": -11261.849119810324,
+          "2025-05": 10452.92687850308,
+          "2025-06": -944.76844575008
         },
         "byFamily": {
-          "PULLBACK_CONTINUATION": 6307
+          "PROPOSED_4H_BREAKOUT": 587
+        }
+      }
+    },
+    "PULLBACK_CONTINUATION": {
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS_NOT_PROMOTION_ELIGIBLE",
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "overlapWarning": "candidate-family observations may share symbol/time/side slots and are not portfolio returns",
+      "costModel": {
+        "roundTripCostBps": 18,
+        "fundingIncluded": true,
+        "fundingStressBufferBps": 1
+      },
+      "summary": {
+        "observationCount": 6327,
+        "outcomeCount": 6327,
+        "outcomeCoverage": 1,
+        "meanNetReturnBps": -22.768379515989672,
+        "cumulativeEqualNotionalNetReturnBps": -144055.53719766665,
+        "netProfitFactor": 0.7361706689595783,
+        "positiveMonths": 2,
+        "observedMonths": 18,
+        "positiveMonthShare": 0.1111111111111111,
+        "maxCumulativeDrawdownBps": -152533.09774493595,
+        "cvar95Bps": -526.491239775837,
+        "best5Concentration": 0.02177558568684931,
+        "symbolBreadth": 8,
+        "regimeBreadth": 2,
+        "byMonth": {
+          "2024-01": -45.314682423406445,
+          "2024-02": -80.69420602117458,
+          "2024-03": -16517.648869937613,
+          "2024-04": -2992.1263104366885,
+          "2024-05": -15413.73499283113,
+          "2024-06": -10684.76430659685,
+          "2024-07": 169.59480749289472,
+          "2024-08": -14305.345683235071,
+          "2024-09": -6190.010130013336,
+          "2024-10": -8451.249015762674,
+          "2024-11": 10785.50947489027,
+          "2024-12": -7261.045943036973,
+          "2025-01": -20692.309810645336,
+          "2025-02": -5484.886226143221,
+          "2025-03": -16235.14847384453,
+          "2025-04": -14472.595440456113,
+          "2025-05": -13342.811799452238,
+          "2025-06": -2840.955589214598
+        },
+        "byFamily": {
+          "PULLBACK_CONTINUATION": 6327
         }
       }
     },
     "TREND_BREAKOUT": {
-      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS_NOT_PROMOTION_ELIGIBLE",
       "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "overlapWarning": "candidate-family observations may share symbol/time/side slots and are not portfolio returns",
       "costModel": {
         "roundTripCostBps": 18,
         "fundingIncluded": true,
         "fundingStressBufferBps": 1
       },
       "summary": {
-        "candidateCount": 1525,
-        "outcomeCount": 1525,
+        "observationCount": 1533,
+        "outcomeCount": 1533,
         "outcomeCoverage": 1,
-        "meanNetReturnBps": 15.17094759600713,
-        "cumulativeEqualNotionalNetReturnBps": 23135.695083910872,
-        "netProfitFactor": 1.1704365431994361,
+        "meanNetReturnBps": 14.796272652448641,
+        "cumulativeEqualNotionalNetReturnBps": 22682.685976203767,
+        "netProfitFactor": 1.1659324257467147,
         "positiveMonths": 8,
         "observedMonths": 17,
         "positiveMonthShare": 0.47058823529411764,
-        "maxCumulativeDrawdownBps": -19234.45831825331,
-        "cvar95Bps": -557.4319357861186,
-        "best5Concentration": 0.05581618492256392,
+        "maxCumulativeDrawdownBps": -19107.012102950677,
+        "cvar95Bps": -561.4889013263665,
+        "best5Concentration": 0.05564052990136057,
         "symbolBreadth": 8,
         "regimeBreadth": 2,
         "byMonth": {
           "2024-02": 3207.1781230713505,
           "2024-03": -4613.732378415016,
-          "2024-04": -241.98477193193872,
+          "2024-04": -241.98477193193827,
           "2024-05": -2615.3140407124324,
-          "2024-06": -245.54722850966766,
+          "2024-06": -245.54722850966743,
           "2024-07": 6144.119230057711,
           "2024-08": -670.99536575753,
           "2024-09": -2685.842215091745,
-          "2024-10": 310.190960056807,
-          "2024-11": 14434.005230985003,
-          "2024-12": 5096.885099171133,
-          "2025-01": -6549.402754378141,
-          "2025-02": -630.4381785089521,
+          "2024-10": 184.02059612924234,
+          "2024-11": 13605.590173960889,
+          "2024-12": 5052.901334368245,
+          "2025-01": -6377.972774272615,
+          "2025-02": -630.4381785089516,
           "2025-03": 3669.4029880181133,
-          "2025-04": 5602.376178743053,
-          "2025-05": 4095.723361720367,
-          "2025-06": -1170.9291546073669
+          "2025-04": 5976.506276684987,
+          "2025-05": 4095.7233617203688,
+          "2025-06": -1170.929154607367
         },
         "byFamily": {
-          "TREND_BREAKOUT": 1525
+          "TREND_BREAKOUT": 1533
         }
       }
     },
     "VOLATILITY_EXPANSION": {
-      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS_NOT_PROMOTION_ELIGIBLE",
       "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "overlapWarning": "candidate-family observations may share symbol/time/side slots and are not portfolio returns",
       "costModel": {
         "roundTripCostBps": 18,
         "fundingIncluded": true,
         "fundingStressBufferBps": 1
       },
       "summary": {
-        "candidateCount": 2094,
-        "outcomeCount": 2094,
+        "observationCount": 2122,
+        "outcomeCount": 2122,
         "outcomeCoverage": 1,
-        "meanNetReturnBps": -9.806880916734485,
-        "cumulativeEqualNotionalNetReturnBps": -20535.60863964201,
-        "netProfitFactor": 0.8973393909294902,
-        "positiveMonths": 6,
+        "meanNetReturnBps": -7.706742053785127,
+        "cumulativeEqualNotionalNetReturnBps": -16353.706638132038,
+        "netProfitFactor": 0.9182282972832384,
+        "positiveMonths": 5,
         "observedMonths": 18,
-        "positiveMonthShare": 0.3333333333333333,
-        "maxCumulativeDrawdownBps": -34283.010320120644,
-        "cvar95Bps": -585.729772454292,
-        "best5Concentration": 0.033727900960128156,
+        "positiveMonthShare": 0.2777777777777778,
+        "maxCumulativeDrawdownBps": -30399.789386791002,
+        "cvar95Bps": -584.6603976148175,
+        "best5Concentration": 0.03296749544808856,
         "symbolBreadth": 8,
         "regimeBreadth": 2,
         "byMonth": {
           "2024-01": -32.84580433275893,
-          "2024-02": 3313.0201440948786,
-          "2024-03": -2733.6373149486785,
-          "2024-04": -6536.910395506614,
-          "2024-05": -4288.66881654886,
-          "2024-06": -1339.9813715148935,
-          "2024-07": 8575.518104871955,
-          "2024-08": -8550.836115897264,
-          "2024-09": -1093.1956703628348,
-          "2024-10": -2451.6992515987304,
-          "2024-11": 299.2445233146684,
-          "2024-12": 2743.87996105279,
-          "2025-01": -6224.7648480945645,
-          "2025-02": -2064.372310871358,
-          "2025-03": 966.6171466992455,
-          "2025-04": 4144.716340813892,
-          "2025-05": -1114.4229771262405,
-          "2025-06": -4147.269983686866
+          "2024-02": 3483.2165959400945,
+          "2024-03": -2258.6568347912767,
+          "2024-04": -6536.910395506615,
+          "2024-05": -4288.668816548861,
+          "2024-06": -1339.9813715148925,
+          "2024-07": 8575.518104871948,
+          "2024-08": -8550.836115897262,
+          "2024-09": -1093.1956703628362,
+          "2024-10": -1702.4405653467782,
+          "2024-11": -311.05692056205044,
+          "2024-12": 2743.8799610527903,
+          "2025-01": -3587.9989847318266,
+          "2025-02": -1431.854963437068,
+          "2025-03": 966.6171466992437,
+          "2025-04": 4273.200957148993,
+          "2025-05": -1114.4229771262403,
+          "2025-06": -4147.269983686865
         },
         "byFamily": {
-          "VOLATILITY_EXPANSION": 2094
+          "VOLATILITY_EXPANSION": 2122
         }
       }
     }
@@ -417,7 +681,8 @@
   "paretoTable": [
     {
       "name": "H12_CURRENT",
-      "candidateCount": 112,
+      "candidateFamilyObservations": 112,
+      "uniqueCandidateSlots": 112,
       "meanNetReturnBps": -216.978677602467,
       "netProfitFactor": 0.3710687308255164,
       "maxCumulativeDrawdownBps": -24626.156913247134,
@@ -425,11 +690,55 @@
       "symbolBreadth": 6,
       "regimeBreadth": 1,
       "edgeEligible": 0,
-      "promotionEligible": false
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
+    },
+    {
+      "name": "FIXED6_BULL_BUY",
+      "candidateFamilyObservations": 347,
+      "uniqueCandidateSlots": 347,
+      "meanNetReturnBps": 128.15805413277428,
+      "netProfitFactor": 1.8565941786049627,
+      "maxCumulativeDrawdownBps": -10027.045889705107,
+      "positiveMonths": 9,
+      "symbolBreadth": 6,
+      "regimeBreadth": 1,
+      "edgeEligible": 0,
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
+    },
+    {
+      "name": "OBSERVED_UNIVERSE_4H",
+      "candidateFamilyObservations": 587,
+      "uniqueCandidateSlots": 587,
+      "meanNetReturnBps": 10.616659421055816,
+      "netProfitFactor": 1.0506351644513552,
+      "maxCumulativeDrawdownBps": -28107.244978473143,
+      "positiveMonths": 4,
+      "symbolBreadth": 8,
+      "regimeBreadth": 2,
+      "edgeEligible": 0,
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
+    },
+    {
+      "name": "FIXED6_4H_DONCHIAN_BUY",
+      "candidateFamilyObservations": 347,
+      "uniqueCandidateSlots": 347,
+      "meanNetReturnBps": 128.15805413277428,
+      "netProfitFactor": 1.8565941786049627,
+      "maxCumulativeDrawdownBps": -10027.045889705107,
+      "positiveMonths": 9,
+      "symbolBreadth": 6,
+      "regimeBreadth": 1,
+      "edgeEligible": 0,
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
     },
     {
       "name": "H12_4H_DONCHIAN_SELL",
-      "candidateCount": 112,
+      "candidateFamilyObservations": 112,
+      "uniqueCandidateSlots": 112,
       "meanNetReturnBps": -216.978677602467,
       "netProfitFactor": 0.3710687308255164,
       "maxCumulativeDrawdownBps": -24626.156913247134,
@@ -437,56 +746,80 @@
       "symbolBreadth": 6,
       "regimeBreadth": 1,
       "edgeEligible": 0,
-      "promotionEligible": false
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
+    },
+    {
+      "name": "PROPOSED_4H_BREAKOUT",
+      "candidateFamilyObservations": 587,
+      "uniqueCandidateSlots": 587,
+      "meanNetReturnBps": 10.616659421055816,
+      "netProfitFactor": 1.0506351644513552,
+      "maxCumulativeDrawdownBps": -28107.244978473143,
+      "positiveMonths": 4,
+      "symbolBreadth": 8,
+      "regimeBreadth": 2,
+      "edgeEligible": 0,
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
     },
     {
       "name": "PULLBACK_CONTINUATION",
-      "candidateCount": 6307,
-      "meanNetReturnBps": -23.301928456395093,
-      "netProfitFactor": 0.7310205402124891,
-      "maxCumulativeDrawdownBps": -155343.15248480404,
+      "candidateFamilyObservations": 6327,
+      "uniqueCandidateSlots": 6327,
+      "meanNetReturnBps": -22.76837951598986,
+      "netProfitFactor": 0.7361706689595783,
+      "maxCumulativeDrawdownBps": -152533.09774493595,
       "positiveMonths": 2,
       "symbolBreadth": 8,
       "regimeBreadth": 2,
       "edgeEligible": 0,
-      "promotionEligible": false
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
     },
     {
       "name": "TREND_BREAKOUT",
-      "candidateCount": 1525,
-      "meanNetReturnBps": 15.170947596007071,
-      "netProfitFactor": 1.1704365431994361,
-      "maxCumulativeDrawdownBps": -19234.45831825331,
+      "candidateFamilyObservations": 1533,
+      "uniqueCandidateSlots": 1533,
+      "meanNetReturnBps": 14.796272652448584,
+      "netProfitFactor": 1.1659324257467147,
+      "maxCumulativeDrawdownBps": -19107.012102950677,
       "positiveMonths": 8,
       "symbolBreadth": 8,
       "regimeBreadth": 2,
       "edgeEligible": 0,
-      "promotionEligible": false
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
     },
     {
       "name": "VOLATILITY_EXPANSION",
-      "candidateCount": 2094,
-      "meanNetReturnBps": -9.806880916734585,
-      "netProfitFactor": 0.8973393909294902,
-      "maxCumulativeDrawdownBps": -34283.010320120644,
-      "positiveMonths": 6,
+      "candidateFamilyObservations": 2122,
+      "uniqueCandidateSlots": 2122,
+      "meanNetReturnBps": -7.70674205378522,
+      "netProfitFactor": 0.9182282972832384,
+      "maxCumulativeDrawdownBps": -30399.789386791002,
+      "positiveMonths": 5,
       "symbolBreadth": 8,
       "regimeBreadth": 2,
       "edgeEligible": 0,
-      "promotionEligible": false
+      "promotionEligible": false,
+      "evidenceClass": "DESCRIPTIVE_ONLY_NOT_PNL_NOT_OOS"
     }
   ],
   "noPromotionDecision": {
     "result": "NOT_EVALUATED_FOR_PROMOTION",
     "reason": "No validated candidate-level edge, no historical L2, and no independent OOS. Descriptive forward outcomes cannot promote HY-EXP-0024.",
-    "betterNetProfitabilityAndUsableSignalCount": false
+    "betterNetProfitabilityAndUsableSignalCount": false,
+    "proxyProfitabilityIsNotPortfolioPerformance": true
   },
   "dataLimitations": [
     "Historical order-book depth is unavailable; every executable and cost result here is an OHLCV proxy.",
     "Only eight symbols are present in the locked source; 20-30 symbol dynamic-universe coverage is not demonstrated.",
+    "The dynamic observed universe is applied at each completed 4h snapshot using prior-six quoteVolume and a listing-age proxy; it is not promotion-grade PIT exchangeInfo.",
     "1h bars are aggregated from 5m archives, not native prospective 1h records.",
     "Historical PIT exchangeInfo is not re-created; listing age and contract filters are not promotion-grade.",
     "Scheduler delay, live market missingness and Gmail delivery cannot be inferred from the archived dataset.",
-    "Proxy forward outcomes are candidate-level descriptive information, not a new result.json/trades.jsonl/PnL artifact."
+    "Proxy forward outcomes are candidate-level descriptive information, not a new result.json/trades.jsonl/PnL artifact.",
+    "Overlapping candidate-family observations must not be interpreted as portfolio returns or portfolio drawdown."
   ]
 }
