@@ -34,7 +34,7 @@ import {
   probeHyExp0023OsClockSyncState,
   probeHyExp0023StorageCapacity
 } from '../src/model/hy-exp-0023-operations.mjs';
-import { splitDepthSymbols } from '../src/model/hy-exp-0022-collector.mjs';
+import { splitDepthSymbols, splitKlineSymbols } from '../src/model/hy-exp-0022-collector.mjs';
 
 function fakeReadinessResult({ sequenceGaps = 0 } = {}) {
   return {
@@ -119,6 +119,7 @@ test('0023 engineering data is isolated, never Development input, and official c
   assert.equal(safety.developmentAllowed, false);
   assert.equal(safety.pnlComputed, false);
   assert.equal(HY_EXP_0023_COLLECTOR_PROFILE.maxSymbolsPerConnection, 20);
+  assert.equal(HY_EXP_0023_COLLECTOR_PROFILE.klineSymbolsPerConnection, 20);
 });
 
 test('0023 splits a dynamic universe into bounded depth connections without a total-universe cap', () => {
@@ -126,6 +127,9 @@ test('0023 splits a dynamic universe into bounded depth connections without a to
   const batches = splitDepthSymbols(symbols, HY_EXP_0023_COLLECTOR_PROFILE.maxSymbolsPerConnection);
   assert.deepEqual(batches.map(batch => batch.length), [20, 20, 1]);
   assert.deepEqual(batches.flat().sort(), symbols.sort());
+  const klineBatches = splitKlineSymbols(symbols, HY_EXP_0023_COLLECTOR_PROFILE.klineSymbolsPerConnection);
+  assert.deepEqual(klineBatches.map(batch => batch.length), [20, 20, 1]);
+  assert.deepEqual(klineBatches.flat().sort(), symbols.sort());
 });
 
 test('0023 supports the engineering batch size of five while retaining all selected symbols', () => {

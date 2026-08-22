@@ -23,6 +23,7 @@ import {
   fetchJsonCompleted,
   openHyExp0022AppendOnlyNdjson,
   runHyExp0022EngineeringDryRun,
+  splitKlineSymbols,
   selectHyExp0022EngineeringSymbols,
   validateHyExp0022ExchangeInfoSymbol,
   validateHyExp0022FundingRow,
@@ -372,6 +373,49 @@ test('funding capture uses bounded concurrency and records fail-closed diagnosti
   assert.equal(capture.rows.every(row => row.ok === true), true);
 });
 
+test('funding timeout aborts every hung request without exceeding the concurrency cap', async () => {
+  let active = 0;
+  let peak = 0;
+  let aborted = 0;
+  const capture = await captureHyExp0022Funding({
+    symbols: Array.from({ length: 30 }, (_, index) => `S${index}USDT`),
+    concurrency: 8,
+    timeoutMs: 5,
+    fetchImpl: async (_url, { signal } = {}) => new Promise((_, reject) => {
+      active++;
+      peak = Math.max(peak, active);
+      let settled = false;
+      const onAbort = () => {
+        if (settled) return;
+        settled = true;
+        active--;
+        aborted++;
+        const error = new Error('aborted');
+        error.name = 'AbortError';
+        reject(error);
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
+    }),
+    fundingWriter: { append() {} }
+  });
+  assert.equal(peak, 8);
+  assert.equal(active, 0);
+  assert.equal(aborted, 30);
+  assert.equal(capture.diagnostics.fundingAttemptCount, 30);
+  assert.equal(capture.diagnostics.fundingSuccessCount, 0);
+  assert.equal(capture.diagnostics.fundingTimeoutCount, 30);
+  assert.equal(capture.diagnostics.fundingAbortedCount, 30);
+  assert.equal(capture.diagnostics.fundingPeakInflightRequests, 8);
+  assert.equal(capture.diagnostics.fundingFailureCount, 30);
+});
+
+test('kline symbols are split into bounded batches without dropping coverage', () => {
+  const symbols = Array.from({ length: 41 }, (_, index) => `S${index}USDT`);
+  const batches = splitKlineSymbols(symbols, 20);
+  assert.deepEqual(batches.map(batch => batch.length), [20, 20, 1]);
+  assert.deepEqual(batches.flat(), [...symbols].sort());
+});
+
 test('engineering diagnostics retain actionable depth, funding and kline failure root causes', () => {
   const counts = buildHyExp0022FailureRootCauseCounts({
     segments: [{
@@ -396,6 +440,33 @@ test('engineering diagnostics retain actionable depth, funding and kline failure
   assert.equal(counts.rate_limit_429, 1);
   assert.equal(counts.funding_schema_failure, 1);
   assert.equal(counts.kline_transport_failure, 1);
+});
+
+test('failure root causes deduplicate the same depth failure across context and gap diagnostics', () => {
+  const failureCases = [
+    ['receipt_stall', 'receipt_stall'],
+    ['sequence_gap', 'native_sequence_gap'],
+    ['snapshot_alignment', 'snapshot_alignment_failure']
+  ];
+  for (const [failureCode, expectedCause] of failureCases) {
+    const diagnostic = {
+      segmentId: 'segment-1',
+      symbol: 'BTCUSDT',
+      receivedAt: 1234,
+      currentU: 80,
+      currentu: 90,
+      failureCode
+    };
+    const counts = buildHyExp0022FailureRootCauseCounts({
+      segments: [{
+        segmentId: 'segment-1',
+        status: 'INVALID',
+        contexts: { BTCUSDT: { failureCode, failureDiagnostic: diagnostic } },
+        diagnostics: { gapDiagnostics: [{ ...diagnostic }] }
+      }]
+    });
+    assert.equal(counts[expectedCause], 1);
+  }
 });
 
 test('collector reconnect creates a new segment and leaves an invalid segment invalid', async () => {

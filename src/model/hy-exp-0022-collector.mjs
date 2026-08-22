@@ -64,6 +64,7 @@ const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_SYMBOLS = 3;
 const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = 200;
 const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = 200;
+const DEFAULT_KLINE_SYMBOLS_PER_CONNECTION = 200;
 export const HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY = 8;
 export const HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS = 10_000;
 
@@ -81,6 +82,7 @@ export const HY_EXP_0022_COLLECTOR_PROFILE = Object.freeze({
   finalOosEndExclusive: HY_EXP_0022_FINAL_OOS_END_EXCLUSIVE,
   maxSymbolsPerConnection: DEFAULT_MAX_SYMBOLS_PER_CONNECTION,
   depthSymbolsPerConnection: DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION,
+  klineSymbolsPerConnection: DEFAULT_KLINE_SYMBOLS_PER_CONNECTION,
   manifestType: 'HY-EXP-0022-ENGINEERING-DRY-RUN',
   readinessArtifactType: 'HY_EXP_0022_COLLECTOR_ENGINEERING_READINESS'
 });
@@ -661,6 +663,10 @@ export function splitDepthSymbols(symbols = [], maxSymbolsPerConnection = DEFAUL
   return batches;
 }
 
+export function splitKlineSymbols(symbols = [], maxSymbolsPerConnection = DEFAULT_KLINE_SYMBOLS_PER_CONNECTION) {
+  return splitDepthSymbols(symbols, maxSymbolsPerConnection);
+}
+
 function createDepthContext(symbol, segmentId) {
   return {
     symbol,
@@ -1184,7 +1190,8 @@ async function collectKlineStream({
   confirmationTimeoutMs,
   targetBar = null,
   experimentId = HY_EXP_0022_ID,
-  captureStart = HY_EXP_0022_CAPTURE_START
+  captureStart = HY_EXP_0022_CAPTURE_START,
+  klineSymbolsPerConnection = DEFAULT_KLINE_SYMBOLS_PER_CONNECTION
 }) {
   const expectedBar = targetBar == null ? null : {
     openTime: integer('target bar openTime', targetBar.openTime),
@@ -1218,25 +1225,32 @@ async function collectKlineStream({
     nonTargetFinalBars: 0,
     targetBar: expectedBar,
     perSymbol,
-    errors: []
+    errors: [],
+    klineBatchFailures: [],
+    klineInitialBatchCount: splitKlineSymbols(symbols, klineSymbolsPerConnection).length,
+    klineWebsocketConnectionAttempts: 0,
+    klineReconnectCount: 0,
+    klineMaxSymbolsPerConnection: Math.max(0, ...splitKlineSymbols(symbols, klineSymbolsPerConnection).map(batch => batch.length)),
+    klineSymbolsCaptured: []
   };
-  const pendingMessages = new Set();
+  const batches = splitKlineSymbols(symbols, klineSymbolsPerConnection);
   let connectionIndex = 0;
   let hardFailure = false;
 
-  const processMessage = async ({ raw, verified, segmentId }) => {
+  const processMessage = async ({ raw, verified, segmentId, batchSymbols }) => {
     const { payload, stream } = transportPayload(raw);
     if (payload?.e !== 'kline' || payload?.k?.i !== '4h') {
       diagnostics.errors.push('invalid_kline_stream_payload');
       return;
     }
     const symbol = symbolOf(payload.s ?? payload.k.s);
-    if (!symbols.includes(symbol)) {
+    if (!batchSymbols.includes(symbol)) {
       diagnostics.errors.push(`kline_symbol_not_selected:${symbol}`);
       return;
     }
     const receivedAt = Date.now();
     diagnostics.websocketEvents++;
+    if (!diagnostics.klineSymbolsCaptured.includes(symbol)) diagnostics.klineSymbolsCaptured.push(symbol);
     klineWriter.append(klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceStream: stream, experimentId }));
     const symbolDiagnostics = perSymbol[symbol];
     const openTime = Number(payload.k.t);
@@ -1325,20 +1339,39 @@ async function collectKlineStream({
       diagnostics.errors.push(`${error.code ?? 'BAR_CONFIRMATION_ERROR'}:${symbol}`);
     }
   };
-  while (Date.now() < deadline && !hardFailure) {
+  const mergeTransportCapability = capability => {
+    if (!capability) return;
+    if (diagnostics.transport == null) {
+      diagnostics.transport = { ...capability };
+      return;
+    }
+    diagnostics.transport = {
+      ...diagnostics.transport,
+      dataMessages: diagnostics.transport.dataMessages + capability.dataMessages,
+      subscriptionAck: diagnostics.transport.subscriptionAck || capability.subscriptionAck,
+      opened: diagnostics.transport.opened || capability.opened,
+      stValues: [...new Set([...(diagnostics.transport.stValues ?? []), ...(capability.stValues ?? [])])],
+      psValues: [...new Set([...(diagnostics.transport.psValues ?? []), ...(capability.psValues ?? [])])]
+    };
+  };
+
+  const runKlineBatch = async (batchSymbols, batchIndex) => {
     let socketHandle = null;
     let intentionalClose = false;
     let socketEndedUnexpectedly = false;
+    let batchFailure = null;
     let resolveSocketClosed;
+    const pendingMessages = new Set();
     const socketClosed = new Promise(resolve => { resolveSocketClosed = resolve; });
-    const segmentId = `kline-${Date.now()}-${++connectionIndex}`;
+    const segmentId = `kline-${Date.now()}-${++connectionIndex}-batch-${batchIndex + 1}`;
+    diagnostics.klineWebsocketConnectionAttempts++;
     try {
       socketHandle = await openBinanceCombinedSocket({
         kind: 'kline',
-        streams: symbols.map(symbol => `${symbol.toLowerCase()}@kline_4h`),
+        streams: batchSymbols.map(symbol => `${symbol.toLowerCase()}@kline_4h`),
         WebSocketImpl,
         onMessage: ({ raw, verified }) => {
-          const task = processMessage({ raw, verified, segmentId });
+          const task = processMessage({ raw, verified, segmentId, batchSymbols });
           pendingMessages.add(task);
           task.then(
             () => pendingMessages.delete(task),
@@ -1347,48 +1380,59 @@ async function collectKlineStream({
           return task;
         },
         onError: error => {
-          diagnostics.errors.push(`kline_socket:${error.message}`);
+          batchFailure = error.message;
+          diagnostics.errors.push(`kline_batch_socket:${segmentId}:${error.message}`);
           if (error?.code === 'BINANCE_TRANSPORT_STATUS_REJECTED') hardFailure = true;
           resolveSocketClosed?.();
         },
         onClose: () => {
           if (!intentionalClose) {
             socketEndedUnexpectedly = true;
-            diagnostics.errors.push('kline_socket_closed');
+            batchFailure = batchFailure ?? 'kline_socket_closed';
+            diagnostics.errors.push(`kline_batch_socket:${segmentId}:kline_socket_closed`);
             resolveSocketClosed?.();
           }
         }
       });
-      if (diagnostics.transport == null) {
-        diagnostics.transport = socketHandle.capability;
-      } else {
-        diagnostics.transport = {
-          ...diagnostics.transport,
-          dataMessages: diagnostics.transport.dataMessages + socketHandle.capability.dataMessages,
-          subscriptionAck: diagnostics.transport.subscriptionAck || socketHandle.capability.subscriptionAck,
-          opened: diagnostics.transport.opened || socketHandle.capability.opened,
-          stValues: [...new Set([...(diagnostics.transport.stValues ?? []), ...(socketHandle.capability.stValues ?? [])])],
-          psValues: [...new Set([...(diagnostics.transport.psValues ?? []), ...(socketHandle.capability.psValues ?? [])])]
-        };
-      }
+      mergeTransportCapability(socketHandle.capability);
       const remaining = Math.max(1, deadline - Date.now());
       await Promise.race([
         new Promise(resolve => setTimeout(resolve, remaining)),
         socketClosed
       ]);
     } catch (error) {
-      diagnostics.errors.push(`kline_socket_open:${error.message}`);
+      batchFailure = batchFailure ?? error.message;
+      diagnostics.errors.push(`kline_batch_open:${segmentId}:${error.message}`);
       if (error?.code === 'BINANCE_TRANSPORT_STATUS_REJECTED') hardFailure = true;
     } finally {
       intentionalClose = true;
       closeSocket(socketHandle?.socket);
       await Promise.allSettled([...pendingMessages]);
     }
-    if (!socketEndedUnexpectedly || hardFailure || Date.now() >= deadline) break;
+    if (batchFailure) {
+      diagnostics.klineBatchFailures.push({
+        segmentId,
+        batchIndex,
+        symbols: [...batchSymbols],
+        reason: batchFailure
+      });
+    }
+    return { socketEndedUnexpectedly, batchFailure };
+  };
+
+  while (Date.now() < deadline && !hardFailure) {
+    const results = await Promise.all(batches.map((batch, batchIndex) => runKlineBatch(batch, batchIndex)));
+    const reconnecting = results.filter(result => result.socketEndedUnexpectedly).length;
+    if (reconnecting > 0) diagnostics.klineReconnectCount += reconnecting;
+    if (!reconnecting || hardFailure || Date.now() >= deadline) break;
     await new Promise(resolve => setTimeout(resolve, Math.min(250, Math.max(1, deadline - Date.now()))));
   }
 
-  diagnostics.status = diagnostics.websocketEvents > 0 && !hardFailure && diagnostics.errors.every(error => !error.startsWith('BINANCE_TRANSPORT_STATUS_REJECTED'))
+  diagnostics.klineSymbolsCaptured.sort();
+  diagnostics.status = diagnostics.websocketEvents > 0
+    && !hardFailure
+    && diagnostics.klineBatchFailures.length === 0
+    && diagnostics.errors.every(error => !error.startsWith('BINANCE_TRANSPORT_STATUS_REJECTED'))
     ? (diagnostics.confirmedBars > 0
       ? 'PASS_FINAL_WS_REST_CONFIRMATION'
       : (diagnostics.openCurrentBarEvents > 0 ? 'PASS_OPEN_CURRENT_4H_STREAM' : 'PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED'))
@@ -1458,6 +1502,43 @@ async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWri
   };
 }
 
+async function fetchFundingWithAbortTimeout({ fetchImpl, url, timeoutMs } = {}) {
+  const controller = new AbortController();
+  const requestStartedAt = Date.now();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  try {
+    const response = await fetchJsonCompleted({ fetchImpl, url, signal: controller.signal });
+    if (!timedOut && !controller.signal.aborted) return response;
+    const timeoutError = errorWithCode('FUNDING_TIMEOUT', `funding request timed out after ${timeoutMs}ms`);
+    timeoutError.requestStartedAt = Number.isFinite(response?.requestStartedAt)
+      ? response.requestStartedAt
+      : requestStartedAt;
+    timeoutError.receivedAt = Number.isFinite(response?.receivedAt) ? response.receivedAt : Date.now();
+    timeoutError.bodyCompleted = response?.bodyCompleted === true;
+    timeoutError.aborted = true;
+    throw timeoutError;
+  } catch (error) {
+    if (error?.code === 'FUNDING_TIMEOUT' && error.aborted === true) throw error;
+    if (timedOut || controller.signal.aborted) {
+      const timeoutError = errorWithCode('FUNDING_TIMEOUT', `funding request timed out after ${timeoutMs}ms`);
+      timeoutError.requestStartedAt = Number.isFinite(error?.requestStartedAt)
+        ? error.requestStartedAt
+        : requestStartedAt;
+      timeoutError.receivedAt = Date.now();
+      timeoutError.bodyCompleted = false;
+      timeoutError.aborted = true;
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Capture one realized funding row per symbol with bounded public-API concurrency.
  * Missing/invalid rows remain fail-closed; no forecast or historical fallback is used.
@@ -1483,6 +1564,8 @@ export async function captureHyExp0022Funding({
     fundingFailureCount: 0,
     funding429Count: 0,
     fundingTimeoutCount: 0,
+    fundingAbortedCount: 0,
+    fundingPeakInflightRequests: 0,
     maxConcurrentFundingRequests: 0,
     fundingFailureCodes: {}
   };
@@ -1502,12 +1585,13 @@ export async function captureHyExp0022Funding({
       const requestStartedAt = Date.now();
       active++;
       diagnostics.maxConcurrentFundingRequests = Math.max(diagnostics.maxConcurrentFundingRequests, active);
+      diagnostics.fundingPeakInflightRequests = Math.max(diagnostics.fundingPeakInflightRequests, active);
       try {
-        const response = await withTimeout(
-          fetchJsonCompleted({ fetchImpl, url: buildFundingUrl(symbol) }),
-          requestTimeoutMs,
-          'FUNDING_TIMEOUT'
-        );
+        const response = await fetchFundingWithAbortTimeout({
+          fetchImpl,
+          url: buildFundingUrl(symbol),
+          timeoutMs: requestTimeoutMs
+        });
         const sourceRows = Array.isArray(response.data) ? response.data : [];
         const sourceRow = sourceRows.find(row => String(row?.symbol ?? '').toUpperCase() === symbol);
         const validated = validateHyExp0022FundingRow({ symbol, row: sourceRow, receivedAt: response.receivedAt });
@@ -1528,6 +1612,7 @@ export async function captureHyExp0022Funding({
         const code = error.code ?? 'FUNDING_SCHEMA_INVALID';
         recordFailureCode(code);
         diagnostics.fundingFailureCount++;
+        if (code === 'FUNDING_TIMEOUT' && error.aborted === true) diagnostics.fundingAbortedCount++;
         const receivedAt = Number.isFinite(error.receivedAt) ? error.receivedAt : Date.now();
         fundingWriter.append({
           experimentId,
@@ -1622,16 +1707,42 @@ export function buildHyExp0022FailureRootCauseCounts({
 } = {}) {
   const counts = emptyFailureRootCauseCounts();
   const increment = reason => { counts[reason ?? 'other']++; };
+  const seenDepthFailures = new Set();
+  const addDepthFailure = ({ segment, code, event = {}, fallbackSymbol = '' } = {}) => {
+    if (!code) return;
+    const segmentId = event.segmentId ?? segment?.segmentId ?? '';
+    const symbol = event.symbol ?? fallbackSymbol ?? '';
+    const receivedAt = event.receivedAt ?? '';
+    const currentU = event.currentU ?? event.U ?? '';
+    const currentu = event.currentu ?? event.u ?? '';
+    const identity = [segmentId, symbol, String(code).toLowerCase(), receivedAt, currentU, currentu].join('|');
+    if (seenDepthFailures.has(identity)) return;
+    seenDepthFailures.add(identity);
+    increment(classifyDepthFailure(code, segment));
+  };
   for (const segment of segments) {
     const contexts = Object.values(segment?.contexts ?? {});
-    for (const context of contexts) {
-      if (context?.failureCode) increment(classifyDepthFailure(context.failureCode, segment));
+    for (const [contextKey, context] of Object.entries(segment?.contexts ?? {})) {
+      if (context?.failureCode) {
+        addDepthFailure({
+          segment,
+          code: context.failureCode,
+          event: {
+            ...context,
+            ...(context.failureDiagnostic ?? {}),
+            symbol: context.failureDiagnostic?.symbol ?? context.symbol ?? contextKey
+          },
+          fallbackSymbol: contextKey
+        });
+      }
     }
     if (segment?.status !== 'VALID' && contexts.every(context => !context?.failureCode)) {
-      increment(classifyDepthFailure(segment.reason, segment));
+      addDepthFailure({ segment, code: segment.reason, event: segment });
     }
     for (const diagnostic of segment?.diagnostics?.gapDiagnostics ?? []) {
-      if (diagnostic?.failureCode) increment(classifyDepthFailure(diagnostic.failureCode, segment));
+      if (diagnostic?.failureCode) {
+        addDepthFailure({ segment, code: diagnostic.failureCode, event: diagnostic });
+      }
     }
   }
   for (const row of fundingRows.filter(row => row?.ok !== true)) {
@@ -1989,6 +2100,8 @@ export async function runCollectorEngineeringDryRun({
     fundingFailureCount: 0,
     funding429Count: 0,
     fundingTimeoutCount: 0,
+    fundingAbortedCount: 0,
+    fundingPeakInflightRequests: 0,
     maxConcurrentFundingRequests: 0,
     fundingFailureCodes: {}
   };
@@ -2093,7 +2206,8 @@ export async function runCollectorEngineeringDryRun({
           confirmationTimeoutMs: integer('confirmationTimeoutMs', confirmationTimeoutMs, 1),
           targetBar,
           experimentId: normalizedProfile.experimentId,
-          captureStart: normalizedProfile.captureStart
+          captureStart: normalizedProfile.captureStart,
+          klineSymbolsPerConnection: normalizedProfile.klineSymbolsPerConnection ?? DEFAULT_KLINE_SYMBOLS_PER_CONNECTION
         })
       ]);
       segments = depthResult;
@@ -2110,7 +2224,10 @@ export async function runCollectorEngineeringDryRun({
       };
       transport.kline = {
         ...(klineDiagnostics.transport ?? { endpoint: normalizedProfile.transportEndpoints.kline }),
-        status: klineDiagnostics.transport?.opened && klineDiagnostics.transport?.subscriptionAck && klineDiagnostics.websocketEvents > 0
+        status: klineDiagnostics.transport?.opened
+          && klineDiagnostics.transport?.subscriptionAck
+          && klineDiagnostics.websocketEvents > 0
+          && (klineDiagnostics.klineBatchFailures?.length ?? 0) === 0
           ? 'VERIFIED'
           : 'FAIL'
       };

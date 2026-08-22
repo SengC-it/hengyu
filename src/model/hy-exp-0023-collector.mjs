@@ -35,6 +35,7 @@ export const HY_EXP_0023_COLLECTOR_PROFILE = Object.freeze({
   finalOosEndExclusive: HY_EXP_0023_FINAL_OOS_END_EXCLUSIVE,
   maxSymbolsPerConnection: 20,
   depthSymbolsPerConnection: 20,
+  klineSymbolsPerConnection: 20,
   fundingConcurrency: HY_EXP_0022_DEFAULT_FUNDING_CONCURRENCY,
   fundingTimeoutMs: HY_EXP_0022_DEFAULT_FUNDING_TIMEOUT_MS,
   manifestType: 'HY-EXP-0023-ENGINEERING-DIAGNOSTIC',
