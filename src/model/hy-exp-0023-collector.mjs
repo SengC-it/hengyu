@@ -26,7 +26,12 @@ export {
   sha256HyExp0023Artifact,
   validateHyExp0023ProspectiveCaptureGate,
   validateHyExp0023ProspectiveRecord,
-  verifyHyExp0023Readiness
+  verifyHyExp0023Readiness,
+  verifyHyExp0023GovernanceCorrection,
+  HY_EXP_0023_DEFAULT_CORRECTION_PATH,
+  HY_EXP_0023_MALFORMED_PREREGISTRATION_SHA256,
+  HY_EXP_0023_ORIGINAL_RESOLUTION_SHA256,
+  HY_EXP_0023_PREREGISTRATION_GIT_BLOB_SHA
 } from './hy-exp-0023-capture-gate.mjs';
 
 export const HY_EXP_0023_COLLECTOR_PROFILE = Object.freeze({
@@ -57,6 +62,7 @@ export async function runHyExp0023EngineeringDiagnostic({
   maxSymbols = 20,
   segmentMaxMs,
   confirmationTimeoutMs,
+  confirmationDeadlineMs,
   fetchImpl = globalThis.fetch,
   WebSocketImpl = globalThis.WebSocket,
   onRunCreated = null
@@ -72,6 +78,7 @@ export async function runHyExp0023EngineeringDiagnostic({
     maxSymbols,
     segmentMaxMs,
     confirmationTimeoutMs,
+    confirmationDeadlineMs,
     fetchImpl,
     WebSocketImpl,
     profile: HY_EXP_0023_COLLECTOR_PROFILE,

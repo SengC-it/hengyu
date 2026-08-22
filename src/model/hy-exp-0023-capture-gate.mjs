@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { verifyRegistry } from '../../scripts/registry.mjs';
 
 import {
   assertHyExp0023CaptureMode,
@@ -22,6 +23,14 @@ export const HY_EXP_0023_DEFAULT_PREREGISTRATION_PATH = path.join(
 export const HY_EXP_0023_DEFAULT_RESOLUTION_PATH = path.join(
   'artifacts', HY_EXP_0023_ID, 'preregistration-resolution.json'
 );
+export const HY_EXP_0023_DEFAULT_CORRECTION_PATH = path.join(
+  'artifacts', HY_EXP_0023_ID, 'preregistration-resolution-correction.json'
+);
+export const HY_EXP_0023_ORIGINAL_RESOLUTION_SHA256 = '6c83ed256900963357570daed55dcb8df57ae40b9a1335da0959d42bfde1e4ae';
+export const HY_EXP_0023_MALFORMED_PREREGISTRATION_SHA256 = '6fcd11c3c5767259b4c43e4a96ca733857f31d72f73e6f8eed0ff3e8eb61934';
+export const HY_EXP_0023_PREREGISTRATION_GIT_BLOB_SHA = '27e2463752c3f061eac1a4eec039401b848a4fdb';
+export const HY_EXP_0023_CORRECTION_TYPE = 'CLERICAL_TRUNCATED_SHA256_PRE_CAPTURE';
+export const HY_EXP_0023_CORRECTION_STATEMENT = 'This correction repairs only the truncated SHA256 metadata recorded after the immutable preregistration commit. It does not amend experiment semantics.';
 
 function captureGateError(code, message) {
   const error = new Error(message);
@@ -41,6 +50,25 @@ function canonicalRoot(projectRoot, relativeRoot) {
 
 function sha256Bytes(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
+}
+
+function sha1GitBlob(bytes) {
+  const header = Buffer.from(`blob ${bytes.length}\0`);
+  return createHash('sha1').update(Buffer.concat([header, bytes])).digest('hex');
+}
+
+function safeRelative(relative) {
+  return relative.replaceAll(path.sep, '/');
+}
+
+function readLedger(root) {
+  const ledgerPath = path.join(root, 'registry', 'ledger.jsonl');
+  if (!fs.existsSync(ledgerPath)) throw captureGateError('HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID', 'registry ledger is missing');
+  try {
+    return fs.readFileSync(ledgerPath, 'utf8').split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
+  } catch (error) {
+    throw captureGateError('HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID', `registry ledger is invalid: ${error.message}`);
+  }
 }
 
 export function sha256HyExp0023Artifact(filePath) {
@@ -79,6 +107,114 @@ function assertPaperOnly(preregistration, readiness) {
   }
 }
 
+export function verifyHyExp0023GovernanceCorrection({
+  projectRoot,
+  preregistrationArtifact,
+  resolutionArtifact,
+  correctionPath
+} = {}) {
+  try {
+    const originalResolutionPath = path.join(projectRoot, HY_EXP_0023_DEFAULT_RESOLUTION_PATH);
+    const preregistrationPath = path.join(projectRoot, HY_EXP_0023_DEFAULT_PREREGISTRATION_PATH);
+    if (path.resolve(resolutionArtifact.path) !== path.resolve(originalResolutionPath)
+      || resolutionArtifact.sha256 !== HY_EXP_0023_ORIGINAL_RESOLUTION_SHA256
+      || resolutionArtifact.value?.preregFileSha256 !== HY_EXP_0023_MALFORMED_PREREGISTRATION_SHA256) {
+      throw new Error('original resolution bytes or malformed hash do not match the frozen seq76 payload');
+    }
+    const preregistrationBytes = fs.readFileSync(preregistrationPath);
+    const actualPreregistrationSha256 = sha256Bytes(preregistrationBytes);
+    const actualPreregistrationGitBlobSha = sha1GitBlob(preregistrationBytes);
+    if (actualPreregistrationGitBlobSha !== HY_EXP_0023_PREREGISTRATION_GIT_BLOB_SHA) {
+      throw new Error('preregistration bytes do not match the original Git blob');
+    }
+    const correctionArtifact = readJsonArtifact(
+      correctionPath ?? path.join(projectRoot, HY_EXP_0023_DEFAULT_CORRECTION_PATH),
+      'HY-EXP-0023 preregistration resolution correction'
+    );
+    const correction = correctionArtifact.value;
+    const expectedPaths = {
+      originalResolutionPath: safeRelative(path.relative(projectRoot, originalResolutionPath)),
+      preregistrationPath: safeRelative(path.relative(projectRoot, preregistrationPath))
+    };
+    const exactFields = {
+      schemaVersion: 1,
+      artifactType: 'HY_EXP_0023_PREREGISTRATION_RESOLUTION_CORRECTION',
+      experimentId: HY_EXP_0023_ID,
+      correctionType: HY_EXP_0023_CORRECTION_TYPE,
+      originalResolutionPath: expectedPaths.originalResolutionPath,
+      originalResolutionSha256: HY_EXP_0023_ORIGINAL_RESOLUTION_SHA256,
+      preregistrationPath: expectedPaths.preregistrationPath,
+      preregCommit: HY_EXP_0023_PREREGISTRATION_COMMIT,
+      preregGitBlobSha: HY_EXP_0023_PREREGISTRATION_GIT_BLOB_SHA,
+      recordedMalformedPreregSha256: HY_EXP_0023_MALFORMED_PREREGISTRATION_SHA256,
+      correctedPreregSha256: actualPreregistrationSha256,
+      captureStart: HY_EXP_0023_CAPTURE_START,
+      createdBeforeCaptureStart: true,
+      preregistrationBytesModified: false,
+      resolutionBytesModified: false,
+      strategySemanticsChanged: false,
+      parametersChanged: false,
+      captureWindowChanged: false,
+      dataSourcesChanged: false,
+      readinessRulesChanged: false,
+      oosWindowChanged: false,
+      executionAuthorityChanged: false,
+      statement: HY_EXP_0023_CORRECTION_STATEMENT
+    };
+    for (const [key, value] of Object.entries(exactFields)) {
+      if (correction[key] !== value) throw new Error(`correction field mismatch: ${key}`);
+    }
+    const captureStartMs = timestamp('captureStart', HY_EXP_0023_CAPTURE_START);
+    if (timestamp('correction createdAt', correction.createdAt) >= captureStartMs) {
+      throw new Error('correction artifact was created at or after captureStart');
+    }
+    if (!/^[a-f0-9]{64}$/.test(correctionArtifact.sha256)
+      || correction.correctedPreregSha256 !== actualPreregistrationSha256) {
+      throw new Error('correction artifact hash or corrected preregistration hash is invalid');
+    }
+    const entries = readLedger(projectRoot);
+    const originalResolutionEvent = entries.find(entry => entry.sequence === 76
+      && entry.experiment_id === HY_EXP_0023_ID
+      && entry.event_type === 'preregistered'
+      && entry.payload_path === safeRelative(path.relative(projectRoot, originalResolutionPath)));
+    if (!originalResolutionEvent
+      || originalResolutionEvent.payload_sha256 !== HY_EXP_0023_ORIGINAL_RESOLUTION_SHA256) {
+      throw new Error('seq76 original resolution event is missing or changed');
+    }
+    const correctionEvents = entries.filter(entry => entry.experiment_id === HY_EXP_0023_ID
+      && entry.event_type === 'amended'
+      && entry.payload_path === safeRelative(path.relative(projectRoot, correctionArtifact.path)));
+    if (correctionEvents.length !== 1) throw new Error('exactly one amended correction event is required');
+    const correctionEvent = correctionEvents[0];
+    if (correctionEvent.sequence !== 77
+      || correctionEvent.payload_sha256 !== correctionArtifact.sha256
+      || timestamp('correction recorded_at', correctionEvent.recorded_at) >= captureStartMs) {
+      throw new Error('correction ledger event is not the pre-capture seq77 append');
+    }
+    const priorEvents = entries.filter(entry => entry.experiment_id === HY_EXP_0023_ID
+      && entry.sequence < correctionEvent.sequence);
+    if (priorEvents.some(entry => ['data_locked', 'completed', 'failed'].includes(entry.event_type))) {
+      throw new Error('correction was appended after a final/data-lock event');
+    }
+    const verifiedRegistry = verifyRegistry({ root: projectRoot });
+    if (!verifiedRegistry.ok || verifiedRegistry.records < correctionEvent.sequence) {
+      throw new Error('registry verification did not include the correction event');
+    }
+    return {
+      correction,
+      correctionSha256: correctionArtifact.sha256,
+      correctedPreregistrationSha256: actualPreregistrationSha256,
+      originalResolutionSha256: resolutionArtifact.sha256,
+      originalResolutionEvent,
+      correctionEvent,
+      registry: verifiedRegistry
+    };
+  } catch (error) {
+    if (error?.code === 'HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID') throw error;
+    throw captureGateError('HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID', error.message);
+  }
+}
+
 function assertFrozenInputs({ projectRoot, preregistrationPath, resolutionPath } = {}) {
   const preregistrationArtifact = readJsonArtifact(
     preregistrationPath ?? path.join(projectRoot, HY_EXP_0023_DEFAULT_PREREGISTRATION_PATH),
@@ -89,16 +225,17 @@ function assertFrozenInputs({ projectRoot, preregistrationPath, resolutionPath }
     'HY-EXP-0023 resolution'
   );
   const preregistrationSha256 = preregistrationArtifact.sha256;
-  if (!/^[0-9a-f]{64}$/.test(String(resolutionArtifact.value?.preregFileSha256 ?? '').toLowerCase())
-    || resolutionArtifact.value.preregFileSha256 !== preregistrationSha256) {
-    throw captureGateError(
-      'HY_EXP_0023_PREREGISTRATION_HASH_MISMATCH',
-      'frozen preregistration bytes do not match the complete SHA-256 recorded by the resolution'
-    );
+  if (!/^[0-9a-f]{64}$/.test(preregistrationSha256)) {
+    throw captureGateError('HY_EXP_0023_PREREGISTRATION_HASH_MISMATCH', 'computed preregistration SHA-256 is invalid');
   }
+  const correction = verifyHyExp0023GovernanceCorrection({
+    projectRoot,
+    preregistrationArtifact,
+    resolutionArtifact
+  });
   assertHyExp0023FrozenResolution({
     resolution: resolutionArtifact.value,
-    preregistrationSha256
+    preregistrationSha256: HY_EXP_0023_MALFORMED_PREREGISTRATION_SHA256
   });
   if (resolutionArtifact.value.preregCommit !== HY_EXP_0023_PREREGISTRATION_COMMIT
     || resolutionArtifact.value.preregCommitTimestamp !== HY_EXP_0023_PREREGISTRATION_COMMITTED_AT
@@ -113,7 +250,8 @@ function assertFrozenInputs({ projectRoot, preregistrationPath, resolutionPath }
   return {
     preregistration: preregistrationArtifact.value,
     resolution: resolutionArtifact.value,
-    preregistrationSha256
+    preregistrationSha256,
+    correction
   };
 }
 

@@ -1187,7 +1187,8 @@ async function collectKlineStream({
   experimentId = HY_EXP_0022_ID,
   captureStart = HY_EXP_0022_CAPTURE_START,
   klineSymbolsPerConnection = DEFAULT_KLINE_SYMBOLS_PER_CONNECTION,
-  confirmationConcurrency = DEFAULT_KLINE_CONFIRMATION_CONCURRENCY
+  confirmationConcurrency = DEFAULT_KLINE_CONFIRMATION_CONCURRENCY,
+  confirmationDeadlineMs = DEFAULT_CONFIRMATION_TIMEOUT_MS
 }) {
   const expectedBar = targetBar == null ? null : {
     openTime: integer('target bar openTime', targetBar.openTime),
@@ -1235,13 +1236,17 @@ async function collectKlineStream({
     klineMaxSymbolsPerConnection: Math.max(0, ...splitKlineSymbols(symbols, klineSymbolsPerConnection).map(batch => batch.length)),
     klineSymbolsCaptured: [],
     confirmationConcurrency: integer('confirmationConcurrency', confirmationConcurrency, 1),
+    confirmationDeadlineMs: integer('confirmationDeadlineMs', confirmationDeadlineMs, 1),
     confirmationAttemptCount: 0,
     confirmationSuccessCount: 0,
     confirmationFailureCount: 0,
     confirmationTimeoutCount: 0,
     confirmationAbortedCount: 0,
     confirmationPeakInflight: 0,
-    confirmationQueueDelayMaxMs: 0
+    confirmationQueueDelayMaxMs: 0,
+    confirmationQueueExpiredCount: 0,
+    confirmationEndToEndMaxMs: 0,
+    confirmationDeadlineMissCount: 0
   };
   const batches = splitKlineSymbols(symbols, klineSymbolsPerConnection);
   let connectionIndex = 0;
@@ -1268,21 +1273,43 @@ async function collectKlineStream({
     runNextConfirmation();
   });
 
-  const confirmFinalBar = async ({ raw, symbol, payload, wsReceivedAt, enqueuedAt, symbolDiagnostics }) => {
+  const confirmFinalBar = async ({ raw, symbol, payload, wsReceivedAt, enqueuedAt, absoluteDeadline, symbolDiagnostics }) => {
     const openTime = Number(payload.k.t);
     const closeTime = Number(payload.k.T);
     const restUrl = buildJustClosedKlineUrl({ symbol, openTime: payload.k.t, closeTime: payload.k.T });
-    diagnostics.confirmationAttemptCount++;
-    symbolDiagnostics.restConfirmationAttempts++;
     let restResponse = null;
     let restRow = null;
+    let deadlineBound = false;
     try {
+      const remainingMs = absoluteDeadline - Date.now();
+      if (remainingMs <= 0) {
+        diagnostics.confirmationQueueExpiredCount++;
+        const expired = errorWithCode('BAR_CONFIRMATION_MISSING', 'CONFIRMATION_QUEUE_DEADLINE_EXCEEDED');
+        expired.reason = 'CONFIRMATION_QUEUE_DEADLINE_EXCEEDED';
+        expired.requestStartedAt = null;
+        expired.receivedAt = Date.now();
+        expired.bodyCompleted = false;
+        expired.deadlineMiss = true;
+        throw expired;
+      }
+      deadlineBound = remainingMs <= confirmationTimeoutMs;
+      diagnostics.confirmationAttemptCount++;
+      symbolDiagnostics.restConfirmationAttempts++;
       restResponse = await fetchJsonWithAbortTimeout({
         fetchImpl,
         url: restUrl,
-        timeoutMs: confirmationTimeoutMs,
+        timeoutMs: Math.max(1, Math.min(confirmationTimeoutMs, remainingMs)),
         timeoutCode: 'BAR_CONFIRMATION_MISSING'
       });
+      if (restResponse.receivedAt > absoluteDeadline) {
+        const expired = errorWithCode('BAR_CONFIRMATION_MISSING', 'CONFIRMATION_DEADLINE_EXCEEDED');
+        expired.reason = 'CONFIRMATION_DEADLINE_EXCEEDED';
+        expired.requestStartedAt = restResponse.requestStartedAt;
+        expired.receivedAt = restResponse.receivedAt;
+        expired.bodyCompleted = restResponse.bodyCompleted === true;
+        expired.deadlineMiss = true;
+        throw expired;
+      }
       const rows = Array.isArray(restResponse.data) ? restResponse.data : [];
       restRow = rows.find(row => Number(row?.[0]) === openTime);
       if (!restRow) {
@@ -1316,7 +1343,9 @@ async function collectKlineStream({
         throw error;
       }
       const queueDelayMs = Math.max(0, restResponse.requestStartedAt - enqueuedAt);
+      const endToEndMs = Math.max(0, restResponse.receivedAt - enqueuedAt);
       diagnostics.confirmationQueueDelayMaxMs = Math.max(diagnostics.confirmationQueueDelayMaxMs, queueDelayMs);
+      diagnostics.confirmationEndToEndMaxMs = Math.max(diagnostics.confirmationEndToEndMaxMs, endToEndMs);
       diagnostics.confirmationSuccessCount++;
       symbolDiagnostics.restConfirmations++;
       confirmationWriter.append({
@@ -1328,6 +1357,9 @@ async function collectKlineStream({
         enqueuedAt,
         queueDelayMs,
         roundTripMs: restResponse.receivedAt - restResponse.requestStartedAt,
+        endToEndMs,
+        absoluteDeadline,
+        confirmationDeadlineMs: diagnostics.confirmationDeadlineMs,
         openTime,
         closeTime,
         requestStartedAt: restResponse.requestStartedAt,
@@ -1350,8 +1382,16 @@ async function collectKlineStream({
       }
       const requestStartedAt = Number.isFinite(error.requestStartedAt) ? error.requestStartedAt : null;
       const receivedAt = Number.isFinite(error.receivedAt) ? error.receivedAt : Date.now();
-      const queueDelayMs = requestStartedAt == null ? null : Math.max(0, requestStartedAt - enqueuedAt);
+      const queueDelayMs = requestStartedAt == null
+        ? Math.max(0, receivedAt - enqueuedAt)
+        : Math.max(0, requestStartedAt - enqueuedAt);
+      const endToEndMs = Math.max(0, receivedAt - enqueuedAt);
       if (queueDelayMs != null) diagnostics.confirmationQueueDelayMaxMs = Math.max(diagnostics.confirmationQueueDelayMaxMs, queueDelayMs);
+      diagnostics.confirmationEndToEndMaxMs = Math.max(diagnostics.confirmationEndToEndMaxMs, endToEndMs);
+      const deadlineMiss = error.deadlineMiss === true
+        || receivedAt >= absoluteDeadline
+        || (deadlineBound && error.aborted === true);
+      if (deadlineMiss) diagnostics.confirmationDeadlineMissCount++;
       confirmationWriter.append({
         experimentId,
         stream: 'kline.4h',
@@ -1361,6 +1401,9 @@ async function collectKlineStream({
         enqueuedAt,
         queueDelayMs,
         roundTripMs: requestStartedAt == null ? null : Math.max(0, receivedAt - requestStartedAt),
+        endToEndMs,
+        absoluteDeadline,
+        confirmationDeadlineMs: diagnostics.confirmationDeadlineMs,
         openTime,
         closeTime,
         requestStartedAt,
@@ -1369,6 +1412,8 @@ async function collectKlineStream({
         source: 'CONTRACT_PRICE',
         priceType: 'CONTRACT_PRICE',
         result: error.code ?? 'BAR_CONFIRMATION_ERROR',
+        reason: error.reason ?? (deadlineMiss ? 'CONFIRMATION_DEADLINE_EXCEEDED' : null),
+        deadlineMiss,
         bodyCompleted: error.bodyCompleted === true,
         data: restRow
       });
@@ -1419,6 +1464,7 @@ async function collectKlineStream({
       return;
     }
     const enqueuedAt = Date.now();
+    const absoluteDeadline = enqueuedAt + diagnostics.confirmationDeadlineMs;
     try {
       const { websocketBar, restReceivedAt } = await enqueueConfirmation(() => confirmFinalBar({
         raw,
@@ -1426,6 +1472,7 @@ async function collectKlineStream({
         payload,
         wsReceivedAt: receivedAt,
         enqueuedAt,
+        absoluteDeadline,
         symbolDiagnostics
       }));
       diagnostics.confirmedBars++;
@@ -2196,6 +2243,7 @@ export async function runCollectorEngineeringDryRun({
   maxSymbols = DEFAULT_MAX_SYMBOLS,
   segmentMaxMs = DEFAULT_SEGMENT_MAX_MS,
   confirmationTimeoutMs = DEFAULT_CONFIRMATION_TIMEOUT_MS,
+  confirmationDeadlineMs = DEFAULT_CONFIRMATION_TIMEOUT_MS,
   targetBar = null,
   fetchImpl = globalThis.fetch,
   WebSocketImpl = globalThis.WebSocket,
@@ -2348,7 +2396,8 @@ export async function runCollectorEngineeringDryRun({
           experimentId: normalizedProfile.experimentId,
           captureStart: normalizedProfile.captureStart,
           klineSymbolsPerConnection: normalizedProfile.klineSymbolsPerConnection ?? DEFAULT_KLINE_SYMBOLS_PER_CONNECTION,
-          confirmationConcurrency: normalizedProfile.klineConfirmationConcurrency ?? DEFAULT_KLINE_CONFIRMATION_CONCURRENCY
+          confirmationConcurrency: normalizedProfile.klineConfirmationConcurrency ?? DEFAULT_KLINE_CONFIRMATION_CONCURRENCY,
+          confirmationDeadlineMs: integer('confirmationDeadlineMs', confirmationDeadlineMs, 1)
         })
       ]);
       segments = depthResult;
@@ -2446,6 +2495,10 @@ export async function runCollectorEngineeringDryRun({
     confirmationAbortedCount: klineDiagnostics.confirmationAbortedCount ?? 0,
     confirmationPeakInflight: klineDiagnostics.confirmationPeakInflight ?? 0,
     confirmationQueueDelayMaxMs: klineDiagnostics.confirmationQueueDelayMaxMs ?? 0,
+    confirmationDeadlineMs: klineDiagnostics.confirmationDeadlineMs ?? confirmationDeadlineMs,
+    confirmationQueueExpiredCount: klineDiagnostics.confirmationQueueExpiredCount ?? 0,
+    confirmationEndToEndMaxMs: klineDiagnostics.confirmationEndToEndMaxMs ?? 0,
+    confirmationDeadlineMissCount: klineDiagnostics.confirmationDeadlineMissCount ?? 0,
     symbolsCaptured: selection?.symbols ?? [],
     transport
   };

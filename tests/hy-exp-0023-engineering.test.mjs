@@ -110,26 +110,42 @@ function readinessFixture(directory, overrides = {}) {
   return { filePath, sha256: sha256HyExp0023Artifact(filePath) };
 }
 
-function copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture = false } = {}) {
+function copyFrozenHyExp0023Inputs(projectRoot, { withCorrection = false } = {}) {
   const preregistrationDirectory = path.join(projectRoot, 'registry', 'experiments', HY_EXP_0023_ID);
   const resolutionDirectory = path.join(projectRoot, 'artifacts', HY_EXP_0023_ID);
+  const registryDirectory = path.join(projectRoot, 'registry');
   fs.mkdirSync(preregistrationDirectory, { recursive: true });
   fs.mkdirSync(resolutionDirectory, { recursive: true });
+  fs.mkdirSync(registryDirectory, { recursive: true });
+  const sourceLedger = fs.readFileSync(path.join('registry', 'ledger.jsonl'), 'utf8');
+  const sourceEntries = sourceLedger.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
+  for (const entry of sourceEntries) {
+    const sourcePayload = path.resolve(entry.payload_path);
+    const targetPayload = path.join(projectRoot, entry.payload_path);
+    fs.mkdirSync(path.dirname(targetPayload), { recursive: true });
+    fs.copyFileSync(sourcePayload, targetPayload);
+    if (entry.event_type === 'completed') {
+      const bundle = JSON.parse(fs.readFileSync(sourcePayload, 'utf8'));
+      for (const artifact of bundle.artifacts ?? []) {
+        const sourceArtifact = path.resolve(artifact.path);
+        const targetArtifact = path.join(projectRoot, artifact.path);
+        fs.mkdirSync(path.dirname(targetArtifact), { recursive: true });
+        fs.copyFileSync(sourceArtifact, targetArtifact);
+      }
+    }
+  }
   fs.copyFileSync(
     path.join('registry', 'experiments', HY_EXP_0023_ID, 'preregistration.json'),
     path.join(preregistrationDirectory, 'preregistration.json')
   );
-  fs.copyFileSync(
-    path.join('artifacts', HY_EXP_0023_ID, 'preregistration-resolution.json'),
-    path.join(resolutionDirectory, 'preregistration-resolution.json')
-  );
-  if (repairHashForFixture) {
-    const preregistrationPath = path.join(preregistrationDirectory, 'preregistration.json');
-    const resolutionPath = path.join(resolutionDirectory, 'preregistration-resolution.json');
-    const resolution = JSON.parse(fs.readFileSync(resolutionPath, 'utf8'));
-    resolution.preregFileSha256 = sha256HyExp0023Artifact(preregistrationPath);
-    fs.writeFileSync(resolutionPath, `${JSON.stringify(resolution, null, 2)}\n`);
-  }
+  const ledgerLines = sourceLedger
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .filter(line => {
+      if (withCorrection) return true;
+      return JSON.parse(line).payload_path !== `artifacts/${HY_EXP_0023_ID}/preregistration-resolution-correction.json`;
+    });
+  fs.writeFileSync(path.join(registryDirectory, 'ledger.jsonl'), `${ledgerLines.join('\n')}\n`);
 }
 
 test('0023 resolution freezes the preregistration hash, capture start and candidate warmup', () => {
@@ -168,22 +184,85 @@ test('0023 engineering data is isolated, never Development input, and official c
   assert.equal(HY_EXP_0023_COLLECTOR_PROFILE.klineSymbolsPerConnection, 20);
 });
 
-test('0023 real frozen resolution hash mismatch blocks official capture fail-closed', () => {
-  const readinessDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-frozen-hash-'));
-  const readiness = readinessFixture(readinessDirectory);
+test('0023 frozen inputs without the append-only correction block official capture fail-closed', () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-frozen-hash-'));
+  copyFrozenHyExp0023Inputs(projectRoot);
+  const readiness = readinessFixture(projectRoot);
   const controller = createHyExp0023ProspectiveCaptureController({
-    projectRoot: process.cwd(),
-    outputRoot: path.resolve(process.cwd(), 'data', 'raw', 'prospective-development', HY_EXP_0023_ID),
+    projectRoot,
+    outputRoot: path.join(projectRoot, 'data', 'raw', 'prospective-development', HY_EXP_0023_ID),
     readinessPath: readiness.filePath,
     readinessSha256: readiness.sha256,
     now: () => Date.parse('2026-08-23T11:59:00.000Z')
   });
-  assert.throws(() => controller.arm(), error => error.code === 'HY_EXP_0023_PREREGISTRATION_HASH_MISMATCH');
+  assert.throws(() => controller.arm(), error => error.code === 'HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID');
+});
+
+function assertGovernanceMutationRejected(mutate, label) {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), `hengyu-0023-${label}-`));
+  copyFrozenHyExp0023Inputs(projectRoot, { withCorrection: true });
+  mutate(projectRoot);
+  const readiness = readinessFixture(projectRoot);
+  const controller = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    outputRoot: path.join(projectRoot, 'data', 'raw', 'prospective-development', HY_EXP_0023_ID),
+    readinessPath: readiness.filePath,
+    readinessSha256: readiness.sha256,
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  });
+  assert.throws(() => controller.arm(), error => error.code === 'HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID');
+}
+
+test('0023 governance correction rejects edited resolution, preregistration, correction hash and unregistered correction', () => {
+  assertGovernanceMutationRejected(projectRoot => {
+    const filePath = path.join(projectRoot, 'artifacts', HY_EXP_0023_ID, 'preregistration-resolution.json');
+    fs.appendFileSync(filePath, ' ');
+  }, 'edited-resolution');
+  assertGovernanceMutationRejected(projectRoot => {
+    const filePath = path.join(projectRoot, 'registry', 'experiments', HY_EXP_0023_ID, 'preregistration.json');
+    fs.appendFileSync(filePath, ' ');
+  }, 'edited-prereg');
+  assertGovernanceMutationRejected(projectRoot => {
+    const filePath = path.join(projectRoot, 'artifacts', HY_EXP_0023_ID, 'preregistration-resolution-correction.json');
+    const value = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    value.correctedPreregSha256 = '0'.repeat(64);
+    fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+  }, 'edited-correction');
+
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-unregistered-correction-'));
+  copyFrozenHyExp0023Inputs(projectRoot);
+  fs.copyFileSync(
+    path.join('artifacts', HY_EXP_0023_ID, 'preregistration-resolution-correction.json'),
+    path.join(projectRoot, 'artifacts', HY_EXP_0023_ID, 'preregistration-resolution-correction.json')
+  );
+  const readiness = readinessFixture(projectRoot);
+  const controller = createHyExp0023ProspectiveCaptureController({
+    projectRoot,
+    outputRoot: path.join(projectRoot, 'data', 'raw', 'prospective-development', HY_EXP_0023_ID),
+    readinessPath: readiness.filePath,
+    readinessSha256: readiness.sha256,
+    now: () => Date.parse('2026-08-23T11:59:00.000Z')
+  });
+  assert.throws(() => controller.arm(), error => error.code === 'HY_EXP_0023_GOVERNANCE_CORRECTION_INVALID');
+});
+
+test('0023 governance correction rejects post-capture and semantic correction claims', () => {
+  for (const [label, mutate] of [
+    ['after-capture-start', value => { value.createdAt = '2026-08-23T12:00:00.000Z'; }],
+    ['semantic-change', value => { value.strategySemanticsChanged = true; }]
+  ]) {
+    assertGovernanceMutationRejected(projectRoot => {
+      const filePath = path.join(projectRoot, 'artifacts', HY_EXP_0023_ID, 'preregistration-resolution-correction.json');
+      const value = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      mutate(value);
+      fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+    }, label);
+  }
 });
 
 test('0023 prospective capture gate fails closed on missing, non-pass or tampered readiness', () => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-gate-fail-'));
-  copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture: true });
+  copyFrozenHyExp0023Inputs(projectRoot, { withCorrection: true });
   const missing = createHyExp0023ProspectiveCaptureController({
     projectRoot,
     readinessPath: path.join(projectRoot, 'missing-readiness.json'),
@@ -221,7 +300,7 @@ test('0023 prospective capture gate fails closed on missing, non-pass or tampere
 
 test('0023 arms before captureStart, rejects pre-capture writes, and atomically starts Development', () => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-gate-transition-'));
-  copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture: true });
+  copyFrozenHyExp0023Inputs(projectRoot, { withCorrection: true });
   const readiness = readinessFixture(projectRoot);
   let now = Date.parse('2026-08-23T11:59:59.000Z');
   const written = [];
@@ -263,7 +342,7 @@ test('0023 arms before captureStart, rejects pre-capture writes, and atomically 
 
 test('0023 boundary integration simulation keeps raw/manifest isolated and admits only causal records', () => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-boundary-simulation-'));
-  copyFrozenHyExp0023Inputs(projectRoot, { repairHashForFixture: true });
+  copyFrozenHyExp0023Inputs(projectRoot, { withCorrection: true });
   const readiness = readinessFixture(projectRoot);
   const outputRoot = path.join(projectRoot, 'data', 'raw', 'prospective-development', HY_EXP_0023_ID);
   const rawPath = path.join(outputRoot, 'boundary.ndjson');

@@ -70,6 +70,7 @@ class ScenarioWebSocket {
   static closeFirstKlineConnection = false;
   static skipKlineSymbol = null;
   static finalKline = false;
+  static klineMessageDelayMs = 5;
 
   constructor(url) {
     this.url = url;
@@ -121,7 +122,7 @@ class ScenarioWebSocket {
             o: '100', c: '101', h: '102', l: '99', v: '1', q: '100', n: 10, x: ScenarioWebSocket.finalKline
           }
         };
-        setTimeout(() => this.emit('message', { data: JSON.stringify({ stream, data: payload }) }), 5);
+        setTimeout(() => this.emit('message', { data: JSON.stringify({ stream, data: payload }) }), ScenarioWebSocket.klineMessageDelayMs);
       }
       if (ScenarioWebSocket.closeFirstKlineConnection && ScenarioWebSocket.klineConnections === 1) {
         setTimeout(() => this.close(), 15);
@@ -625,10 +626,81 @@ test('final-bar confirmations use a bounded scheduler and retain queue timing', 
     assert.equal(bar.confirmationAbortedCount, 0);
     assert.equal(bar.confirmationPeakInflight, 2);
     assert.ok(bar.confirmationQueueDelayMaxMs > 0);
+    assert.equal(bar.confirmationDeadlineMs, 10_000);
+    assert.equal(bar.confirmationQueueExpiredCount, 0);
+    assert.equal(bar.confirmationDeadlineMissCount, 0);
+    assert.ok(bar.confirmationEndToEndMaxMs <= bar.confirmationDeadlineMs);
     assert.equal(bar.klineCoverageRatio, 1);
     assert.equal(bar.status, 'PASS_FINAL_WS_REST_CONFIRMATION');
   } finally {
     ScenarioWebSocket.finalKline = false;
+  }
+});
+
+test('final-bar confirmation uses one absolute deadline from WS enqueue and never refreshes queued work', async () => {
+  const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT'];
+  let klineCalls = 0;
+  let active = 0;
+  let peak = 0;
+  let aborted = 0;
+  const baseFetch = scenarioFetch(symbols);
+  const fetchImpl = async (input, { signal } = {}) => {
+    const url = String(input);
+    if (!url.includes('/klines')) return baseFetch(input, { signal });
+    klineCalls++;
+    active++;
+    peak = Math.max(peak, active);
+    if (klineCalls !== 1) {
+      active--;
+      throw new Error('queued confirmation unexpectedly reached REST');
+    }
+    return new Promise((_, reject) => {
+      const onAbort = () => {
+        active--;
+        aborted++;
+        const error = new Error('aborted');
+        error.name = 'AbortError';
+        reject(error);
+      };
+      if (signal?.aborted) onAbort();
+      else signal?.addEventListener('abort', onAbort, { once: true });
+    });
+  };
+  ScenarioWebSocket.depthConnections = 0;
+  ScenarioWebSocket.klineConnections = 0;
+  ScenarioWebSocket.invalidFirstDepthSegment = false;
+  ScenarioWebSocket.closeFirstKlineConnection = false;
+  ScenarioWebSocket.skipKlineSymbol = null;
+  ScenarioWebSocket.finalKline = true;
+  ScenarioWebSocket.klineMessageDelayMs = 1;
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0022-confirmation-deadline-'));
+  try {
+    const result = await runCollectorEngineeringDryRun({
+      projectRoot,
+      maxRuntimeMs: 500,
+      segmentMaxMs: 70,
+      maxSymbols: symbols.length,
+      confirmationTimeoutMs: 1_000,
+      confirmationDeadlineMs: 15,
+      fetchImpl,
+      WebSocketImpl: ScenarioWebSocket,
+      profile: { ...HY_EXP_0022_COLLECTOR_PROFILE, klineConfirmationConcurrency: 1 }
+    });
+    const bar = result.barSourceVerification;
+    assert.equal(peak, 1);
+    assert.equal(active, 0);
+    assert.equal(klineCalls, 1);
+    assert.equal(aborted, 1);
+    assert.equal(bar.confirmationAttemptCount, 1);
+    assert.equal(bar.confirmationSuccessCount, 0);
+    assert.equal(bar.confirmationPeakInflight, 1);
+    assert.ok(bar.confirmationQueueExpiredCount >= symbols.length - 1);
+    assert.ok(bar.confirmationDeadlineMissCount >= 1);
+    assert.ok(bar.confirmationEndToEndMaxMs >= 1);
+    assert.equal(bar.status, 'FAIL');
+  } finally {
+    ScenarioWebSocket.finalKline = false;
+    ScenarioWebSocket.klineMessageDelayMs = 5;
   }
 });
 
