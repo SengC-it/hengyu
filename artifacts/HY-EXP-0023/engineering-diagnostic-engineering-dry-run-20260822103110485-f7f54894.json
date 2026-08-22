@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_ENGINEERING_DIAGNOSTIC_ONLY",
+  "experimentId": "HY-EXP-0023",
+  "runId": "engineering-dry-run-20260822103110485-f7f54894",
+  "runWindow": {
+    "startedAt": "2026-08-22T10:31:10.485Z",
+    "finishedAt": "2026-08-22T10:31:16.871Z",
+    "durationMs": 6386
+  },
+  "safety": {
+    "experimentId": "HY-EXP-0023",
+    "runId": "engineering-dry-run-20260822103110485-f7f54894",
+    "captureMode": "ENGINEERING_DRY_RUN",
+    "authorization": "PAPER_ONLY",
+    "liveOrdersEnabled": false,
+    "orderApiEnabled": false,
+    "accountApiEnabled": false,
+    "pnlComputed": false,
+    "developmentAllowed": false,
+    "officialCaptureAuthorized": false,
+    "finalOosRead": false,
+    "startedAt": "2026-08-22T10:31:10.485Z",
+    "engineeringRoot": "data\\raw\\engineering-dry-run\\HY-EXP-0023",
+    "developmentRoot": "data\\raw\\prospective-development\\HY-EXP-0023",
+    "finalOosRoot": "data\\raw\\prospective-final-oos\\HY-EXP-0023"
+  },
+  "status": "ENGINEERING_DIAGNOSTIC_FAIL",
+  "formalReadiness": "NOT_RUN",
+  "officialCaptureAuthorized": false,
+  "checks": {
+    "documentedEndpoints": false,
+    "dynamicSymbols": false,
+    "validSegments": false,
+    "snapshotAlignmentFailures": true,
+    "sequenceGaps": true,
+    "crossedBooks": true,
+    "bufferLimitFailures": true,
+    "receivedAtPresent": true,
+    "fundingSchema": false,
+    "exchangeInfoSchema": true,
+    "noPnl": true,
+    "noDevelopment": true,
+    "paperOnly": true
+  },
+  "diagnostics": {
+    "validSegments": 0,
+    "invalidSegments": 0,
+    "snapshotAlignmentFailures": 0,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "staleBufferedDropped": 0,
+    "bufferedEventsPeak": 0,
+    "snapshotAttempts": 0,
+    "snapshotTooOldRetries": 0,
+    "alignmentSuccesses": 0,
+    "alignmentFailures": 0,
+    "gapDiagnostics": [],
+    "symbolsCaptured": [],
+    "exchangeInfoCaptured": false,
+    "exchangeInfoValidation": {},
+    "exchangeInfoSchemaValid": true,
+    "universeSnapshots": 0,
+    "fundingMissing": 0,
+    "fundingRowsValid": false,
+    "missingReceivedAt": 0,
+    "klineWebsocketEvents": 0,
+    "barSourceStatus": "FAIL",
+    "transport": {
+      "depth": {
+        "endpoint": "wss://fstream.binance.com/public/stream",
+        "status": "NOT_VERIFIED"
+      },
+      "kline": {
+        "endpoint": "wss://fstream.binance.com/market/stream",
+        "status": "NOT_VERIFIED"
+      }
+    }
+  },
+  "transport": {
+    "depth": {
+      "endpoint": "wss://fstream.binance.com/public/stream",
+      "status": "NOT_VERIFIED"
+    },
+    "kline": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "status": "NOT_VERIFIED"
+    }
+  },
+  "barSourceVerification": {
+    "status": "FAIL",
+    "websocketEvents": 0,
+    "errors": [
+      "not_started"
+    ],
+    "developmentEligible": false,
+    "historicalBackfillUsed": false,
+    "transport": null
+  },
+  "storage": {
+    "metrics": {
+      "root": "E:\\Codex\\Hengyu\\data\\raw\\engineering-dry-run\\HY-EXP-0023\\engineering-dry-run-20260822103110485-f7f54894",
+      "sampleWindow": {
+        "startedAt": "2026-08-22T10:31:10.485Z",
+        "finishedAt": "2026-08-22T10:31:16.871Z",
+        "durationSeconds": 6.386
+      },
+      "symbols": [],
+      "totalBytes": 4344,
+      "totalEvents": 0,
+      "bytesPerSecond": 680.2380206702161,
+      "bytesPerSecondPerSymbol": 680.2380206702161,
+      "eventsPerSecond": 0,
+      "byStream": {
+        "depth": {
+          "bytes": 0,
+          "events": 0,
+          "files": 1
+        },
+        "snapshot": {
+          "bytes": 0,
+          "events": 0,
+          "files": 1
+        },
+        "exchangeInfo": {
+          "bytes": 0,
+          "events": 0,
+          "files": 1
+        },
+        "funding": {
+          "bytes": 0,
+          "events": 0,
+          "files": 1
+        },
+        "kline": {
+          "bytes": 0,
+          "events": 0,
+          "files": 2
+        },
+        "other": {
+          "bytes": 4344,
+          "events": 0,
+          "files": 3
+        },
+        "segment": {
+          "bytes": 0,
+          "events": 0,
+          "files": 1
+        },
+        "metadata": {
+          "bytes": 0,
+          "events": 0,
+          "files": 2
+        }
+      },
+      "projected30DayBytes": 1763176950,
+      "projectedDevelopmentPeriodBytes": 11137401065,
+      "projectedFinalOosPeriodBytes": 10814151958,
+      "projectedFullExperimentBytes": 21951553023
+    },
+    "capacity": {
+      "availableBytes": 76361629696,
+      "filesystem": "E:\\",
+      "source": "node:fs.statfsSync"
+    }
+  },
+  "clock": {
+    "ready": false,
+    "reason": "OS_CLOCK_NOT_SYNCHRONIZED",
+    "osState": {
+      "synchronized": false,
+      "source": "w32tm",
+      "error": "spawn EPERM"
+    },
+    "driftMs": null
+  },
+  "alerts": {
+    "ready": false,
+    "required": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ],
+    "active": [],
+    "missing": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ]
+  },
+  "manifestSha256": "22ea6a243d5064781fda9c500dbe0a07ce90d347c1d368859e0f52934cd39616",
+  "manifestFileSha256": "ea14f0b4eceadc00ab1a4dcc4e7dfe389a90d663535e1c8a9afb5a661b5cc468",
+  "rawFileSha256": {
+    "depth.diff.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "depth.snapshot.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "kline.4h.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "kline.4h.confirmation.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exchangeInfo.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "funding.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ticker.diagnostic.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "universe.snapshot.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "universe.audit.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "segment.audit.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "rawDirectory": "E:\\Codex\\Hengyu\\data\\raw\\engineering-dry-run\\HY-EXP-0023\\engineering-dry-run-20260822103110485-f7f54894",
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "finalOosRead": false,
+  "finalOosEligible": false,
+  "historicalBackfillUsed": false,
+  "proxyDepthUsed": false
+}

@@ -104,15 +104,32 @@ function validateNotCrossed(bids, asks, label) {
   if (bestBid >= bestAsk) throw new Error(`${label}:crossed_book`);
 }
 
+function validateBookMaps(bids, asks, label) {
+  let bestBid = -Infinity;
+  let bestAsk = Infinity;
+  let liveBids = 0;
+  let liveAsks = 0;
+  for (const [price, quantity] of bids) {
+    if (quantity > 0) {
+      liveBids++;
+      if (price > bestBid) bestBid = price;
+    }
+  }
+  for (const [price, quantity] of asks) {
+    if (quantity > 0) {
+      liveAsks++;
+      if (price < bestAsk) bestAsk = price;
+    }
+  }
+  if (!liveBids || !liveAsks) throw new Error(`${label}:empty_book`);
+  if (bestBid >= bestAsk) throw new Error(`${label}:crossed_book`);
+}
+
 function applyLevels(book, updates) {
   for (const [price, quantity] of updates) {
     if (quantity === 0) book.delete(price);
     else book.set(price, quantity);
   }
-}
-
-function ordered(book, side) {
-  return [...book.entries()].sort((left, right) => side === 'bid' ? right[0] - left[0] : left[0] - right[0]);
 }
 
 export function resolveHyExp0020CaptureMode({ requestedMode = 'ENGINEERING_DRY_RUN', now = Date.now() } = {}) {
@@ -379,7 +396,7 @@ export function createDepthSegmentReconstructor({
       applyLevels(state.bids, bids);
       applyLevels(state.asks, asks);
       try {
-        validateNotCrossed(ordered(state.bids, 'bid'), ordered(state.asks, 'ask'), normalizedSymbol);
+        validateBookMaps(state.bids, state.asks, normalizedSymbol);
       } catch (error) {
         fail(error.message.split(':').at(-1));
       }

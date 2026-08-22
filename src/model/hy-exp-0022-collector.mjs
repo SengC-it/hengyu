@@ -63,6 +63,41 @@ const DEFAULT_SEGMENT_MAX_MS = 4 * 60 * 60 * 1_000 - 60_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_SYMBOLS = 3;
 const MAX_ENGINEERING_SYMBOLS = 200;
+const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = MAX_ENGINEERING_SYMBOLS;
+const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = MAX_ENGINEERING_SYMBOLS;
+
+export const HY_EXP_0022_COLLECTOR_PROFILE = Object.freeze({
+  experimentId: HY_EXP_0022_ID,
+  engineeringRoot: HY_EXP_0022_ENGINEERING_ROOT,
+  captureStart: HY_EXP_0022_CAPTURE_START,
+  windows: HY_EXP_0022_WINDOWS,
+  transportEndpoints: HY_EXP_0022_TRANSPORT_ENDPOINTS,
+  requiredCaptureStreams: HY_EXP_0022_REQUIRED_CAPTURE_STREAMS,
+  diagnosticStreams: HY_EXP_0022_DIAGNOSTIC_STREAMS,
+  orderEndpoints: HY_EXP_0022_ORDER_ENDPOINTS,
+  accountEndpoints: HY_EXP_0022_ACCOUNT_ENDPOINTS,
+  finalOosStart: HY_EXP_0022_FINAL_OOS_START,
+  finalOosEndExclusive: HY_EXP_0022_FINAL_OOS_END_EXCLUSIVE,
+  maxSymbolsPerConnection: DEFAULT_MAX_SYMBOLS_PER_CONNECTION,
+  depthSymbolsPerConnection: DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION,
+  manifestType: 'HY-EXP-0022-ENGINEERING-DRY-RUN',
+  readinessArtifactType: 'HY_EXP_0022_COLLECTOR_ENGINEERING_READINESS'
+});
+
+function normalizeCollectorProfile(profile = HY_EXP_0022_COLLECTOR_PROFILE) {
+  const source = profile ?? HY_EXP_0022_COLLECTOR_PROFILE;
+  return {
+    ...HY_EXP_0022_COLLECTOR_PROFILE,
+    ...source,
+    transportEndpoints: { ...HY_EXP_0022_TRANSPORT_ENDPOINTS, ...(source.transportEndpoints ?? {}) },
+    requiredCaptureStreams: [...(source.requiredCaptureStreams ?? HY_EXP_0022_REQUIRED_CAPTURE_STREAMS)],
+    diagnosticStreams: [...(source.diagnosticStreams ?? HY_EXP_0022_DIAGNOSTIC_STREAMS)],
+    orderEndpoints: [...(source.orderEndpoints ?? HY_EXP_0022_ORDER_ENDPOINTS)],
+    accountEndpoints: [...(source.accountEndpoints ?? HY_EXP_0022_ACCOUNT_ENDPOINTS)],
+    maxSymbolsPerConnection: Number(source.maxSymbolsPerConnection ?? DEFAULT_MAX_SYMBOLS_PER_CONNECTION),
+    depthSymbolsPerConnection: Number(source.depthSymbolsPerConnection ?? DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION)
+  };
+}
 
 function errorWithCode(code, message) {
   const error = new Error(message);
@@ -123,22 +158,39 @@ function isWithin(root, candidate) {
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
+function expectedCollectorEngineeringRoot({ projectRoot = process.cwd(), profile = HY_EXP_0022_COLLECTOR_PROFILE } = {}) {
+  const normalized = normalizeCollectorProfile(profile);
+  return path.resolve(projectRoot, normalized.engineeringRoot);
+}
+
 export function expectedHyExp0022EngineeringRoot({ projectRoot = process.cwd() } = {}) {
-  return path.resolve(projectRoot, HY_EXP_0022_ENGINEERING_ROOT);
+  return expectedCollectorEngineeringRoot({ projectRoot, profile: HY_EXP_0022_COLLECTOR_PROFILE });
+}
+
+function assertCollectorEngineeringRoot({ projectRoot = process.cwd(), outputRoot, profile = HY_EXP_0022_COLLECTOR_PROFILE } = {}) {
+  const normalized = normalizeCollectorProfile(profile);
+  const expected = expectedCollectorEngineeringRoot({ projectRoot, profile: normalized });
+  const actual = path.resolve(projectRoot, outputRoot ?? expected);
+  if (!isWithin(expected, actual)) {
+    throw errorWithCode('COLLECTOR_ENGINEERING_NAMESPACE_MISMATCH', 'engineering dry-run path is outside its canonical root');
+  }
+  if (actual.includes(`${path.sep}prospective-development${path.sep}`)
+    || actual.includes(`${path.sep}prospective-final-oos${path.sep}`)) {
+    throw errorWithCode('COLLECTOR_ENGINEERING_NAMESPACE_MISMATCH', 'engineering dry-run cannot use a prospective root');
+  }
+  return actual;
 }
 
 /** Engineering data is a distinct namespace and can never be a Development input root. */
 export function assertHyExp0022EngineeringRoot({ projectRoot = process.cwd(), outputRoot } = {}) {
-  const expected = expectedHyExp0022EngineeringRoot({ projectRoot });
-  const actual = path.resolve(projectRoot, outputRoot ?? expected);
-  if (!isWithin(expected, actual)) {
-    throw errorWithCode('HY_EXP_0022_ENGINEERING_NAMESPACE_MISMATCH', 'engineering dry-run path is outside its canonical root');
+  try {
+    return assertCollectorEngineeringRoot({ projectRoot, outputRoot, profile: HY_EXP_0022_COLLECTOR_PROFILE });
+  } catch (error) {
+    if (error.code === 'COLLECTOR_ENGINEERING_NAMESPACE_MISMATCH') {
+      error.code = 'HY_EXP_0022_ENGINEERING_NAMESPACE_MISMATCH';
+    }
+    throw error;
   }
-  if (actual.includes(`${path.sep}prospective-development${path.sep}`)
-    || actual.includes(`${path.sep}prospective-final-oos${path.sep}`)) {
-    throw errorWithCode('HY_EXP_0022_ENGINEERING_NAMESPACE_MISMATCH', 'engineering dry-run cannot use a prospective root');
-  }
-  return actual;
 }
 
 export function assertHyExp0022EngineeringNeverDevelopmentInput({ inputPath, projectRoot = process.cwd() } = {}) {
@@ -578,7 +630,11 @@ function createDepthContext(symbol, segmentId) {
     alignmentLatencyMs: null,
     snapshotRequestStartedAt: null,
     snapshotReceivedAt: null,
-    lastEventReceivedAt: null
+    lastEventReceivedAt: null,
+    lastEvent: null,
+    failureDiagnostic: null,
+    pendingDiffs: [],
+    drainPromise: null
   };
 }
 
@@ -593,11 +649,34 @@ function sequenceBounds(context, envelope) {
 
 function markContextFailure(context, error) {
   if (context.status === 'FAILED') return;
+  const previousStatus = context.status;
   const code = error?.code ?? String(error?.message ?? error);
   context.status = 'FAILED';
   context.failureCode = String(code);
   context.alignmentFailure = context.alignmentFailure ?? String(error?.message ?? error);
-  if (String(code).includes('snapshot_alignment')) context.alignmentFailureCount++;
+  const lowerCode = String(code).toLowerCase();
+  context.failureDiagnostic = {
+    symbol: context.symbol,
+    segmentId: context.segmentId,
+    previousU: context.state?.summary?.lastUpdateId ?? context.snapshotId ?? null,
+    previousu: context.state?.summary?.lastUpdateId ?? context.snapshotId ?? null,
+    currentU: context.lastEvent?.U ?? null,
+    currentu: context.lastEvent?.u ?? null,
+    currentPu: context.lastEvent?.pu ?? null,
+    exchangeE: context.lastEvent?.E ?? null,
+    transactionT: context.lastEvent?.T ?? null,
+    receivedAt: context.lastEvent?.receivedAt ?? null,
+    bufferState: previousStatus,
+    connectionId: context.lastEvent?.connectionId ?? `${context.segmentId}:connection`,
+    reconnectReason: context.lastEvent?.reconnectReason
+      ?? (['sequence_gap', 'missing_interval', 'out_of_order_receipt', 'duplicate_update', 'out_of_order_update'].includes(lowerCode)
+        ? 'LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT'
+        : lowerCode.includes('snapshot_alignment')
+          ? 'SNAPSHOT_REACQUISITION_REQUIRED'
+          : null),
+    failureCode: String(code)
+  };
+  if (lowerCode.includes('snapshot_alignment')) context.alignmentFailureCount++;
 }
 
 function recordBuffer(context, envelope) {
@@ -636,10 +715,11 @@ function replayContext(context) {
   return context.status === 'ALIGNED' ? 'ALIGNED' : 'WAITING';
 }
 
-async function alignDepthContext({ context, fetchImpl, snapshotWriter, segmentDeadline, onEvent }) {
+async function alignDepthContext({ context, fetchImpl, snapshotWriter, segmentDeadline, onEvent, experimentId = HY_EXP_0022_ID }) {
   const startedAt = Date.now();
+  const acquisitionDeadline = Math.min(segmentDeadline, startedAt + MAX_SNAPSHOT_ACQUISITION_MS);
   while (context.status !== 'ALIGNED' && context.status !== 'FAILED') {
-    if (context.snapshotAttempts >= MAX_SNAPSHOT_ATTEMPTS || Date.now() - startedAt >= MAX_SNAPSHOT_ACQUISITION_MS || Date.now() >= segmentDeadline) {
+    if (context.snapshotAttempts >= MAX_SNAPSHOT_ATTEMPTS || Date.now() >= acquisitionDeadline) {
       markContextFailure(context, errorWithCode('SNAPSHOT_ALIGNMENT', `${context.symbol}:snapshot_alignment`));
       break;
     }
@@ -663,7 +743,7 @@ async function alignDepthContext({ context, fetchImpl, snapshotWriter, segmentDe
       break;
     }
     const snapshotRecord = {
-      experimentId: HY_EXP_0022_ID,
+      experimentId,
       stream: 'depth.snapshot',
       kind: 'snapshot',
       segmentId: context.segmentId,
@@ -710,7 +790,7 @@ async function alignDepthContext({ context, fetchImpl, snapshotWriter, segmentDe
       if (context.snapshotAttempts < MAX_SNAPSHOT_ATTEMPTS) await new Promise(resolve => setTimeout(resolve, SNAPSHOT_RETRY_DELAY_MS));
       continue;
     }
-    while (context.status !== 'ALIGNED' && context.status !== 'FAILED' && Date.now() < segmentDeadline) {
+    while (context.status !== 'ALIGNED' && context.status !== 'FAILED' && Date.now() < acquisitionDeadline) {
       await new Promise(resolve => setTimeout(resolve, 25));
       try {
         const next = replayContext(context);
@@ -726,7 +806,7 @@ async function alignDepthContext({ context, fetchImpl, snapshotWriter, segmentDe
     }
     if (context.status === 'ALIGNED') break;
     if (context.status === 'FAILED') break;
-    if (context.snapshotAttempts >= MAX_SNAPSHOT_ATTEMPTS || Date.now() >= segmentDeadline) {
+    if (context.snapshotAttempts >= MAX_SNAPSHOT_ATTEMPTS || Date.now() >= acquisitionDeadline) {
       markContextFailure(context, errorWithCode('SNAPSHOT_ALIGNMENT', `${context.symbol}:snapshot_alignment`));
       break;
     }
@@ -753,13 +833,15 @@ function contextSummary(context) {
     failureCode: context.failureCode,
     staleBufferedDropped: context.staleBufferedDropped,
     bufferedEventsRemaining: context.buffer.length,
+    pendingDiffs: context.pendingDiffs.length,
     bufferedEventsPeak: context.bufferedEventsPeak,
     alignmentLatencyMs: context.alignmentLatencyMs,
     updates: context.state?.summary?.updates ?? 0,
     maxDepthLevel: context.state?.summary?.maxDepthLevel ?? 0,
     lastUpdateId: context.state?.summary?.lastUpdateId ?? null,
     snapshotRequestStartedAt: context.snapshotRequestStartedAt,
-    snapshotReceivedAt: context.snapshotReceivedAt
+    snapshotReceivedAt: context.snapshotReceivedAt,
+    failureDiagnostic: context.failureDiagnostic
   };
 }
 
@@ -771,7 +853,8 @@ async function collectDepthSegment({
   WebSocketImpl,
   depthWriter,
   snapshotWriter,
-  segmentWriter
+  segmentWriter,
+  experimentId = HY_EXP_0022_ID
 }) {
   const contexts = new Map(symbols.map(symbol => [symbol, createDepthContext(symbol, segmentId)]));
   let totalBufferedPeak = 0;
@@ -781,13 +864,39 @@ async function collectDepthSegment({
   let socketEndedUnexpectedly = false;
   let resolveSocketClosed;
   const socketClosed = new Promise(resolve => { resolveSocketClosed = resolve; });
+  const failLiveContext = (context, error, event = null) => {
+    if (event) context.lastEvent = event;
+    if (context.lastEvent) context.lastEvent.reconnectReason = 'LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT';
+    markContextFailure(context, error);
+    socketFailure = socketFailure ?? error.message;
+    resolveSocketClosed?.();
+    closeSocket(socketHandle?.socket);
+  };
+  const drainContext = async context => {
+    while (context.status === 'ALIGNED' && context.pendingDiffs.length) {
+      const next = context.pendingDiffs.shift();
+      context.lastEvent = next.event;
+      try {
+        context.state.ingestDiff({ data: next.data, receivedAt: next.receivedAt });
+      } catch (error) {
+        failLiveContext(context, error, next.event);
+        break;
+      }
+      await new Promise(resolve => setImmediate(resolve));
+    }
+    context.drainPromise = null;
+  };
+  const scheduleContextDrain = context => {
+    if (context.drainPromise) return;
+    context.drainPromise = drainContext(context);
+  };
   const onMessage = async ({ raw, verified }) => {
     const { payload, stream } = transportPayload(raw);
     const symbol = symbolOf(payload?.s ?? payload?.symbol);
     const context = contexts.get(symbol);
     const receivedAt = Date.now();
     const envelope = {
-      experimentId: HY_EXP_0022_ID,
+      experimentId,
       stream: 'depth.diff',
       kind: 'diff',
       segmentId,
@@ -803,6 +912,17 @@ async function collectDepthSegment({
     if (!context) throw errorWithCode('UNIVERSE_STREAM_MISMATCH', `${symbol}:not in dynamic capture set`);
     if (context.status === 'FAILED') return;
     context.lastEventReceivedAt = receivedAt;
+    const event = {
+      U: Number(payload?.U),
+      u: Number(payload?.u),
+      pu: payload?.pu == null ? null : Number(payload.pu),
+      E: payload?.E ?? null,
+      T: payload?.T ?? null,
+      receivedAt,
+      connectionId: `${segmentId}:connection`,
+      reconnectReason: socketEndedUnexpectedly ? 'unexpected_close' : null
+    };
+    context.lastEvent = event;
     if (context.status !== 'ALIGNED') {
       recordBuffer(context, envelope);
       totalBufferedPeak = Math.max(totalBufferedPeak, [...contexts.values()].reduce((sum, row) => sum + row.buffer.length, 0));
@@ -817,11 +937,10 @@ async function collectDepthSegment({
       return;
     }
     try {
-      context.state.ingestDiff({ data: payload, receivedAt });
+      context.pendingDiffs.push({ data: payload, receivedAt, event });
+      scheduleContextDrain(context);
     } catch (error) {
-      markContextFailure(context, error);
-      socketFailure = socketFailure ?? error.message;
-      closeSocket(socketHandle?.socket);
+      failLiveContext(context, error, event);
     }
   };
   try {
@@ -847,7 +966,8 @@ async function collectDepthSegment({
       context,
       fetchImpl,
       snapshotWriter,
-      segmentDeadline
+      segmentDeadline,
+      experimentId
     }));
     await Promise.allSettled(alignments);
     const failedDuringAlignment = [...contexts.values()].some(context => context.status === 'FAILED');
@@ -861,6 +981,7 @@ async function collectDepthSegment({
         socketClosed
       ]);
     }
+    await Promise.allSettled([...contexts.values()].map(context => context.drainPromise).filter(Boolean));
     closedIntentionally = true;
     closeSocket(socketHandle.socket);
   } else {
@@ -883,7 +1004,7 @@ async function collectDepthSegment({
   const bufferLimitFailures = [...contexts.values()].filter(context => String(context.failureCode ?? '').includes('buffer_limit_exceeded')).length;
   const status = reasons.length ? 'INVALID' : 'VALID';
   const segment = {
-    experimentId: HY_EXP_0022_ID,
+    experimentId,
     segmentId,
     stream: 'segment.audit',
     receivedAt: Date.now(),
@@ -899,6 +1020,9 @@ async function collectDepthSegment({
       sequenceGaps,
       crossedBooks,
       bufferLimitFailures,
+      gapDiagnostics: [...contexts.values()]
+        .map(context => context.failureDiagnostic)
+        .filter(Boolean),
       transport: socketHandle?.capability ?? null
     }
   };
@@ -911,32 +1035,45 @@ function nextUtcBoundary(value) {
   return (Math.floor(parsed / FOUR_HOURS_MS) + 1) * FOUR_HOURS_MS;
 }
 
-async function collectDepthSegments({ symbols, deadline, segmentMaxMs, fetchImpl, WebSocketImpl, writers }) {
+async function collectDepthSegments({
+  symbols,
+  deadline,
+  segmentMaxMs,
+  fetchImpl,
+  WebSocketImpl,
+  writers,
+  experimentId = HY_EXP_0022_ID,
+  depthSymbolsPerConnection = symbols.length
+}) {
   const segments = [];
   let index = 0;
+  const batchSize = Math.min(integer('depthSymbolsPerConnection', depthSymbolsPerConnection, 1), symbols.length);
+  const batches = [];
+  for (let offset = 0; offset < symbols.length; offset += batchSize) batches.push(symbols.slice(offset, offset + batchSize));
   while (Date.now() < deadline) {
     const started = Date.now();
     const segmentDeadline = Math.min(deadline, nextUtcBoundary(started), started + segmentMaxMs);
-    const segment = await collectDepthSegment({
-      symbols,
-      segmentId: `${writers.runId}:depth:${++index}`,
+    const batchSegments = await Promise.all(batches.map((batch, batchIndex) => collectDepthSegment({
+      symbols: batch,
+      segmentId: `${writers.runId}:depth:${++index}:batch-${batchIndex + 1}`,
       segmentDeadline,
       fetchImpl,
       WebSocketImpl,
       depthWriter: writers.depth,
       snapshotWriter: writers.snapshot,
-      segmentWriter: writers.segment
-    });
-    segments.push(segment);
+      segmentWriter: writers.segment,
+      experimentId
+    })));
+    segments.push(...batchSegments);
     if (Date.now() >= deadline) break;
     await new Promise(resolve => setTimeout(resolve, Math.min(250, deadline - Date.now())));
   }
   return segments;
 }
 
-function klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceStream }) {
+function klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceStream, experimentId = HY_EXP_0022_ID }) {
   return {
-    experimentId: HY_EXP_0022_ID,
+    experimentId,
     stream: 'kline.4h',
     kind: 'websocket',
     segmentId,
@@ -959,7 +1096,9 @@ async function collectKlineStream({
   klineWriter,
   confirmationWriter,
   confirmationTimeoutMs,
-  targetBar = null
+  targetBar = null,
+  experimentId = HY_EXP_0022_ID,
+  captureStart = HY_EXP_0022_CAPTURE_START
 }) {
   const expectedBar = targetBar == null ? null : {
     openTime: integer('target bar openTime', targetBar.openTime),
@@ -1012,16 +1151,16 @@ async function collectKlineStream({
     }
     const receivedAt = Date.now();
     diagnostics.websocketEvents++;
-    klineWriter.append(klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceStream: stream }));
+    klineWriter.append(klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceStream: stream, experimentId }));
     const symbolDiagnostics = perSymbol[symbol];
     const openTime = Number(payload.k.t);
     const closeTime = Number(payload.k.T);
     if (payload.k.x !== true) {
-      if (openTime < timestamp('capture start', HY_EXP_0022_CAPTURE_START)) diagnostics.preCaptureBarsRejected++;
+      if (openTime < timestamp('capture start', captureStart)) diagnostics.preCaptureBarsRejected++;
       else diagnostics.openCurrentBarEvents++;
       return;
     }
-    if (openTime < timestamp('capture start', HY_EXP_0022_CAPTURE_START)) {
+    if (openTime < timestamp('capture start', captureStart)) {
       diagnostics.preCaptureBarsRejected++;
       return;
     }
@@ -1050,7 +1189,7 @@ async function collectKlineStream({
       const rows = Array.isArray(restResponse.data) ? restResponse.data : [];
       const restRow = rows.find(row => Number(row?.[0]) === openTime);
       confirmationWriter.append({
-        experimentId: HY_EXP_0022_ID,
+        experimentId,
         stream: 'kline.4h',
         kind: 'rest_confirmation',
         symbol,
@@ -1069,7 +1208,7 @@ async function collectKlineStream({
         raw: { ...raw, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
         receivedAt,
         source: 'CONTRACT_PRICE',
-        captureStart: HY_EXP_0022_CAPTURE_START,
+        captureStart,
         mode: 'DEVELOPMENT_CAPTURE'
       });
       const restBar = normalizeHyExp0022ContractKline({
@@ -1077,7 +1216,7 @@ async function collectKlineStream({
         receivedAt: restResponse.receivedAt,
         sourceTimestamp: Number(restRow[6]),
         source: 'CONTRACT_PRICE',
-        captureStart: HY_EXP_0022_CAPTURE_START,
+        captureStart,
         mode: 'DEVELOPMENT_CAPTURE'
       });
       reconcileHyExp0022BarSources({ websocketBar, restBar });
@@ -1135,13 +1274,16 @@ async function collectKlineStream({
         }
       });
       if (diagnostics.transport == null) {
-        diagnostics.transport = { ...socketHandle.capability, dataMessages: socketHandle.capability.dataMessages };
+        diagnostics.transport = socketHandle.capability;
       } else {
-        diagnostics.transport.dataMessages += socketHandle.capability.dataMessages;
-        diagnostics.transport.subscriptionAck = diagnostics.transport.subscriptionAck || socketHandle.capability.subscriptionAck;
-        diagnostics.transport.opened = diagnostics.transport.opened || socketHandle.capability.opened;
-        diagnostics.transport.stValues = [...new Set([...(diagnostics.transport.stValues ?? []), ...(socketHandle.capability.stValues ?? [])])];
-        diagnostics.transport.psValues = [...new Set([...(diagnostics.transport.psValues ?? []), ...(socketHandle.capability.psValues ?? [])])];
+        diagnostics.transport = {
+          ...diagnostics.transport,
+          dataMessages: diagnostics.transport.dataMessages + socketHandle.capability.dataMessages,
+          subscriptionAck: diagnostics.transport.subscriptionAck || socketHandle.capability.subscriptionAck,
+          opened: diagnostics.transport.opened || socketHandle.capability.opened,
+          stValues: [...new Set([...(diagnostics.transport.stValues ?? []), ...(socketHandle.capability.stValues ?? [])])],
+          psValues: [...new Set([...(diagnostics.transport.psValues ?? []), ...(socketHandle.capability.psValues ?? [])])]
+        };
       }
       const remaining = Math.max(1, deadline - Date.now());
       await Promise.race([
@@ -1172,13 +1314,13 @@ async function collectKlineStream({
   return diagnostics;
 }
 
-async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWriter }) {
+async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWriter, experimentId = HY_EXP_0022_ID }) {
   const [exchangeResponse, tickerResponse] = await Promise.all([
     fetchJsonCompleted({ fetchImpl, url: 'https://fapi.binance.com/fapi/v1/exchangeInfo' }),
     fetchJsonCompleted({ fetchImpl, url: 'https://fapi.binance.com/fapi/v1/ticker/24hr' })
   ]);
   exchangeWriter.append({
-    experimentId: HY_EXP_0022_ID,
+    experimentId,
     stream: 'exchangeInfo',
     requestStartedAt: exchangeResponse.requestStartedAt,
     receivedAt: exchangeResponse.receivedAt,
@@ -1186,7 +1328,7 @@ async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWri
     data: exchangeResponse.data
   });
   tickerWriter.append({
-    experimentId: HY_EXP_0022_ID,
+    experimentId,
     stream: 'ticker',
     diagnosticOnly: true,
     requestStartedAt: tickerResponse.requestStartedAt,
@@ -1209,7 +1351,7 @@ async function captureExchangeAndUniverse({ fetchImpl, exchangeWriter, tickerWri
   };
 }
 
-async function captureFunding({ symbols, fetchImpl, fundingWriter }) {
+async function captureFunding({ symbols, fetchImpl, fundingWriter, experimentId = HY_EXP_0022_ID }) {
   const rows = await Promise.all(symbols.map(async symbol => {
     try {
       const response = await fetchJsonCompleted({ fetchImpl, url: buildFundingUrl(symbol) });
@@ -1217,7 +1359,7 @@ async function captureFunding({ symbols, fetchImpl, fundingWriter }) {
       const sourceRow = sourceRows.find(row => String(row?.symbol ?? '').toUpperCase() === symbol);
       const validated = validateHyExp0022FundingRow({ symbol, row: sourceRow, receivedAt: response.receivedAt });
       fundingWriter.append({
-        experimentId: HY_EXP_0022_ID,
+        experimentId,
         stream: 'funding',
         symbol,
         requestStartedAt: response.requestStartedAt,
@@ -1230,7 +1372,7 @@ async function captureFunding({ symbols, fetchImpl, fundingWriter }) {
       return { symbol, ok: true, response, validation: validated };
     } catch (error) {
       fundingWriter.append({
-        experimentId: HY_EXP_0022_ID,
+        experimentId,
         stream: 'funding',
         symbol,
         valid: false,
@@ -1258,6 +1400,7 @@ function aggregateDepthDiagnostics(segments) {
     snapshotTooOldRetries: contexts.reduce((sum, context) => sum + Number(context.snapshotTooOldRetries ?? 0), 0),
     alignmentSuccesses: contexts.reduce((sum, context) => sum + Number(context.alignmentSuccesses ?? 0), 0),
     alignmentFailures: contexts.reduce((sum, context) => sum + Number(context.alignmentFailureCount ?? 0), 0),
+    gapDiagnostics: segments.flatMap(segment => segment.diagnostics?.gapDiagnostics ?? []),
     symbolsCaptured: [...new Set(contexts.map(context => context.symbol))].sort()
   };
 }
@@ -1289,23 +1432,25 @@ function buildRawManifest({
   diagnostics,
   transport,
   barSourceVerification,
-  errors
+  errors,
+  profile = HY_EXP_0022_COLLECTOR_PROFILE
 }) {
+  const normalizedProfile = normalizeCollectorProfile(profile);
   const body = {
     schemaVersion: 1,
-    manifestType: 'HY-EXP-0022-ENGINEERING-DRY-RUN',
+    manifestType: normalizedProfile.manifestType,
     immutable: true,
-    experimentId: HY_EXP_0022_ID,
+    experimentId: normalizedProfile.experimentId,
     runId,
     captureMode: 'ENGINEERING_DRY_RUN',
     dataClass: 'ENGINEERING_DRY_RUN',
-    root: HY_EXP_0022_ENGINEERING_ROOT,
+    root: normalizedProfile.engineeringRoot,
     startedAt: iso(startedAt),
     finishedAt: iso(finishedAt),
     durationMs: timestamp('finishedAt', finishedAt) - timestamp('startedAt', startedAt),
     symbols,
-    requiredStreams: [...HY_EXP_0022_REQUIRED_CAPTURE_STREAMS],
-    diagnosticOnlyStreams: [...HY_EXP_0022_DIAGNOSTIC_STREAMS],
+    requiredStreams: [...normalizedProfile.requiredCaptureStreams],
+    diagnosticOnlyStreams: [...normalizedProfile.diagnosticStreams],
     transport,
     files,
     segments,
@@ -1316,8 +1461,8 @@ function buildRawManifest({
     liveOrdersEnabled: false,
     accountApiEnabled: false,
     orderApiEnabled: false,
-    orderEndpoints: [...HY_EXP_0022_ORDER_ENDPOINTS],
-    accountEndpoints: [...HY_EXP_0022_ACCOUNT_ENDPOINTS],
+    orderEndpoints: [...normalizedProfile.orderEndpoints],
+    accountEndpoints: [...normalizedProfile.accountEndpoints],
     developmentAllowed: false,
     developmentEligible: false,
     finalOosEligible: false,
@@ -1352,16 +1497,22 @@ export function buildHyExp0022OosWorkflowDecision({
   };
 }
 
-export function buildCollectorEngineeringReadiness({ result, requiredDurationMs = 5 * 60 * 1_000 } = {}) {
+export function buildCollectorEngineeringReadiness({
+  result,
+  requiredDurationMs = 5 * 60 * 1_000,
+  minimumDynamicSymbols = 3,
+  profile = HY_EXP_0022_COLLECTOR_PROFILE
+} = {}) {
+  const normalizedProfile = normalizeCollectorProfile(profile);
   const manifest = result.manifest;
   const diagnostics = manifest.diagnostics;
   const checks = {
-    documentedDepthEndpoint: manifest.transport?.depth?.endpoint === HY_EXP_0022_TRANSPORT_ENDPOINTS.depth
+    documentedDepthEndpoint: manifest.transport?.depth?.endpoint === normalizedProfile.transportEndpoints.depth
       && manifest.transport?.depth?.status === 'VERIFIED',
-    documentedKlineEndpoint: manifest.transport?.kline?.endpoint === HY_EXP_0022_TRANSPORT_ENDPOINTS.kline
+    documentedKlineEndpoint: manifest.transport?.kline?.endpoint === normalizedProfile.transportEndpoints.kline
       && manifest.transport?.kline?.status === 'VERIFIED',
     minimumDuration: manifest.durationMs >= requiredDurationMs,
-    minimumDynamicSymbols: manifest.symbols.length >= 3,
+    minimumDynamicSymbols: manifest.symbols.length >= minimumDynamicSymbols,
     validSegments: diagnostics.validSegments >= 1 && diagnostics.invalidSegments === 0,
     snapshotAlignmentFailures: diagnostics.snapshotAlignmentFailures === 0,
     sequenceGaps: diagnostics.sequenceGaps === 0,
@@ -1380,8 +1531,8 @@ export function buildCollectorEngineeringReadiness({ result, requiredDurationMs 
   const status = Object.values(checks).every(Boolean) ? 'PASS' : 'COLLECTOR_NOT_READY';
   return {
     schemaVersion: 1,
-    artifactType: 'HY_EXP_0022_COLLECTOR_ENGINEERING_READINESS',
-    experimentId: HY_EXP_0022_ID,
+    artifactType: normalizedProfile.readinessArtifactType,
+    experimentId: normalizedProfile.experimentId,
     status,
     runId: result.runId,
     runWindow: { startedAt: manifest.startedAt, finishedAt: manifest.finishedAt, durationMs: manifest.durationMs },
@@ -1404,7 +1555,7 @@ export function buildCollectorEngineeringReadiness({ result, requiredDurationMs 
     rawFileSha256: Object.fromEntries(manifest.files.map(file => [file.path, file.sha256])),
     manifestSha256: manifest.manifestSha256,
     manifestFileSha256: result.manifestWrite?.manifestFileSha256 ?? null,
-    root: HY_EXP_0022_ENGINEERING_ROOT,
+    root: normalizedProfile.engineeringRoot,
     developmentEligible: false,
     developmentAllowed: false,
     finalOosEligible: false,
@@ -1417,8 +1568,8 @@ export function buildCollectorEngineeringReadiness({ result, requiredDurationMs 
       developmentPassBeforeFinalOosCaptureComplete: false,
       finalOosResearchReadRequiresDevelopmentPassAndSealedCapture: true,
       finalOosWindow: {
-        start: HY_EXP_0022_FINAL_OOS_START,
-        endExclusive: HY_EXP_0022_FINAL_OOS_END_EXCLUSIVE
+        start: normalizedProfile.finalOosStart,
+        endExclusive: normalizedProfile.finalOosEndExclusive
       }
     },
     errors: manifest.errors
@@ -1536,8 +1687,8 @@ export function buildHyExp0022FirstProspectiveBarSmoke({
   };
 }
 
-/** Execute only the isolated Phase-A engineering collector. */
-export async function runHyExp0022EngineeringDryRun({
+/** Execute only the isolated engineering collector for a frozen experiment profile. */
+export async function runCollectorEngineeringDryRun({
   projectRoot = process.cwd(),
   maxRuntimeMs = 5 * 60 * 1_000,
   maxSymbols = DEFAULT_MAX_SYMBOLS,
@@ -1545,14 +1696,23 @@ export async function runHyExp0022EngineeringDryRun({
   confirmationTimeoutMs = DEFAULT_CONFIRMATION_TIMEOUT_MS,
   targetBar = null,
   fetchImpl = globalThis.fetch,
-  WebSocketImpl = globalThis.WebSocket
+  WebSocketImpl = globalThis.WebSocket,
+  profile = HY_EXP_0022_COLLECTOR_PROFILE
 } = {}) {
-  resolveHyExp0022CollectorMode('ENGINEERING_DRY_RUN');
+  const normalizedProfile = normalizeCollectorProfile(profile);
+  if (String(normalizedProfile.captureMode ?? 'ENGINEERING_DRY_RUN').toUpperCase() !== 'ENGINEERING_DRY_RUN') {
+    throw errorWithCode('COLLECTOR_ENGINEERING_MODE_LOCK', 'engineering collector permits ENGINEERING_DRY_RUN only');
+  }
   const startedAt = Date.now();
   const duration = integer('maxRuntimeMs', maxRuntimeMs, 1);
+  const connectionLimit = integer('maxSymbolsPerConnection', normalizedProfile.maxSymbolsPerConnection, 1);
+  const symbolLimit = integer('maxSymbols', maxSymbols, 1);
+  if (symbolLimit > connectionLimit) {
+    throw errorWithCode('UNIVERSE_CONNECTION_BATCH_LIMIT', `maxSymbols exceeds the ${connectionLimit}-symbol depth connection limit`);
+  }
   const deadline = startedAt + duration;
   const runId = `engineering-dry-run-${new Date(startedAt).toISOString().replaceAll(/[-:.TZ]/g, '')}-${randomUUID().slice(0, 8)}`;
-  const directory = assertHyExp0022EngineeringRoot({ projectRoot });
+  const directory = assertCollectorEngineeringRoot({ projectRoot, profile: normalizedProfile });
   const runDirectory = path.join(directory, runId);
   fs.mkdirSync(runDirectory, { recursive: true });
   const writers = {
@@ -1584,15 +1744,16 @@ export async function runHyExp0022EngineeringDryRun({
     transport: null
   };
   const transport = {
-    depth: { endpoint: HY_EXP_0022_TRANSPORT_ENDPOINTS.depth, status: 'NOT_VERIFIED' },
-    kline: { endpoint: HY_EXP_0022_TRANSPORT_ENDPOINTS.kline, status: 'NOT_VERIFIED' }
+    depth: { endpoint: normalizedProfile.transportEndpoints.depth, status: 'NOT_VERIFIED' },
+    kline: { endpoint: normalizedProfile.transportEndpoints.kline, status: 'NOT_VERIFIED' }
   };
   try {
     try {
       universeInputs = await captureExchangeAndUniverse({
         fetchImpl,
         exchangeWriter: writers.exchange,
-        tickerWriter: writers.ticker
+        tickerWriter: writers.ticker,
+        experimentId: normalizedProfile.experimentId
       });
       selection = selectHyExp0022EngineeringSymbols({
         exchangeInfo: universeInputs.exchangeInfo,
@@ -1606,7 +1767,7 @@ export async function runHyExp0022EngineeringDryRun({
         validateHyExp0022ExchangeInfoSymbol({ symbol, row: exchangeInfoBySymbol.get(symbol) })
       ]));
       writers.universeAudit.append({
-        experimentId: HY_EXP_0022_ID,
+        experimentId: normalizedProfile.experimentId,
         stream: 'universe.audit',
         mode: 'ENGINEERING_DRY_RUN',
         observedAt: universeInputs.observedAt,
@@ -1620,7 +1781,7 @@ export async function runHyExp0022EngineeringDryRun({
         selection
       });
       writers.universe.append({
-        experimentId: HY_EXP_0022_ID,
+        experimentId: normalizedProfile.experimentId,
         stream: 'universe.snapshot',
         phase: 'CAPTURE_CANDIDATE_SET_BEFORE_DEPTH',
         observedAt: universeInputs.observedAt,
@@ -1633,7 +1794,12 @@ export async function runHyExp0022EngineeringDryRun({
         futureDataUsed: false,
         developmentEligible: false
       });
-      fundingRows = await captureFunding({ symbols: selection.symbols, fetchImpl, fundingWriter: writers.funding });
+      fundingRows = await captureFunding({
+        symbols: selection.symbols,
+        fetchImpl,
+        fundingWriter: writers.funding,
+        experimentId: normalizedProfile.experimentId
+      });
     } catch (error) {
       errors.push(`universe_or_metadata:${error.message}`);
     }
@@ -1646,7 +1812,9 @@ export async function runHyExp0022EngineeringDryRun({
           segmentMaxMs: integer('segmentMaxMs', segmentMaxMs, 1),
           fetchImpl,
           WebSocketImpl,
-          writers
+          writers,
+          experimentId: normalizedProfile.experimentId,
+          depthSymbolsPerConnection: normalizedProfile.depthSymbolsPerConnection
         }),
         collectKlineStream({
           symbols,
@@ -1656,7 +1824,9 @@ export async function runHyExp0022EngineeringDryRun({
           klineWriter: writers.kline,
           confirmationWriter: writers.confirmation,
           confirmationTimeoutMs: integer('confirmationTimeoutMs', confirmationTimeoutMs, 1),
-          targetBar
+          targetBar,
+          experimentId: normalizedProfile.experimentId,
+          captureStart: normalizedProfile.captureStart
         })
       ]);
       segments = depthResult;
@@ -1667,7 +1837,7 @@ export async function runHyExp0022EngineeringDryRun({
         status: depthCapability.opened && depthCapability.subscriptionAck && depthCapability.dataMessages > 0 ? 'VERIFIED' : 'FAIL'
       };
       transport.kline = {
-        ...(klineDiagnostics.transport ?? { endpoint: HY_EXP_0022_TRANSPORT_ENDPOINTS.kline }),
+        ...(klineDiagnostics.transport ?? { endpoint: normalizedProfile.transportEndpoints.kline }),
         status: klineDiagnostics.transport?.opened && klineDiagnostics.transport?.subscriptionAck && klineDiagnostics.websocketEvents > 0
           ? 'VERIFIED'
           : 'FAIL'
@@ -1676,7 +1846,7 @@ export async function runHyExp0022EngineeringDryRun({
         .filter(context => context.status === 'ALIGNED' && context.maxDepthLevel >= DEPTH_LEVELS)
         .map(context => context.symbol)))].sort();
       writers.universe.append({
-        experimentId: HY_EXP_0022_ID,
+        experimentId: normalizedProfile.experimentId,
         stream: 'universe.snapshot',
         phase: 'CAPTURE_DEPTH_ELIGIBILITY_AUDIT',
         observedAt: Date.now(),
@@ -1726,7 +1896,8 @@ export async function runHyExp0022EngineeringDryRun({
     diagnostics,
     transport,
     barSourceVerification: klineDiagnostics,
-    errors: [...errors, ...(klineDiagnostics.errors ?? [])]
+    errors: [...errors, ...(klineDiagnostics.errors ?? [])],
+    profile: normalizedProfile
   });
   const manifestWrite = writeImmutableHyExp0022Manifest({ directory: runDirectory, manifest });
   return {
@@ -1741,9 +1912,15 @@ export async function runHyExp0022EngineeringDryRun({
     manifestWrite,
     transport,
     diagnostics,
-    windows: HY_EXP_0022_WINDOWS,
+    windows: normalizedProfile.windows,
+    profile: normalizedProfile,
     noDevelopment: true,
     noOosRead: true,
     pnlComputed: false
   };
+}
+
+/** Backwards-compatible HY-EXP-0022 engineering entrypoint. */
+export async function runHyExp0022EngineeringDryRun(options = {}) {
+  return runCollectorEngineeringDryRun({ ...options, profile: HY_EXP_0022_COLLECTOR_PROFILE });
 }

@@ -1,0 +1,1070 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_ENGINEERING_DIAGNOSTIC_ONLY",
+  "experimentId": "HY-EXP-0023",
+  "runId": "engineering-dry-run-20260822102905214-86805c28",
+  "runWindow": {
+    "startedAt": "2026-08-22T10:29:05.214Z",
+    "finishedAt": "2026-08-22T10:30:05.464Z",
+    "durationMs": 60250
+  },
+  "safety": {
+    "experimentId": "HY-EXP-0023",
+    "runId": "engineering-dry-run-20260822102905214-86805c28",
+    "captureMode": "ENGINEERING_DRY_RUN",
+    "authorization": "PAPER_ONLY",
+    "liveOrdersEnabled": false,
+    "orderApiEnabled": false,
+    "accountApiEnabled": false,
+    "pnlComputed": false,
+    "developmentAllowed": false,
+    "officialCaptureAuthorized": false,
+    "finalOosRead": false,
+    "startedAt": "2026-08-22T10:29:05.214Z",
+    "engineeringRoot": "data\\raw\\engineering-dry-run\\HY-EXP-0023",
+    "developmentRoot": "data\\raw\\prospective-development\\HY-EXP-0023",
+    "finalOosRoot": "data\\raw\\prospective-final-oos\\HY-EXP-0023"
+  },
+  "status": "ENGINEERING_DIAGNOSTIC_FAIL",
+  "formalReadiness": "NOT_RUN",
+  "officialCaptureAuthorized": false,
+  "checks": {
+    "documentedEndpoints": true,
+    "dynamicSymbols": true,
+    "validSegments": false,
+    "snapshotAlignmentFailures": false,
+    "sequenceGaps": false,
+    "crossedBooks": true,
+    "bufferLimitFailures": true,
+    "receivedAtPresent": true,
+    "fundingSchema": true,
+    "exchangeInfoSchema": true,
+    "noPnl": true,
+    "noDevelopment": true,
+    "paperOnly": true
+  },
+  "diagnostics": {
+    "validSegments": 0,
+    "invalidSegments": 1,
+    "snapshotAlignmentFailures": 9,
+    "sequenceGaps": 1,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "staleBufferedDropped": 285,
+    "bufferedEventsPeak": 57,
+    "snapshotAttempts": 20,
+    "snapshotTooOldRetries": 0,
+    "alignmentSuccesses": 11,
+    "alignmentFailures": 9,
+    "gapDiagnostics": [
+      {
+        "symbol": "1000PEPEUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250191265,
+        "previousu": 11355250191265,
+        "currentU": 11355250044648,
+        "currentu": 11355250063631,
+        "currentPu": 11355250044139,
+        "exchangeE": 1787394560409,
+        "transactionT": 1787394560407,
+        "receivedAt": 1787394569776,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BNBUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250106318,
+        "previousu": 11355250106318,
+        "currentU": 11355250041891,
+        "currentu": 11355250059877,
+        "currentPu": 11355250040443,
+        "exchangeE": 1787394560387,
+        "transactionT": 1787394560380,
+        "receivedAt": 1787394569772,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BTCUSDC",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250085220,
+        "previousu": 11355250085220,
+        "currentU": 11355250045285,
+        "currentu": 11355250063140,
+        "currentPu": 11355250043178,
+        "exchangeE": 1787394560413,
+        "transactionT": 1787394560403,
+        "receivedAt": 1787394569777,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "ENAUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250059186,
+        "previousu": 11355250059186,
+        "currentU": 11355250059424,
+        "currentu": 11355250071529,
+        "currentPu": 11355250059186,
+        "exchangeE": 1787394560481,
+        "transactionT": 1787394560475,
+        "receivedAt": 1787394572089,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "missing_interval"
+      },
+      {
+        "symbol": "ETHUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250088445,
+        "previousu": 11355250088445,
+        "currentU": 11355250044183,
+        "currentu": 11355250062958,
+        "currentPu": 11355250043691,
+        "exchangeE": 1787394560403,
+        "transactionT": 1787394560402,
+        "receivedAt": 1787394569776,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "HYPEUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250524153,
+        "previousu": 11355250524153,
+        "currentU": 11355250054068,
+        "currentu": 11355250069675,
+        "currentPu": 11355250053585,
+        "exchangeE": 1787394560461,
+        "transactionT": 1787394560457,
+        "receivedAt": 1787394569781,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "LINKUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250106398,
+        "previousu": 11355250106398,
+        "currentU": 11355250057061,
+        "currentu": 11355250070031,
+        "currentPu": 11355250054235,
+        "exchangeE": 1787394560469,
+        "transactionT": 1787394560461,
+        "receivedAt": 1787394572089,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "PUMPUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250618417,
+        "previousu": 11355250618417,
+        "currentU": 11355250046354,
+        "currentu": 11355250064567,
+        "currentPu": 11355250046277,
+        "exchangeE": 1787394560420,
+        "transactionT": 1787394560416,
+        "receivedAt": 1787394569778,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "TRUMPUSDT",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250310100,
+        "previousu": 11355250310100,
+        "currentU": 11355250041279,
+        "currentu": 11355250060158,
+        "currentPu": 11355250041182,
+        "exchangeE": 1787394560383,
+        "transactionT": 1787394560382,
+        "receivedAt": 1787394569772,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "XRPUSDC",
+        "segmentId": "engineering-dry-run-20260822102905214-86805c28:depth:1",
+        "previousU": 11355250148089,
+        "previousu": 11355250148089,
+        "currentU": 11355250044944,
+        "currentu": 11355250063571,
+        "currentPu": 11355250044482,
+        "exchangeE": 1787394560410,
+        "transactionT": 1787394560406,
+        "receivedAt": 1787394569776,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822102905214-86805c28:depth:1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      }
+    ],
+    "symbolsCaptured": [
+      "1000PEPEUSDT",
+      "ADAUSDT",
+      "BCHUSDT",
+      "BNBUSDT",
+      "BTCUSDC",
+      "BTCUSDT",
+      "DOGEUSDT",
+      "ENAUSDT",
+      "ETHUSDC",
+      "ETHUSDT",
+      "HYPEUSDT",
+      "LINKUSDT",
+      "PUMPUSDT",
+      "SOLUSDC",
+      "SOLUSDT",
+      "SUIUSDT",
+      "TRUMPUSDT",
+      "XRPUSDC",
+      "XRPUSDT",
+      "ZECUSDT"
+    ],
+    "exchangeInfoCaptured": true,
+    "exchangeInfoValidation": {
+      "1000PEPEUSDT": {
+        "symbol": "1000PEPEUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1683244800000,
+        "filters": {
+          "tickSize": "0.0000001",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "ADAUSDT": {
+        "symbol": "ADAUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1580457600000,
+        "filters": {
+          "tickSize": "0.00010",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "BCHUSDT": {
+        "symbol": "BCHUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1576745700000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "20"
+        }
+      },
+      "BNBUSDT": {
+        "symbol": "BNBUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1581321600000,
+        "filters": {
+          "tickSize": "0.010",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "BTCUSDC": {
+        "symbol": "BTCUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704285000000,
+        "filters": {
+          "tickSize": "0.1",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "50"
+        }
+      },
+      "BTCUSDT": {
+        "symbol": "BTCUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1567965300000,
+        "filters": {
+          "tickSize": "0.10",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "50"
+        }
+      },
+      "DOGEUSDT": {
+        "symbol": "DOGEUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1594371600000,
+        "filters": {
+          "tickSize": "0.000010",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "ENAUSDT": {
+        "symbol": "ENAUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1712061000000,
+        "filters": {
+          "tickSize": "0.0000100",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "ETHUSDC": {
+        "symbol": "ETHUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704285300000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "20"
+        }
+      },
+      "ETHUSDT": {
+        "symbol": "ETHUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1574840700000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "20"
+        }
+      },
+      "HYPEUSDT": {
+        "symbol": "HYPEUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1748601000000,
+        "filters": {
+          "tickSize": "0.00100",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "LINKUSDT": {
+        "symbol": "LINKUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1579248000000,
+        "filters": {
+          "tickSize": "0.001",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "20"
+        }
+      },
+      "PUMPUSDT": {
+        "symbol": "PUMPUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1752132600000,
+        "filters": {
+          "tickSize": "0.0000010",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "SOLUSDC": {
+        "symbol": "SOLUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704285900000,
+        "filters": {
+          "tickSize": "0.0100",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "SOLUSDT": {
+        "symbol": "SOLUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1600066800000,
+        "filters": {
+          "tickSize": "0.0100",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "SUIUSDT": {
+        "symbol": "SUIUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1683072000000,
+        "filters": {
+          "tickSize": "0.000100",
+          "stepSize": "0.1",
+          "minQty": "0.1",
+          "minNotional": "5"
+        }
+      },
+      "TRUMPUSDT": {
+        "symbol": "TRUMPUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1737205200000,
+        "filters": {
+          "tickSize": "0.001000",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "XRPUSDC": {
+        "symbol": "XRPUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704286200000,
+        "filters": {
+          "tickSize": "0.0001",
+          "stepSize": "0.1",
+          "minQty": "0.1",
+          "minNotional": "5"
+        }
+      },
+      "XRPUSDT": {
+        "symbol": "XRPUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1578298800000,
+        "filters": {
+          "tickSize": "0.0001",
+          "stepSize": "0.1",
+          "minQty": "0.1",
+          "minNotional": "5"
+        }
+      },
+      "ZECUSDT": {
+        "symbol": "ZECUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1580889600000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "5"
+        }
+      }
+    },
+    "exchangeInfoSchemaValid": true,
+    "universeSnapshots": 2,
+    "fundingMissing": 0,
+    "fundingRowsValid": true,
+    "missingReceivedAt": 0,
+    "klineWebsocketEvents": 1977,
+    "barSourceStatus": "PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED",
+    "transport": {
+      "depth": {
+        "endpoint": "wss://fstream.binance.com/public/stream",
+        "kind": "depth",
+        "opened": true,
+        "subscriptionAck": true,
+        "dataMessages": 316,
+        "stValues": [
+          1
+        ],
+        "psValues": [
+          "SOLUSDT",
+          "1000PEPEUSDT",
+          "ZECUSDT",
+          "ADAUSDT",
+          "PUMPUSDT",
+          "BNBUSDT",
+          "BTCUSDC",
+          "DOGEUSDT",
+          "LINKUSDT",
+          "SOLUSDC",
+          "ENAUSDT",
+          "SUIUSDT",
+          "TRUMPUSDT",
+          "BTCUSDT",
+          "XRPUSDT",
+          "ETHUSDC",
+          "ETHUSDT",
+          "HYPEUSDT",
+          "XRPUSDC",
+          "BCHUSDT"
+        ],
+        "status": "VERIFIED"
+      },
+      "kline": {
+        "endpoint": "wss://fstream.binance.com/market/stream",
+        "kind": "kline",
+        "opened": true,
+        "subscriptionAck": true,
+        "dataMessages": 1977,
+        "stValues": [],
+        "psValues": [],
+        "status": "VERIFIED"
+      }
+    }
+  },
+  "transport": {
+    "depth": {
+      "endpoint": "wss://fstream.binance.com/public/stream",
+      "kind": "depth",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 316,
+      "stValues": [
+        1
+      ],
+      "psValues": [
+        "SOLUSDT",
+        "1000PEPEUSDT",
+        "ZECUSDT",
+        "ADAUSDT",
+        "PUMPUSDT",
+        "BNBUSDT",
+        "BTCUSDC",
+        "DOGEUSDT",
+        "LINKUSDT",
+        "SOLUSDC",
+        "ENAUSDT",
+        "SUIUSDT",
+        "TRUMPUSDT",
+        "BTCUSDT",
+        "XRPUSDT",
+        "ETHUSDC",
+        "ETHUSDT",
+        "HYPEUSDT",
+        "XRPUSDC",
+        "BCHUSDT"
+      ],
+      "status": "VERIFIED"
+    },
+    "kline": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "kind": "kline",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 1977,
+      "stValues": [],
+      "psValues": [],
+      "status": "VERIFIED"
+    }
+  },
+  "barSourceVerification": {
+    "transport": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "kind": "kline",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 1977,
+      "stValues": [],
+      "psValues": [],
+      "status": "OPEN"
+    },
+    "websocketEvents": 1977,
+    "openCurrentBarEvents": 0,
+    "finalBarEvents": 0,
+    "finalWebsocketBars": 0,
+    "confirmedBars": 0,
+    "sourceConflicts": 0,
+    "confirmationMissing": 0,
+    "preCaptureBarsRejected": 1977,
+    "nonTargetFinalBars": 0,
+    "targetBar": null,
+    "perSymbol": {
+      "1000PEPEUSDT": {
+        "symbol": "1000PEPEUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ADAUSDT": {
+        "symbol": "ADAUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BCHUSDT": {
+        "symbol": "BCHUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BNBUSDT": {
+        "symbol": "BNBUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BTCUSDC": {
+        "symbol": "BTCUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BTCUSDT": {
+        "symbol": "BTCUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "DOGEUSDT": {
+        "symbol": "DOGEUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ENAUSDT": {
+        "symbol": "ENAUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ETHUSDC": {
+        "symbol": "ETHUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ETHUSDT": {
+        "symbol": "ETHUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "HYPEUSDT": {
+        "symbol": "HYPEUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "LINKUSDT": {
+        "symbol": "LINKUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "PUMPUSDT": {
+        "symbol": "PUMPUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "SOLUSDC": {
+        "symbol": "SOLUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "SOLUSDT": {
+        "symbol": "SOLUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "SUIUSDT": {
+        "symbol": "SUIUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "TRUMPUSDT": {
+        "symbol": "TRUMPUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "XRPUSDC": {
+        "symbol": "XRPUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "XRPUSDT": {
+        "symbol": "XRPUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ZECUSDT": {
+        "symbol": "ZECUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      }
+    },
+    "errors": [],
+    "status": "PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED",
+    "developmentEligible": false,
+    "historicalBackfillUsed": false,
+    "preCaptureOnly": true
+  },
+  "storage": {
+    "metrics": {
+      "root": "E:\\Codex\\Hengyu\\data\\raw\\engineering-dry-run\\HY-EXP-0023\\engineering-dry-run-20260822102905214-86805c28",
+      "sampleWindow": {
+        "startedAt": "2026-08-22T10:29:05.214Z",
+        "finishedAt": "2026-08-22T10:30:05.464Z",
+        "durationSeconds": 60.25
+      },
+      "symbols": [
+        "1000PEPEUSDT",
+        "ADAUSDT",
+        "BCHUSDT",
+        "BNBUSDT",
+        "BTCUSDC",
+        "BTCUSDT",
+        "DOGEUSDT",
+        "ENAUSDT",
+        "ETHUSDC",
+        "ETHUSDT",
+        "HYPEUSDT",
+        "LINKUSDT",
+        "PUMPUSDT",
+        "SOLUSDC",
+        "SOLUSDT",
+        "SUIUSDT",
+        "TRUMPUSDT",
+        "XRPUSDC",
+        "XRPUSDT",
+        "ZECUSDT"
+      ],
+      "totalBytes": 4303663,
+      "totalEvents": 2340,
+      "bytesPerSecond": 71430.09128630706,
+      "bytesPerSecondPerSymbol": 3571.5045643153526,
+      "eventsPerSecond": 38.83817427385892,
+      "byStream": {
+        "depth": {
+          "bytes": 547594,
+          "events": 316,
+          "files": 1
+        },
+        "snapshot": {
+          "bytes": 822112,
+          "events": 20,
+          "files": 1
+        },
+        "exchangeInfo": {
+          "bytes": 1077740,
+          "events": 1,
+          "files": 1
+        },
+        "funding": {
+          "bytes": 8359,
+          "events": 20,
+          "files": 1
+        },
+        "kline": {
+          "bytes": 1178018,
+          "events": 1977,
+          "files": 2
+        },
+        "other": {
+          "bytes": 338477,
+          "events": 1,
+          "files": 3
+        },
+        "segment": {
+          "bytes": 21854,
+          "events": 1,
+          "files": 1
+        },
+        "metadata": {
+          "bytes": 309509,
+          "events": 3,
+          "files": 2
+        }
+      },
+      "projected30DayBytes": 185146796615,
+      "projectedDevelopmentPeriodBytes": 1169510598613,
+      "projectedFinalOosPeriodBytes": 1135567019234,
+      "projectedFullExperimentBytes": 2305077617847
+    },
+    "capacity": {
+      "availableBytes": 76361682944,
+      "filesystem": "E:\\",
+      "source": "node:fs.statfsSync"
+    }
+  },
+  "clock": {
+    "ready": false,
+    "reason": "OS_CLOCK_NOT_SYNCHRONIZED",
+    "osState": {
+      "synchronized": false,
+      "source": "w32tm",
+      "error": "spawn EPERM"
+    },
+    "driftMs": null
+  },
+  "alerts": {
+    "ready": false,
+    "required": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ],
+    "active": [],
+    "missing": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ]
+  },
+  "manifestSha256": "cb97b6dee444d8f6c469f6ee7a9669910e26db780c25e7722d80690c94d4cc65",
+  "manifestFileSha256": "4d92245e57eda0a55b2dd94b665e0d9141a2b43b675dcb064678bd1130db3a9d",
+  "rawFileSha256": {
+    "depth.diff.ndjson": "32dc60a082b3056a5db26ba8bdf37a33cb8495b1397da5102788acefe3999113",
+    "depth.snapshot.ndjson": "1ff85ae0dd3d27493c58487430ac576889764b042feb7c73032f42dce70e1002",
+    "kline.4h.ndjson": "cf2f713dad8ab2cb7d060f8f541fd8f24994d8c6facf58a5dfd69b540980de48",
+    "kline.4h.confirmation.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exchangeInfo.ndjson": "bb9d70517c75a83982fc59b099c34cb331f781e090ddf90c9a33be576a6a3699",
+    "funding.ndjson": "7abbc4a8487f483fb3c95778a32bf7860b54a828a5f41c9157c743ae94557f06",
+    "ticker.diagnostic.ndjson": "9e07d50d6808a3c34b7e72ae040634d4da11e9bbf4d9dd71244b200b6d5d1a1f",
+    "universe.snapshot.ndjson": "fb3fe0754a167844f7bb724a637f920510eefe04e186b6dbd1da2f1a60afb695",
+    "universe.audit.ndjson": "e558f4fc09a6c0180ad1dba44f15c23d3fcbb157c383d19b5a48796a6811bf7b",
+    "segment.audit.ndjson": "1b37cbac7e9462b1c64e7c7c70f562a2fcdfd59c2658befdbbbde563a5ce8b66"
+  },
+  "rawDirectory": "E:\\Codex\\Hengyu\\data\\raw\\engineering-dry-run\\HY-EXP-0023\\engineering-dry-run-20260822102905214-86805c28",
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "finalOosRead": false,
+  "finalOosEligible": false,
+  "historicalBackfillUsed": false,
+  "proxyDepthUsed": false
+}
