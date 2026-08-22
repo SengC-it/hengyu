@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_PRE_CAPTURE_CLOSURE",
+  "experimentId": "HY-EXP-0023",
+  "status": "WITHDRAWN_PRE_CAPTURE_FROZEN",
+  "registryEventType": "failed",
+  "reason": "RESEARCH_DIRECTION_CHANGED_AND_REQUIRED_PRECAPTURE_READINESS_NOT_COMPLETED",
+  "recordedAt": "2026-08-22T23:38:39.332644Z",
+  "captureStart": "2026-08-23T12:00:00.000Z",
+  "officialCaptureStarted": false,
+  "stageAPassed": false,
+  "formalReadinessPassed": false,
+  "developmentStarted": false,
+  "developmentAllowed": false,
+  "developmentDataCollected": false,
+  "finalOosRead": false,
+  "pnlComputed": false,
+  "accountApiUsed": false,
+  "orderApiUsed": false,
+  "liveOrdersEnabled": false,
+  "paperOnly": true,
+  "productionDeploy": false,
+  "backfillPermitted": false,
+  "captureStartMoved": false,
+  "canResume": false,
+  "futureRetryRequiresNewExperimentId": true,
+  "preregistrationModified": false,
+  "frozenArtifacts": [
+    {
+      "path": "registry/experiments/HY-EXP-0023/preregistration.json",
+      "sha256": "6fcd11c3c5767259b4c43e4a96ca733857f31d72f73e6f8eed0ff3e8eb61934e"
+    },
+    {
+      "path": "artifacts/HY-EXP-0023/preregistration-resolution.json",
+      "sha256": "6c83ed256900963357570daed55dcb8df57ae40b9a1335da0959d42bfde1e4ae"
+    },
+    {
+      "path": "artifacts/HY-EXP-0023/preregistration-resolution-correction.json",
+      "sha256": "6039a9fc6000fbebfd89b9273b19e1f3fd0f9208e8ecd6425b12784860db71df"
+    }
+  ],
+  "closureStatements": [
+    "HY-EXP-0023 is a pre-capture research withdrawal, not a strategy, PnL or post-capture data failure.",
+    "The required persistent full-L2/B2/Stage-A/Stage-B/Stage-C infrastructure path was intentionally not continued.",
+    "No official capture was started and no eligible raw data was consumed.",
+    "No backfill is permitted.",
+    "The frozen captureStart is not moved.",
+    "HY-EXP-0023 can never be resumed.",
+    "Any future retry of this infrastructure design requires a new experiment ID.",
+    "HY-EXP-0023 remains PAPER_ONLY with no account or order API use."
+  ]
+}

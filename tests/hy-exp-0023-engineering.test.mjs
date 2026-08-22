@@ -160,6 +160,45 @@ test('0023 resolution freezes the preregistration hash, capture start and candid
   assert.equal(resolution.officialCaptureAuthorized, false);
 });
 
+test('0023 closure is a frozen pre-capture withdrawal and preserves all historical inputs', () => {
+  const closurePath = 'artifacts/HY-EXP-0023/closure.json';
+  const closure = JSON.parse(fs.readFileSync(closurePath, 'utf8'));
+  assert.equal(closure.status, 'WITHDRAWN_PRE_CAPTURE_FROZEN');
+  assert.equal(closure.registryEventType, 'failed');
+  assert.equal(closure.reason, 'RESEARCH_DIRECTION_CHANGED_AND_REQUIRED_PRECAPTURE_READINESS_NOT_COMPLETED');
+  assert.equal(closure.captureStart, HY_EXP_0023_CAPTURE_START);
+  assert.ok(Date.parse(closure.recordedAt) < Date.parse(closure.captureStart));
+  assert.equal(closure.officialCaptureStarted, false);
+  assert.equal(closure.stageAPassed, false);
+  assert.equal(closure.formalReadinessPassed, false);
+  assert.equal(closure.developmentStarted, false);
+  assert.equal(closure.developmentAllowed, false);
+  assert.equal(closure.developmentDataCollected, false);
+  assert.equal(closure.finalOosRead, false);
+  assert.equal(closure.pnlComputed, false);
+  assert.equal(closure.accountApiUsed, false);
+  assert.equal(closure.orderApiUsed, false);
+  assert.equal(closure.liveOrdersEnabled, false);
+  assert.equal(closure.paperOnly, true);
+  assert.equal(closure.backfillPermitted, false);
+  assert.equal(closure.captureStartMoved, false);
+  assert.equal(closure.canResume, false);
+  assert.equal(closure.futureRetryRequiresNewExperimentId, true);
+
+  const expectedFrozen = new Map([
+    ['registry/experiments/HY-EXP-0023/preregistration.json', '6fcd11c3c5767259b4c43e4a96ca733857f31d72f73e6f8eed0ff3e8eb61934e'],
+    ['artifacts/HY-EXP-0023/preregistration-resolution.json', '6c83ed256900963357570daed55dcb8df57ae40b9a1335da0959d42bfde1e4ae'],
+    ['artifacts/HY-EXP-0023/preregistration-resolution-correction.json', '6039a9fc6000fbebfd89b9273b19e1f3fd0f9208e8ecd6425b12784860db71df']
+  ]);
+  assert.deepEqual(
+    closure.frozenArtifacts.map(artifact => [artifact.path, artifact.sha256]),
+    [...expectedFrozen.entries()]
+  );
+  for (const [relativePath, expectedHash] of expectedFrozen) {
+    assert.equal(sha256HyExp0023Artifact(relativePath), expectedHash);
+  }
+});
+
 test('0023 engineering data is isolated, never Development input, and official capture is locked', () => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0023-root-'));
   assert.throws(() => assertHyExp0023EngineeringNeverDevelopmentInput({
