@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0024",
+  "status": "not_preregistered_not_promoted",
+  "authorization": "PAPER_ONLY",
+  "liveOrdersEnabled": false,
+  "promotion": "FORBIDDEN_UNTIL_SEPARATE_PREREGISTRATION_AND_OOS",
+  "objective": "Increase usable high-quality signal count while preserving net expectancy after conservative costs; trade count alone is not an objective.",
+  "baseline": "Current H12 remains HY-EXP-0018 SELL_ONLY 4h and is not modified.",
+  "candidateEngine": [
+    "Candidate",
+    "Edge Model",
+    "Net Edge Gate",
+    "Portfolio Risk Gate",
+    "Advisory"
+  ],
+  "universe": {
+    "maxSymbols": 20,
+    "sensitivityOnlyMaxSymbols": [
+      20,
+      30
+    ],
+    "allowedQuoteAssets": [
+      "USDT",
+      "USDC"
+    ],
+    "stableBaseExclusion": true,
+    "minimumListingAgeDays": 30,
+    "liquidityRule": "previous six completed 4h quoteVolume sum; deterministic descending rank; missing data excludes symbol",
+    "depthRule": "historical depth unavailable means OHLCV depth proxy is research-only and cannot promote",
+    "pointInTimeRule": "only metadata and quote volume known at decisionTime may affect membership"
+  },
+  "regime": {
+    "timeframe": "4h",
+    "fastSmaBars": 60,
+    "slowSmaBars": 180,
+    "breadthFraction": 0.5,
+    "bull": "BTC fast SMA > slow SMA AND BTC close > slow SMA AND at least ceil(50% of eligible universe) closes above own slow SMA",
+    "bear": "BTC fast SMA < slow SMA AND BTC close < slow SMA AND at least ceil(50% of eligible universe) closes below own slow SMA",
+    "sideways": "otherwise; NO_TRADE"
+  },
+  "entry": {
+    "timeframe": "1h",
+    "completedBarsOnly": true,
+    "families": {
+      "TREND_BREAKOUT": "close beyond prior 120 completed 1h high/low; direction must match 4h regime",
+      "PULLBACK_CONTINUATION": "trend close beyond 60-bar SMA, intrabar touch of 20-bar SMA, close recovers on regime side",
+      "VOLATILITY_EXPANSION": "true range / ATR20 >= 2.0 and close direction matches 4h regime"
+    },
+    "familyIsolation": "Each family is evaluated and attributed independently; no pooled signal count or blind mixing."
+  },
+  "edgeModel": {
+    "modelId": "HENGYU-EDGE-HY-EXP-0024-RIDGE-001",
+    "edgeSource": "HENGYU-HY-EXP-0024-PURGED-RIDGE-FORWARD",
+    "target": "directional executable forward return in bps after the preregistered horizon, before fees/funding",
+    "horizonBars": 6,
+    "features": [
+      "trend strength: (close - SMA60) / ATR20",
+      "distance to fast/slow SMA in bps",
+      "4h breadth fraction",
+      "breakout or pullback distance in ATR units",
+      "ATR20 normalized volatility",
+      "quoteVolume / prior-six-bar median quoteVolume",
+      "recent 6-bar momentum",
+      "BTC regime one-hot",
+      "funding rate and absolute funding rate",
+      "symbol liquidity rank and log quoteVolume"
+    ],
+    "transforms": "fit winsorization at train 1st/99th percentiles and z-score mean/std on train only; apply frozen transform to validation/OOS",
+    "training": "separate ridge regression for each candidate family x regime x side; intercept included; lambda=1.0 frozen; no pooled BUY/BULL mean",
+    "sensitivityGrid": {
+      "lambda": [
+        0.1,
+        1,
+        10
+      ],
+      "selection": "report stability only; lambda=1.0 remains the preregistered primary model"
+    },
+    "minimumSamples": 100,
+    "unavailableRule": "below minimum samples or missing causal feature => available=false, expectedPriceEdgeBps=null, edgeSource=UNVERIFIED",
+    "uncertainty": "residual standard error with finite-sample correction; conservative edge = prediction - 1.645*standardErrorBps",
+    "calibration": [
+      "MAE",
+      "RMSE",
+      "decile predicted-vs-realized mean",
+      "decile calibration slope/intercept",
+      "Spearman rank correlation"
+    ],
+    "validation": "expanding walk-forward; purge=6 bars; embargo=6 bars; development and final untouched OOS are separate; no OOS reads before development PASS"
+  },
+  "costs": {
+    "source": "config/net-edge-model.json",
+    "feeBpsRoundTrip": 10,
+    "spreadAndStressedBookProxyBps": 4,
+    "impactBpsRoundTrip": 2,
+    "latencyBpsRoundTrip": 2,
+    "totalProxyBps": 18,
+    "funding": "realized funding events known at decision/holding time; missing event fails closed",
+    "rule": "conservative executable edge must exceed costs + funding stress + uncertainty + minimum net hurdle"
+  },
+  "exits": {
+    "stop": "2.0 ATR20 from executable entry",
+    "dynamicChannel": "exit on completed 1h close through prior 60 completed 1h channel in adverse direction",
+    "profitProtection": "none in primary model; any trailing/profit-protection variant is a separate family/experiment",
+    "maxHold": "none in primary model; research expiry is not a holding-period exit",
+    "boundary": "open positions at evaluation boundary are censored/held out, never force-labeled as profitable"
+  },
+  "riskAndDelivery": {
+    "sizing": "existing stop-risk sizing and exchange step/min-notional validation",
+    "limits": "existing config/net-edge-model.json portfolio limits",
+    "advisory": "only Edge -> Net Edge -> Portfolio Risk PASS may create PAPER_ONLY Advisory",
+    "gmail": "reuse existing Gmail; strong immediate, medium existing 15m digest semantics, observe web/Supabase only",
+    "orderApi": false,
+    "accountApi": false
+  },
+  "promotionGates": [
+    "validated edge available for every promoted candidate family/regime/side",
+    "minimum sample and calibration gates pass",
+    "net PF > 1 after fees/slippage/funding in development and untouched OOS",
+    "positive months, MTM drawdown, CVaR95, loss streak, symbol breadth and regime breadth gates pass",
+    "cost stress and parameter stability pass without manual rescue",
+    "if development fails: STOP; do not read or optimize against final OOS"
+  ]
+}

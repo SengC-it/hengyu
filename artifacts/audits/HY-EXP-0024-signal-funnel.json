@@ -1,0 +1,492 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0024",
+  "status": "AUDIT_ONLY_NOT_PREREGISTERED",
+  "evidenceClass": "D0_DESCRIPTIVE_DEVELOPMENT_INFORMATION",
+  "generatedAt": "2026-08-22T16:00:12.276Z",
+  "authorization": "PAPER_ONLY",
+  "liveOrdersEnabled": false,
+  "pnlComputed": false,
+  "auditWindow": {
+    "start": "2024-01-01T00:00:00.000Z",
+    "endExclusive": "2025-07-01T00:00:00.000Z",
+    "classification": "HY-EXP-0019_DEVELOPMENT_INFORMATION_ONLY",
+    "prohibitedWindowReuse": "2025-07-01T00:00:00.000Z to 2026-07-01T00:00:00.000Z is not used as independent OOS"
+  },
+  "sources": {
+    "sourceExperiment": "HY-EXP-0001 locked archive as referenced by HY-EXP-0019",
+    "sourceManifestSha256": "136ba1268cb91c700f55cdfa5a487aa3e9bd0c0575996bece314fb5223cf4986",
+    "symbolsLoaded": [
+      "BNBUSDT",
+      "BTCUSDT",
+      "DOGEUSDT",
+      "ETHUSDT",
+      "LINKUSDT",
+      "LTCUSDT",
+      "SOLUSDT",
+      "XRPUSDT"
+    ],
+    "barSource": "Binance official contract 5m archives aggregated to causal 1h/4h bars",
+    "fundingSource": "Binance official funding archives",
+    "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK"
+  },
+  "liveH12StructuralAudit": {
+    "expectedPriceEdgeBps": null,
+    "edgeSource": "UNVERIFIED",
+    "sampleSize": 0,
+    "available": false,
+    "forceUnverifiedEdgeNoTrade": true,
+    "otherwiseValidCandidateCanBecomeGmailAdvisory": false,
+    "proof": "live-h12 evaluates the shared gate with a null edge and then forceUnverifiedEdgeNoTrade; no gate bypass is introduced"
+  },
+  "currentH12Funnel": {
+    "unit": "completed 4h scan-symbol slot; historical audit uses HY-EXP-0019 development window only",
+    "barsScanned": 19692,
+    "scanCount": 3282,
+    "regimeTrendEligibleScans": 1069,
+    "regimePassScans": 1029,
+    "breadthRejectedScans": 40,
+    "breakoutCandidates": 112,
+    "proxyExecutableCandidates": 112,
+    "strictHistoricalExecutableCandidates": 0,
+    "edgeEligible": 0,
+    "netEdgePass": 0,
+    "portfolioRiskPass": 0,
+    "gmailAdvisories": 0,
+    "fixedSixSymbolCandidates": 112,
+    "additionalDynamicSymbolsObserved": 41,
+    "sellOnlyBullCandidatesExcluded": 587,
+    "fourHourOnlyCandidateCount": 112,
+    "schedulerDelay": {
+      "status": "NOT_OBSERVABLE_FROM_ARCHIVED_DATA",
+      "thresholdMs": 900000
+    },
+    "missingMarketData": {
+      "status": "HISTORICAL_L2_UNAVAILABLE",
+      "strictExecutableCount": 0
+    },
+    "edgeGate": {
+      "status": "STRUCTURALLY_UNVERIFIED_IN_LIVE_H12",
+      "rejection": "EDGE_UNVERIFIED",
+      "forceNoTrade": true
+    },
+    "riskGate": {
+      "status": "NOT_REACHED_FOR_LIVE_H12_UNVERIFIED_EDGE",
+      "count": 0
+    },
+    "by": {
+      "total": 112,
+      "bySymbol": {
+        "BNBUSDT": 13,
+        "BTCUSDT": 26,
+        "DOGEUSDT": 24,
+        "ETHUSDT": 18,
+        "SOLUSDT": 20,
+        "XRPUSDT": 11
+      },
+      "byMonth": {
+        "2024-01": 3,
+        "2024-04": 1,
+        "2024-05": 2,
+        "2024-06": 12,
+        "2024-07": 12,
+        "2024-09": 9,
+        "2024-10": 1,
+        "2024-12": 1,
+        "2025-01": 6,
+        "2025-02": 26,
+        "2025-03": 7,
+        "2025-04": 19,
+        "2025-06": 13
+      },
+      "byRegime": {
+        "BEAR": 112
+      },
+      "bySide": {
+        "SELL": 112
+      },
+      "byFamily": {
+        "H12_4H_DONCHIAN_SELL": 112
+      }
+    }
+  },
+  "proposedExpansionFunnel": {
+    "unit": "completed 1h candidate; regime is the last completed 4h snapshot; dynamic universe uses OHLCV liquidity proxy",
+    "barsScanned": 105024,
+    "scanCount": 13128,
+    "dynamicUniverseMaxSymbols": 20,
+    "observedUniverseSymbols": 8,
+    "regimeEligibleSymbolSlots": 9926,
+    "candidateCount": 9926,
+    "proxyExecutableCandidates": 9926,
+    "strictHistoricalExecutableCandidates": 0,
+    "edgeEligible": 0,
+    "netEdgePass": 0,
+    "portfolioRiskPass": 0,
+    "gmailAdvisories": 0,
+    "by": {
+      "total": 9926,
+      "bySymbol": {
+        "BNBUSDT": 1240,
+        "BTCUSDT": 1365,
+        "DOGEUSDT": 1232,
+        "ETHUSDT": 1309,
+        "LINKUSDT": 1192,
+        "LTCUSDT": 1148,
+        "SOLUSDT": 1176,
+        "XRPUSDT": 1264
+      },
+      "byMonth": {
+        "2024-01": 9,
+        "2024-02": 828,
+        "2024-03": 872,
+        "2024-04": 460,
+        "2024-05": 657,
+        "2024-06": 525,
+        "2024-07": 497,
+        "2024-08": 327,
+        "2024-09": 614,
+        "2024-10": 563,
+        "2024-11": 877,
+        "2024-12": 702,
+        "2025-01": 517,
+        "2025-02": 584,
+        "2025-03": 478,
+        "2025-04": 444,
+        "2025-05": 671,
+        "2025-06": 301
+      },
+      "byRegime": {
+        "BEAR": 3776,
+        "BULL": 6150
+      },
+      "bySide": {
+        "BUY": 6150,
+        "SELL": 3776
+      },
+      "byFamily": {
+        "PULLBACK_CONTINUATION": 6307,
+        "TREND_BREAKOUT": 1525,
+        "VOLATILITY_EXPANSION": 2094
+      }
+    }
+  },
+  "historicalCandidateCounts": {
+    "currentH12": 112,
+    "proposed4hBidirectionalBreakout": 587,
+    "proposed1hFamilies": 9926,
+    "proposed1hByFamily": {
+      "PULLBACK_CONTINUATION": 6307,
+      "TREND_BREAKOUT": 1525,
+      "VOLATILITY_EXPANSION": 2094
+    },
+    "fixedSixSymbolCandidates": 112,
+    "dynamicAdditionalSymbolBreakouts": 41,
+    "note": "Counts are causal candidate observations in the development-information window, not approved signals or trades."
+  },
+  "scarcityCauses": [
+    {
+      "cause": "EDGE_UNVERIFIED",
+      "impact": "structural_zero_live_advisories",
+      "evidence": "live H12 edge is null/UNVERIFIED/sampleSize 0 and forceUnverifiedEdgeNoTrade remains active"
+    },
+    {
+      "cause": "SELL_ONLY",
+      "impact": 587,
+      "evidence": "bull-side theoretical breakouts are excluded by current H12 direction policy"
+    },
+    {
+      "cause": "4H_ONLY_TIMING",
+      "impact": 9814,
+      "evidence": "1h candidate families are counted separately; no claim that every extra candidate is independent"
+    },
+    {
+      "cause": "FIXED_SIX_SYMBOL_UNIVERSE",
+      "impact": 41,
+      "evidence": "additional observed symbols in locked archive; not a full 20-30 symbol universe"
+    },
+    {
+      "cause": "BEAR_BREADTH_4_OF_6",
+      "impact": 40,
+      "evidence": "trend-qualified scans rejected by current breadth threshold"
+    },
+    {
+      "cause": "SCHEDULER_DELAY",
+      "impact": null,
+      "evidence": "not measurable from archived market data; live diagnostic telemetry is required"
+    },
+    {
+      "cause": "HISTORICAL_EXECUTABLE_DEPTH",
+      "impact": 10038,
+      "evidence": "no historical L2; strict executable candidate count is zero, proxy count is reported separately"
+    },
+    {
+      "cause": "NET_EDGE_AND_PORTFOLIO_GATES",
+      "impact": "not_reached_for_unverified_live_h12",
+      "evidence": "edge eligibility is zero before those gates"
+    }
+  ],
+  "proxyProfitabilityComparison": {
+    "H12_4H_DONCHIAN_SELL": {
+      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "costModel": {
+        "roundTripCostBps": 18,
+        "fundingIncluded": true,
+        "fundingStressBufferBps": 1
+      },
+      "summary": {
+        "candidateCount": 112,
+        "outcomeCount": 112,
+        "outcomeCoverage": 1,
+        "meanNetReturnBps": -216.97867760246734,
+        "cumulativeEqualNotionalNetReturnBps": -24301.611891476343,
+        "netProfitFactor": 0.3710687308255164,
+        "positiveMonths": 1,
+        "observedMonths": 13,
+        "positiveMonthShare": 0.07692307692307693,
+        "maxCumulativeDrawdownBps": -24626.156913247134,
+        "cvar95Bps": -1258.82352178198,
+        "best5Concentration": 0.34586004272896204,
+        "symbolBreadth": 6,
+        "regimeBreadth": 1,
+        "byMonth": {
+          "2024-01": -1088.4465550637774,
+          "2024-04": 379.71509416577663,
+          "2024-05": -1093.6690704974526,
+          "2024-06": -1284.5411552831551,
+          "2024-07": -313.8968952560378,
+          "2024-09": -2029.7096436687762,
+          "2024-10": -578.3666598746325,
+          "2024-12": -375.2361114881926,
+          "2025-01": -3242.9650712938337,
+          "2025-02": -6414.700887488683,
+          "2025-03": -1163.7110328561525,
+          "2025-04": -6410.149827114345,
+          "2025-06": -685.9340757570487
+        },
+        "byFamily": {
+          "H12_4H_DONCHIAN_SELL": 112
+        }
+      }
+    },
+    "PULLBACK_CONTINUATION": {
+      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "costModel": {
+        "roundTripCostBps": 18,
+        "fundingIncluded": true,
+        "fundingStressBufferBps": 1
+      },
+      "summary": {
+        "candidateCount": 6307,
+        "outcomeCount": 6307,
+        "outcomeCoverage": 1,
+        "meanNetReturnBps": -23.30192845639495,
+        "cumulativeEqualNotionalNetReturnBps": -146965.26277448295,
+        "netProfitFactor": 0.7310205402124891,
+        "positiveMonths": 2,
+        "observedMonths": 18,
+        "positiveMonthShare": 0.1111111111111111,
+        "maxCumulativeDrawdownBps": -155343.15248480404,
+        "cvar95Bps": -527.1527570249781,
+        "best5Concentration": 0.021914424823569388,
+        "symbolBreadth": 8,
+        "regimeBreadth": 2,
+        "byMonth": {
+          "2024-01": 29.13220978744922,
+          "2024-02": -297.0645353385171,
+          "2024-03": -16760.19597864433,
+          "2024-04": -3372.1264935302975,
+          "2024-05": -15379.492790593838,
+          "2024-06": -10684.764306596848,
+          "2024-07": -138.72520226881275,
+          "2024-08": -14255.452432452379,
+          "2024-09": -6383.288714894823,
+          "2024-10": -9005.132361501153,
+          "2024-11": 10785.509474890274,
+          "2024-12": -7195.114847347983,
+          "2025-01": -20855.67939280975,
+          "2025-02": -5958.66298934194,
+          "2025-03": -16235.148473844534,
+          "2025-04": -15262.484237706667,
+          "2025-05": -13342.811799452242,
+          "2025-06": -2653.759902837489
+        },
+        "byFamily": {
+          "PULLBACK_CONTINUATION": 6307
+        }
+      }
+    },
+    "TREND_BREAKOUT": {
+      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "costModel": {
+        "roundTripCostBps": 18,
+        "fundingIncluded": true,
+        "fundingStressBufferBps": 1
+      },
+      "summary": {
+        "candidateCount": 1525,
+        "outcomeCount": 1525,
+        "outcomeCoverage": 1,
+        "meanNetReturnBps": 15.17094759600713,
+        "cumulativeEqualNotionalNetReturnBps": 23135.695083910872,
+        "netProfitFactor": 1.1704365431994361,
+        "positiveMonths": 8,
+        "observedMonths": 17,
+        "positiveMonthShare": 0.47058823529411764,
+        "maxCumulativeDrawdownBps": -19234.45831825331,
+        "cvar95Bps": -557.4319357861186,
+        "best5Concentration": 0.05581618492256392,
+        "symbolBreadth": 8,
+        "regimeBreadth": 2,
+        "byMonth": {
+          "2024-02": 3207.1781230713505,
+          "2024-03": -4613.732378415016,
+          "2024-04": -241.98477193193872,
+          "2024-05": -2615.3140407124324,
+          "2024-06": -245.54722850966766,
+          "2024-07": 6144.119230057711,
+          "2024-08": -670.99536575753,
+          "2024-09": -2685.842215091745,
+          "2024-10": 310.190960056807,
+          "2024-11": 14434.005230985003,
+          "2024-12": 5096.885099171133,
+          "2025-01": -6549.402754378141,
+          "2025-02": -630.4381785089521,
+          "2025-03": 3669.4029880181133,
+          "2025-04": 5602.376178743053,
+          "2025-05": 4095.723361720367,
+          "2025-06": -1170.9291546073669
+        },
+        "byFamily": {
+          "TREND_BREAKOUT": 1525
+        }
+      }
+    },
+    "VOLATILITY_EXPANSION": {
+      "evidenceClass": "DESCRIPTIVE_FORWARD_OUTCOME_NOT_PROMOTION",
+      "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+      "costModel": {
+        "roundTripCostBps": 18,
+        "fundingIncluded": true,
+        "fundingStressBufferBps": 1
+      },
+      "summary": {
+        "candidateCount": 2094,
+        "outcomeCount": 2094,
+        "outcomeCoverage": 1,
+        "meanNetReturnBps": -9.806880916734485,
+        "cumulativeEqualNotionalNetReturnBps": -20535.60863964201,
+        "netProfitFactor": 0.8973393909294902,
+        "positiveMonths": 6,
+        "observedMonths": 18,
+        "positiveMonthShare": 0.3333333333333333,
+        "maxCumulativeDrawdownBps": -34283.010320120644,
+        "cvar95Bps": -585.729772454292,
+        "best5Concentration": 0.033727900960128156,
+        "symbolBreadth": 8,
+        "regimeBreadth": 2,
+        "byMonth": {
+          "2024-01": -32.84580433275893,
+          "2024-02": 3313.0201440948786,
+          "2024-03": -2733.6373149486785,
+          "2024-04": -6536.910395506614,
+          "2024-05": -4288.66881654886,
+          "2024-06": -1339.9813715148935,
+          "2024-07": 8575.518104871955,
+          "2024-08": -8550.836115897264,
+          "2024-09": -1093.1956703628348,
+          "2024-10": -2451.6992515987304,
+          "2024-11": 299.2445233146684,
+          "2024-12": 2743.87996105279,
+          "2025-01": -6224.7648480945645,
+          "2025-02": -2064.372310871358,
+          "2025-03": 966.6171466992455,
+          "2025-04": 4144.716340813892,
+          "2025-05": -1114.4229771262405,
+          "2025-06": -4147.269983686866
+        },
+        "byFamily": {
+          "VOLATILITY_EXPANSION": 2094
+        }
+      }
+    }
+  },
+  "paretoTable": [
+    {
+      "name": "H12_CURRENT",
+      "candidateCount": 112,
+      "meanNetReturnBps": -216.978677602467,
+      "netProfitFactor": 0.3710687308255164,
+      "maxCumulativeDrawdownBps": -24626.156913247134,
+      "positiveMonths": 1,
+      "symbolBreadth": 6,
+      "regimeBreadth": 1,
+      "edgeEligible": 0,
+      "promotionEligible": false
+    },
+    {
+      "name": "H12_4H_DONCHIAN_SELL",
+      "candidateCount": 112,
+      "meanNetReturnBps": -216.978677602467,
+      "netProfitFactor": 0.3710687308255164,
+      "maxCumulativeDrawdownBps": -24626.156913247134,
+      "positiveMonths": 1,
+      "symbolBreadth": 6,
+      "regimeBreadth": 1,
+      "edgeEligible": 0,
+      "promotionEligible": false
+    },
+    {
+      "name": "PULLBACK_CONTINUATION",
+      "candidateCount": 6307,
+      "meanNetReturnBps": -23.301928456395093,
+      "netProfitFactor": 0.7310205402124891,
+      "maxCumulativeDrawdownBps": -155343.15248480404,
+      "positiveMonths": 2,
+      "symbolBreadth": 8,
+      "regimeBreadth": 2,
+      "edgeEligible": 0,
+      "promotionEligible": false
+    },
+    {
+      "name": "TREND_BREAKOUT",
+      "candidateCount": 1525,
+      "meanNetReturnBps": 15.170947596007071,
+      "netProfitFactor": 1.1704365431994361,
+      "maxCumulativeDrawdownBps": -19234.45831825331,
+      "positiveMonths": 8,
+      "symbolBreadth": 8,
+      "regimeBreadth": 2,
+      "edgeEligible": 0,
+      "promotionEligible": false
+    },
+    {
+      "name": "VOLATILITY_EXPANSION",
+      "candidateCount": 2094,
+      "meanNetReturnBps": -9.806880916734585,
+      "netProfitFactor": 0.8973393909294902,
+      "maxCumulativeDrawdownBps": -34283.010320120644,
+      "positiveMonths": 6,
+      "symbolBreadth": 8,
+      "regimeBreadth": 2,
+      "edgeEligible": 0,
+      "promotionEligible": false
+    }
+  ],
+  "noPromotionDecision": {
+    "result": "NOT_EVALUATED_FOR_PROMOTION",
+    "reason": "No validated candidate-level edge, no historical L2, and no independent OOS. Descriptive forward outcomes cannot promote HY-EXP-0024.",
+    "betterNetProfitabilityAndUsableSignalCount": false
+  },
+  "dataLimitations": [
+    "Historical order-book depth is unavailable; every executable and cost result here is an OHLCV proxy.",
+    "Only eight symbols are present in the locked source; 20-30 symbol dynamic-universe coverage is not demonstrated.",
+    "1h bars are aggregated from 5m archives, not native prospective 1h records.",
+    "Historical PIT exchangeInfo is not re-created; listing age and contract filters are not promotion-grade.",
+    "Scheduler delay, live market missingness and Gmail delivery cannot be inferred from the archived dataset.",
+    "Proxy forward outcomes are candidate-level descriptive information, not a new result.json/trades.jsonl/PnL artifact."
+  ]
+}
