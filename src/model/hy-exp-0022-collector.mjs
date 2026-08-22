@@ -1476,6 +1476,13 @@ export function buildHyExp0022FirstProspectiveBarSmoke({
   };
   const passed = Object.values(checks).every(Boolean);
   const now = Date.now();
+  const failureReasons = [];
+  if (!checks.finalWebsocketBars && now >= target.closeTime) {
+    failureReasons.push('TARGET_BAR_FINAL_WS_NOT_CAPTURED_BEFORE_CLOSE_NO_HISTORICAL_BACKFILL');
+  }
+  if (checks.finalWebsocketBars && !checks.exactRestConfirmations) {
+    failureReasons.push('BAR_CONFIRMATION_MISSING');
+  }
   const status = passed
     ? 'PASS'
     : (now < target.closeTime ? 'WAITING_FOR_TARGET_BAR' : 'DATA_FAIL');
@@ -1525,7 +1532,7 @@ export function buildHyExp0022FirstProspectiveBarSmoke({
     finalOosEligible: false,
     historicalBackfillUsed: false,
     proxyDepthUsed: false,
-    errors: [...(bar.errors ?? []), ...(manifest.errors ?? [])]
+    errors: [...failureReasons, ...(bar.errors ?? []), ...(manifest.errors ?? [])]
   };
 }
 

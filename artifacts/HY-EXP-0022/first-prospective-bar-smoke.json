@@ -2,22 +2,22 @@
   "schemaVersion": 1,
   "artifactType": "HY_EXP_0022_FIRST_PROSPECTIVE_BAR_SMOKE",
   "experimentId": "HY-EXP-0022",
-  "status": "WAITING_FOR_TARGET_BAR",
+  "status": "DATA_FAIL",
   "targetBar": {
     "openTime": "2026-08-22T04:00:00.000Z",
     "closeTime": "2026-08-22T07:59:59.999Z",
     "source": "CONTRACT_PRICE",
     "interval": "4h"
   },
-  "runId": "engineering-dry-run-20260822013939156-74f6c682",
+  "runId": "engineering-dry-run-20260822093216509-b920a189",
   "runWindow": {
-    "startedAt": "2026-08-22T01:39:39.156Z",
-    "finishedAt": "2026-08-22T01:44:39.426Z",
-    "durationMs": 300270
+    "startedAt": "2026-08-22T09:32:16.509Z",
+    "finishedAt": "2026-08-22T09:37:17.161Z",
+    "durationMs": 300652
   },
   "symbols": [
-    "BTCUSDC",
     "BTCUSDT",
+    "ETHUSDC",
     "ETHUSDT"
   ],
   "finalWebsocketBars": 0,
@@ -25,8 +25,8 @@
   "barConflicts": 0,
   "confirmationMissing": 0,
   "perSymbol": {
-    "BTCUSDC": {
-      "symbol": "BTCUSDC",
+    "BTCUSDT": {
+      "symbol": "BTCUSDT",
       "finalWebsocketBars": 0,
       "restConfirmationAttempts": 0,
       "restConfirmations": 0,
@@ -38,8 +38,8 @@
       "markPriceKlineUsed": false,
       "bars": []
     },
-    "BTCUSDT": {
-      "symbol": "BTCUSDT",
+    "ETHUSDC": {
+      "symbol": "ETHUSDC",
       "finalWebsocketBars": 0,
       "restConfirmationAttempts": 0,
       "restConfirmations": 0,
@@ -77,7 +77,7 @@
     "contractPriceSource": true,
     "markPriceKlineNotUsed": true,
     "depthAlignmentFailures": true,
-    "depthSequenceGaps": true,
+    "depthSequenceGaps": false,
     "depthCrossedBooks": true,
     "depthBufferLimitFailures": true,
     "depthReceivedAtPresent": true,
@@ -90,7 +90,7 @@
   },
   "depth": {
     "alignmentFailures": 0,
-    "sequenceGaps": 0,
+    "sequenceGaps": 2,
     "crossedBooks": 0,
     "bufferLimitFailures": 0,
     "missingReceivedAt": 0
@@ -98,13 +98,13 @@
   "funding": {
     "rows": [
       {
-        "symbol": "BTCUSDC",
+        "symbol": "BTCUSDT",
         "ok": true,
         "code": null,
         "error": null
       },
       {
-        "symbol": "BTCUSDT",
+        "symbol": "ETHUSDC",
         "ok": true,
         "code": null,
         "error": null
@@ -119,21 +119,6 @@
     "valid": true
   },
   "exchangeInfoValidation": {
-    "BTCUSDC": {
-      "symbol": "BTCUSDC",
-      "valid": true,
-      "failures": [],
-      "status": "TRADING",
-      "contractType": "PERPETUAL",
-      "quoteAsset": "USDC",
-      "onboardDate": 1704285000000,
-      "filters": {
-        "tickSize": "0.1",
-        "stepSize": "0.001",
-        "minQty": "0.001",
-        "minNotional": "50"
-      }
-    },
     "BTCUSDT": {
       "symbol": "BTCUSDT",
       "valid": true,
@@ -147,6 +132,21 @@
         "stepSize": "0.001",
         "minQty": "0.001",
         "minNotional": "50"
+      }
+    },
+    "ETHUSDC": {
+      "symbol": "ETHUSDC",
+      "valid": true,
+      "failures": [],
+      "status": "TRADING",
+      "contractType": "PERPETUAL",
+      "quoteAsset": "USDC",
+      "onboardDate": 1704285300000,
+      "filters": {
+        "tickSize": "0.01",
+        "stepSize": "0.001",
+        "minQty": "0.001",
+        "minNotional": "20"
       }
     },
     "ETHUSDT": {
@@ -167,23 +167,23 @@
   },
   "source": "CONTRACT_PRICE",
   "markPriceKlineUsed": false,
-  "manifestSha256": "7b2fa1b45d3586cb99adb60e086587a84cd907cbdf64b3195696982d71c4cf17",
-  "manifestFileSha256": "3d423528ffbe21d3eb78442374dbdab4879fdb8d73cbf3077c703a2882df5de4",
+  "manifestSha256": "cb14b7dd0491557b297e16d27e43493460983f38c9f5c7fb988aae23470bd2c3",
+  "manifestFileSha256": "bebb2314df0dd87ff4873ff556808664ed80169d4344983c9ae58fbbbbdbc947",
   "rawFiles": [
     {
       "path": "depth.diff.ndjson",
-      "bytes": 20794268,
-      "sha256": "010d0ef62327f6ff9aa5c6e33259494f2be622055f1f1cf34d69d63c8ea2e35c"
+      "bytes": 910534,
+      "sha256": "e63d929cdb34b92af64abc902595368ffecf7782176d991e296d189fce2971ed"
     },
     {
       "path": "depth.snapshot.ndjson",
-      "bytes": 123581,
-      "sha256": "25eb1119815872636678242c9bec45d988cecb1572c7e8280f51bf87877fd73f"
+      "bytes": 247674,
+      "sha256": "e650f4fdadf28e41a2e195032c58449f6e0572e5cf731c8aef3206e5e669bfc4"
     },
     {
       "path": "kline.4h.ndjson",
-      "bytes": 1149445,
-      "sha256": "b7d9e9e61b11d41084c0ecc27509fa871b4fbb3efd6fd91cd964b09632eea929"
+      "bytes": 833444,
+      "sha256": "74f6eb4d42ba9b776415b0218ec417ca8313032895198f6adc12064fbc34f045"
     },
     {
       "path": "kline.4h.confirmation.ndjson",
@@ -193,32 +193,32 @@
     {
       "path": "exchangeInfo.ndjson",
       "bytes": 1077740,
-      "sha256": "481649f57fa2dd920f6a393241a43ee8fb3cb54b8f4f10b282a423a892599833"
+      "sha256": "3b36c64c2e15a921d425e453893b9c59f077d6a53400370d491c9b8a1b25699b"
     },
     {
       "path": "funding.ndjson",
-      "bytes": 1256,
-      "sha256": "e0877362760784f55549dbefbb57abdb9dd69ba488aaec4d7a5786e06fb61490"
+      "bytes": 1255,
+      "sha256": "1d5373148028e24892eee4fea2a532fef98bbfe1c352426d9cbd466a2c5092ca"
     },
     {
       "path": "ticker.diagnostic.ndjson",
-      "bytes": 276936,
-      "sha256": "c6190862acade0ae4aa47d62417b7645ae85a28359fda0398c01fdd8381d3620"
+      "bytes": 276976,
+      "sha256": "531d84721f5ee16edb67781d05fbb31eb2ca154c6f557604f9c7d510f7c07cf0"
     },
     {
       "path": "universe.snapshot.ndjson",
-      "bytes": 150315,
-      "sha256": "27d211c02797076432e912f7d5ac24cd14f9349e91998ed0a5c3b1b83af5f13b"
+      "bytes": 150344,
+      "sha256": "81d7a520ec9ade603524c84da33e98e5a20353e3b0590276cf5a69d60ca5a076"
     },
     {
       "path": "universe.audit.ndjson",
-      "bytes": 149953,
-      "sha256": "6b44127fff27c992b65248d171b79d2d77a7be23197e9afad312ca70473acadb"
+      "bytes": 149992,
+      "sha256": "00bd202dca3fed58e4df37ab847e689d1ef625678db5fca013dfc77e0ac81dca"
     },
     {
       "path": "segment.audit.ndjson",
-      "bytes": 2088,
-      "sha256": "056d0ccce27e1ff8585e3060a1606f17d12f753b8cae62fe511b16410cc184f2"
+      "bytes": 4367,
+      "sha256": "20a08cd89384e1cc9cd7dd7cc887b837f174ba35d5bb9757eaf7d5efa8e5b0b8"
     }
   ],
   "authorization": "PAPER_ONLY",
@@ -227,5 +227,7 @@
   "finalOosEligible": false,
   "historicalBackfillUsed": false,
   "proxyDepthUsed": false,
-  "errors": []
+  "errors": [
+    "TARGET_BAR_FINAL_WS_NOT_CAPTURED_BEFORE_CLOSE_NO_HISTORICAL_BACKFILL"
+  ]
 }
