@@ -580,6 +580,8 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
     if (STABLE_BASES.has(upper(row?.baseAsset))) reasons.push('excluded_stable_base');
     const onboardDate = Number(row?.onboardDate);
     if (!Number.isFinite(onboardDate) || onboardDate > at - 30 * DAY_MS) reasons.push('listing_age_under_30d');
+    const exchangeInfoValidation = validateHyExp0022ExchangeInfoSymbol({ symbol, row });
+    if (!exchangeInfoValidation.valid) reasons.push('missing_required_exchange_info_fields');
     const ticker = tickerBySymbol.get(symbol);
     const quoteVolume = Number(ticker?.quoteVolume ?? ticker?.q);
     if (reasons.length) {
@@ -588,7 +590,8 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
         eligible: false,
         reasons: [...new Set(reasons)],
         quoteVolumeUsdt: Number.isFinite(quoteVolume) ? quoteVolume : null,
-        tickerAvailable: Boolean(ticker) && Number.isFinite(quoteVolume)
+        tickerAvailable: Boolean(ticker) && Number.isFinite(quoteVolume),
+        exchangeInfoValidation
       });
       continue;
     }
@@ -602,7 +605,8 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
       quoteAsset: upper(row.quoteAsset ?? row.marginAsset),
       contractType: upper(row.contractType),
       status: upper(row.status),
-      tickerDiagnosticOnly: true
+      tickerDiagnosticOnly: true,
+      exchangeInfoValidation
     });
   }
   const eligible = rows

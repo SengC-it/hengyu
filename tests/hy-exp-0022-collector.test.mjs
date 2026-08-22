@@ -52,6 +52,14 @@ function bookLevels() {
   };
 }
 
+function validExchangeFilters() {
+  return [
+    { filterType: 'PRICE_FILTER', tickSize: '0.1' },
+    { filterType: 'LOT_SIZE', stepSize: '0.1', minQty: '0.1' },
+    { filterType: 'MIN_NOTIONAL', minNotional: '5' }
+  ];
+}
+
 class ScenarioWebSocket {
   static depthConnections = 0;
   static klineConnections = 0;
@@ -138,7 +146,8 @@ function scenarioFetch() {
           quoteAsset: 'USDT',
           contractType: 'PERPETUAL',
           status: 'TRADING',
-          onboardDate: Date.now() - (40 + index) * 86_400_000
+          onboardDate: Date.now() - (40 + index) * 86_400_000,
+          filters: validExchangeFilters()
         }))
       }, 3);
     }
@@ -281,7 +290,8 @@ test('dynamic engineering selection is not a fixed symbol list and ticker cannot
       quoteAsset: 'USDT',
       contractType: 'PERPETUAL',
       status: 'TRADING',
-      onboardDate: now - (40 + index) * 86_400_000
+      onboardDate: now - (40 + index) * 86_400_000,
+      filters: validExchangeFilters()
     })),
     tickers: [
       { symbol: 'SOLUSDT', quoteVolume: '300' },
@@ -305,7 +315,8 @@ test('all-eligible universe does not exclude a valid PIT symbol when ticker is m
       quoteAsset: 'USDT',
       contractType: 'PERPETUAL',
       status: 'TRADING',
-      onboardDate: observedAt - 31 * 86_400_000
+      onboardDate: observedAt - 31 * 86_400_000,
+      filters: validExchangeFilters()
     }],
     tickers: []
   });
@@ -314,6 +325,26 @@ test('all-eligible universe does not exclude a valid PIT symbol when ticker is m
   assert.equal(selection.selectionMode, 'ALL_ELIGIBLE');
   assert.equal(selection.tickerUsedForEligibility, false);
   assert.equal(selection.selected[0].tickerAvailable, false);
+});
+
+test('all-eligible universe excludes a PIT symbol missing required exchangeInfo filters', () => {
+  const observedAt = Date.parse('2026-08-22T00:00:00.000Z');
+  const selection = selectHyExp0022EngineeringSymbols({
+    observedAt,
+    maxSymbols: null,
+    exchangeInfo: [{
+      symbol: 'BADUSDT',
+      baseAsset: 'BAD',
+      quoteAsset: 'USDT',
+      contractType: 'PERPETUAL',
+      status: 'TRADING',
+      onboardDate: observedAt - 31 * 86_400_000,
+      filters: [{ filterType: 'PRICE_FILTER', tickSize: '0.1' }]
+    }],
+    tickers: []
+  });
+  assert.deepEqual(selection.symbols, []);
+  assert.equal(selection.excluded[0].reasons.includes('missing_required_exchange_info_fields'), true);
 });
 
 test('funding capture uses bounded concurrency and records fail-closed diagnostics', async () => {
