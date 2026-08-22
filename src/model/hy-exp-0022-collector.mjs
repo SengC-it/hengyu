@@ -62,9 +62,8 @@ const SNAPSHOT_RETRY_DELAY_MS = 250;
 const DEFAULT_SEGMENT_MAX_MS = 4 * 60 * 60 * 1_000 - 60_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_SYMBOLS = 3;
-const MAX_ENGINEERING_SYMBOLS = 200;
-const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = MAX_ENGINEERING_SYMBOLS;
-const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = MAX_ENGINEERING_SYMBOLS;
+const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = 200;
+const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = 200;
 
 export const HY_EXP_0022_COLLECTOR_PROFILE = Object.freeze({
   experimentId: HY_EXP_0022_ID,
@@ -359,7 +358,10 @@ export async function openBinanceCombinedSocket({
     let settled = false;
     const socket = new WebSocketImpl(expectedEndpoint);
     const fail = error => {
-      const normalized = error instanceof Error ? error : new Error(String(error ?? 'socket error'));
+      const message = error?.message ?? error?.error?.message ?? String(error ?? 'socket error');
+      const normalized = error instanceof Error ? error : errorWithCode('BINANCE_WEBSOCKET_ERROR', message);
+      if (!normalized.code) normalized.code = 'BINANCE_WEBSOCKET_ERROR';
+      if (!normalized.message) normalized.message = message || 'binance websocket error';
       if (!opened && !settled) {
         settled = true;
         reject(normalized);
@@ -549,8 +551,7 @@ const STABLE_BASES = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'FDUSD', 'TUSD', 'U
 /** Select a capture candidate set from current PIT exchangeInfo/ticker, never a hard-coded list. */
 export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, observedAt = Date.now(), maxSymbols = DEFAULT_MAX_SYMBOLS } = {}) {
   const at = timestamp('universe observedAt', observedAt);
-  const boundedMaxSymbols = integer('maxSymbols', maxSymbols, 1);
-  if (boundedMaxSymbols > MAX_ENGINEERING_SYMBOLS) throw errorWithCode('UNIVERSE_BATCH_LIMIT_EXCEEDED', `maxSymbols cannot exceed ${MAX_ENGINEERING_SYMBOLS}`);
+  const boundedMaxSymbols = maxSymbols == null ? null : integer('maxSymbols', maxSymbols, 1);
   const tickerBySymbol = new Map((Array.isArray(tickers) ? tickers : []).map(row => [upper(row?.symbol ?? row?.s), row]));
   const rows = [];
   for (const row of Array.isArray(exchangeInfo) ? exchangeInfo : []) {
@@ -585,7 +586,7 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
   const eligible = rows
     .filter(row => row.eligible)
     .sort((left, right) => right.quoteVolumeUsdt - left.quoteVolumeUsdt || left.symbol.localeCompare(right.symbol));
-  const selected = eligible.slice(0, boundedMaxSymbols);
+  const selected = boundedMaxSymbols == null ? eligible : eligible.slice(0, boundedMaxSymbols);
   const selectedSymbols = selected.map(row => row.symbol).sort();
   return {
     selectionSource: 'PIT_EXCHANGE_INFO_PLUS_TICKER_FOR_ENGINEERING_CAPTURE_SAMPLING_ONLY',
@@ -596,6 +597,8 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
     excluded: rows.filter(row => !selectedSymbols.includes(row.symbol)).sort((left, right) => left.symbol.localeCompare(right.symbol)),
     observedAt: at,
     maxSymbols: boundedMaxSymbols,
+    eligibleCount: eligible.length,
+    allEligibleSelected: boundedMaxSymbols == null || boundedMaxSymbols >= eligible.length,
     pointInTime: true,
     futureDataUsed: false
   };
@@ -609,6 +612,16 @@ export function membershipAudit(previousSymbols = [], nextSymbols = []) {
     removed: [...previous].filter(symbol => !next.has(symbol)).sort(),
     unchanged: [...next].filter(symbol => previous.has(symbol)).sort()
   };
+}
+
+export function splitDepthSymbols(symbols = [], maxSymbolsPerConnection = DEFAULT_MAX_SYMBOLS_PER_CONNECTION) {
+  const normalized = [...new Set((Array.isArray(symbols) ? symbols : []).map(symbolOf))].sort();
+  const batchSize = integer('maxSymbolsPerConnection', maxSymbolsPerConnection, 1);
+  const batches = [];
+  for (let offset = 0; offset < normalized.length; offset += batchSize) {
+    batches.push(normalized.slice(offset, offset + batchSize));
+  }
+  return batches;
 }
 
 function createDepthContext(symbol, segmentId) {
@@ -678,7 +691,8 @@ function markContextFailure(context, error) {
             : lowerCode.includes('snapshot_alignment')
               ? 'SNAPSHOT_REACQUISITION_REQUIRED'
               : null),
-    failureCode: String(code)
+    failureCode: String(code),
+    ...(error?.details ?? {})
   };
   if (lowerCode.includes('snapshot_alignment')) context.alignmentFailureCount++;
 }
@@ -861,6 +875,7 @@ async function collectDepthSegment({
   segmentWriter,
   experimentId = HY_EXP_0022_ID
 }) {
+  const segmentStartedAt = Date.now();
   const contexts = new Map(symbols.map(symbol => [symbol, createDepthContext(symbol, segmentId)]));
   let totalBufferedPeak = 0;
   let socketHandle = null;
@@ -1017,10 +1032,12 @@ async function collectDepthSegment({
   const crossedBooks = [...contexts.values()].filter(context => String(context.failureCode ?? '').includes('crossed_book')).length;
   const bufferLimitFailures = [...contexts.values()].filter(context => String(context.failureCode ?? '').includes('buffer_limit_exceeded')).length;
   const status = reasons.length ? 'INVALID' : 'VALID';
-  const segment = {
+  const segmentBody = {
     experimentId,
     segmentId,
     stream: 'segment.audit',
+    startedAt: iso(segmentStartedAt),
+    segmentDeadline: iso(segmentDeadline),
     receivedAt: Date.now(),
     status,
     reason: reasons.join(';') || 'rotation_or_deadline',
@@ -1042,6 +1059,7 @@ async function collectDepthSegment({
       transport: socketHandle?.capability ?? null
     }
   };
+  const segment = { ...segmentBody, segmentSha256: sha256(canonicalJson(segmentBody)) };
   segmentWriter.append(segment);
   return segment;
 }
@@ -1063,9 +1081,7 @@ async function collectDepthSegments({
 }) {
   const segments = [];
   let index = 0;
-  const batchSize = Math.min(integer('depthSymbolsPerConnection', depthSymbolsPerConnection, 1), symbols.length);
-  const batches = [];
-  for (let offset = 0; offset < symbols.length; offset += batchSize) batches.push(symbols.slice(offset, offset + batchSize));
+  const batches = splitDepthSymbols(symbols, depthSymbolsPerConnection);
   while (Date.now() < deadline) {
     const started = Date.now();
     const segmentDeadline = Math.min(deadline, nextUtcBoundary(started), started + segmentMaxMs);
@@ -1717,7 +1733,8 @@ export async function runCollectorEngineeringDryRun({
   targetBar = null,
   fetchImpl = globalThis.fetch,
   WebSocketImpl = globalThis.WebSocket,
-  profile = HY_EXP_0022_COLLECTOR_PROFILE
+  profile = HY_EXP_0022_COLLECTOR_PROFILE,
+  onRunCreated = null
 } = {}) {
   const normalizedProfile = normalizeCollectorProfile(profile);
   if (String(normalizedProfile.captureMode ?? 'ENGINEERING_DRY_RUN').toUpperCase() !== 'ENGINEERING_DRY_RUN') {
@@ -1725,16 +1742,13 @@ export async function runCollectorEngineeringDryRun({
   }
   const startedAt = Date.now();
   const duration = integer('maxRuntimeMs', maxRuntimeMs, 1);
-  const connectionLimit = integer('maxSymbolsPerConnection', normalizedProfile.maxSymbolsPerConnection, 1);
-  const symbolLimit = integer('maxSymbols', maxSymbols, 1);
-  if (symbolLimit > connectionLimit) {
-    throw errorWithCode('UNIVERSE_CONNECTION_BATCH_LIMIT', `maxSymbols exceeds the ${connectionLimit}-symbol depth connection limit`);
-  }
+  const symbolLimit = maxSymbols == null ? null : integer('maxSymbols', maxSymbols, 1);
   const deadline = startedAt + duration;
   const runId = `engineering-dry-run-${new Date(startedAt).toISOString().replaceAll(/[-:.TZ]/g, '')}-${randomUUID().slice(0, 8)}`;
   const directory = assertCollectorEngineeringRoot({ projectRoot, profile: normalizedProfile });
   const runDirectory = path.join(directory, runId);
   fs.mkdirSync(runDirectory, { recursive: true });
+  onRunCreated?.({ runId, directory: runDirectory, processId: process.pid });
   const writers = {
     runId,
     depth: openHyExp0022AppendOnlyNdjson(path.join(runDirectory, 'depth.diff.ndjson')),
@@ -1779,7 +1793,7 @@ export async function runCollectorEngineeringDryRun({
         exchangeInfo: universeInputs.exchangeInfo,
         tickers: universeInputs.tickers,
         observedAt: universeInputs.observedAt,
-        maxSymbols
+        maxSymbols: symbolLimit
       });
       const exchangeInfoBySymbol = new Map(universeInputs.exchangeInfo.map(row => [upper(row?.symbol), row]));
       exchangeInfoValidation = Object.fromEntries(selection.symbols.map(symbol => [
@@ -1934,6 +1948,7 @@ export async function runCollectorEngineeringDryRun({
     diagnostics,
     windows: normalizedProfile.windows,
     profile: normalizedProfile,
+    selection,
     noDevelopment: true,
     noOosRead: true,
     pnlComputed: false

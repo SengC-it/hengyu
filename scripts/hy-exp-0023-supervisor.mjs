@@ -24,10 +24,18 @@ async function main() {
   const collector = path.resolve(process.cwd(), 'scripts', 'hy-exp-0023-collector.mjs');
   const childArgs = [collector];
   for (const [name, value] of Object.entries(options)) childArgs.push(`--${name}`, value);
+  const heartbeatFile = path.resolve(
+    options['heartbeat-file'] ?? path.join('artifacts', 'HY-EXP-0023', 'supervisor-heartbeat.json')
+  );
+  const alertFile = path.resolve(
+    options['alert-file'] ?? path.join('artifacts', 'HY-EXP-0023', 'supervisor-alerts.ndjson')
+  );
   const supervisor = createHyExp0023Supervisor({
     command: process.execPath,
     args: childArgs,
     cwd: process.cwd(),
+    heartbeatFile,
+    alertFile,
     onAlert: event => console.error(JSON.stringify({ supervisorAlert: event }))
   });
   supervisor.start({ officialCaptureAuthorized: false });
@@ -47,4 +55,3 @@ main().catch(error => {
   console.error(error.stack || error.message);
   process.exitCode = 1;
 });
-

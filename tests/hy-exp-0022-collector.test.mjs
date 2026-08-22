@@ -309,6 +309,8 @@ test('collector reconnect creates a new segment and leaves an invalid segment in
   assert.ok(result.segments.some(segment => segment.status === 'INVALID'));
   assert.ok(result.segments.some(segment => segment.status === 'VALID'));
   assert.ok(result.segments.every(segment => segment.reconnectCreatesNewSegment === true));
+  assert.ok(result.segments.every(segment => /^[a-f0-9]{64}$/.test(segment.segmentSha256)));
+  assert.equal(new Set(result.segments.map(segment => segment.segmentSha256)).size, result.segments.length);
   const depthRows = fs.readFileSync(path.join(result.directory, 'depth.diff.ndjson'), 'utf8')
     .trim().split(/\r?\n/).map(line => JSON.parse(line));
   assert.ok(depthRows.some(row => row.st === 1 && row.ps));

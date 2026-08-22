@@ -344,7 +344,23 @@ test('receipt stall is classified separately from a continuous U/u/pu chain', ()
   assert.throws(() => stalled.ingestDiff({
     data: diff({ U: 102, u: 102, pu: 101 }),
     receivedAt: 3_201
-  }), /receipt_stall/);
+  }), error => {
+    assert.match(error.message, /receipt_stall/);
+    assert.deepEqual(error.details, {
+      previousReceivedAt: 1_100,
+      currentReceivedAt: 3_201,
+      receiptInterarrivalMs: 2_101,
+      exchangeE: 1_202,
+      transactionT: 1_201,
+      transportLatencyMs: 1_999,
+      previousU: 101,
+      previousu: 101,
+      currentU: 102,
+      currentu: 102,
+      currentPu: 101
+    });
+    return true;
+  });
 });
 
 test('depth record envelopes preserve receipt and do not synthesize REST snapshot E/T', () => {

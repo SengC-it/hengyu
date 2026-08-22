@@ -327,9 +327,10 @@ export function createDepthSegmentReconstructor({
     updates: 0,
     maxDepthLevel: 0
   };
-  function fail(reason) {
+  function fail(reason, details = {}) {
     const error = new Error(`${normalizedSymbol}:${reason}`);
     error.code = reason;
+    error.details = details;
     throw error;
   }
   return {
@@ -381,8 +382,22 @@ export function createDepthSegmentReconstructor({
       const bids = levels(payload.b ?? payload.bids, `${normalizedSymbol} depth bids`);
       const asks = levels(payload.a ?? payload.asks, `${normalizedSymbol} depth asks`);
       if (state.lastReceivedAt != null) {
-        if (receipt < state.lastReceivedAt) fail('out_of_order_receipt');
-        if (receipt - state.lastReceivedAt > maxEventGapMs) fail(receiptGapFailureCode);
+        const receiptInterarrivalMs = receipt - state.lastReceivedAt;
+        const receiptDetails = {
+          previousReceivedAt: state.lastReceivedAt,
+          currentReceivedAt: receipt,
+          receiptInterarrivalMs,
+          exchangeE: eventTime,
+          transactionT: transactionTime,
+          transportLatencyMs: receipt - eventTime,
+          previousU: state.lastUpdateId,
+          previousu: state.lastUpdateId,
+          currentU: U,
+          currentu: u,
+          currentPu: pu
+        };
+        if (receipt < state.lastReceivedAt) fail('out_of_order_receipt', receiptDetails);
+        if (receiptInterarrivalMs > maxEventGapMs) fail(receiptGapFailureCode, receiptDetails);
       }
       if (state.seen.has(u)) fail('duplicate_update');
       state.seen.add(u);

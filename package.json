@@ -54,6 +54,7 @@
   "hy-exp-0022:engineering-dry-run": "node scripts/hy-exp-0022-collector.mjs",
     "hy-exp-0022:first-bar-smoke": "node scripts/hy-exp-0022-first-bar-smoke.mjs",
     "hy-exp-0023:engineering-diagnostic": "node scripts/hy-exp-0023-collector.mjs",
+    "hy-exp-0023:capacity-pilot": "node scripts/hy-exp-0023-collector.mjs --duration-ms 60000 --max-symbols all --summary-only true",
     "hy-exp-0023:supervisor": "node scripts/hy-exp-0023-supervisor.mjs",
     "advisory:server": "node scripts/advisory-server.mjs",
     "advisory:evaluate": "node scripts/advisory-evaluate.mjs",

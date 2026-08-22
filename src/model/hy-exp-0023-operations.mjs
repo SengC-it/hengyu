@@ -42,9 +42,26 @@ function streamName(filePath) {
   return 'other';
 }
 
-function countEvents(filePath) {
-  if (!filePath.endsWith('.ndjson')) return 0;
-  return fs.readFileSync(filePath, 'utf8').split(/\r?\n/).filter(Boolean).length;
+function readNdjsonStats(filePath) {
+  if (!filePath.endsWith('.ndjson')) return { events: 0, bySymbol: {} };
+  const bySymbol = {};
+  let events = 0;
+  for (const line of fs.readFileSync(filePath, 'utf8').split(/\r?\n/).filter(Boolean)) {
+    events++;
+    try {
+      const record = JSON.parse(line);
+      const symbol = String(record?.symbol ?? record?.data?.s ?? '').toUpperCase();
+      if (symbol) {
+        const row = bySymbol[symbol] ?? { bytes: 0, events: 0 };
+        row.bytes += Buffer.byteLength(`${line}\n`);
+        row.events++;
+        bySymbol[symbol] = row;
+      }
+    } catch {
+      // Hash/manifest verification handles malformed records; this metric remains observable.
+    }
+  }
+  return { events, bySymbol };
 }
 
 export function measureHyExp0023Storage({
@@ -60,6 +77,7 @@ export function measureHyExp0023Storage({
   const finished = timestamp(finishedAt);
   const durationSeconds = Math.max((finished - started) / 1_000, 0.001);
   const byStream = {};
+  const bySymbol = {};
   let totalBytes = 0;
   let totalEvents = 0;
   for (const filePath of listFiles(path.resolve(root))) {
@@ -67,11 +85,19 @@ export function measureHyExp0023Storage({
     const stream = streamName(filePath);
     const entry = byStream[stream] ?? { bytes: 0, events: 0, files: 0 };
     entry.bytes += stat.size;
-    entry.events += countEvents(filePath);
+    const fileMetrics = readNdjsonStats(filePath);
+    const fileEvents = fileMetrics.events;
+    entry.events += fileEvents;
     entry.files++;
     byStream[stream] = entry;
     totalBytes += stat.size;
-    totalEvents += entry.events;
+    totalEvents += fileEvents;
+    for (const [symbol, row] of Object.entries(fileMetrics.bySymbol)) {
+      const symbolMetrics = bySymbol[symbol] ?? { bytes: 0, events: 0 };
+      symbolMetrics.bytes += row.bytes;
+      symbolMetrics.events += row.events;
+      bySymbol[symbol] = symbolMetrics;
+    }
   }
   const bytesPerSecond = totalBytes / durationSeconds;
   const eventsPerSecond = totalEvents / durationSeconds;
@@ -79,6 +105,10 @@ export function measureHyExp0023Storage({
   const projectedBytes = end => Math.ceil(bytesPerSecond * Math.max(0, timestamp(end) - timestamp(captureStart)) / 1_000);
   const developmentBytes = projectedBytes(developmentEndExclusive);
   const finalOosBytes = Math.ceil(bytesPerSecond * Math.max(0, timestamp(finalOosEndExclusive) - timestamp(developmentEndExclusive)) / 1_000);
+  for (const row of Object.values(byStream)) {
+    row.bytesPerSecond = row.bytes / durationSeconds;
+    row.eventsPerSecond = row.events / durationSeconds;
+  }
   return {
     root: path.resolve(root),
     sampleWindow: { startedAt: new Date(started).toISOString(), finishedAt: new Date(finished).toISOString(), durationSeconds },
@@ -88,6 +118,14 @@ export function measureHyExp0023Storage({
     bytesPerSecond,
     bytesPerSecondPerSymbol: bytesPerSecond / symbolCount,
     eventsPerSecond,
+    bySymbol: Object.fromEntries(Object.entries(bySymbol).sort(([left], [right]) => left.localeCompare(right)).map(([symbol, row]) => [symbol, {
+      ...row,
+      bytesPerSecond: row.bytes / durationSeconds,
+      eventsPerSecond: row.events / durationSeconds
+    }])),
+    bytesPerSecondDistribution: Object.fromEntries(Object.entries(byStream).map(([stream, row]) => [stream, row.bytes / durationSeconds])),
+    eventsPerSecondDistribution: Object.fromEntries(Object.entries(byStream).map(([stream, row]) => [stream, row.events / durationSeconds])),
+    projected4HourBytes: Math.ceil(bytesPerSecond * 4 * 3_600),
     byStream,
     projected30DayBytes: Math.ceil(bytesPerSecond * 30 * 86_400),
     projectedDevelopmentPeriodBytes: developmentBytes,
@@ -151,41 +189,104 @@ async function fetchServerTime({ fetchImpl = globalThis.fetch, endpoint = 'https
   const body = typeof response?.text === 'function' ? await response.text() : JSON.stringify(await response.json());
   const receivedAt = Date.now();
   const data = JSON.parse(body);
-  return { requestStartedAt, receivedAt, serverTime: Number(data?.serverTime) };
+  const serverTime = Number(data?.serverTime);
+  const midpoint = (requestStartedAt + receivedAt) / 2;
+  return {
+    requestStartedAt,
+    receivedAt,
+    roundTripMs: receivedAt - requestStartedAt,
+    midpoint,
+    serverTime,
+    driftMs: Number.isFinite(serverTime) ? serverTime - midpoint : null
+  };
 }
 
 export async function measureHyExp0023ClockReadiness({
   fetchImpl = globalThis.fetch,
   clockSyncStateProvider = probeHyExp0023OsClockSyncState,
-  serverTimeEndpoint
+  serverTimeEndpoint,
+  serverTimeSampleCount = 3,
+  driftWarningThresholdMs = 100,
+  driftStopThresholdMs = 500
 } = {}) {
   const osState = await clockSyncStateProvider();
-  if (osState?.synchronized !== true) {
-    return { ready: false, reason: 'OS_CLOCK_NOT_SYNCHRONIZED', osState, driftMs: null };
-  }
+  const sampleCount = Math.max(1, Math.trunc(Number(serverTimeSampleCount)));
+  const samples = [];
+  let error = null;
   try {
-    const sample = await fetchServerTime({ fetchImpl, endpoint: serverTimeEndpoint });
-    if (!Number.isFinite(sample.serverTime)) return { ready: false, reason: 'SERVER_TIME_INVALID', osState, driftMs: null };
-    const midpoint = (sample.requestStartedAt + sample.receivedAt) / 2;
-    const driftMs = sample.serverTime - midpoint;
-    return {
-      ready: Number.isFinite(driftMs),
-      reason: Number.isFinite(driftMs) ? null : 'CLOCK_DRIFT_INVALID',
-      osState,
-      requestStartedAt: sample.requestStartedAt,
-      receivedAt: sample.receivedAt,
-      serverTime: sample.serverTime,
-      driftMs
-    };
-  } catch (error) {
-    return { ready: false, reason: 'SERVER_TIME_UNAVAILABLE', osState, driftMs: null, error: error.message };
+    for (let index = 0; index < sampleCount; index++) {
+      samples.push(await fetchServerTime({ fetchImpl, endpoint: serverTimeEndpoint }));
+    }
+  } catch (caught) {
+    error = caught;
   }
+  const validSamples = samples.filter(sample => Number.isFinite(sample.serverTime) && Number.isFinite(sample.driftMs));
+  const maxAbsDriftMs = validSamples.length
+    ? Math.max(...validSamples.map(sample => Math.abs(sample.driftMs)))
+    : null;
+  const latest = validSamples.at(-1) ?? null;
+  const base = {
+    ready: false,
+    reason: null,
+    osState,
+    sampleCount,
+    samples,
+    validSampleCount: validSamples.length,
+    maxAbsDriftMs,
+    driftWarningThresholdMs,
+    driftStopThresholdMs,
+    requestStartedAt: latest?.requestStartedAt ?? null,
+    receivedAt: latest?.receivedAt ?? null,
+    roundTripMs: latest?.roundTripMs ?? null,
+    midpoint: latest?.midpoint ?? null,
+    serverTime: latest?.serverTime ?? null,
+    driftMs: latest?.driftMs ?? null
+  };
+  if (osState?.synchronized !== true) return { ...base, reason: 'OS_CLOCK_NOT_SYNCHRONIZED', error: error?.message ?? null };
+  if (error) return { ...base, reason: 'SERVER_TIME_UNAVAILABLE', error: error.message };
+  if (validSamples.length !== sampleCount) return { ...base, reason: 'CLOCK_DRIFT_INVALID' };
+  if (maxAbsDriftMs >= driftStopThresholdMs) return { ...base, reason: 'CLOCK_DRIFT_ABOVE_STOP_THRESHOLD' };
+  return {
+    ...base,
+    ready: true,
+    reason: maxAbsDriftMs >= driftWarningThresholdMs ? 'CLOCK_DRIFT_WARNING' : null
+  };
 }
 
 export function evaluateHyExp0023Alerts({ activeAlerts = [] } = {}) {
   const active = new Set(activeAlerts);
   const missing = HY_EXP_0023_REQUIRED_ALERTS.filter(alert => !active.has(alert));
   return { ready: missing.length === 0, required: [...HY_EXP_0023_REQUIRED_ALERTS], active: [...active].sort(), missing };
+}
+
+export function appendHyExp0023Alert(filePath, event = {}) {
+  const target = path.resolve(filePath);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const record = {
+    schemaVersion: 1,
+    experimentId: 'HY-EXP-0023',
+    stream: 'engineering.alert',
+    recordedAt: new Date().toISOString(),
+    ...event
+  };
+  const handle = fs.openSync(target, 'a');
+  try {
+    fs.writeSync(handle, `${JSON.stringify(record)}\n`, null, 'utf8');
+    fs.fsyncSync(handle);
+  } finally {
+    fs.closeSync(handle);
+  }
+  return record;
+}
+
+export function readHyExp0023Heartbeat(filePath) {
+  const target = path.resolve(filePath);
+  if (!fs.existsSync(target)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(target, 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 /** Supervisor for a long-running engineering collector; never launches official capture. */
@@ -199,6 +300,9 @@ export function createHyExp0023Supervisor({
   restartBaseMs = 250,
   restartMaxMs = 10_000,
   heartbeatTimeoutMs = 15_000,
+  heartbeatFile = null,
+  progressReader = heartbeatFile == null ? null : () => readHyExp0023Heartbeat(heartbeatFile),
+  alertFile = null,
   now = () => Date.now(),
   setTimeoutImpl = setTimeout,
   clearTimeoutImpl = clearTimeout,
@@ -212,11 +316,16 @@ export function createHyExp0023Supervisor({
   let lastExitReason = null;
   let restartTimer = null;
   let segmentIndex = 0;
+  let lastProgress = null;
+  let lastProgressFingerprint = null;
+  let lastDataProgressAt = null;
+  let staleAlerted = false;
   const alerts = [];
 
   const alert = (type, details = {}) => {
     const event = { type, at: new Date(now()).toISOString(), ...details };
     alerts.push(event);
+    if (alertFile) appendHyExp0023Alert(alertFile, event);
     onAlert(event);
     return event;
   };
@@ -225,8 +334,14 @@ export function createHyExp0023Supervisor({
     if (stopped) return null;
     segmentIndex++;
     const childArgs = [...args, '--mode', 'ENGINEERING_DRY_RUN', '--segment-id', `supervisor-segment-${segmentIndex}`];
+    if (heartbeatFile && !childArgs.includes('--heartbeat-file')) childArgs.push('--heartbeat-file', heartbeatFile);
+    if (alertFile && !childArgs.includes('--alert-file')) childArgs.push('--alert-file', alertFile);
     child = spawnImpl(command, childArgs, { cwd, env, stdio: 'inherit' });
     lastHeartbeatAt = now();
+    lastDataProgressAt = lastHeartbeatAt;
+    lastProgress = null;
+    lastProgressFingerprint = null;
+    staleAlerted = false;
     child?.on?.('error', error => {
       lastExitReason = `error:${error.message}`;
       alert('collector_death', { reason: lastExitReason, segmentId: segmentIndex });
@@ -265,9 +380,50 @@ export function createHyExp0023Supervisor({
       return { accepted: true, at };
     },
     checkHealth({ at = now() } = {}) {
-      const stale = lastHeartbeatAt != null && at - lastHeartbeatAt > heartbeatTimeoutMs;
-      if (stale) alert('collector_death', { reason: 'stale_heartbeat', staleForMs: at - lastHeartbeatAt });
-      return { healthy: !stopped && child != null && !stale, stale, lastHeartbeatAt, restartCount, reconnectCount };
+      let progress = null;
+      try { progress = progressReader?.() ?? null; } catch { progress = null; }
+      if (progress && child?.pid != null && progress.processId != null && progress.processId !== child.pid) {
+        progress = null;
+      }
+      if (progress) {
+        const fingerprint = JSON.stringify({
+          segmentId: progress.segmentId ?? null,
+          eventCount: progress.eventCount ?? null,
+          writtenBytes: progress.writtenBytes ?? null,
+          lastDepthReceivedAt: progress.lastDepthReceivedAt ?? null,
+          lastKlineReceivedAt: progress.lastKlineReceivedAt ?? null,
+          lastExchangeEventAt: progress.lastExchangeEventAt ?? null
+        });
+        if (fingerprint !== lastProgressFingerprint) {
+          lastDataProgressAt = at;
+          lastProgressFingerprint = fingerprint;
+        }
+        lastProgress = progress;
+      }
+      const staleHeartbeat = lastHeartbeatAt != null && at - lastHeartbeatAt > heartbeatTimeoutMs;
+      const staleData = progressReader != null
+        && (lastDataProgressAt == null || at - lastDataProgressAt > heartbeatTimeoutMs);
+      const stale = staleHeartbeat || staleData;
+      if (stale && !staleAlerted) {
+        staleAlerted = true;
+        alert('stale_data', {
+          reason: staleData ? 'collector_alive_without_market_data_progress' : 'stale_heartbeat',
+          staleForMs: at - (staleData ? lastDataProgressAt : lastHeartbeatAt),
+          heartbeat: progress
+        });
+        alert('collector_death', { reason: 'stale_data_requires_restart', segmentId: segmentIndex });
+        try { child?.kill?.('SIGTERM'); } catch { /* exit handler owns bounded restart */ }
+      }
+      return {
+        healthy: !stopped && child != null && !stale,
+        stale,
+        staleData,
+        lastHeartbeatAt,
+        lastDataProgressAt,
+        progress: lastProgress,
+        restartCount,
+        reconnectCount
+      };
     },
     diagnostics() {
       return {
@@ -277,6 +433,8 @@ export function createHyExp0023Supervisor({
         segmentIndex,
         lastHeartbeatAt,
         lastExitReason,
+        lastDataProgressAt,
+        progress: lastProgress,
         alerts: [...alerts]
       };
     }

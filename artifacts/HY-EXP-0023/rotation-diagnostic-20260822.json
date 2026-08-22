@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_ENGINEERING_4H_ROTATION_DIAGNOSTIC_ONLY",
+  "experimentId": "HY-EXP-0023",
+  "runId": "engineering-dry-run-20260822113442848-a32a1c07",
+  "runWindow": {
+    "startedAt": "2026-08-22T11:34:42.848Z",
+    "finishedAt": "2026-08-22T12:04:43.110Z",
+    "boundary": "2026-08-22T12:00:00.000Z"
+  },
+  "rotation": {
+    "realUtcBoundaryCrossed": true,
+    "oldSegmentSealed": true,
+    "newSegmentStarted": true,
+    "freshSnapshotAttemptsObserved": true,
+    "rawOverwriteObserved": false,
+    "sequenceRepairObserved": false,
+    "segmentsBeforeBoundary": 92,
+    "segmentsAfterBoundary": 21,
+    "oldSegment": {
+      "segmentId": "engineering-dry-run-20260822113442848-a32a1c07:depth:92:batch-1",
+      "finishedAt": "2026-08-22T11:59:51.433Z",
+      "status": "INVALID",
+      "segmentSha256": "046983cfb62fa172e2e9a48058875fa4d68ee54541b364587c836b2cb731632",
+      "rawLineSha256": "37de556c84668ec2c555e06c6052afa12d53b4ec2e1b082fc00072f94ae296cd"
+    },
+    "newSegment": {
+      "segmentId": "engineering-dry-run-20260822113442848-a32a1c07:depth:93:batch-1",
+      "finishedAt": "2026-08-22T12:00:01.219Z",
+      "status": "INVALID",
+      "segmentSha256": "694ebae7f610376c88934b2b4d3f6829a6355d52ebca64631896a523b7596784",
+      "rawLineSha256": "17b83cbc6f31a1f5044213f86b3543588cf13c5fada05edde846d7f308f4a38e"
+    },
+    "distinctSegmentHashes": true,
+    "usableSegmentPass": false
+  },
+  "diagnostics": {
+    "capturedSymbols": ["BTCUSDT", "ETHUSDC", "ETHUSDT"],
+    "connectionCount": 113,
+    "maxSymbolsPerConnection": 20,
+    "validSegments": 0,
+    "invalidSegments": 113,
+    "sequenceGaps": 0,
+    "receiptStalls": 82,
+    "snapshotAlignmentFailures": 110,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "missingReceivedAt": 0,
+    "alignmentSuccesses": 206,
+    "staleBufferedDropped": 7391,
+    "bufferedEventsPeak": 83
+  },
+  "manifestSha256": "69df609f228fa1817b74682d7de0d1271e3e0bfb81d63a648b9ec27b66c28a0f",
+  "manifestFileSha256": "a821532021f692443d7d5bc6b3bba5689fd07ad213bad71b3e78be4d62564891",
+  "rawFileSha256": {
+    "depth.diff.ndjson": "ca764576e49e9ea6d50c9ab31161f6252526cce1e1fff90b6ec38eed7b09e4d2",
+    "depth.snapshot.ndjson": "ca7250f6c01b4eec40d7093b1b169bd759a84972087c6e264363935d9153b5a1",
+    "kline.4h.ndjson": "79b554e77ed247c81b45818f51ca97571460ec07e8e1e1d375e01dc36a6c341e",
+    "segment.audit.ndjson": "1a33fc009c91c86b1991fd76ce5cfd4e1e858118eb5f645ed751ce859f20b3bd"
+  },
+  "safety": {
+    "captureMode": "ENGINEERING_DRY_RUN",
+    "officialCaptureAuthorized": false,
+    "developmentAllowed": false,
+    "pnlComputed": false,
+    "finalOosRead": false,
+    "authorization": "PAPER_ONLY"
+  },
+  "status": "ROTATION_EVIDENCE_RECORDED_BUT_COLLECTOR_NOT_READY"
+}

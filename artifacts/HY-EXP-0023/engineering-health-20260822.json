@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_ENGINEERING_HEALTH_DIAGNOSTIC_ONLY",
+  "experimentId": "HY-EXP-0023",
+  "captureMode": "ENGINEERING_DRY_RUN",
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "officialCaptureAuthorized": false,
+  "alertFaultInjectionRun": {
+    "runId": "engineering-dry-run-20260822114036815-0ea5de2e",
+    "faultInjection": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ],
+    "alertSinkActive": true,
+    "errorCount": 0,
+    "counts": {
+      "collector_death": 1,
+      "sequence_gap": 1,
+      "crossed_book": 1,
+      "snapshot_alignment_failure": 1,
+      "missing_receivedAt": 1
+    },
+    "alertFileSha256": "d4abf369d4f0fd8d84115493f35eee5d55c804fc2e3fb556e8c775fa7d1bd534",
+    "manifestSha256": "2cc9d70b417503ddcaf004583e12a5cf2b46a6a692bad96616d1ca103f5d7030",
+    "manifestFileSha256": "bc12d0e970aefe8e45fefc74d59c34534d8b9a95d19c06ed111aed6a2669865a"
+  },
+  "supervisorVerification": {
+    "deadChildRestartUnitTest": "PASS",
+    "staleChildWithoutDataProgressUnitTest": "PASS",
+    "heartbeatFilePidBindingUnitTest": "PASS",
+    "newSegmentOnRestart": "PASS",
+    "officialCaptureAuthorized": false
+  },
+  "clock": {
+    "osClockSynchronized": false,
+    "reason": "OS_CLOCK_NOT_SYNCHRONIZED",
+    "source": "w32tm",
+    "error": "spawn EPERM",
+    "serverTimeSampleCount": 3,
+    "maxAbsDriftMs": 563,
+    "driftStopThresholdMs": 500
+  },
+  "status": "ENGINEERING_HEALTH_EVIDENCE_RECORDED_READINESS_BLOCKED"
+}

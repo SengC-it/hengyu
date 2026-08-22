@@ -31,7 +31,7 @@ export const HY_EXP_0023_COLLECTOR_PROFILE = Object.freeze({
   finalOosStart: HY_EXP_0023_FINAL_OOS_START,
   finalOosEndExclusive: HY_EXP_0023_FINAL_OOS_END_EXCLUSIVE,
   maxSymbolsPerConnection: 20,
-  depthSymbolsPerConnection: 5,
+  depthSymbolsPerConnection: 20,
   manifestType: 'HY-EXP-0023-ENGINEERING-DIAGNOSTIC',
   readinessArtifactType: 'HY_EXP_0023_ENGINEERING_READINESS'
 });
@@ -44,9 +44,14 @@ export async function runHyExp0023EngineeringDiagnostic({
   segmentMaxMs,
   confirmationTimeoutMs,
   fetchImpl = globalThis.fetch,
-  WebSocketImpl = globalThis.WebSocket
+  WebSocketImpl = globalThis.WebSocket,
+  onRunCreated = null
 } = {}) {
   assertHyExp0023CaptureMode('ENGINEERING_DRY_RUN');
+  if (HY_EXP_0023_COLLECTOR_PROFILE.maxSymbolsPerConnection > 20
+    || HY_EXP_0023_COLLECTOR_PROFILE.depthSymbolsPerConnection > 20) {
+    throw new Error('HY_EXP_0023_CONNECTION_BATCH_LIMIT_EXCEEDED');
+  }
   return runCollectorEngineeringDryRun({
     projectRoot,
     maxRuntimeMs,
@@ -55,7 +60,8 @@ export async function runHyExp0023EngineeringDiagnostic({
     confirmationTimeoutMs,
     fetchImpl,
     WebSocketImpl,
-    profile: HY_EXP_0023_COLLECTOR_PROFILE
+    profile: HY_EXP_0023_COLLECTOR_PROFILE,
+    onRunCreated
   });
 }
 

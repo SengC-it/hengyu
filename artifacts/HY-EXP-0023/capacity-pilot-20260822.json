@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_ENGINEERING_CAPACITY_PILOT_SUMMARY_ONLY",
+  "experimentId": "HY-EXP-0023",
+  "captureMode": "ENGINEERING_DRY_RUN",
+  "officialCaptureAuthorized": false,
+  "developmentAllowed": false,
+  "pnlComputed": false,
+  "storageModel": {
+    "localSpoolCapacity": {
+      "availableBytes": 75612581888,
+      "filesystem": "E:\\",
+      "verified": true
+    },
+    "durableStorageCapacity": {
+      "verified": false,
+      "availableBytes": null,
+      "provider": null
+    },
+    "storageReady": false,
+    "retentionPolicy": "NO_CLEANUP_UNTIL_DURABLE_UPLOAD_AND_REMOTE_CHECKSUM_VERIFIED",
+    "workflow": [
+      "close_and_fsync_raw_ndjson",
+      "sha256_raw_files",
+      "write_immutable_manifest",
+      "durable_upload",
+      "verify_remote_checksum"
+    ]
+  },
+  "runs": [
+    {
+      "runId": "engineering-dry-run-20260822112050092-b6113691",
+      "eligibleUniverseCount": 559,
+      "capturedSymbolCount": 559,
+      "connectionCount": 448,
+      "symbolsPerConnection": [4, 5],
+      "validSegments": 0,
+      "invalidSegments": 448,
+      "snapshotAlignmentFailures": 0,
+      "sequenceGaps": 0,
+      "crossedBooks": 0,
+      "bufferLimitFailures": 0,
+      "fundingRowsValid": false,
+      "alertSinkActive": true,
+      "bytesPerSecond": 191574.55497217097,
+      "eventsPerSecond": 15.956356526812039,
+      "projectionQualified": false,
+      "projectionReason": "all-universe segments were invalid and do not represent usable full-universe depth throughput",
+      "projected4HourBytes": 2758673592,
+      "projectedFullExperimentBytes": 6182187518775,
+      "localAvailableBytes": 75625603072,
+      "manifestSha256": "bdeae50aba7b5dfecd4b8a3f376b7cb6f37ac3359665c150e7edc7162fc76236",
+      "manifestFileSha256": "efdfccef53ab35109f710f1799c4de1268f3e5274e27a7b1b7a331feee37d256"
+    },
+    {
+      "runId": "engineering-dry-run-20260822112357771-bce40e14",
+      "eligibleUniverseCount": 559,
+      "capturedSymbolCount": 559,
+      "connectionCount": 56,
+      "symbolsPerConnection": [19, 20],
+      "validSegments": 0,
+      "invalidSegments": 56,
+      "snapshotAlignmentFailures": 0,
+      "sequenceGaps": 0,
+      "crossedBooks": 0,
+      "bufferLimitFailures": 0,
+      "fundingRowsValid": false,
+      "alertSinkActive": true,
+      "bytesPerSecond": 93043.34919903781,
+      "eventsPerSecond": 13.26833512462255,
+      "projectionQualified": false,
+      "projectionReason": "all-universe segments were invalid and do not represent usable full-universe depth throughput",
+      "perSymbolBytesPerSecondDistribution": {
+        "min": 1.6761349096678437,
+        "median": 1.7273146015660985,
+        "p95": 32.05128205128205,
+        "max": 87.40211883924458
+      },
+      "perSymbolEventsPerSecondDistribution": {
+        "min": 0.012794922974563692,
+        "median": 0.012794922974563692,
+        "p95": 0.06397461487281846,
+        "max": 0.08956446082194584
+      },
+      "projected4HourBytes": 1339824229,
+      "projectedFullExperimentBytes": 3002546095994,
+      "localAvailableBytes": 75612581888,
+      "manifestSha256": "32a3d52b19fb6565f48038062a1f91b6ec729252c7b1024d80263a9a81f545de",
+      "manifestFileSha256": "30640fe5f0ebe38aa1a3401b2e32af5bf787bee1f4d6feec82c04555904e9ea0"
+    }
+  ],
+  "decision": "ENGINEERING_CAPACITY_FAIL_CLOSED",
+  "remainingBlockers": [
+    "full-universe depth/kline transport did not sustain usable segments",
+    "local capacity is below projected full experiment storage",
+    "OS clock synchronization unavailable and server-time drift exceeded stop threshold in samples",
+    "no durable object-storage backend was provisioned or authorized"
+  ]
+}
