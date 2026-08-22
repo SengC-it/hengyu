@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0022_CAPTURE_READINESS",
+  "experimentId": "HY-EXP-0022",
+  "phase": "PROSPECTIVE_DATA_CAPTURE_DESIGN_ONLY",
+  "status": "READY_FOR_PROSPECTIVE_CAPTURE_AFTER_ACCEPTANCE",
+  "preregistration": {
+    "commit": "792f9ef4630d724e77fa4df13847ff421bd3e521",
+    "committedAt": "2026-08-22T00:28:19.000Z",
+    "sha256": "552bc2610df8c6bd85ed955aa4744cf172a82172cfcfbeab14b21d6d606dc74e",
+    "registrySequence": 74,
+    "registryHeadHash": "8d0846166baf7ba46128781ce44e5d401f4212cc49692a60877dbd0289049af1"
+  },
+  "captureStart": "2026-08-22T04:00:00.000Z",
+  "developmentWindow": {
+    "proposedStart": "2026-08-24T00:00:00.000Z",
+    "start": "2026-08-24T00:00:00.000Z",
+    "endExclusive": "2027-03-01T00:00:00.000Z"
+  },
+  "earliestPossibleCandidateTime": "2026-09-21T04:00:00.000Z",
+  "finalOosWindow": {
+    "start": "2027-03-01T00:00:00.000Z",
+    "endExclusive": "2027-09-01T00:00:00.000Z",
+    "immutable": true
+  },
+  "barSource": {
+    "source": "BINANCE_USDM_CONTRACT_PRICE_4H",
+    "restEndpoint": "https://fapi.binance.com/fapi/v1/klines?symbol=<symbol>&interval=4h",
+    "websocketEndpoint": "wss://fstream.binance.com/stream?streams=<symbol>@kline_4h",
+    "markPriceKlineAllowed": false,
+    "completedBarsOnly": true,
+    "requiredFields": [
+      "openTime",
+      "closeTime",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume",
+      "quoteVolume",
+      "tradeCount",
+      "finalClosed",
+      "sourceExchangeTimestamp",
+      "receivedAt"
+    ],
+    "primary": "FINAL_WEBSOCKET_KLINE",
+    "confirmation": "IMMEDIATE_POST_BOUNDARY_REST_CONFIRMATION",
+    "reconciliation": "Both normalized sources must match openTime, closeTime, OHLCV, quoteVolume and tradeCount. A lone source remains WAITING_CONFIRMATION; mismatch invalidates the segment.",
+    "retrospectiveBackfill": false,
+    "tickerDefinesVolume6": false
+  },
+  "warmup": {
+    "prospectiveOnly": true,
+    "requiredCompletedBars": 180,
+    "indicatorHistory": {
+      "SMA180": 180,
+      "SMA60": 60,
+      "Donchian120": 120,
+      "ATR30": 30,
+      "channel60": 60,
+      "volume6": 6
+    },
+    "priorSixBarQuoteVolume": "sum of exactly six immediately preceding completed contract-price 4h bars",
+    "noCandidateBeforeWarmup": true,
+    "warmupIsPnl": false
+  },
+  "requiredRawStreams": [
+    "depth.diff",
+    "depth.snapshot",
+    "kline.4h",
+    "exchangeInfo",
+    "funding",
+    "universe.snapshot",
+    "universe.audit",
+    "segment.audit"
+  ],
+  "diagnosticOnlyStreams": ["ticker"],
+  "timeFirewall": {
+    "developmentCapture": {
+      "root": "data/raw/prospective-development/HY-EXP-0022",
+      "recordWindow": "captureStart <= source timestamps and receivedAt < developmentEndExclusive",
+      "decisionWindow": "developmentStart <= decisionTime < developmentEndExclusive"
+    },
+    "finalOosCapture": {
+      "root": "data/raw/prospective-final-oos/HY-EXP-0022",
+      "recordWindow": "finalOosStart <= source timestamps and receivedAt < finalOosEndExclusive",
+      "beforeStart": "REJECT",
+      "atOrAfterEnd": "REJECT"
+    },
+    "canonicalRootContainment": true,
+    "substringIdentityOnly": false,
+    "rootsDisjoint": true,
+    "futureTimestampRejected": true
+  },
+  "oosFirewall": {
+    "beforeDevelopmentPass": ["write", "hash", "integrity_check"],
+    "afterDevelopmentPass": ["read_raw_final_oos", "read_manifest", "calculate_metrics", "generate_report"],
+    "unknownOperationsRejected": true,
+    "blockedOperations": ["delete", "overwrite", "move", "export_unsealed", "order", "account", "trade", "execute"],
+    "developmentFailLocksFinalOos": true,
+    "rawWriteIsNotResearchRead": true
+  },
+  "safety": {
+    "authorization": "PAPER_ONLY",
+    "liveOrdersEnabled": false,
+    "accountApiEnabled": false,
+    "orderApiEnabled": false,
+    "orderEndpoints": [],
+    "accountEndpoints": [],
+    "developmentAllowed": false,
+    "pnlComputed": false,
+    "finalOosEligible": false,
+    "productionDeployed": false
+  },
+  "dataQualityGates": {
+    "pitExchangeInfoCoverage": 1,
+    "requiredL2Coverage": 1,
+    "completedBarCoverage": 1,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "missingReceiptTimestamps": 0,
+    "missingRequiredFunding": 0,
+    "rawHashAndProvenanceCoverage": 1,
+    "futureData": 0,
+    "proxyDepth": 0,
+    "historicalBarBackfill": 0,
+    "invalidSegments": "excluded and audited; no silent repair"
+  },
+  "longRunningCollector": {
+    "required": true,
+    "serverlessVercelSuitable": false,
+    "process": "supervised long-running container/process",
+    "durability": "append-only object storage plus immutable per-file and manifest SHA-256",
+    "restarts": "automatic restart with health check, NTP drift check, fresh snapshot and new segment",
+    "rotation": "UTC 4h boundary rotation and proactive WebSocket reconnect",
+    "monitoring": ["process health", "receipt lag", "clock drift", "sequence gaps", "crossed books", "storage capacity", "manifest completion"],
+    "deployment": "DESIGN_ONLY_NOT_DEPLOYED"
+  },
+  "artifacts": {
+    "rawAppendOnlyNdjson": true,
+    "immutableManifest": true,
+    "sha256PerFile": true,
+    "resultJsonPresent": false,
+    "tradesJsonlPresent": false,
+    "pnlPresent": false
+  }
+}

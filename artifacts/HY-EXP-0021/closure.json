@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0021_CLOSURE",
+  "experimentId": "HY-EXP-0021",
+  "status": "PREREGISTRATION_INCOMPLETE_PRE_DATA",
+  "reason": "MISSING_PROSPECTIVE_BAR_SOURCE_AND_INCOMPLETE_TIME_FIREWALL",
+  "baseCommit": "0dc03554da6aa8888ecb31fe95fc945bcd894f82",
+  "developmentRun": false,
+  "developmentAllowed": false,
+  "oosRead": false,
+  "finalOosRead": false,
+  "eligibleRawDataConsumed": false,
+  "pnlComputed": false,
+  "paperOnly": true,
+  "liveOrdersEnabled": false,
+  "deployment": false,
+  "productionDeployed": false,
+  "specificationModified": false,
+  "resultJsonPresent": false,
+  "tradesJsonlPresent": false,
+  "closureStatements": [
+    "No Development was run.",
+    "No Final OOS was read.",
+    "No PnL was computed.",
+    "No eligible raw data was consumed.",
+    "No deployment or live trading occurred.",
+    "HY-EXP-0021 specification was not modified to rescue it.",
+    "HY-EXP-0021 is closed before data use; any future change requires a new experiment ID."
+  ]
+}
