@@ -7,11 +7,13 @@ import test from 'node:test';
 import {
   HY_EXP_0022_ACCOUNT_ENDPOINTS,
   HY_EXP_0022_ENGINEERING_ROOT,
+  HY_EXP_0022_FIRST_PROSPECTIVE_BAR,
   HY_EXP_0022_ORDER_ENDPOINTS,
   HY_EXP_0022_TRANSPORT_ENDPOINTS,
   assertHyExp0022EngineeringNeverDevelopmentInput,
   assertHyExp0022EngineeringRoot,
   buildCollectorEngineeringReadiness,
+  buildHyExp0022FirstProspectiveBarSmoke,
   buildDepthSnapshotUrl,
   buildHyExp0022OosWorkflowDecision,
   buildJustClosedKlineUrl,
@@ -20,6 +22,8 @@ import {
   openHyExp0022AppendOnlyNdjson,
   runHyExp0022EngineeringDryRun,
   selectHyExp0022EngineeringSymbols,
+  validateHyExp0022ExchangeInfoSymbol,
+  validateHyExp0022FundingRow,
   verifyBinanceTransportCapability
 } from '../src/model/hy-exp-0022-collector.mjs';
 
@@ -166,6 +170,16 @@ test('Phase A uses current documented public and market endpoints, never legacy 
     openTime: 1_000,
     closeTime: 1_000 + FOUR_HOURS_MS - 1
   }), /startTime=1000/);
+  assert.match(buildJustClosedKlineUrl({
+    symbol: 'BTCUSDT',
+    openTime: 1_000,
+    closeTime: 1_000 + FOUR_HOURS_MS - 1
+  }), /endTime=14400999/);
+  assert.match(buildJustClosedKlineUrl({
+    symbol: 'BTCUSDT',
+    openTime: 1_000,
+    closeTime: 1_000 + FOUR_HOURS_MS - 1
+  }), /limit=1/);
 });
 
 test('st=1 is allowed, st=2 is rejected, and st/ps are returned for raw preservation', () => {
@@ -308,4 +322,142 @@ test('collector reconnect creates a new segment and leaves an invalid segment in
 test('collector exposes no order or account API', () => {
   assert.deepEqual(HY_EXP_0022_ORDER_ENDPOINTS, []);
   assert.deepEqual(HY_EXP_0022_ACCOUNT_ENDPOINTS, []);
+});
+
+function validSmokeResult(overrides = {}) {
+  const symbols = ['BTCUSDC', 'BTCUSDT', 'ETHUSDT'];
+  const perSymbol = Object.fromEntries(symbols.map(symbol => [symbol, {
+    symbol,
+    finalWebsocketBars: 1,
+    restConfirmationAttempts: 1,
+    restConfirmations: 1,
+    confirmedBars: 1,
+    sourceConflicts: 0,
+    confirmationMissing: 0,
+    receivedAtAfterClose: true,
+    source: 'CONTRACT_PRICE',
+    markPriceKlineUsed: false,
+    bars: [{
+      openTime: HY_EXP_0022_FIRST_PROSPECTIVE_BAR.openTime,
+      closeTime: HY_EXP_0022_FIRST_PROSPECTIVE_BAR.closeTime,
+      finalClosed: true
+    }]
+  }]));
+  const { barSourceVerification: barOverrides = {}, ...resultOverrides } = overrides;
+  return {
+    runId: 'smoke-test',
+    symbols,
+    fundingRows: symbols.map(symbol => ({ symbol, ok: true, validation: { symbol } })),
+    noDevelopment: true,
+    manifestWrite: { manifestFileSha256: 'manifest-file-hash' },
+    manifest: {
+      authorization: 'PAPER_ONLY',
+      liveOrdersEnabled: false,
+      noOrderOrAccountApi: true,
+      pnlComputed: false,
+      developmentAllowed: false,
+      manifestSha256: 'manifest-hash',
+      files: [],
+      errors: [],
+      startedAt: '2026-08-22T04:00:00.000Z',
+      finishedAt: '2026-08-22T08:01:00.000Z',
+      durationMs: 14_460_000,
+      diagnostics: {
+        snapshotAlignmentFailures: 0,
+        sequenceGaps: 0,
+        crossedBooks: 0,
+        bufferLimitFailures: 0,
+        missingReceivedAt: 0,
+        exchangeInfoValidation: Object.fromEntries(symbols.map(symbol => [symbol, { symbol, valid: true, failures: [] }]))
+      }
+    },
+    barSourceVerification: {
+      finalWebsocketBars: 3,
+      finalBarEvents: 3,
+      confirmedBars: 3,
+      sourceConflicts: 0,
+      confirmationMissing: 0,
+      errors: [],
+      perSymbol,
+      ...barOverrides
+    },
+    ...resultOverrides
+  };
+}
+
+test('Phase-B smoke passes only with three exact final WS and REST-confirmed bars', () => {
+  const smoke = buildHyExp0022FirstProspectiveBarSmoke({ result: validSmokeResult() });
+  assert.equal(smoke.status, 'PASS');
+  assert.equal(smoke.finalWebsocketBars, 3);
+  assert.equal(smoke.restConfirmations, 3);
+});
+
+test('empty funding response fails schema validation', () => {
+  assert.throws(
+    () => validateHyExp0022FundingRow({ symbol: 'BTCUSDT', row: undefined, receivedAt: 2_000 }),
+    error => error.code === 'FUNDING_SCHEMA_INVALID'
+  );
+});
+
+test('fundingTime after receivedAt fails closed', () => {
+  assert.throws(
+    () => validateHyExp0022FundingRow({
+      symbol: 'BTCUSDT',
+      row: { symbol: 'BTCUSDT', fundingTime: 2_001, fundingRate: '0.0001' },
+      receivedAt: 2_000
+    }),
+    error => error.code === 'FUNDING_FUTURE_TIMESTAMP'
+  );
+});
+
+test('missing exchangeInfo filter fails closed without fallback', () => {
+  const result = validateHyExp0022ExchangeInfoSymbol({
+    symbol: 'BTCUSDT',
+    row: {
+      symbol: 'BTCUSDT', status: 'TRADING', contractType: 'PERPETUAL', quoteAsset: 'USDT', onboardDate: 1,
+      filters: [{ filterType: 'PRICE_FILTER', tickSize: '0.1' }]
+    }
+  });
+  assert.equal(result.valid, false);
+  assert.ok(result.failures.includes('LOT_SIZE.stepSize'));
+  assert.ok(result.failures.includes('MIN_NOTIONAL.minNotional'));
+});
+
+test('Phase-B smoke cannot pass on transport-only or missing final bars', () => {
+  const result = validSmokeResult({
+    barSourceVerification: {
+      finalWebsocketBars: 0,
+      finalBarEvents: 0,
+      confirmedBars: 0,
+      perSymbol: {}
+    }
+  });
+  const smoke = buildHyExp0022FirstProspectiveBarSmoke({ result });
+  assert.notEqual(smoke.status, 'PASS');
+  assert.equal(smoke.checks.finalWebsocketBars, false);
+  assert.equal(smoke.checks.exactRestConfirmations, false);
+});
+
+test('Phase-B smoke requires exact REST confirmation for every final WebSocket bar', () => {
+  const result = validSmokeResult({
+    barSourceVerification: {
+      confirmedBars: 2,
+      perSymbol: {
+        ...validSmokeResult().barSourceVerification.perSymbol,
+        ETHUSDT: { ...validSmokeResult().barSourceVerification.perSymbol.ETHUSDT, restConfirmations: 0, confirmedBars: 0 }
+      }
+    }
+  });
+  const smoke = buildHyExp0022FirstProspectiveBarSmoke({ result });
+  assert.notEqual(smoke.status, 'PASS');
+  assert.equal(smoke.checks.exactRestConfirmations, false);
+});
+
+test('bar conflict and confirmation missing never produce Phase-B PASS', () => {
+  for (const field of ['sourceConflicts', 'confirmationMissing']) {
+    const result = validSmokeResult({ barSourceVerification: { [field]: 1 } });
+    const smoke = buildHyExp0022FirstProspectiveBarSmoke({ result });
+    assert.notEqual(smoke.status, 'PASS');
+    assert.equal(smoke.checks[field === 'sourceConflicts' ? 'barSourceConflicts' : 'barConfirmationMissing'], false);
+  }
 });

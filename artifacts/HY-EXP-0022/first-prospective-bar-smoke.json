@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0022_FIRST_PROSPECTIVE_BAR_SMOKE",
+  "experimentId": "HY-EXP-0022",
+  "status": "WAITING_FOR_TARGET_BAR",
+  "targetBar": {
+    "openTime": "2026-08-22T04:00:00.000Z",
+    "closeTime": "2026-08-22T07:59:59.999Z",
+    "source": "CONTRACT_PRICE",
+    "interval": "4h"
+  },
+  "runId": "engineering-dry-run-20260822013939156-74f6c682",
+  "runWindow": {
+    "startedAt": "2026-08-22T01:39:39.156Z",
+    "finishedAt": "2026-08-22T01:44:39.426Z",
+    "durationMs": 300270
+  },
+  "symbols": [
+    "BTCUSDC",
+    "BTCUSDT",
+    "ETHUSDT"
+  ],
+  "finalWebsocketBars": 0,
+  "restConfirmations": 0,
+  "barConflicts": 0,
+  "confirmationMissing": 0,
+  "perSymbol": {
+    "BTCUSDC": {
+      "symbol": "BTCUSDC",
+      "finalWebsocketBars": 0,
+      "restConfirmationAttempts": 0,
+      "restConfirmations": 0,
+      "confirmedBars": 0,
+      "sourceConflicts": 0,
+      "confirmationMissing": 0,
+      "receivedAtAfterClose": false,
+      "source": "CONTRACT_PRICE",
+      "markPriceKlineUsed": false,
+      "bars": []
+    },
+    "BTCUSDT": {
+      "symbol": "BTCUSDT",
+      "finalWebsocketBars": 0,
+      "restConfirmationAttempts": 0,
+      "restConfirmations": 0,
+      "confirmedBars": 0,
+      "sourceConflicts": 0,
+      "confirmationMissing": 0,
+      "receivedAtAfterClose": false,
+      "source": "CONTRACT_PRICE",
+      "markPriceKlineUsed": false,
+      "bars": []
+    },
+    "ETHUSDT": {
+      "symbol": "ETHUSDT",
+      "finalWebsocketBars": 0,
+      "restConfirmationAttempts": 0,
+      "restConfirmations": 0,
+      "confirmedBars": 0,
+      "sourceConflicts": 0,
+      "confirmationMissing": 0,
+      "receivedAtAfterClose": false,
+      "source": "CONTRACT_PRICE",
+      "markPriceKlineUsed": false,
+      "bars": []
+    }
+  },
+  "checks": {
+    "targetBarFrozen": true,
+    "dynamicSymbols": true,
+    "finalWebsocketBars": false,
+    "exactRestConfirmations": false,
+    "barSourceConflicts": true,
+    "barConfirmationMissing": true,
+    "exactTimes": false,
+    "receivedAtAfterClose": false,
+    "contractPriceSource": true,
+    "markPriceKlineNotUsed": true,
+    "depthAlignmentFailures": true,
+    "depthSequenceGaps": true,
+    "depthCrossedBooks": true,
+    "depthBufferLimitFailures": true,
+    "depthReceivedAtPresent": true,
+    "fundingRowsValid": true,
+    "exchangeInfoFiltersValid": true,
+    "noPnl": true,
+    "noDevelopment": true,
+    "paperOnly": true,
+    "noOrderOrAccountApi": true
+  },
+  "depth": {
+    "alignmentFailures": 0,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "missingReceivedAt": 0
+  },
+  "funding": {
+    "rows": [
+      {
+        "symbol": "BTCUSDC",
+        "ok": true,
+        "code": null,
+        "error": null
+      },
+      {
+        "symbol": "BTCUSDT",
+        "ok": true,
+        "code": null,
+        "error": null
+      },
+      {
+        "symbol": "ETHUSDT",
+        "ok": true,
+        "code": null,
+        "error": null
+      }
+    ],
+    "valid": true
+  },
+  "exchangeInfoValidation": {
+    "BTCUSDC": {
+      "symbol": "BTCUSDC",
+      "valid": true,
+      "failures": [],
+      "status": "TRADING",
+      "contractType": "PERPETUAL",
+      "quoteAsset": "USDC",
+      "onboardDate": 1704285000000,
+      "filters": {
+        "tickSize": "0.1",
+        "stepSize": "0.001",
+        "minQty": "0.001",
+        "minNotional": "50"
+      }
+    },
+    "BTCUSDT": {
+      "symbol": "BTCUSDT",
+      "valid": true,
+      "failures": [],
+      "status": "TRADING",
+      "contractType": "PERPETUAL",
+      "quoteAsset": "USDT",
+      "onboardDate": 1567965300000,
+      "filters": {
+        "tickSize": "0.10",
+        "stepSize": "0.001",
+        "minQty": "0.001",
+        "minNotional": "50"
+      }
+    },
+    "ETHUSDT": {
+      "symbol": "ETHUSDT",
+      "valid": true,
+      "failures": [],
+      "status": "TRADING",
+      "contractType": "PERPETUAL",
+      "quoteAsset": "USDT",
+      "onboardDate": 1574840700000,
+      "filters": {
+        "tickSize": "0.01",
+        "stepSize": "0.001",
+        "minQty": "0.001",
+        "minNotional": "20"
+      }
+    }
+  },
+  "source": "CONTRACT_PRICE",
+  "markPriceKlineUsed": false,
+  "manifestSha256": "7b2fa1b45d3586cb99adb60e086587a84cd907cbdf64b3195696982d71c4cf17",
+  "manifestFileSha256": "3d423528ffbe21d3eb78442374dbdab4879fdb8d73cbf3077c703a2882df5de4",
+  "rawFiles": [
+    {
+      "path": "depth.diff.ndjson",
+      "bytes": 20794268,
+      "sha256": "010d0ef62327f6ff9aa5c6e33259494f2be622055f1f1cf34d69d63c8ea2e35c"
+    },
+    {
+      "path": "depth.snapshot.ndjson",
+      "bytes": 123581,
+      "sha256": "25eb1119815872636678242c9bec45d988cecb1572c7e8280f51bf87877fd73f"
+    },
+    {
+      "path": "kline.4h.ndjson",
+      "bytes": 1149445,
+      "sha256": "b7d9e9e61b11d41084c0ecc27509fa871b4fbb3efd6fd91cd964b09632eea929"
+    },
+    {
+      "path": "kline.4h.confirmation.ndjson",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "exchangeInfo.ndjson",
+      "bytes": 1077740,
+      "sha256": "481649f57fa2dd920f6a393241a43ee8fb3cb54b8f4f10b282a423a892599833"
+    },
+    {
+      "path": "funding.ndjson",
+      "bytes": 1256,
+      "sha256": "e0877362760784f55549dbefbb57abdb9dd69ba488aaec4d7a5786e06fb61490"
+    },
+    {
+      "path": "ticker.diagnostic.ndjson",
+      "bytes": 276936,
+      "sha256": "c6190862acade0ae4aa47d62417b7645ae85a28359fda0398c01fdd8381d3620"
+    },
+    {
+      "path": "universe.snapshot.ndjson",
+      "bytes": 150315,
+      "sha256": "27d211c02797076432e912f7d5ac24cd14f9349e91998ed0a5c3b1b83af5f13b"
+    },
+    {
+      "path": "universe.audit.ndjson",
+      "bytes": 149953,
+      "sha256": "6b44127fff27c992b65248d171b79d2d77a7be23197e9afad312ca70473acadb"
+    },
+    {
+      "path": "segment.audit.ndjson",
+      "bytes": 2088,
+      "sha256": "056d0ccce27e1ff8585e3060a1606f17d12f753b8cae62fe511b16410cc184f2"
+    }
+  ],
+  "authorization": "PAPER_ONLY",
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "finalOosEligible": false,
+  "historicalBackfillUsed": false,
+  "proxyDepthUsed": false,
+  "errors": []
+}

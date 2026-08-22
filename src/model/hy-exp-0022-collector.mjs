@@ -44,6 +44,13 @@ export const HY_EXP_0022_REQUIRED_CAPTURE_STREAMS = Object.freeze([
 
 export const HY_EXP_0022_DIAGNOSTIC_STREAMS = Object.freeze(['ticker']);
 
+export const HY_EXP_0022_FIRST_PROSPECTIVE_BAR = Object.freeze({
+  openTime: Date.parse('2026-08-22T04:00:00.000Z'),
+  closeTime: Date.parse('2026-08-22T07:59:59.999Z'),
+  source: 'CONTRACT_PRICE',
+  interval: '4h'
+});
+
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1_000;
 const DAY_MS = 86_400_000;
 const DEPTH_LEVELS = 1_000;
@@ -55,6 +62,7 @@ const SNAPSHOT_RETRY_DELAY_MS = 250;
 const DEFAULT_SEGMENT_MAX_MS = 4 * 60 * 60 * 1_000 - 60_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_SYMBOLS = 3;
+const MAX_ENGINEERING_SYMBOLS = 200;
 
 function errorWithCode(code, message) {
   const error = new Error(message);
@@ -417,6 +425,69 @@ function serverObservedAt(response) {
   return response.exchangeObservedAt == null ? null : response.exchangeObservedAt;
 }
 
+function decimalString(value, name) {
+  const text = String(value ?? '').trim();
+  const parsed = Number(text);
+  if (!text || !Number.isFinite(parsed) || parsed <= 0) throw errorWithCode('INVALID_SCHEMA_FIELD', `${name} must be a positive number`);
+  return text;
+}
+
+/** Validate realized funding instead of treating an HTTP 200 or empty array as success. */
+export function validateHyExp0022FundingRow({ symbol, row, receivedAt } = {}) {
+  const normalizedSymbol = symbolOf(symbol);
+  const actualSymbol = String(row?.symbol ?? row?.s ?? '').trim().toUpperCase();
+  if (actualSymbol !== normalizedSymbol) throw errorWithCode('FUNDING_SCHEMA_INVALID', `${normalizedSymbol}:funding symbol mismatch`);
+  const fundingTime = integer('fundingTime', row?.fundingTime);
+  const fundingRate = Number(row?.fundingRate);
+  const receipt = integer('funding receivedAt', receivedAt);
+  if (!Number.isFinite(fundingRate)) throw errorWithCode('FUNDING_SCHEMA_INVALID', `${normalizedSymbol}:fundingRate missing or invalid`);
+  if (fundingTime > receipt) throw errorWithCode('FUNDING_FUTURE_TIMESTAMP', `${normalizedSymbol}:fundingTime is after receivedAt`);
+  return {
+    symbol: normalizedSymbol,
+    fundingTime,
+    fundingRate: String(row.fundingRate),
+    receivedAt: receipt
+  };
+}
+
+/** Validate current prospective exchangeInfo filters; no historical/current fallback is permitted. */
+export function validateHyExp0022ExchangeInfoSymbol({ symbol, row } = {}) {
+  const normalizedSymbol = symbolOf(symbol);
+  const actualSymbol = String(row?.symbol ?? '').trim().toUpperCase();
+  const failures = [];
+  if (actualSymbol !== normalizedSymbol) failures.push('symbol');
+  if (String(row?.status ?? '').toUpperCase() !== 'TRADING') failures.push('status');
+  if (String(row?.contractType ?? '').toUpperCase() !== 'PERPETUAL') failures.push('contractType');
+  if (!String(row?.quoteAsset ?? '').trim()) failures.push('quoteAsset');
+  if (!Number.isFinite(Number(row?.onboardDate))) failures.push('onboardDate');
+  const filters = Array.isArray(row?.filters) ? row.filters : [];
+  const priceFilter = filters.find(filter => String(filter?.filterType ?? '').toUpperCase() === 'PRICE_FILTER');
+  const lotFilter = filters.find(filter => String(filter?.filterType ?? '').toUpperCase() === 'LOT_SIZE');
+  const notionalFilter = filters.find(filter => ['MIN_NOTIONAL', 'NOTIONAL'].includes(String(filter?.filterType ?? '').toUpperCase()));
+  let tickSize;
+  let stepSize;
+  let minQty;
+  let minNotional;
+  try { tickSize = decimalString(priceFilter?.tickSize, `${normalizedSymbol}:tickSize`); } catch { failures.push('PRICE_FILTER.tickSize'); }
+  try { stepSize = decimalString(lotFilter?.stepSize, `${normalizedSymbol}:stepSize`); } catch { failures.push('LOT_SIZE.stepSize'); }
+  try { minQty = decimalString(lotFilter?.minQty, `${normalizedSymbol}:minQty`); } catch { failures.push('LOT_SIZE.minQty'); }
+  try {
+    minNotional = decimalString(notionalFilter?.minNotional ?? notionalFilter?.notional, `${normalizedSymbol}:minNotional`);
+  } catch {
+    failures.push('MIN_NOTIONAL.minNotional');
+  }
+  return {
+    symbol: normalizedSymbol,
+    valid: failures.length === 0,
+    failures,
+    status: row?.status ?? null,
+    contractType: row?.contractType ?? null,
+    quoteAsset: row?.quoteAsset ?? null,
+    onboardDate: Number.isFinite(Number(row?.onboardDate)) ? Number(row.onboardDate) : null,
+    filters: { tickSize: tickSize ?? null, stepSize: stepSize ?? null, minQty: minQty ?? null, minNotional: minNotional ?? null }
+  };
+}
+
 function upper(value) {
   return String(value ?? '').trim().toUpperCase();
 }
@@ -426,6 +497,8 @@ const STABLE_BASES = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'FDUSD', 'TUSD', 'U
 /** Select a capture candidate set from current PIT exchangeInfo/ticker, never a hard-coded list. */
 export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, observedAt = Date.now(), maxSymbols = DEFAULT_MAX_SYMBOLS } = {}) {
   const at = timestamp('universe observedAt', observedAt);
+  const boundedMaxSymbols = integer('maxSymbols', maxSymbols, 1);
+  if (boundedMaxSymbols > MAX_ENGINEERING_SYMBOLS) throw errorWithCode('UNIVERSE_BATCH_LIMIT_EXCEEDED', `maxSymbols cannot exceed ${MAX_ENGINEERING_SYMBOLS}`);
   const tickerBySymbol = new Map((Array.isArray(tickers) ? tickers : []).map(row => [upper(row?.symbol ?? row?.s), row]));
   const rows = [];
   for (const row of Array.isArray(exchangeInfo) ? exchangeInfo : []) {
@@ -460,7 +533,7 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
   const eligible = rows
     .filter(row => row.eligible)
     .sort((left, right) => right.quoteVolumeUsdt - left.quoteVolumeUsdt || left.symbol.localeCompare(right.symbol));
-  const selected = eligible.slice(0, integer('maxSymbols', maxSymbols, 1));
+  const selected = eligible.slice(0, boundedMaxSymbols);
   const selectedSymbols = selected.map(row => row.symbol).sort();
   return {
     selectionSource: 'PIT_EXCHANGE_INFO_PLUS_TICKER_FOR_ENGINEERING_CAPTURE_SAMPLING_ONLY',
@@ -470,7 +543,7 @@ export function selectHyExp0022EngineeringSymbols({ exchangeInfo, tickers, obser
     selected: selected.sort((left, right) => left.symbol.localeCompare(right.symbol)),
     excluded: rows.filter(row => !selectedSymbols.includes(row.symbol)).sort((left, right) => left.symbol.localeCompare(right.symbol)),
     observedAt: at,
-    maxSymbols: Number(maxSymbols),
+    maxSymbols: boundedMaxSymbols,
     pointInTime: true,
     futureDataUsed: false
   };
@@ -868,6 +941,8 @@ function klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceS
     kind: 'websocket',
     segmentId,
     symbol,
+    source: 'CONTRACT_PRICE',
+    priceType: 'CONTRACT_PRICE',
     sourceStream: sourceStream ?? `${symbol.toLowerCase()}@kline_4h`,
     sourceExchangeTimestamp: payload?.E ?? null,
     receivedAt,
@@ -883,23 +958,48 @@ async function collectKlineStream({
   WebSocketImpl,
   klineWriter,
   confirmationWriter,
-  confirmationTimeoutMs
+  confirmationTimeoutMs,
+  targetBar = null
 }) {
+  const expectedBar = targetBar == null ? null : {
+    openTime: integer('target bar openTime', targetBar.openTime),
+    closeTime: integer('target bar closeTime', targetBar.closeTime),
+    source: 'CONTRACT_PRICE',
+    interval: '4h'
+  };
+  const perSymbol = Object.fromEntries(symbols.map(symbol => [symbol, {
+    symbol,
+    finalWebsocketBars: 0,
+    restConfirmationAttempts: 0,
+    restConfirmations: 0,
+    confirmedBars: 0,
+    sourceConflicts: 0,
+    confirmationMissing: 0,
+    receivedAtAfterClose: false,
+    source: 'CONTRACT_PRICE',
+    markPriceKlineUsed: false,
+    bars: []
+  }]));
   const diagnostics = {
     transport: null,
     websocketEvents: 0,
     openCurrentBarEvents: 0,
     finalBarEvents: 0,
+    finalWebsocketBars: 0,
     confirmedBars: 0,
     sourceConflicts: 0,
     confirmationMissing: 0,
     preCaptureBarsRejected: 0,
+    nonTargetFinalBars: 0,
+    targetBar: expectedBar,
+    perSymbol,
     errors: []
   };
-  let socketHandle;
-  let intentionalClose = false;
-  const segmentId = `kline-${Date.now()}`;
-  const onMessage = async ({ raw, verified }) => {
+  const pendingMessages = new Set();
+  let connectionIndex = 0;
+  let hardFailure = false;
+
+  const processMessage = async ({ raw, verified, segmentId }) => {
     const { payload, stream } = transportPayload(raw);
     if (payload?.e !== 'kline' || payload?.k?.i !== '4h') {
       diagnostics.errors.push('invalid_kline_stream_payload');
@@ -913,7 +1013,9 @@ async function collectKlineStream({
     const receivedAt = Date.now();
     diagnostics.websocketEvents++;
     klineWriter.append(klineRecord({ segmentId, symbol, payload, receivedAt, verified, sourceStream: stream }));
+    const symbolDiagnostics = perSymbol[symbol];
     const openTime = Number(payload.k.t);
+    const closeTime = Number(payload.k.T);
     if (payload.k.x !== true) {
       if (openTime < timestamp('capture start', HY_EXP_0022_CAPTURE_START)) diagnostics.preCaptureBarsRejected++;
       else diagnostics.openCurrentBarEvents++;
@@ -923,9 +1025,23 @@ async function collectKlineStream({
       diagnostics.preCaptureBarsRejected++;
       return;
     }
+    if (expectedBar && (openTime !== expectedBar.openTime || closeTime !== expectedBar.closeTime)) {
+      diagnostics.nonTargetFinalBars++;
+      diagnostics.errors.push(`unexpected_target_bar:${symbol}:${openTime}`);
+      return;
+    }
     diagnostics.finalBarEvents++;
+    diagnostics.finalWebsocketBars++;
+    symbolDiagnostics.finalWebsocketBars++;
+    const receivedAfterClose = receivedAt > closeTime;
+    symbolDiagnostics.receivedAtAfterClose = receivedAfterClose;
+    if (!receivedAfterClose) {
+      diagnostics.errors.push(`BAR_RECEIPT_BEFORE_CLOSE:${symbol}`);
+      return;
+    }
     try {
       const restUrl = buildJustClosedKlineUrl({ symbol, openTime: payload.k.t, closeTime: payload.k.T });
+      symbolDiagnostics.restConfirmationAttempts++;
       const restResponse = await withTimeout(
         fetchJsonCompleted({ fetchImpl, url: restUrl }),
         confirmationTimeoutMs,
@@ -943,50 +1059,108 @@ async function collectKlineStream({
         requestStartedAt: restResponse.requestStartedAt,
         receivedAt: restResponse.receivedAt,
         endpoint: restUrl,
+        source: 'CONTRACT_PRICE',
+        priceType: 'CONTRACT_PRICE',
         data: restRow ?? null
       });
       if (!restRow) throw errorWithCode('BAR_CONFIRMATION_MISSING', 'REST did not return the just-closed prospective bar');
+      symbolDiagnostics.restConfirmations++;
       const websocketBar = normalizeHyExp0022ContractKline({
-        raw,
+        raw: { ...raw, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
         receivedAt,
+        source: 'CONTRACT_PRICE',
         captureStart: HY_EXP_0022_CAPTURE_START,
         mode: 'DEVELOPMENT_CAPTURE'
       });
       const restBar = normalizeHyExp0022ContractKline({
-        raw: restRow,
+        raw: { values: restRow, source: 'CONTRACT_PRICE', priceType: 'CONTRACT_PRICE' },
         receivedAt: restResponse.receivedAt,
         sourceTimestamp: Number(restRow[6]),
+        source: 'CONTRACT_PRICE',
         captureStart: HY_EXP_0022_CAPTURE_START,
         mode: 'DEVELOPMENT_CAPTURE'
       });
       reconcileHyExp0022BarSources({ websocketBar, restBar });
       diagnostics.confirmedBars++;
+      symbolDiagnostics.confirmedBars++;
+      symbolDiagnostics.bars.push({
+        ...websocketBar,
+        source: 'CONTRACT_PRICE',
+        restReceivedAt: restResponse.receivedAt
+      });
     } catch (error) {
-      if (error.code === 'BAR_SOURCE_CONFLICT') diagnostics.sourceConflicts++;
-      if (error.code === 'BAR_CONFIRMATION_MISSING') diagnostics.confirmationMissing++;
+      if (error.code === 'BAR_SOURCE_CONFLICT') {
+        diagnostics.sourceConflicts++;
+        symbolDiagnostics.sourceConflicts++;
+      }
+      if (error.code === 'BAR_CONFIRMATION_MISSING') {
+        diagnostics.confirmationMissing++;
+        symbolDiagnostics.confirmationMissing++;
+      }
       diagnostics.errors.push(`${error.code ?? 'BAR_CONFIRMATION_ERROR'}:${symbol}`);
     }
   };
-  try {
-    socketHandle = await openBinanceCombinedSocket({
-      kind: 'kline',
-      streams: symbols.map(symbol => `${symbol.toLowerCase()}@kline_4h`),
-      WebSocketImpl,
-      onMessage,
-      onError: error => diagnostics.errors.push(`kline_socket:${error.message}`),
-      onClose: () => {
-        if (!intentionalClose) diagnostics.errors.push('kline_socket_closed');
+  while (Date.now() < deadline && !hardFailure) {
+    let socketHandle = null;
+    let intentionalClose = false;
+    let socketEndedUnexpectedly = false;
+    let resolveSocketClosed;
+    const socketClosed = new Promise(resolve => { resolveSocketClosed = resolve; });
+    const segmentId = `kline-${Date.now()}-${++connectionIndex}`;
+    try {
+      socketHandle = await openBinanceCombinedSocket({
+        kind: 'kline',
+        streams: symbols.map(symbol => `${symbol.toLowerCase()}@kline_4h`),
+        WebSocketImpl,
+        onMessage: ({ raw, verified }) => {
+          const task = processMessage({ raw, verified, segmentId });
+          pendingMessages.add(task);
+          task.then(
+            () => pendingMessages.delete(task),
+            () => pendingMessages.delete(task)
+          );
+          return task;
+        },
+        onError: error => {
+          diagnostics.errors.push(`kline_socket:${error.message}`);
+          if (error?.code === 'BINANCE_TRANSPORT_STATUS_REJECTED') hardFailure = true;
+          resolveSocketClosed?.();
+        },
+        onClose: () => {
+          if (!intentionalClose) {
+            socketEndedUnexpectedly = true;
+            diagnostics.errors.push('kline_socket_closed');
+            resolveSocketClosed?.();
+          }
+        }
+      });
+      if (diagnostics.transport == null) {
+        diagnostics.transport = { ...socketHandle.capability, dataMessages: socketHandle.capability.dataMessages };
+      } else {
+        diagnostics.transport.dataMessages += socketHandle.capability.dataMessages;
+        diagnostics.transport.subscriptionAck = diagnostics.transport.subscriptionAck || socketHandle.capability.subscriptionAck;
+        diagnostics.transport.opened = diagnostics.transport.opened || socketHandle.capability.opened;
+        diagnostics.transport.stValues = [...new Set([...(diagnostics.transport.stValues ?? []), ...(socketHandle.capability.stValues ?? [])])];
+        diagnostics.transport.psValues = [...new Set([...(diagnostics.transport.psValues ?? []), ...(socketHandle.capability.psValues ?? [])])];
       }
-    });
-    diagnostics.transport = socketHandle.capability;
-    await new Promise(resolve => setTimeout(resolve, Math.max(1, deadline - Date.now())));
-  } catch (error) {
-    diagnostics.errors.push(`kline_socket_open:${error.message}`);
-  } finally {
-    intentionalClose = true;
-    closeSocket(socketHandle?.socket);
+      const remaining = Math.max(1, deadline - Date.now());
+      await Promise.race([
+        new Promise(resolve => setTimeout(resolve, remaining)),
+        socketClosed
+      ]);
+    } catch (error) {
+      diagnostics.errors.push(`kline_socket_open:${error.message}`);
+      if (error?.code === 'BINANCE_TRANSPORT_STATUS_REJECTED') hardFailure = true;
+    } finally {
+      intentionalClose = true;
+      closeSocket(socketHandle?.socket);
+      await Promise.allSettled([...pendingMessages]);
+    }
+    if (!socketEndedUnexpectedly || hardFailure || Date.now() >= deadline) break;
+    await new Promise(resolve => setTimeout(resolve, Math.min(250, Math.max(1, deadline - Date.now()))));
   }
-  diagnostics.status = diagnostics.websocketEvents > 0 && diagnostics.errors.every(error => !error.startsWith('BINANCE_TRANSPORT_STATUS_REJECTED'))
+
+  diagnostics.status = diagnostics.websocketEvents > 0 && !hardFailure && diagnostics.errors.every(error => !error.startsWith('BINANCE_TRANSPORT_STATUS_REJECTED'))
     ? (diagnostics.confirmedBars > 0
       ? 'PASS_FINAL_WS_REST_CONFIRMATION'
       : (diagnostics.openCurrentBarEvents > 0 ? 'PASS_OPEN_CURRENT_4H_STREAM' : 'PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED'))
@@ -994,6 +1168,7 @@ async function collectKlineStream({
   diagnostics.developmentEligible = false;
   diagnostics.historicalBackfillUsed = false;
   diagnostics.preCaptureOnly = diagnostics.openCurrentBarEvents === 0 && diagnostics.confirmedBars === 0 && diagnostics.preCaptureBarsRejected > 0;
+  diagnostics.finalWebsocketBars = diagnostics.finalBarEvents;
   return diagnostics;
 }
 
@@ -1038,6 +1213,9 @@ async function captureFunding({ symbols, fetchImpl, fundingWriter }) {
   const rows = await Promise.all(symbols.map(async symbol => {
     try {
       const response = await fetchJsonCompleted({ fetchImpl, url: buildFundingUrl(symbol) });
+      const sourceRows = Array.isArray(response.data) ? response.data : [];
+      const sourceRow = sourceRows.find(row => String(row?.symbol ?? '').toUpperCase() === symbol);
+      const validated = validateHyExp0022FundingRow({ symbol, row: sourceRow, receivedAt: response.receivedAt });
       fundingWriter.append({
         experimentId: HY_EXP_0022_ID,
         stream: 'funding',
@@ -1045,18 +1223,21 @@ async function captureFunding({ symbols, fetchImpl, fundingWriter }) {
         requestStartedAt: response.requestStartedAt,
         receivedAt: response.receivedAt,
         exchangeObservedAt: serverObservedAt(response),
+        valid: true,
+        validation: validated,
         data: response.data
       });
-      return { symbol, ok: true, response };
+      return { symbol, ok: true, response, validation: validated };
     } catch (error) {
       fundingWriter.append({
         experimentId: HY_EXP_0022_ID,
         stream: 'funding',
         symbol,
+        valid: false,
         receivedAt: Date.now(),
         error: error.message
       });
-      return { symbol, ok: false, error: error.message };
+      return { symbol, ok: false, error: error.message, code: error.code ?? 'FUNDING_SCHEMA_INVALID' };
     }
   }));
   return rows;
@@ -1244,6 +1425,110 @@ export function buildCollectorEngineeringReadiness({ result, requiredDurationMs 
   };
 }
 
+/** Build the fail-closed evidence record for the first frozen prospective 4h bar. */
+export function buildHyExp0022FirstProspectiveBarSmoke({
+  result,
+  targetBar = HY_EXP_0022_FIRST_PROSPECTIVE_BAR
+} = {}) {
+  const target = {
+    openTime: integer('target bar openTime', targetBar.openTime),
+    closeTime: integer('target bar closeTime', targetBar.closeTime),
+    source: 'CONTRACT_PRICE',
+    interval: '4h'
+  };
+  const manifest = result.manifest;
+  const bar = result.barSourceVerification ?? {};
+  const symbols = [...(result.symbols ?? [])].sort();
+  const perSymbol = bar.perSymbol ?? {};
+  const finalRows = symbols.map(symbol => perSymbol[symbol]).filter(Boolean);
+  const depth = manifest.diagnostics ?? {};
+  const fundingRows = result.fundingRows ?? [];
+  const exchangeInfoValidation = manifest.diagnostics?.exchangeInfoValidation ?? {};
+  const checks = {
+    targetBarFrozen: target.openTime === HY_EXP_0022_FIRST_PROSPECTIVE_BAR.openTime
+      && target.closeTime === HY_EXP_0022_FIRST_PROSPECTIVE_BAR.closeTime,
+    dynamicSymbols: symbols.length >= 3,
+    finalWebsocketBars: finalRows.length >= 3 && finalRows.every(row => row.finalWebsocketBars >= 1),
+    exactRestConfirmations: finalRows.length >= 3 && finalRows.every(row => row.restConfirmations >= 1 && row.confirmedBars >= 1),
+    barSourceConflicts: Number(bar.sourceConflicts ?? 0) === 0,
+    barConfirmationMissing: Number(bar.confirmationMissing ?? 0) === 0,
+    exactTimes: finalRows.length >= 3 && finalRows.every(row => row.bars.some(candidate => (
+      candidate.openTime === target.openTime
+      && candidate.closeTime === target.closeTime
+      && candidate.finalClosed === true
+    ))),
+    receivedAtAfterClose: finalRows.length >= 3 && finalRows.every(row => row.receivedAtAfterClose === true),
+    contractPriceSource: finalRows.length >= 3 && finalRows.every(row => row.source === 'CONTRACT_PRICE'),
+    markPriceKlineNotUsed: finalRows.every(row => row.markPriceKlineUsed === false),
+    depthAlignmentFailures: Number(depth.snapshotAlignmentFailures ?? 0) === 0,
+    depthSequenceGaps: Number(depth.sequenceGaps ?? 0) === 0,
+    depthCrossedBooks: Number(depth.crossedBooks ?? 0) === 0,
+    depthBufferLimitFailures: Number(depth.bufferLimitFailures ?? 0) === 0,
+    depthReceivedAtPresent: Number(depth.missingReceivedAt ?? 0) === 0,
+    fundingRowsValid: fundingRows.length >= 3 && fundingRows.length === symbols.length && fundingRows.every(row => row.ok === true),
+    exchangeInfoFiltersValid: symbols.length >= 3
+      && Object.keys(exchangeInfoValidation).length === symbols.length
+      && Object.values(exchangeInfoValidation).every(row => row.valid === true),
+    noPnl: manifest.pnlComputed === false,
+    noDevelopment: manifest.developmentAllowed === false && result.noDevelopment === true,
+    paperOnly: manifest.authorization === 'PAPER_ONLY' && manifest.liveOrdersEnabled === false,
+    noOrderOrAccountApi: manifest.noOrderOrAccountApi === true
+  };
+  const passed = Object.values(checks).every(Boolean);
+  const now = Date.now();
+  const status = passed
+    ? 'PASS'
+    : (now < target.closeTime ? 'WAITING_FOR_TARGET_BAR' : 'DATA_FAIL');
+  return {
+    schemaVersion: 1,
+    artifactType: 'HY_EXP_0022_FIRST_PROSPECTIVE_BAR_SMOKE',
+    experimentId: HY_EXP_0022_ID,
+    status,
+    targetBar: {
+      ...target,
+      openTime: new Date(target.openTime).toISOString(),
+      closeTime: new Date(target.closeTime).toISOString()
+    },
+    runId: result.runId,
+    runWindow: {
+      startedAt: manifest.startedAt,
+      finishedAt: manifest.finishedAt,
+      durationMs: manifest.durationMs
+    },
+    symbols,
+    finalWebsocketBars: Number(bar.finalWebsocketBars ?? bar.finalBarEvents ?? 0),
+    restConfirmations: Number(bar.confirmedBars ?? 0),
+    barConflicts: Number(bar.sourceConflicts ?? 0),
+    confirmationMissing: Number(bar.confirmationMissing ?? 0),
+    perSymbol,
+    checks,
+    depth: {
+      alignmentFailures: Number(depth.snapshotAlignmentFailures ?? 0),
+      sequenceGaps: Number(depth.sequenceGaps ?? 0),
+      crossedBooks: Number(depth.crossedBooks ?? 0),
+      bufferLimitFailures: Number(depth.bufferLimitFailures ?? 0),
+      missingReceivedAt: Number(depth.missingReceivedAt ?? 0)
+    },
+    funding: {
+      rows: fundingRows.map(row => ({ symbol: row.symbol, ok: row.ok, code: row.code ?? null, error: row.error ?? null })),
+      valid: checks.fundingRowsValid
+    },
+    exchangeInfoValidation,
+    source: 'CONTRACT_PRICE',
+    markPriceKlineUsed: false,
+    manifestSha256: manifest.manifestSha256,
+    manifestFileSha256: result.manifestWrite?.manifestFileSha256 ?? null,
+    rawFiles: manifest.files,
+    authorization: 'PAPER_ONLY',
+    pnlComputed: false,
+    developmentAllowed: false,
+    finalOosEligible: false,
+    historicalBackfillUsed: false,
+    proxyDepthUsed: false,
+    errors: [...(bar.errors ?? []), ...(manifest.errors ?? [])]
+  };
+}
+
 /** Execute only the isolated Phase-A engineering collector. */
 export async function runHyExp0022EngineeringDryRun({
   projectRoot = process.cwd(),
@@ -1251,6 +1536,7 @@ export async function runHyExp0022EngineeringDryRun({
   maxSymbols = DEFAULT_MAX_SYMBOLS,
   segmentMaxMs = DEFAULT_SEGMENT_MAX_MS,
   confirmationTimeoutMs = DEFAULT_CONFIRMATION_TIMEOUT_MS,
+  targetBar = null,
   fetchImpl = globalThis.fetch,
   WebSocketImpl = globalThis.WebSocket
 } = {}) {
@@ -1279,6 +1565,7 @@ export async function runHyExp0022EngineeringDryRun({
   const errors = [];
   let universeInputs = null;
   let selection = null;
+  let exchangeInfoValidation = {};
   let fundingRows = [];
   let segments = [];
   let klineDiagnostics = {
@@ -1306,6 +1593,11 @@ export async function runHyExp0022EngineeringDryRun({
         observedAt: universeInputs.observedAt,
         maxSymbols
       });
+      const exchangeInfoBySymbol = new Map(universeInputs.exchangeInfo.map(row => [upper(row?.symbol), row]));
+      exchangeInfoValidation = Object.fromEntries(selection.symbols.map(symbol => [
+        symbol,
+        validateHyExp0022ExchangeInfoSymbol({ symbol, row: exchangeInfoBySymbol.get(symbol) })
+      ]));
       writers.universeAudit.append({
         experimentId: HY_EXP_0022_ID,
         stream: 'universe.audit',
@@ -1317,6 +1609,7 @@ export async function runHyExp0022EngineeringDryRun({
         ...membershipAudit([], selection.symbols),
         tickerDiagnosticOnly: true,
         tickerDefinesVolume6: false,
+        exchangeInfoValidation,
         selection
       });
       writers.universe.append({
@@ -1327,6 +1620,7 @@ export async function runHyExp0022EngineeringDryRun({
         receivedAt: Date.now(),
         exchangeInfoObservedAt: universeInputs.exchangeResponse.exchangeObservedAt,
         symbols: selection.symbols,
+        exchangeInfoValidation,
         selection,
         pointInTime: true,
         futureDataUsed: false,
@@ -1354,7 +1648,8 @@ export async function runHyExp0022EngineeringDryRun({
           WebSocketImpl,
           klineWriter: writers.kline,
           confirmationWriter: writers.confirmation,
-          confirmationTimeoutMs: integer('confirmationTimeoutMs', confirmationTimeoutMs, 1)
+          confirmationTimeoutMs: integer('confirmationTimeoutMs', confirmationTimeoutMs, 1),
+          targetBar
         })
       ]);
       segments = depthResult;
@@ -1401,8 +1696,12 @@ export async function runHyExp0022EngineeringDryRun({
   const diagnostics = {
     ...depthDiagnostics,
     exchangeInfoCaptured: Boolean(universeInputs),
+    exchangeInfoValidation,
+    exchangeInfoSchemaValid: Object.keys(exchangeInfoValidation).length === (selection?.symbols?.length ?? 0)
+      && Object.values(exchangeInfoValidation).every(row => row.valid === true),
     universeSnapshots: fs.readFileSync(writers.universe.filePath, 'utf8').trim() ? 2 : 0,
     fundingMissing: fundingRows.filter(row => !row.ok).length,
+    fundingRowsValid: fundingRows.length > 0 && fundingRows.every(row => row.ok === true),
     missingReceivedAt: countMissingReceivedAt(allWriters),
     klineWebsocketEvents: klineDiagnostics.websocketEvents ?? 0,
     barSourceStatus: klineDiagnostics.status,
