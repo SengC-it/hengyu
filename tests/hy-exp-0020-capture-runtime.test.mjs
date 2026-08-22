@@ -333,6 +333,20 @@ test('depth reconstructor marks duplicate, gap, out-of-order and crossed segment
   assert.throws(() => crossed.ingestDiff({ data: diff({ bids: [['1000', '0']], asks: [['999', '2']] }), receivedAt: 1_100 }), /crossed_book/);
 });
 
+test('receipt stall is classified separately from a continuous U/u/pu chain', () => {
+  const stalled = createDepthSegmentReconstructor({
+    symbol: SYMBOL,
+    maxEventGapMs: 1_000,
+    receiptGapFailureCode: 'receipt_stall'
+  });
+  seed(stalled);
+  stalled.ingestDiff({ data: diff(), receivedAt: 1_100 });
+  assert.throws(() => stalled.ingestDiff({
+    data: diff({ U: 102, u: 102, pu: 101 }),
+    receivedAt: 3_201
+  }), /receipt_stall/);
+});
+
 test('depth record envelopes preserve receipt and do not synthesize REST snapshot E/T', () => {
   const snapshot = buildDepthRecordEnvelope({
     symbol: SYMBOL,

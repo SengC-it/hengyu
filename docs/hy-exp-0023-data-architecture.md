@@ -33,7 +33,7 @@ The collector uses Binance USD-M documented endpoints only:
 - REST depth snapshot: `/fapi/v1/depth?limit=1000`
 - exact closed-bar confirmation: `/fapi/v1/klines` with one exact `startTime`, `endTime`, and `limit=1`
 
-Each depth connection is bounded to at most 20 dynamically selected symbols. A depth segment is aligned per symbol. The first applied event must cover `lastUpdateId`; later events require `pu` to equal the previous `u`. A gap, duplicate, out-of-order update, crossed book, or invalid snapshot permanently invalidates that segment. Reconnects create a new segment and require a fresh REST snapshot; the invalid segment is never repaired.
+Each depth connection is bounded to at most 20 dynamically selected symbols; the current 0023 profile uses batches of five to reduce event-loop receipt stalls while retaining combined streams. A depth segment is aligned per symbol. The first applied event must cover `lastUpdateId`; later events require `pu` to equal the previous `u`. A U/u/pu gap, duplicate, out-of-order update, crossed book, or invalid snapshot permanently invalidates that segment. A local receipt interval over the diagnostic limit is classified separately as `receipt_stall`: it still invalidates the segment and requires a fresh segment, but it is never reported as a source sequence gap when `pu === previous u`. Reconnects create a new segment and require a fresh REST snapshot; the invalid segment is never repaired.
 
 The raw streams are `depth.diff`, `depth.snapshot`, `kline.4h`, `exchangeInfo`, `funding`, `universe.snapshot`, `universe.audit`, and `segment.audit`. Ticker is diagnostic-only and never substitutes for the six completed-bar quote-volume rule. `st=2` is rejected, `st=1` is accepted when present, and raw `st`/`ps` are preserved.
 
@@ -43,9 +43,8 @@ The intended host is a long-running process/container with a process supervisor,
 
 Required health signals are collector death, sequence gap, crossed book, snapshot-alignment failure, missing receipt timestamp, stale data, NTP failure, manifest-sealing lag, and storage pressure. The supervisor and readiness code fail closed when required alerts are absent. OS clock synchronization and Binance server-time drift are measured; timestamps are never rewritten.
 
-Storage metrics record bytes/sec, events/sec, per-stream bytes, per-symbol rate, and projected 30-day, Development, Final-OOS, and full-experiment storage. A readiness pass requires durable storage, a retention plan, and available capacity at least equal to the projected full experiment. The local engineering dry-run filesystem is diagnostic evidence only and is not a production storage qualification.
+Storage metrics record bytes/sec, events/sec, per-stream bytes, per-symbol rate, and projected 30-day, Development, Final-OOS, and full-experiment storage. A readiness pass requires durable storage, a retention plan, and available capacity at least equal to the projected full experiment. The local engineering dry-run filesystem is diagnostic evidence only and is not a production storage qualification; measured capacity shortfall remains a hard readiness blocker until an approved durable store is provisioned and evidenced.
 
 ## Workflow lock
 
 Before Development PASS, Final-OOS capture may eventually be sealed using write/hash/integrity-only operations, but it cannot be queried, summarized, inspected, exported, optimized, or used for metrics. Development evaluation is allowed only after the complete Final-OOS capture is sealed; Final-OOS research reads require Development PASS. This engineering phase does not perform either operation and never computes PnL.
-

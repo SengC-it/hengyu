@@ -311,7 +311,8 @@ export function createDepthSegmentReconstructor({
   symbol,
   requiredDepthLevels = DEFAULT_DEPTH_LEVELS,
   maxEventGapMs = DEFAULT_MAX_EVENT_GAP_MS,
-  maxFutureSkewMs = 5_000
+  maxFutureSkewMs = 5_000,
+  receiptGapFailureCode = 'missing_interval'
 } = {}) {
   const normalizedSymbol = symbolOf(symbol);
   const state = {
@@ -381,7 +382,7 @@ export function createDepthSegmentReconstructor({
       const asks = levels(payload.a ?? payload.asks, `${normalizedSymbol} depth asks`);
       if (state.lastReceivedAt != null) {
         if (receipt < state.lastReceivedAt) fail('out_of_order_receipt');
-        if (receipt - state.lastReceivedAt > maxEventGapMs) fail('missing_interval');
+        if (receipt - state.lastReceivedAt > maxEventGapMs) fail(receiptGapFailureCode);
       }
       if (state.seen.has(u)) fail('duplicate_update');
       state.seen.add(u);
@@ -711,7 +712,7 @@ async function collectCombinedDepthSegment({
           kind: 'snapshot'
         });
         snapshotWriter.append(envelope);
-        const state = createDepthSegmentReconstructor({ symbol });
+        const state = createDepthSegmentReconstructor({ symbol, receiptGapFailureCode: 'receipt_stall' });
         try {
           state.ingestSnapshot({ data: envelope.data, receivedAt: response.receivedAt });
         } catch (error) {
@@ -879,7 +880,11 @@ async function collectSymbolSegment({
   reconstructorOptions,
   endpoint = HY_EXP_0020_PUBLIC_ENDPOINTS.depthSnapshot
 }) {
-  const state = createDepthSegmentReconstructor({ symbol, ...reconstructorOptions });
+  const state = createDepthSegmentReconstructor({
+    symbol,
+    receiptGapFailureCode: 'receipt_stall',
+    ...reconstructorOptions
+  });
   const stream = `${symbol.toLowerCase()}@depth@100ms`;
   const url = `wss://fstream.binance.com/ws/${stream}`;
   let snapshotReady = false;
@@ -1305,6 +1310,8 @@ function captureQualityDiagnostics({ segments, exchangeInfoSnapshots, universeSn
     validSegments: segments.filter(segment => segment.status === 'VALID').length,
     invalidSegments: segments.filter(segment => segment.status !== 'VALID').length,
     sequenceGaps: countReason('sequence_gap'),
+    receiptStalls: countReason('receipt_stall', 'missing_interval'),
+    outOfOrderReceipts: countReason('out_of_order_receipt'),
     snapshotAlignmentFailures: countReason('snapshot_alignment'),
     duplicateOrOutOfOrder: countReason('duplicate_update', 'out_of_order'),
     crossedBooks: countReason('crossed_book'),

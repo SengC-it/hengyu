@@ -1,0 +1,2870 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0023_ENGINEERING_DIAGNOSTIC_ONLY",
+  "experimentId": "HY-EXP-0023",
+  "runId": "engineering-dry-run-20260822110101309-050ac5fc",
+  "runWindow": {
+    "startedAt": "2026-08-22T11:01:01.309Z",
+    "finishedAt": "2026-08-22T11:02:01.586Z",
+    "durationMs": 60277
+  },
+  "safety": {
+    "experimentId": "HY-EXP-0023",
+    "runId": "engineering-dry-run-20260822110101309-050ac5fc",
+    "captureMode": "ENGINEERING_DRY_RUN",
+    "authorization": "PAPER_ONLY",
+    "liveOrdersEnabled": false,
+    "orderApiEnabled": false,
+    "accountApiEnabled": false,
+    "pnlComputed": false,
+    "developmentAllowed": false,
+    "officialCaptureAuthorized": false,
+    "finalOosRead": false,
+    "startedAt": "2026-08-22T11:01:01.309Z",
+    "engineeringRoot": "data\\raw\\engineering-dry-run\\HY-EXP-0023",
+    "developmentRoot": "data\\raw\\prospective-development\\HY-EXP-0023",
+    "finalOosRoot": "data\\raw\\prospective-final-oos\\HY-EXP-0023"
+  },
+  "status": "ENGINEERING_DIAGNOSTIC_FAIL",
+  "formalReadiness": "NOT_RUN",
+  "officialCaptureAuthorized": false,
+  "checks": {
+    "documentedEndpoints": true,
+    "dynamicSymbols": true,
+    "validSegments": false,
+    "snapshotAlignmentFailures": false,
+    "sequenceGaps": true,
+    "receiptStalls": false,
+    "outOfOrderReceipts": true,
+    "crossedBooks": true,
+    "bufferLimitFailures": true,
+    "receivedAtPresent": true,
+    "fundingSchema": true,
+    "exchangeInfoSchema": true,
+    "noPnl": true,
+    "noDevelopment": true,
+    "paperOnly": true
+  },
+  "diagnostics": {
+    "validSegments": 1,
+    "invalidSegments": 11,
+    "snapshotAlignmentFailures": 9,
+    "sequenceGaps": 0,
+    "receiptStalls": 11,
+    "outOfOrderReceipts": 0,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "staleBufferedDropped": 1043,
+    "bufferedEventsPeak": 110,
+    "snapshotAttempts": 66,
+    "snapshotTooOldRetries": 6,
+    "alignmentSuccesses": 51,
+    "alignmentFailures": 9,
+    "gapDiagnostics": [
+      {
+        "symbol": "1000PEPEUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+        "previousU": 11355492802644,
+        "previousu": 11355492802644,
+        "currentU": 11355492649851,
+        "currentu": 11355492659206,
+        "currentPu": 11355492648183,
+        "exchangeE": 1787396476821,
+        "transactionT": 1787396476814,
+        "receivedAt": 1787396477745,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BCHUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+        "previousU": 11355492655290,
+        "previousu": 11355492655290,
+        "currentU": 11355492656257,
+        "currentu": 11355492664959,
+        "currentPu": 11355492655290,
+        "exchangeE": 1787396476890,
+        "transactionT": 1787396476874,
+        "receivedAt": 1787396478738,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "ETHUSDC",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2",
+        "previousU": 11355492857481,
+        "previousu": 11355492857481,
+        "currentU": 11355492858007,
+        "currentu": 11355492894247,
+        "currentPu": 11355492857481,
+        "exchangeE": 1787396478457,
+        "transactionT": 1787396478455,
+        "receivedAt": 1787396481328,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "LINKUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3",
+        "previousU": 11355493796386,
+        "previousu": 11355493796386,
+        "currentU": 11355493801330,
+        "currentu": 11355493806726,
+        "currentPu": 11355493796386,
+        "exchangeE": 1787396487461,
+        "transactionT": 1787396487429,
+        "receivedAt": 1787396491132,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "SUIUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+        "previousU": 11355492826131,
+        "previousu": 11355492826131,
+        "currentU": 11355492828318,
+        "currentu": 11355492839117,
+        "currentPu": 11355492826131,
+        "exchangeE": 1787396478197,
+        "transactionT": 1787396478187,
+        "receivedAt": 1787396481637,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "XRPUSDC",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+        "previousU": 11355492917047,
+        "previousu": 11355492917047,
+        "currentU": 11355492827316,
+        "currentu": 11355492838564,
+        "currentPu": 11355492826129,
+        "exchangeE": 1787396478188,
+        "transactionT": 1787396478182,
+        "receivedAt": 1787396480484,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "1000PEPEUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+        "previousU": 11355494907308,
+        "previousu": 11355494907308,
+        "currentU": 11355494907520,
+        "currentu": 11355494915766,
+        "currentPu": 11355494907308,
+        "exchangeE": 1787396496431,
+        "transactionT": 1787396496422,
+        "receivedAt": 1787396499618,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "BCHUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+        "previousU": 11355495005971,
+        "previousu": 11355495005971,
+        "currentU": 11355494899007,
+        "currentu": 11355494907741,
+        "currentPu": 11355494898527,
+        "exchangeE": 1787396496350,
+        "transactionT": 1787396496331,
+        "receivedAt": 1787396497523,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BNBUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+        "previousU": 11355495101020,
+        "previousu": 11355495101020,
+        "currentU": 11355494897267,
+        "currentu": 11355494907622,
+        "currentPu": 11355494895224,
+        "exchangeE": 1787396496331,
+        "transactionT": 1787396496330,
+        "receivedAt": 1787396497523,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BTCUSDC",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+        "previousU": 11355495038448,
+        "previousu": 11355495038448,
+        "currentU": 11355494905996,
+        "currentu": 11355494915089,
+        "currentPu": 11355494904092,
+        "exchangeE": 1787396496415,
+        "transactionT": 1787396496413,
+        "receivedAt": 1787396497523,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BTCUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2",
+        "previousU": 11355495256429,
+        "previousu": 11355495256429,
+        "currentU": 11355495256437,
+        "currentu": 11355495292631,
+        "currentPu": 11355495256429,
+        "exchangeE": 1787396500178,
+        "transactionT": 1787396500177,
+        "receivedAt": 1787396504076,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "HYPEUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3",
+        "previousU": 11355495117253,
+        "previousu": 11355495117253,
+        "currentU": 11355495117322,
+        "currentu": 11355495126188,
+        "currentPu": 11355495117253,
+        "exchangeE": 1787396498661,
+        "transactionT": 1787396498660,
+        "receivedAt": 1787396501605,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "SUIUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+        "previousU": 11355495237572,
+        "previousu": 11355495237572,
+        "currentU": 11355495018937,
+        "currentu": 11355495019829,
+        "currentPu": 11355495003000,
+        "exchangeE": 1787396497491,
+        "transactionT": 1787396497397,
+        "receivedAt": 1787396499153,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "TRUMPUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+        "previousU": 11355495033342,
+        "previousu": 11355495033342,
+        "currentU": 11355495034012,
+        "currentu": 11355495041874,
+        "currentPu": 11355495033342,
+        "exchangeE": 1787396497691,
+        "transactionT": 1787396497690,
+        "receivedAt": 1787396502483,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "XRPUSDC",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+        "previousU": 11355495044626,
+        "previousu": 11355495044626,
+        "currentU": 11355495030991,
+        "currentu": 11355495039255,
+        "currentPu": 11355495029504,
+        "exchangeE": 1787396497652,
+        "transactionT": 1787396497646,
+        "receivedAt": 1787396502483,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "XRPUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+        "previousU": 11355495106624,
+        "previousu": 11355495106624,
+        "currentU": 11355495029931,
+        "currentu": 11355495038473,
+        "currentPu": 11355495029522,
+        "exchangeE": 1787396497637,
+        "transactionT": 1787396497636,
+        "receivedAt": 1787396502230,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "ZECUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+        "previousU": 11355495228898,
+        "previousu": 11355495228898,
+        "currentU": 11355495026635,
+        "currentu": 11355495034186,
+        "currentPu": 11355495026321,
+        "exchangeE": 1787396497593,
+        "transactionT": 1787396497592,
+        "receivedAt": 1787396502230,
+        "bufferState": "WAITING_SNAPSHOT",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+        "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+        "failureCode": "SNAPSHOT_ALIGNMENT"
+      },
+      {
+        "symbol": "BNBUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1",
+        "previousU": 11355497035305,
+        "previousu": 11355497035305,
+        "currentU": 11355497035569,
+        "currentu": 11355497043790,
+        "currentPu": 11355497035305,
+        "exchangeE": 1787396518257,
+        "transactionT": 1787396518243,
+        "receivedAt": 1787396520717,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "ENAUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2",
+        "previousU": 11355497023790,
+        "previousu": 11355497023790,
+        "currentU": 11355497023963,
+        "currentu": 11355497029340,
+        "currentPu": 11355497023790,
+        "exchangeE": 1787396518045,
+        "transactionT": 1787396518044,
+        "receivedAt": 1787396519900,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      },
+      {
+        "symbol": "HYPEUSDT",
+        "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3",
+        "previousU": 11355496964502,
+        "previousu": 11355496964502,
+        "currentU": 11355496966213,
+        "currentu": 11355496976944,
+        "currentPu": 11355496964502,
+        "exchangeE": 1787396517135,
+        "transactionT": 1787396517121,
+        "receivedAt": 1787396519826,
+        "bufferState": "ALIGNED",
+        "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3:connection",
+        "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+        "failureCode": "receipt_stall"
+      }
+    ],
+    "symbolsCaptured": [
+      "1000PEPEUSDT",
+      "ADAUSDT",
+      "BCHUSDT",
+      "BNBUSDT",
+      "BTCUSDC",
+      "BTCUSDT",
+      "DOGEUSDT",
+      "ENAUSDT",
+      "ETHUSDC",
+      "ETHUSDT",
+      "HYPEUSDT",
+      "LINKUSDT",
+      "PUMPUSDT",
+      "SOLUSDC",
+      "SOLUSDT",
+      "SUIUSDT",
+      "TRUMPUSDT",
+      "XRPUSDC",
+      "XRPUSDT",
+      "ZECUSDT"
+    ],
+    "exchangeInfoCaptured": true,
+    "exchangeInfoValidation": {
+      "1000PEPEUSDT": {
+        "symbol": "1000PEPEUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1683244800000,
+        "filters": {
+          "tickSize": "0.0000001",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "ADAUSDT": {
+        "symbol": "ADAUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1580457600000,
+        "filters": {
+          "tickSize": "0.00010",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "BCHUSDT": {
+        "symbol": "BCHUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1576745700000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "20"
+        }
+      },
+      "BNBUSDT": {
+        "symbol": "BNBUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1581321600000,
+        "filters": {
+          "tickSize": "0.010",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "BTCUSDC": {
+        "symbol": "BTCUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704285000000,
+        "filters": {
+          "tickSize": "0.1",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "50"
+        }
+      },
+      "BTCUSDT": {
+        "symbol": "BTCUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1567965300000,
+        "filters": {
+          "tickSize": "0.10",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "50"
+        }
+      },
+      "DOGEUSDT": {
+        "symbol": "DOGEUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1594371600000,
+        "filters": {
+          "tickSize": "0.000010",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "ENAUSDT": {
+        "symbol": "ENAUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1712061000000,
+        "filters": {
+          "tickSize": "0.0000100",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "ETHUSDC": {
+        "symbol": "ETHUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704285300000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "20"
+        }
+      },
+      "ETHUSDT": {
+        "symbol": "ETHUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1574840700000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "20"
+        }
+      },
+      "HYPEUSDT": {
+        "symbol": "HYPEUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1748601000000,
+        "filters": {
+          "tickSize": "0.00100",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "LINKUSDT": {
+        "symbol": "LINKUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1579248000000,
+        "filters": {
+          "tickSize": "0.001",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "20"
+        }
+      },
+      "PUMPUSDT": {
+        "symbol": "PUMPUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1752132600000,
+        "filters": {
+          "tickSize": "0.0000010",
+          "stepSize": "1",
+          "minQty": "1",
+          "minNotional": "5"
+        }
+      },
+      "SOLUSDC": {
+        "symbol": "SOLUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704285900000,
+        "filters": {
+          "tickSize": "0.0100",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "SOLUSDT": {
+        "symbol": "SOLUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1600066800000,
+        "filters": {
+          "tickSize": "0.0100",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "SUIUSDT": {
+        "symbol": "SUIUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1683072000000,
+        "filters": {
+          "tickSize": "0.000100",
+          "stepSize": "0.1",
+          "minQty": "0.1",
+          "minNotional": "5"
+        }
+      },
+      "TRUMPUSDT": {
+        "symbol": "TRUMPUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1737205200000,
+        "filters": {
+          "tickSize": "0.001000",
+          "stepSize": "0.01",
+          "minQty": "0.01",
+          "minNotional": "5"
+        }
+      },
+      "XRPUSDC": {
+        "symbol": "XRPUSDC",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDC",
+        "onboardDate": 1704286200000,
+        "filters": {
+          "tickSize": "0.0001",
+          "stepSize": "0.1",
+          "minQty": "0.1",
+          "minNotional": "5"
+        }
+      },
+      "XRPUSDT": {
+        "symbol": "XRPUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1578298800000,
+        "filters": {
+          "tickSize": "0.0001",
+          "stepSize": "0.1",
+          "minQty": "0.1",
+          "minNotional": "5"
+        }
+      },
+      "ZECUSDT": {
+        "symbol": "ZECUSDT",
+        "valid": true,
+        "failures": [],
+        "status": "TRADING",
+        "contractType": "PERPETUAL",
+        "quoteAsset": "USDT",
+        "onboardDate": 1580889600000,
+        "filters": {
+          "tickSize": "0.01",
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "minNotional": "5"
+        }
+      }
+    },
+    "exchangeInfoSchemaValid": true,
+    "universeSnapshots": 2,
+    "fundingMissing": 0,
+    "fundingRowsValid": true,
+    "missingReceivedAt": 0,
+    "klineWebsocketEvents": 1610,
+    "barSourceStatus": "PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED",
+    "transport": {
+      "depth": {
+        "endpoint": "wss://fstream.binance.com/public/stream",
+        "kind": "depth",
+        "opened": true,
+        "subscriptionAck": true,
+        "dataMessages": 138,
+        "stValues": [
+          1
+        ],
+        "psValues": [
+          "BCHUSDT",
+          "1000PEPEUSDT",
+          "ADAUSDT",
+          "BTCUSDC",
+          "BNBUSDT"
+        ],
+        "status": "VERIFIED"
+      },
+      "kline": {
+        "endpoint": "wss://fstream.binance.com/market/stream",
+        "kind": "kline",
+        "opened": true,
+        "subscriptionAck": true,
+        "dataMessages": 1610,
+        "stValues": [],
+        "psValues": [],
+        "status": "VERIFIED"
+      }
+    }
+  },
+  "transport": {
+    "depth": {
+      "endpoint": "wss://fstream.binance.com/public/stream",
+      "kind": "depth",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 138,
+      "stValues": [
+        1
+      ],
+      "psValues": [
+        "BCHUSDT",
+        "1000PEPEUSDT",
+        "ADAUSDT",
+        "BTCUSDC",
+        "BNBUSDT"
+      ],
+      "status": "VERIFIED"
+    },
+    "kline": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "kind": "kline",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 1610,
+      "stValues": [],
+      "psValues": [],
+      "status": "VERIFIED"
+    }
+  },
+  "barSourceVerification": {
+    "transport": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "kind": "kline",
+      "opened": true,
+      "subscriptionAck": true,
+      "dataMessages": 1610,
+      "stValues": [],
+      "psValues": [],
+      "status": "OPEN"
+    },
+    "websocketEvents": 1610,
+    "openCurrentBarEvents": 0,
+    "finalBarEvents": 0,
+    "finalWebsocketBars": 0,
+    "confirmedBars": 0,
+    "sourceConflicts": 0,
+    "confirmationMissing": 0,
+    "preCaptureBarsRejected": 1610,
+    "nonTargetFinalBars": 0,
+    "targetBar": null,
+    "perSymbol": {
+      "1000PEPEUSDT": {
+        "symbol": "1000PEPEUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ADAUSDT": {
+        "symbol": "ADAUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BCHUSDT": {
+        "symbol": "BCHUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BNBUSDT": {
+        "symbol": "BNBUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BTCUSDC": {
+        "symbol": "BTCUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "BTCUSDT": {
+        "symbol": "BTCUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "DOGEUSDT": {
+        "symbol": "DOGEUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ENAUSDT": {
+        "symbol": "ENAUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ETHUSDC": {
+        "symbol": "ETHUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ETHUSDT": {
+        "symbol": "ETHUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "HYPEUSDT": {
+        "symbol": "HYPEUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "LINKUSDT": {
+        "symbol": "LINKUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "PUMPUSDT": {
+        "symbol": "PUMPUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "SOLUSDC": {
+        "symbol": "SOLUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "SOLUSDT": {
+        "symbol": "SOLUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "SUIUSDT": {
+        "symbol": "SUIUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "TRUMPUSDT": {
+        "symbol": "TRUMPUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "XRPUSDC": {
+        "symbol": "XRPUSDC",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "XRPUSDT": {
+        "symbol": "XRPUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      },
+      "ZECUSDT": {
+        "symbol": "ZECUSDT",
+        "finalWebsocketBars": 0,
+        "restConfirmationAttempts": 0,
+        "restConfirmations": 0,
+        "confirmedBars": 0,
+        "sourceConflicts": 0,
+        "confirmationMissing": 0,
+        "receivedAtAfterClose": false,
+        "source": "CONTRACT_PRICE",
+        "markPriceKlineUsed": false,
+        "bars": []
+      }
+    },
+    "errors": [],
+    "status": "PASS_TRANSPORT_PRECAPTURE_BAR_EXCLUDED",
+    "developmentEligible": false,
+    "historicalBackfillUsed": false,
+    "preCaptureOnly": true
+  },
+  "storage": {
+    "metrics": {
+      "root": "E:\\Codex\\Hengyu\\data\\raw\\engineering-dry-run\\HY-EXP-0023\\engineering-dry-run-20260822110101309-050ac5fc",
+      "sampleWindow": {
+        "startedAt": "2026-08-22T11:01:01.309Z",
+        "finishedAt": "2026-08-22T11:02:01.586Z",
+        "durationSeconds": 60.277
+      },
+      "symbols": [
+        "1000PEPEUSDT",
+        "ADAUSDT",
+        "BCHUSDT",
+        "BNBUSDT",
+        "BTCUSDC",
+        "BTCUSDT",
+        "DOGEUSDT",
+        "ENAUSDT",
+        "ETHUSDC",
+        "ETHUSDT",
+        "HYPEUSDT",
+        "LINKUSDT",
+        "PUMPUSDT",
+        "SOLUSDC",
+        "SOLUSDT",
+        "SUIUSDT",
+        "TRUMPUSDT",
+        "XRPUSDC",
+        "XRPUSDT",
+        "ZECUSDT"
+      ],
+      "totalBytes": 9436403,
+      "totalEvents": 4586,
+      "bytesPerSecond": 156550.6412064303,
+      "bytesPerSecondPerSymbol": 7827.532060321515,
+      "eventsPerSecond": 76.08208769514077,
+      "byStream": {
+        "depth": {
+          "bytes": 3898218,
+          "events": 2872,
+          "files": 1
+        },
+        "snapshot": {
+          "bytes": 2714712,
+          "events": 66,
+          "files": 1
+        },
+        "exchangeInfo": {
+          "bytes": 1077740,
+          "events": 1,
+          "files": 1
+        },
+        "funding": {
+          "bytes": 8359,
+          "events": 20,
+          "files": 1
+        },
+        "kline": {
+          "bytes": 960570,
+          "events": 1610,
+          "files": 2
+        },
+        "other": {
+          "bytes": 405179,
+          "events": 1,
+          "files": 3
+        },
+        "segment": {
+          "bytes": 62042,
+          "events": 12,
+          "files": 1
+        },
+        "metadata": {
+          "bytes": 309583,
+          "events": 3,
+          "files": 2
+        }
+      },
+      "projected30DayBytes": 405779262008,
+      "projectedDevelopmentPeriodBytes": 2563172338345,
+      "projectedFinalOosPeriodBytes": 2488779473644,
+      "projectedFullExperimentBytes": 5051951811989
+    },
+    "capacity": {
+      "availableBytes": 76310777856,
+      "filesystem": "E:\\",
+      "source": "node:fs.statfsSync"
+    }
+  },
+  "clock": {
+    "ready": false,
+    "reason": "OS_CLOCK_NOT_SYNCHRONIZED",
+    "osState": {
+      "synchronized": false,
+      "source": "w32tm",
+      "error": "spawn EPERM"
+    },
+    "driftMs": null
+  },
+  "alerts": {
+    "ready": false,
+    "required": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ],
+    "active": [],
+    "missing": [
+      "collector_death",
+      "sequence_gap",
+      "crossed_book",
+      "snapshot_alignment_failure",
+      "missing_receivedAt"
+    ]
+  },
+  "manifestErrors": [],
+  "segmentSummary": [
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+      "status": "INVALID",
+      "reason": "SNAPSHOT_ALIGNMENT:1000PEPEUSDT;receipt_stall:BCHUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 61,
+        "staleBufferedDropped": 92,
+        "snapshotAlignmentFailures": 1,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "1000PEPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+            "previousU": 11355492802644,
+            "previousu": 11355492802644,
+            "currentU": 11355492649851,
+            "currentu": 11355492659206,
+            "currentPu": 11355492648183,
+            "exchangeE": 1787396476821,
+            "transactionT": 1787396476814,
+            "receivedAt": 1787396477745,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          {
+            "symbol": "BCHUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+            "previousU": 11355492655290,
+            "previousu": 11355492655290,
+            "currentU": 11355492656257,
+            "currentu": 11355492664959,
+            "currentPu": 11355492655290,
+            "exchangeE": 1787396476890,
+            "transactionT": 1787396476874,
+            "receivedAt": 1787396478738,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 138,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "BCHUSDT",
+            "1000PEPEUSDT",
+            "ADAUSDT",
+            "BTCUSDC",
+            "BNBUSDT"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "1000PEPEUSDT": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "1000PEPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+            "previousU": 11355492802644,
+            "previousu": 11355492802644,
+            "currentU": 11355492649851,
+            "currentu": 11355492659206,
+            "currentPu": 11355492648183,
+            "exchangeE": 1787396476821,
+            "transactionT": 1787396476814,
+            "receivedAt": 1787396477745,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 28,
+          "bufferedEventsPeak": 28,
+          "pendingDiffs": 0
+        },
+        "ADAUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 24,
+          "bufferedEventsPeak": 20,
+          "pendingDiffs": 0
+        },
+        "BCHUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "BCHUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1",
+            "previousU": 11355492655290,
+            "previousu": 11355492655290,
+            "currentU": 11355492656257,
+            "currentu": 11355492664959,
+            "currentPu": 11355492655290,
+            "exchangeE": 1787396476890,
+            "transactionT": 1787396476874,
+            "receivedAt": 1787396478738,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:1:batch-1:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 0,
+          "bufferedEventsPeak": 1,
+          "pendingDiffs": 0
+        },
+        "BNBUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 25,
+          "bufferedEventsPeak": 23,
+          "pendingDiffs": 0
+        },
+        "BTCUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 15,
+          "bufferedEventsPeak": 12,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2",
+      "status": "INVALID",
+      "reason": "receipt_stall:ETHUSDC",
+      "diagnostics": {
+        "bufferedEventsPeak": 63,
+        "staleBufferedDropped": 81,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "ETHUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2",
+            "previousU": 11355492857481,
+            "previousu": 11355492857481,
+            "currentU": 11355492858007,
+            "currentu": 11355492894247,
+            "currentPu": 11355492857481,
+            "exchangeE": 1787396478457,
+            "transactionT": 1787396478455,
+            "receivedAt": 1787396481328,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 204,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "DOGEUSDT",
+            "BTCUSDT",
+            "ENAUSDT",
+            "ETHUSDC",
+            "ETHUSDT"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "BTCUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 2,
+          "snapshotTooOldRetries": 1,
+          "staleBufferedDropped": 11,
+          "bufferedEventsPeak": 13,
+          "pendingDiffs": 0
+        },
+        "DOGEUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 19,
+          "bufferedEventsPeak": 20,
+          "pendingDiffs": 0
+        },
+        "ENAUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 15,
+          "bufferedEventsPeak": 13,
+          "pendingDiffs": 0
+        },
+        "ETHUSDC": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "ETHUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2",
+            "previousU": 11355492857481,
+            "previousu": 11355492857481,
+            "currentU": 11355492858007,
+            "currentu": 11355492894247,
+            "currentPu": 11355492857481,
+            "exchangeE": 1787396478457,
+            "transactionT": 1787396478455,
+            "receivedAt": 1787396481328,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:2:batch-2:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 22,
+          "bufferedEventsPeak": 22,
+          "pendingDiffs": 0
+        },
+        "ETHUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 14,
+          "bufferedEventsPeak": 16,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3",
+      "status": "INVALID",
+      "reason": "receipt_stall:LINKUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 110,
+        "staleBufferedDropped": 125,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "LINKUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3",
+            "previousU": 11355493796386,
+            "previousu": 11355493796386,
+            "currentU": 11355493801330,
+            "currentu": 11355493806726,
+            "currentPu": 11355493796386,
+            "exchangeE": 1787396487461,
+            "transactionT": 1787396487429,
+            "receivedAt": 1787396491132,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 474,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "PUMPUSDT",
+            "HYPEUSDT",
+            "LINKUSDT",
+            "SOLUSDT",
+            "SOLUSDC"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "HYPEUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 0,
+          "bufferedEventsPeak": 5,
+          "pendingDiffs": 0
+        },
+        "LINKUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "LINKUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3",
+            "previousU": 11355493796386,
+            "previousu": 11355493796386,
+            "currentU": 11355493801330,
+            "currentu": 11355493806726,
+            "currentPu": 11355493796386,
+            "exchangeE": 1787396487461,
+            "transactionT": 1787396487429,
+            "receivedAt": 1787396491132,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:3:batch-3:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 34,
+          "bufferedEventsPeak": 30,
+          "pendingDiffs": 0
+        },
+        "PUMPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 27,
+          "bufferedEventsPeak": 29,
+          "pendingDiffs": 0
+        },
+        "SOLUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 33,
+          "bufferedEventsPeak": 38,
+          "pendingDiffs": 0
+        },
+        "SOLUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 31,
+          "bufferedEventsPeak": 29,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+      "status": "INVALID",
+      "reason": "receipt_stall:SUIUSDT;SNAPSHOT_ALIGNMENT:XRPUSDC",
+      "diagnostics": {
+        "bufferedEventsPeak": 78,
+        "staleBufferedDropped": 96,
+        "snapshotAlignmentFailures": 1,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "SUIUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+            "previousU": 11355492826131,
+            "previousu": 11355492826131,
+            "currentU": 11355492828318,
+            "currentu": 11355492839117,
+            "currentPu": 11355492826131,
+            "exchangeE": 1787396478197,
+            "transactionT": 1787396478187,
+            "receivedAt": 1787396481637,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          {
+            "symbol": "XRPUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+            "previousU": 11355492917047,
+            "previousu": 11355492917047,
+            "currentU": 11355492827316,
+            "currentu": 11355492838564,
+            "currentPu": 11355492826129,
+            "exchangeE": 1787396478188,
+            "transactionT": 1787396478182,
+            "receivedAt": 1787396480484,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 144,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "XRPUSDT",
+            "SUIUSDT",
+            "ZECUSDT",
+            "TRUMPUSDT",
+            "XRPUSDC"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "SUIUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "SUIUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+            "previousU": 11355492826131,
+            "previousu": 11355492826131,
+            "currentU": 11355492828318,
+            "currentu": 11355492839117,
+            "currentPu": 11355492826131,
+            "exchangeE": 1787396478197,
+            "transactionT": 1787396478187,
+            "receivedAt": 1787396481637,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 17,
+          "bufferedEventsPeak": 20,
+          "pendingDiffs": 0
+        },
+        "TRUMPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 17,
+          "bufferedEventsPeak": 16,
+          "pendingDiffs": 0
+        },
+        "XRPUSDC": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "XRPUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4",
+            "previousU": 11355492917047,
+            "previousu": 11355492917047,
+            "currentU": 11355492827316,
+            "currentu": 11355492838564,
+            "currentPu": 11355492826129,
+            "exchangeE": 1787396478188,
+            "transactionT": 1787396478182,
+            "receivedAt": 1787396480484,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:4:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 28,
+          "bufferedEventsPeak": 23,
+          "pendingDiffs": 0
+        },
+        "XRPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 17,
+          "bufferedEventsPeak": 16,
+          "pendingDiffs": 0
+        },
+        "ZECUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 17,
+          "bufferedEventsPeak": 16,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+      "status": "INVALID",
+      "reason": "receipt_stall:1000PEPEUSDT;SNAPSHOT_ALIGNMENT:BCHUSDT;SNAPSHOT_ALIGNMENT:BNBUSDT;SNAPSHOT_ALIGNMENT:BTCUSDC",
+      "diagnostics": {
+        "bufferedEventsPeak": 11,
+        "staleBufferedDropped": 11,
+        "snapshotAlignmentFailures": 3,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "1000PEPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355494907308,
+            "previousu": 11355494907308,
+            "currentU": 11355494907520,
+            "currentu": 11355494915766,
+            "currentPu": 11355494907308,
+            "exchangeE": 1787396496431,
+            "transactionT": 1787396496422,
+            "receivedAt": 1787396499618,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          {
+            "symbol": "BCHUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355495005971,
+            "previousu": 11355495005971,
+            "currentU": 11355494899007,
+            "currentu": 11355494907741,
+            "currentPu": 11355494898527,
+            "exchangeE": 1787396496350,
+            "transactionT": 1787396496331,
+            "receivedAt": 1787396497523,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          {
+            "symbol": "BNBUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355495101020,
+            "previousu": 11355495101020,
+            "currentU": 11355494897267,
+            "currentu": 11355494907622,
+            "currentPu": 11355494895224,
+            "exchangeE": 1787396496331,
+            "transactionT": 1787396496330,
+            "receivedAt": 1787396497523,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          {
+            "symbol": "BTCUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355495038448,
+            "previousu": 11355495038448,
+            "currentU": 11355494905996,
+            "currentu": 11355494915089,
+            "currentPu": 11355494904092,
+            "exchangeE": 1787396496415,
+            "transactionT": 1787396496413,
+            "receivedAt": 1787396497523,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 20,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "1000PEPEUSDT",
+            "ADAUSDT",
+            "BNBUSDT",
+            "BTCUSDC",
+            "BCHUSDT"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "1000PEPEUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "1000PEPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355494907308,
+            "previousu": 11355494907308,
+            "currentU": 11355494907520,
+            "currentu": 11355494915766,
+            "currentPu": 11355494907308,
+            "exchangeE": 1787396496431,
+            "transactionT": 1787396496422,
+            "receivedAt": 1787396499618,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 0,
+          "bufferedEventsPeak": 1,
+          "pendingDiffs": 0
+        },
+        "ADAUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 0,
+          "bufferedEventsPeak": 1,
+          "pendingDiffs": 0
+        },
+        "BCHUSDT": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "BCHUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355495005971,
+            "previousu": 11355495005971,
+            "currentU": 11355494899007,
+            "currentu": 11355494907741,
+            "currentPu": 11355494898527,
+            "exchangeE": 1787396496350,
+            "transactionT": 1787396496331,
+            "receivedAt": 1787396497523,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 3,
+          "bufferedEventsPeak": 3,
+          "pendingDiffs": 0
+        },
+        "BNBUSDT": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "BNBUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355495101020,
+            "previousu": 11355495101020,
+            "currentU": 11355494897267,
+            "currentu": 11355494907622,
+            "currentPu": 11355494895224,
+            "exchangeE": 1787396496331,
+            "transactionT": 1787396496330,
+            "receivedAt": 1787396497523,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 4,
+          "bufferedEventsPeak": 4,
+          "pendingDiffs": 0
+        },
+        "BTCUSDC": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "BTCUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1",
+            "previousU": 11355495038448,
+            "previousu": 11355495038448,
+            "currentU": 11355494905996,
+            "currentu": 11355494915089,
+            "currentPu": 11355494904092,
+            "exchangeE": 1787396496415,
+            "transactionT": 1787396496413,
+            "receivedAt": 1787396497523,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:5:batch-1:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 4,
+          "bufferedEventsPeak": 4,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2",
+      "status": "INVALID",
+      "reason": "receipt_stall:BTCUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 57,
+        "staleBufferedDropped": 77,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "BTCUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2",
+            "previousU": 11355495256429,
+            "previousu": 11355495256429,
+            "currentU": 11355495256437,
+            "currentu": 11355495292631,
+            "currentPu": 11355495256429,
+            "exchangeE": 1787396500178,
+            "transactionT": 1787396500177,
+            "receivedAt": 1787396504076,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 198,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "ENAUSDT",
+            "BTCUSDT",
+            "ETHUSDC",
+            "DOGEUSDT",
+            "ETHUSDT"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "BTCUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "BTCUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2",
+            "previousU": 11355495256429,
+            "previousu": 11355495256429,
+            "currentU": 11355495256437,
+            "currentu": 11355495292631,
+            "currentPu": 11355495256429,
+            "exchangeE": 1787396500178,
+            "transactionT": 1787396500177,
+            "receivedAt": 1787396504076,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:6:batch-2:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 20,
+          "bufferedEventsPeak": 13,
+          "pendingDiffs": 0
+        },
+        "DOGEUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 12,
+          "bufferedEventsPeak": 12,
+          "pendingDiffs": 0
+        },
+        "ENAUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 13,
+          "bufferedEventsPeak": 12,
+          "pendingDiffs": 0
+        },
+        "ETHUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 11,
+          "bufferedEventsPeak": 11,
+          "pendingDiffs": 0
+        },
+        "ETHUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 21,
+          "bufferedEventsPeak": 19,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3",
+      "status": "INVALID",
+      "reason": "receipt_stall:HYPEUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 67,
+        "staleBufferedDropped": 82,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "HYPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3",
+            "previousU": 11355495117253,
+            "previousu": 11355495117253,
+            "currentU": 11355495117322,
+            "currentu": 11355495126188,
+            "currentPu": 11355495117253,
+            "exchangeE": 1787396498661,
+            "transactionT": 1787396498660,
+            "receivedAt": 1787396501605,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 234,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "SOLUSDT",
+            "SOLUSDC",
+            "PUMPUSDT",
+            "LINKUSDT",
+            "HYPEUSDT"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "HYPEUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "HYPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3",
+            "previousU": 11355495117253,
+            "previousu": 11355495117253,
+            "currentU": 11355495117322,
+            "currentu": 11355495126188,
+            "currentPu": 11355495117253,
+            "exchangeE": 1787396498661,
+            "transactionT": 1787396498660,
+            "receivedAt": 1787396501605,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:7:batch-3:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 19,
+          "bufferedEventsPeak": 19,
+          "pendingDiffs": 0
+        },
+        "LINKUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 16,
+          "bufferedEventsPeak": 15,
+          "pendingDiffs": 0
+        },
+        "PUMPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 18,
+          "bufferedEventsPeak": 21,
+          "pendingDiffs": 0
+        },
+        "SOLUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 14,
+          "bufferedEventsPeak": 13,
+          "pendingDiffs": 0
+        },
+        "SOLUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 15,
+          "bufferedEventsPeak": 15,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+      "status": "INVALID",
+      "reason": "SNAPSHOT_ALIGNMENT:SUIUSDT;receipt_stall:TRUMPUSDT;SNAPSHOT_ALIGNMENT:XRPUSDC;SNAPSHOT_ALIGNMENT:XRPUSDT;SNAPSHOT_ALIGNMENT:ZECUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 67,
+        "staleBufferedDropped": 81,
+        "snapshotAlignmentFailures": 4,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "SUIUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495237572,
+            "previousu": 11355495237572,
+            "currentU": 11355495018937,
+            "currentu": 11355495019829,
+            "currentPu": 11355495003000,
+            "exchangeE": 1787396497491,
+            "transactionT": 1787396497397,
+            "receivedAt": 1787396499153,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          {
+            "symbol": "TRUMPUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495033342,
+            "previousu": 11355495033342,
+            "currentU": 11355495034012,
+            "currentu": 11355495041874,
+            "currentPu": 11355495033342,
+            "exchangeE": 1787396497691,
+            "transactionT": 1787396497690,
+            "receivedAt": 1787396502483,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          {
+            "symbol": "XRPUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495044626,
+            "previousu": 11355495044626,
+            "currentU": 11355495030991,
+            "currentu": 11355495039255,
+            "currentPu": 11355495029504,
+            "exchangeE": 1787396497652,
+            "transactionT": 1787396497646,
+            "receivedAt": 1787396502483,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          {
+            "symbol": "XRPUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495106624,
+            "previousu": 11355495106624,
+            "currentU": 11355495029931,
+            "currentu": 11355495038473,
+            "currentPu": 11355495029522,
+            "exchangeE": 1787396497637,
+            "transactionT": 1787396497636,
+            "receivedAt": 1787396502230,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          {
+            "symbol": "ZECUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495228898,
+            "previousu": 11355495228898,
+            "currentU": 11355495026635,
+            "currentu": 11355495034186,
+            "currentPu": 11355495026321,
+            "exchangeE": 1787396497593,
+            "transactionT": 1787396497592,
+            "receivedAt": 1787396502230,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 88,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "ZECUSDT",
+            "XRPUSDC",
+            "TRUMPUSDT",
+            "SUIUSDT",
+            "XRPUSDT"
+          ],
+          "status": "CLOSED"
+        }
+      },
+      "contexts": {
+        "SUIUSDT": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "SUIUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495237572,
+            "previousu": 11355495237572,
+            "currentU": 11355495018937,
+            "currentu": 11355495019829,
+            "currentPu": 11355495003000,
+            "exchangeE": 1787396497491,
+            "transactionT": 1787396497397,
+            "receivedAt": 1787396499153,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 15,
+          "bufferedEventsPeak": 15,
+          "pendingDiffs": 0
+        },
+        "TRUMPUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "TRUMPUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495033342,
+            "previousu": 11355495033342,
+            "currentU": 11355495034012,
+            "currentu": 11355495041874,
+            "currentPu": 11355495033342,
+            "exchangeE": 1787396497691,
+            "transactionT": 1787396497690,
+            "receivedAt": 1787396502483,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 12,
+          "bufferedEventsPeak": 14,
+          "pendingDiffs": 0
+        },
+        "XRPUSDC": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "XRPUSDC",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495044626,
+            "previousu": 11355495044626,
+            "currentU": 11355495030991,
+            "currentu": 11355495039255,
+            "currentPu": 11355495029504,
+            "exchangeE": 1787396497652,
+            "transactionT": 1787396497646,
+            "receivedAt": 1787396502483,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 18,
+          "bufferedEventsPeak": 17,
+          "pendingDiffs": 0
+        },
+        "XRPUSDT": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "XRPUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495106624,
+            "previousu": 11355495106624,
+            "currentU": 11355495029931,
+            "currentu": 11355495038473,
+            "currentPu": 11355495029522,
+            "exchangeE": 1787396497637,
+            "transactionT": 1787396497636,
+            "receivedAt": 1787396502230,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 18,
+          "bufferedEventsPeak": 17,
+          "pendingDiffs": 0
+        },
+        "ZECUSDT": {
+          "status": "FAILED",
+          "failureCode": "SNAPSHOT_ALIGNMENT",
+          "failureDiagnostic": {
+            "symbol": "ZECUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4",
+            "previousU": 11355495228898,
+            "previousu": 11355495228898,
+            "currentU": 11355495026635,
+            "currentu": 11355495034186,
+            "currentPu": 11355495026321,
+            "exchangeE": 1787396497593,
+            "transactionT": 1787396497592,
+            "receivedAt": 1787396502230,
+            "bufferState": "WAITING_SNAPSHOT",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:8:batch-4:connection",
+            "reconnectReason": "SNAPSHOT_REACQUISITION_REQUIRED",
+            "failureCode": "SNAPSHOT_ALIGNMENT"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 18,
+          "bufferedEventsPeak": 17,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1",
+      "status": "INVALID",
+      "reason": "receipt_stall:BNBUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 75,
+        "staleBufferedDropped": 95,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "BNBUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1",
+            "previousU": 11355497035305,
+            "previousu": 11355497035305,
+            "currentU": 11355497035569,
+            "currentu": 11355497043790,
+            "currentPu": 11355497035305,
+            "exchangeE": 1787396518257,
+            "transactionT": 1787396518243,
+            "receivedAt": 1787396520717,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 400,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "BNBUSDT",
+            "ADAUSDT",
+            "BTCUSDC",
+            "1000PEPEUSDT",
+            "BCHUSDT"
+          ],
+          "status": "OPEN"
+        }
+      },
+      "contexts": {
+        "1000PEPEUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 12,
+          "bufferedEventsPeak": 15,
+          "pendingDiffs": 0
+        },
+        "ADAUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 20,
+          "bufferedEventsPeak": 18,
+          "pendingDiffs": 0
+        },
+        "BCHUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 23,
+          "bufferedEventsPeak": 28,
+          "pendingDiffs": 0
+        },
+        "BNBUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "BNBUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1",
+            "previousU": 11355497035305,
+            "previousu": 11355497035305,
+            "currentU": 11355497035569,
+            "currentu": 11355497043790,
+            "currentPu": 11355497035305,
+            "exchangeE": 1787396518257,
+            "transactionT": 1787396518243,
+            "receivedAt": 1787396520717,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:9:batch-1:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 16,
+          "bufferedEventsPeak": 20,
+          "pendingDiffs": 0
+        },
+        "BTCUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 24,
+          "bufferedEventsPeak": 19,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2",
+      "status": "INVALID",
+      "reason": "receipt_stall:ENAUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 49,
+        "staleBufferedDropped": 141,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "ENAUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2",
+            "previousU": 11355497023790,
+            "previousu": 11355497023790,
+            "currentU": 11355497023963,
+            "currentu": 11355497029340,
+            "currentPu": 11355497023790,
+            "exchangeE": 1787396518045,
+            "transactionT": 1787396518044,
+            "receivedAt": 1787396519900,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 432,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "BTCUSDT",
+            "DOGEUSDT",
+            "ETHUSDT",
+            "ENAUSDT",
+            "ETHUSDC"
+          ],
+          "status": "OPEN"
+        }
+      },
+      "contexts": {
+        "BTCUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 39,
+          "bufferedEventsPeak": 13,
+          "pendingDiffs": 0
+        },
+        "DOGEUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 31,
+          "bufferedEventsPeak": 10,
+          "pendingDiffs": 0
+        },
+        "ENAUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "ENAUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2",
+            "previousU": 11355497023790,
+            "previousu": 11355497023790,
+            "currentU": 11355497023963,
+            "currentu": 11355497029340,
+            "currentPu": 11355497023790,
+            "exchangeE": 1787396518045,
+            "transactionT": 1787396518044,
+            "receivedAt": 1787396519900,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:10:batch-2:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 27,
+          "bufferedEventsPeak": 9,
+          "pendingDiffs": 0
+        },
+        "ETHUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 26,
+          "bufferedEventsPeak": 9,
+          "pendingDiffs": 0
+        },
+        "ETHUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 18,
+          "bufferedEventsPeak": 12,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3",
+      "status": "INVALID",
+      "reason": "receipt_stall:HYPEUSDT",
+      "diagnostics": {
+        "bufferedEventsPeak": 31,
+        "staleBufferedDropped": 103,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 1,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [
+          {
+            "symbol": "HYPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3",
+            "previousU": 11355496964502,
+            "previousu": 11355496964502,
+            "currentU": 11355496966213,
+            "currentu": 11355496976944,
+            "currentPu": 11355496964502,
+            "exchangeE": 1787396517135,
+            "transactionT": 1787396517121,
+            "receivedAt": 1787396519826,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          }
+        ],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 251,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "SOLUSDT",
+            "SOLUSDC",
+            "PUMPUSDT",
+            "LINKUSDT",
+            "HYPEUSDT"
+          ],
+          "status": "OPEN"
+        }
+      },
+      "contexts": {
+        "HYPEUSDT": {
+          "status": "FAILED",
+          "failureCode": "receipt_stall",
+          "failureDiagnostic": {
+            "symbol": "HYPEUSDT",
+            "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3",
+            "previousU": 11355496964502,
+            "previousu": 11355496964502,
+            "currentU": 11355496966213,
+            "currentu": 11355496976944,
+            "currentPu": 11355496964502,
+            "exchangeE": 1787396517135,
+            "transactionT": 1787396517121,
+            "receivedAt": 1787396519826,
+            "bufferState": "ALIGNED",
+            "connectionId": "engineering-dry-run-20260822110101309-050ac5fc:depth:11:batch-3:connection",
+            "reconnectReason": "RECEIPT_STALL_REQUIRES_FRESH_SEGMENT",
+            "failureCode": "receipt_stall"
+          },
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 18,
+          "bufferedEventsPeak": 8,
+          "pendingDiffs": 0
+        },
+        "LINKUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 25,
+          "bufferedEventsPeak": 16,
+          "pendingDiffs": 0
+        },
+        "PUMPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 27,
+          "bufferedEventsPeak": 18,
+          "pendingDiffs": 0
+        },
+        "SOLUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 9,
+          "bufferedEventsPeak": 5,
+          "pendingDiffs": 0
+        },
+        "SOLUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 1,
+          "snapshotTooOldRetries": 0,
+          "staleBufferedDropped": 24,
+          "bufferedEventsPeak": 9,
+          "pendingDiffs": 0
+        }
+      }
+    },
+    {
+      "segmentId": "engineering-dry-run-20260822110101309-050ac5fc:depth:12:batch-4",
+      "status": "VALID",
+      "reason": "rotation_or_deadline",
+      "diagnostics": {
+        "bufferedEventsPeak": 24,
+        "staleBufferedDropped": 59,
+        "snapshotAlignmentFailures": 0,
+        "sequenceGaps": 0,
+        "receiptStalls": 0,
+        "outOfOrderReceipts": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "gapDiagnostics": [],
+        "transport": {
+          "endpoint": "wss://fstream.binance.com/public/stream",
+          "kind": "depth",
+          "opened": true,
+          "subscriptionAck": true,
+          "dataMessages": 289,
+          "stValues": [
+            1
+          ],
+          "psValues": [
+            "XRPUSDT",
+            "TRUMPUSDT",
+            "XRPUSDC",
+            "ZECUSDT",
+            "SUIUSDT"
+          ],
+          "status": "OPEN"
+        }
+      },
+      "contexts": {
+        "SUIUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 2,
+          "snapshotTooOldRetries": 1,
+          "staleBufferedDropped": 14,
+          "bufferedEventsPeak": 12,
+          "pendingDiffs": 0
+        },
+        "TRUMPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 2,
+          "snapshotTooOldRetries": 1,
+          "staleBufferedDropped": 16,
+          "bufferedEventsPeak": 14,
+          "pendingDiffs": 0
+        },
+        "XRPUSDC": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 2,
+          "snapshotTooOldRetries": 1,
+          "staleBufferedDropped": 9,
+          "bufferedEventsPeak": 2,
+          "pendingDiffs": 0
+        },
+        "XRPUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 2,
+          "snapshotTooOldRetries": 1,
+          "staleBufferedDropped": 12,
+          "bufferedEventsPeak": 4,
+          "pendingDiffs": 0
+        },
+        "ZECUSDT": {
+          "status": "ALIGNED",
+          "failureCode": null,
+          "failureDiagnostic": null,
+          "snapshotAttempts": 2,
+          "snapshotTooOldRetries": 1,
+          "staleBufferedDropped": 8,
+          "bufferedEventsPeak": 1,
+          "pendingDiffs": 0
+        }
+      }
+    }
+  ],
+  "manifestSha256": "86b387738d5deca19b56d7f839d99eff56d6102437839849a8006bd028373608",
+  "manifestFileSha256": "de2361ead00b95485a4c4ddc0eb8d6c21e27150ae51a2406557445f153ef29c7",
+  "rawFileSha256": {
+    "depth.diff.ndjson": "c3fc07fb2699cbaf9c01dd9f39a9df18468317202eb83a5de3f15ba2a51c4dc8",
+    "depth.snapshot.ndjson": "53cb9ea677afecba7c0dd6dd63e6f41f75ef6e593f4c539f5e0ec8962d96c421",
+    "kline.4h.ndjson": "081a8ca406b0ce8b372e3049a5d55129c0ecdf29ea09e4ac14e4fb46f95e8bb7",
+    "kline.4h.confirmation.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exchangeInfo.ndjson": "69c0f767386ca2c0eceb61d79059010b902332dadc76ee06eb9c4c7defc90eec",
+    "funding.ndjson": "3fc5415a3812e41759c4d3584cf6d71b1118ea7d94ae99ef23f5edfdd9d81464",
+    "ticker.diagnostic.ndjson": "8aaaa7bf88a426876474605fc675cb07f285185ff67f2578ed9c17c5e8512c07",
+    "universe.snapshot.ndjson": "5e3fffb82e62916e8f987224cced1a97f7c3aa06fb0fe83879cefe8c61858be9",
+    "universe.audit.ndjson": "507e96d2ab98181bfa84fd6e8743119b029c4649efe4f45c5c83b39dd677381c",
+    "segment.audit.ndjson": "9255ab9a70bd134cd1a0ddff04e01c5c13b23f77bced0b6b1423f84c065751b8"
+  },
+  "rawDirectory": "E:\\Codex\\Hengyu\\data\\raw\\engineering-dry-run\\HY-EXP-0023\\engineering-dry-run-20260822110101309-050ac5fc",
+  "pnlComputed": false,
+  "developmentAllowed": false,
+  "finalOosRead": false,
+  "finalOosEligible": false,
+  "historicalBackfillUsed": false,
+  "proxyDepthUsed": false
+}

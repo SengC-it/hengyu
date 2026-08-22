@@ -669,11 +669,15 @@ function markContextFailure(context, error) {
     bufferState: previousStatus,
     connectionId: context.lastEvent?.connectionId ?? `${context.segmentId}:connection`,
     reconnectReason: context.lastEvent?.reconnectReason
-      ?? (['sequence_gap', 'missing_interval', 'out_of_order_receipt', 'duplicate_update', 'out_of_order_update'].includes(lowerCode)
-        ? 'LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT'
-        : lowerCode.includes('snapshot_alignment')
-          ? 'SNAPSHOT_REACQUISITION_REQUIRED'
-          : null),
+      ?? (['receipt_stall', 'missing_interval'].includes(lowerCode)
+        ? 'RECEIPT_STALL_REQUIRES_FRESH_SEGMENT'
+        : lowerCode === 'out_of_order_receipt'
+          ? 'OUT_OF_ORDER_RECEIPT_REQUIRES_FRESH_SEGMENT'
+          : ['sequence_gap', 'duplicate_update', 'out_of_order_update'].includes(lowerCode)
+            ? 'LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT'
+            : lowerCode.includes('snapshot_alignment')
+              ? 'SNAPSHOT_REACQUISITION_REQUIRED'
+              : null),
     failureCode: String(code)
   };
   if (lowerCode.includes('snapshot_alignment')) context.alignmentFailureCount++;
@@ -768,6 +772,7 @@ async function alignDepthContext({ context, fetchImpl, snapshotWriter, segmentDe
         symbol: context.symbol,
         requiredDepthLevels: DEPTH_LEVELS,
         maxEventGapMs: 1_000,
+        receiptGapFailureCode: 'receipt_stall',
         maxFutureSkewMs: 5_000
       });
       state.ingestSnapshot({ data: snapshotRecord.data, receivedAt: response.receivedAt });
@@ -866,7 +871,14 @@ async function collectDepthSegment({
   const socketClosed = new Promise(resolve => { resolveSocketClosed = resolve; });
   const failLiveContext = (context, error, event = null) => {
     if (event) context.lastEvent = event;
-    if (context.lastEvent) context.lastEvent.reconnectReason = 'LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT';
+    if (context.lastEvent) {
+      const code = String(error?.code ?? '').toLowerCase();
+      context.lastEvent.reconnectReason = ['receipt_stall', 'missing_interval'].includes(code)
+        ? 'RECEIPT_STALL_REQUIRES_FRESH_SEGMENT'
+        : code === 'out_of_order_receipt'
+          ? 'OUT_OF_ORDER_RECEIPT_REQUIRES_FRESH_SEGMENT'
+          : 'LIVE_DATA_GAP_REQUIRES_FRESH_SEGMENT';
+    }
     markContextFailure(context, error);
     socketFailure = socketFailure ?? error.message;
     resolveSocketClosed?.();
@@ -999,7 +1011,9 @@ async function collectDepthSegment({
   if (missingUpdates.length) reasons.push(`no_depth_updates:${missingUpdates.map(context => context.symbol).sort().join(',')}`);
   const staleDropped = [...contexts.values()].reduce((sum, context) => sum + context.staleBufferedDropped, 0);
   const alignmentFailures = [...contexts.values()].reduce((sum, context) => sum + context.alignmentFailureCount, 0);
-  const sequenceGaps = [...contexts.values()].filter(context => ['sequence_gap', 'missing_interval', 'out_of_order_receipt', 'duplicate_update', 'out_of_order_update'].includes(context.failureCode)).length;
+  const sequenceGaps = [...contexts.values()].filter(context => ['sequence_gap', 'duplicate_update', 'out_of_order_update'].includes(context.failureCode)).length;
+  const receiptStalls = [...contexts.values()].filter(context => ['receipt_stall', 'missing_interval'].includes(context.failureCode)).length;
+  const outOfOrderReceipts = [...contexts.values()].filter(context => context.failureCode === 'out_of_order_receipt').length;
   const crossedBooks = [...contexts.values()].filter(context => String(context.failureCode ?? '').includes('crossed_book')).length;
   const bufferLimitFailures = [...contexts.values()].filter(context => String(context.failureCode ?? '').includes('buffer_limit_exceeded')).length;
   const status = reasons.length ? 'INVALID' : 'VALID';
@@ -1018,6 +1032,8 @@ async function collectDepthSegment({
       staleBufferedDropped: staleDropped,
       snapshotAlignmentFailures: alignmentFailures,
       sequenceGaps,
+      receiptStalls,
+      outOfOrderReceipts,
       crossedBooks,
       bufferLimitFailures,
       gapDiagnostics: [...contexts.values()]
@@ -1392,6 +1408,8 @@ function aggregateDepthDiagnostics(segments) {
     invalidSegments: segments.filter(segment => segment.status !== 'VALID').length,
     snapshotAlignmentFailures: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.snapshotAlignmentFailures ?? 0), 0),
     sequenceGaps: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.sequenceGaps ?? 0), 0),
+    receiptStalls: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.receiptStalls ?? 0), 0),
+    outOfOrderReceipts: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.outOfOrderReceipts ?? 0), 0),
     crossedBooks: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.crossedBooks ?? 0), 0),
     bufferLimitFailures: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.bufferLimitFailures ?? 0), 0),
     staleBufferedDropped: segments.reduce((sum, segment) => sum + Number(segment.diagnostics?.staleBufferedDropped ?? 0), 0),
@@ -1516,6 +1534,8 @@ export function buildCollectorEngineeringReadiness({
     validSegments: diagnostics.validSegments >= 1 && diagnostics.invalidSegments === 0,
     snapshotAlignmentFailures: diagnostics.snapshotAlignmentFailures === 0,
     sequenceGaps: diagnostics.sequenceGaps === 0,
+    receiptStalls: Number(diagnostics.receiptStalls ?? 0) === 0,
+    outOfOrderReceipts: Number(diagnostics.outOfOrderReceipts ?? 0) === 0,
     crossedBooks: diagnostics.crossedBooks === 0,
     bufferLimitFailures: diagnostics.bufferLimitFailures === 0,
     receivedAtPresent: diagnostics.missingReceivedAt === 0,

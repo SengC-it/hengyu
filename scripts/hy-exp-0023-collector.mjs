@@ -39,6 +39,8 @@ function diagnosticGate(result) {
     validSegments: diagnostics.validSegments >= 1 && diagnostics.invalidSegments === 0,
     snapshotAlignmentFailures: diagnostics.snapshotAlignmentFailures === 0,
     sequenceGaps: diagnostics.sequenceGaps === 0,
+    receiptStalls: diagnostics.receiptStalls === 0,
+    outOfOrderReceipts: diagnostics.outOfOrderReceipts === 0,
     crossedBooks: diagnostics.crossedBooks === 0,
     bufferLimitFailures: diagnostics.bufferLimitFailures === 0,
     receivedAtPresent: diagnostics.missingReceivedAt === 0,
