@@ -61,6 +61,7 @@ const MAX_SNAPSHOT_ACQUISITION_MS = 10_000;
 const SNAPSHOT_RETRY_DELAY_MS = 250;
 const DEFAULT_SEGMENT_MAX_MS = 4 * 60 * 60 * 1_000 - 60_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 10_000;
+const KLINE_RECONNECT_DELAY_MS = 50;
 const DEFAULT_MAX_SYMBOLS = 3;
 const DEFAULT_MAX_SYMBOLS_PER_CONNECTION = 200;
 const DEFAULT_DEPTH_SYMBOLS_PER_CONNECTION = 200;
@@ -1227,6 +1228,7 @@ async function collectKlineStream({
     perSymbol,
     errors: [],
     klineBatchFailures: [],
+    klineFailedBatchCount: 0,
     klineInitialBatchCount: splitKlineSymbols(symbols, klineSymbolsPerConnection).length,
     klineWebsocketConnectionAttempts: 0,
     klineReconnectCount: 0,
@@ -1410,6 +1412,7 @@ async function collectKlineStream({
       await Promise.allSettled([...pendingMessages]);
     }
     if (batchFailure) {
+      diagnostics.klineFailedBatchCount++;
       diagnostics.klineBatchFailures.push({
         segmentId,
         batchIndex,
@@ -1417,16 +1420,22 @@ async function collectKlineStream({
         reason: batchFailure
       });
     }
-    return { socketEndedUnexpectedly, batchFailure };
+    return {
+      socketEndedUnexpectedly,
+      batchFailure,
+      reconnectRequested: socketEndedUnexpectedly || (batchFailure != null && !hardFailure)
+    };
   };
 
-  while (Date.now() < deadline && !hardFailure) {
-    const results = await Promise.all(batches.map((batch, batchIndex) => runKlineBatch(batch, batchIndex)));
-    const reconnecting = results.filter(result => result.socketEndedUnexpectedly).length;
-    if (reconnecting > 0) diagnostics.klineReconnectCount += reconnecting;
-    if (!reconnecting || hardFailure || Date.now() >= deadline) break;
-    await new Promise(resolve => setTimeout(resolve, Math.min(250, Math.max(1, deadline - Date.now()))));
-  }
+  const runKlineBatchUntilDeadline = async (batch, batchIndex) => {
+    while (Date.now() < deadline && !hardFailure) {
+      const result = await runKlineBatch(batch, batchIndex);
+      if (!result.reconnectRequested || hardFailure || Date.now() >= deadline) return;
+      diagnostics.klineReconnectCount++;
+      await new Promise(resolve => setTimeout(resolve, Math.min(KLINE_RECONNECT_DELAY_MS, Math.max(1, deadline - Date.now()))));
+    }
+  };
+  await Promise.all(batches.map((batch, batchIndex) => runKlineBatchUntilDeadline(batch, batchIndex)));
 
   diagnostics.klineSymbolsCaptured.sort();
   diagnostics.status = diagnostics.websocketEvents > 0

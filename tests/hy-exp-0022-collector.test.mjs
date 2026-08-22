@@ -65,6 +65,7 @@ class ScenarioWebSocket {
   static depthConnections = 0;
   static klineConnections = 0;
   static invalidFirstDepthSegment = true;
+  static closeFirstKlineConnection = false;
 
   constructor(url) {
     this.url = url;
@@ -114,6 +115,9 @@ class ScenarioWebSocket {
           }
         };
         setTimeout(() => this.emit('message', { data: JSON.stringify({ stream, data: payload }) }), 5);
+      }
+      if (ScenarioWebSocket.closeFirstKlineConnection && ScenarioWebSocket.klineConnections === 1) {
+        setTimeout(() => this.close(), 15);
       }
     }
   }
@@ -501,6 +505,31 @@ test('collector reconnect creates a new segment and leaves an invalid segment in
   assert.equal(result.diagnostics.maxSymbolsPerConnection, 3);
   const readiness = buildCollectorEngineeringReadiness({ result, requiredDurationMs: 0 });
   assert.equal(readiness.status, 'COLLECTOR_NOT_READY');
+});
+
+test('kline batch reconnects independently before the shared deadline', async () => {
+  ScenarioWebSocket.depthConnections = 0;
+  ScenarioWebSocket.klineConnections = 0;
+  ScenarioWebSocket.invalidFirstDepthSegment = false;
+  ScenarioWebSocket.closeFirstKlineConnection = true;
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0022-kline-reconnect-'));
+  try {
+    const result = await runHyExp0022EngineeringDryRun({
+      projectRoot,
+      maxRuntimeMs: 300,
+      segmentMaxMs: 70,
+      maxSymbols: 3,
+      fetchImpl: scenarioFetch(),
+      WebSocketImpl: ScenarioWebSocket
+    });
+    assert.ok(result.barSourceVerification.klineWebsocketConnectionAttempts >= 2);
+    assert.ok(result.barSourceVerification.klineReconnectCount >= 1);
+    assert.equal(result.barSourceVerification.klineFailedBatchCount, 1);
+    assert.deepEqual(result.barSourceVerification.klineSymbolsCaptured, ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']);
+    assert.equal(result.barSourceVerification.status, 'FAIL');
+  } finally {
+    ScenarioWebSocket.closeFirstKlineConnection = false;
+  }
 });
 
 test('collector exposes no order or account API', () => {
