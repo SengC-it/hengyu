@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0029_PREREGISTRATION",
+  "experimentId": "HY-EXP-0029",
+  "title": "Trend pullback reclaim one Development and one prospective validation",
+  "status": "PREREGISTERED",
+  "declaredAt": "2026-08-23T03:36:10.387Z",
+  "baseCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+  "authorization": "PAPER_ONLY",
+  "signalOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApi": false,
+  "orderApi": false,
+  "automaticTrading": false,
+  "developmentAllowed": true,
+  "trainingAllowed": false,
+  "backtestAllowed": false,
+  "oosAllowed": false,
+  "productionAllowed": false,
+  "promotionEligible": false,
+  "pnlComputed": false,
+  "oosRead": false,
+  "productionChanges": false,
+  "predecessors": [
+    {"experimentId":"HY-EXP-0024","status":"FAILED_TERMINAL","reuse":"none"},
+    {"experimentId":"HY-EXP-0025","status":"FAILED_TERMINAL","reuse":"none"},
+    {"experimentId":"HY-EXP-0026","status":"FAILED_TERMINAL","reuse":"none"},
+    {"experimentId":"HY-EXP-0027","status":"FAILED_TERMINAL","reuse":"none"},
+    {"experimentId":"HY-EXP-0028","status":"FAILED_TERMINAL","reuse":"none"}
+  ],
+  "productBoundary": {
+    "SIGNAL_ONLY": true,
+    "PAPER_ONLY": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false,
+    "allowedInfrastructure": ["Binance public APIs","GitHub Actions","Vercel Singapore","Supabase","Gmail"],
+    "newInfrastructure": false,
+    "productionH12Modified": false,
+    "manualUserDecisions": ["trade or no trade","entry","position size","leverage","exit"]
+  },
+  "universe": {
+    "market": "Binance USD-M",
+    "quoteAsset": "USDT",
+    "contractType": "PERPETUAL",
+    "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","DOGEUSDT","LINKUSDT","LTCUSDT"],
+    "fixed": true,
+    "eligibleSymbolDefinition": "A listed fixed symbol with complete causal 4h, 1h, 5m contract-price and funding rows at the decision context",
+    "breadthFormula": "ceil(eligibleSymbols * 2 / 3)",
+    "universeChangesAllowed": false
+  },
+  "regime": {
+    "bars": "completed UTC contract-price 4h bars",
+    "btcFast": "SMA60 of completed BTCUSDT 4h closes including the latest completed 4h bar",
+    "btcSlow": "SMA180 of completed BTCUSDT 4h closes including the latest completed 4h bar",
+    "bull": "BTCUSDT SMA60 > SMA180 AND latest completed BTCUSDT close > SMA180 AND count(eligible symbol close > that symbol SMA180) >= ceil(eligibleSymbols * 2 / 3)",
+    "otherwise": "NO_SIGNAL",
+    "decisionBoundary": "latest completed 4h bar whose closeBoundary is <= the completed 1h trigger close",
+    "bearSellAllowed": false
+  },
+  "candidateFamily": {
+    "id": "TREND_PULLBACK_RECLAIM",
+    "direction": "BULL/BUY",
+    "bars": "completed 1h contract-price bars only",
+    "indicators": {
+      "sma20": "mean of the latest 20 completed 1h closes including the evaluated bar",
+      "sma50": "mean of the latest 50 completed 1h closes including the evaluated bar",
+      "atr20": "mean of the latest 20 true ranges ending at the evaluated completed 1h bar; each true range uses the prior completed 1h close"
+    },
+    "symbolTrend": ["SMA20 > SMA50","current completed 1h close > SMA50"],
+    "pullback": {
+      "window": "the three completed 1h bars immediately before the current trigger bar",
+      "touch": "at least one prior bar low <= its own causal SMA20",
+      "integrity": "none of the three prior bars closed below its own causal SMA50",
+      "currentTriggerExcluded": true
+    },
+    "reclaim": ["current completed 1h close > current SMA20","current completed 1h close > previous completed 1h high"],
+    "additionalFilters": [],
+    "bearSellAllowed": false,
+    "mlAllowed": false,
+    "ridgeAllowed": false,
+    "featureSearchAllowed": false,
+    "parameterOptimizationAllowed": false
+  },
+  "advisory": {
+    "predicate": "BULL regime AND symbolTrend AND valid three-bar pullback AND current-bar reclaim",
+    "everyMechanicalMatchEvaluated": true,
+    "side": "BUY",
+    "deduplicationKey": "symbol + decisionTime",
+    "semVeto": false,
+    "conservativePredictionVeto": false,
+    "edgeVeto": false,
+    "postOutcomeFiltering": false,
+    "automaticTrade": false
+  },
+  "development": {
+    "source": "Only the already-consumed HY-EXP-0001 Development source data; no HY-EXP-0028 holdout and no Final OOS",
+    "sourceExperimentId": "HY-EXP-0001",
+    "sourceManifestPath": "artifacts/HY-EXP-0001/data-manifest.json",
+    "start": "2024-01-01T00:00:00.000Z",
+    "endExclusive": "2026-07-01T00:00:00.000Z",
+    "completedDataOnly": true,
+    "walkForward": {
+      "method": "purged_expanding_walk_forward",
+      "purgeBars": 6,
+      "embargoBars": 6,
+      "purgeUnit": "completed 4h bars",
+      "validationOnlyScoring": true,
+      "ruleSelectionAfterValidation": false,
+      "folds": [
+        {"id":"DEV-01","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-01-01T00:00:00.000Z","validationStart":"2025-01-01T00:00:00.000Z","validationEndExclusive":"2025-04-01T00:00:00.000Z"},
+        {"id":"DEV-02","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-04-01T00:00:00.000Z","validationStart":"2025-04-01T00:00:00.000Z","validationEndExclusive":"2025-07-01T00:00:00.000Z"},
+        {"id":"DEV-03","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-07-01T00:00:00.000Z","validationStart":"2025-07-01T00:00:00.000Z","validationEndExclusive":"2025-10-01T00:00:00.000Z"},
+        {"id":"DEV-04","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-10-01T00:00:00.000Z","validationStart":"2025-10-01T00:00:00.000Z","validationEndExclusive":"2026-01-01T00:00:00.000Z"},
+        {"id":"DEV-05","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2026-01-01T00:00:00.000Z","validationStart":"2026-01-01T00:00:00.000Z","validationEndExclusive":"2026-04-01T00:00:00.000Z"},
+        {"id":"DEV-06","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2026-04-01T00:00:00.000Z","validationStart":"2026-04-01T00:00:00.000Z","validationEndExclusive":"2026-07-01T00:00:00.000Z"}
+      ],
+      "trainingRule": "Only for audit: signalTime in train window and labelEndTime <= validationStart - 6 completed 4h bars",
+      "validationRule": "signalTime in validation window and labelEndTime < 2026-07-01T00:00:00.000Z",
+      "exposureDenominator": "actual OOF validation exposure window 2025-01-01 through 2026-07-01 exclusive"
+    },
+    "noHoldoutRead": true,
+    "noFinalOosRead": true
+  },
+  "execution": {
+    "decisionTime": "completed 1h trigger-bar close",
+    "entry": "exact Binance USD-M contract-price 5m OPEN at decisionTime + 5 minutes",
+    "exactEntryRequired": true,
+    "laterBarRescue": false,
+    "exit": {
+      "initialStop": "entryPrice - 1.5 * ATR20 frozen from the completed trigger bar",
+      "trendFailure": "at a completed 1h close, exit when close < causal SMA20",
+      "priority": ["ATR_STOP","SMA20_TREND_FAILURE","TERMINAL_TWELFTH_COMPLETED_1H_BAR_CLOSE"],
+      "maximumHoldCompleted1hBars": 12,
+      "researchHorizon": "12 completed 1h bars after entry",
+      "takeProfit": false,
+      "samePeriodStopPrecedence": true,
+      "causal": true
+    },
+    "positionSizing": "same fixed research sizing as prior audited Development replay: 0.25% equity stop-risk budget, 50% single-notional cap; research only",
+    "costs": {
+      "baseExecutionCostBps": 18,
+      "stressExecutionCostBps": 27,
+      "net18Formula": "gross directional price return + realized funding - 18bps",
+      "net27Formula": "gross directional price return + realized funding - 27bps",
+      "fundingOutcomeSeparate": true,
+      "realizedFundingRequired": true
+    }
+  },
+  "developmentGates": {
+    "allRequired": true,
+    "advisoryCountAtLeast": 120,
+    "usableAdvisoriesPer30DaysAtLeast": 8,
+    "net18ExpectancyBpsGreaterThan": 8,
+    "net18ProfitFactorGreaterThan": 1.15,
+    "net27ExpectancyBpsGreaterThan": 0,
+    "net27ProfitFactorGreaterThan": 1.02,
+    "activeMonthCountAtLeast": 10,
+    "positiveActiveMonthShareAtLeast": 0.45,
+    "distinctSymbolsAtLeast": 6,
+    "largestSingleSymbolShareAtMost": 0.35,
+    "maxMtmDrawdownFractionAtMost": 0.15,
+    "maxLossStreakAtMost": 8,
+    "bestMonthPositivePnlShareAtMost": 0.50,
+    "netPnlWithoutBestMonthGreaterThan": 0,
+    "zeroAdvisoryRule": "maxMTMDD=null; CVaR95=null; riskMetricStatus=EMPTY_SAMPLE_NOT_EVALUABLE; release cannot pass",
+    "failureAction": "DEVELOPMENT_FAILED_TERMINAL; do not alter rules, costs, gates or run a rescue experiment"
+  },
+  "prospectiveValidation": {
+    "allowedOnlyIfDevelopmentPass": true,
+    "activation": "after this preregistration and implementation, exact collector activation timestamp recorded; preferred 2026-08-24T00:00:00.000Z or later",
+    "minimumCalendarDays": 21,
+    "hardMaximumCalendarDays": 30,
+    "minimumAdvisories": 12,
+    "lowSignalOutcome": "INCONCLUSIVE_LOW_SIGNAL_FREQUENCY; releaseReady=false; no extension or tuning",
+    "source": "only data generated after activation; 2026-07-01 through 2026-08-23 is excluded because HY-EXP-0028 consumed it",
+    "emailLabel": "[VALIDATION SIGNAL] SYMBOL BUY",
+    "noDeploymentInThisTask": true,
+    "gates": {
+      "advisoryCountAtLeast": 12,
+      "net18ExpectancyBpsGreaterThan": 0,
+      "net18ProfitFactorGreaterThan": 1.05,
+      "net27ExpectancyBpsGreaterThan": 0,
+      "net27ProfitFactorGreaterThan": 1.0,
+      "distinctSymbolsAtLeast": 4,
+      "largestSingleSymbolShareAtMost": 0.4,
+      "maxMtmDrawdownFractionAtMost": 0.15,
+      "maxLossStreakAtMost": 6,
+      "bestTradePositivePnlShareAtMost": 0.5,
+      "positiveMonthGate": false,
+      "allRequired": true
+    },
+    "failureAction": "PROSPECTIVE_FAILED_TERMINAL; no rescue"
+  },
+  "liveSignalPath": {
+    "codePreparedOnlyIfDevelopmentPass": true,
+    "gmailSubject": "[VALIDATION SIGNAL] SYMBOL BUY",
+    "fields": ["symbol","BUY","signal time","reference executable price","SMA20","SMA50","ATR20","reference 1.5 ATR stop","12h research horizon","current public funding","current execution-cost estimate"],
+    "safetyText": ["Signal only.","No automatic trade was placed.","Entry, position size, leverage and exit are manually decided by the user."],
+    "noOrderOrAccountApi": true,
+    "deploymentAuthorizationSeparate": true,
+    "noAutomaticDeployment": true
+  },
+  "safety": {
+    "SIGNAL_ONLY": true,
+    "PAPER_ONLY": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false,
+    "finalOosRead": false,
+    "productionDeployment": false
+  },
+  "registry": {
+    "appendExactlyOnePreregisteredEventBeforeImplementation": true,
+    "historicalEntriesImmutable": true,
+    "terminalFailureIfAnyDevelopmentGateFails": true,
+    "noRescueExperiment": true
+  }
+}
