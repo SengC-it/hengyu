@@ -16,6 +16,10 @@
     "api/h12-scan.mjs": {
       "regions": ["sin1"],
       "maxDuration": 60
+    },
+    "api/hy-data-0001-collect.mjs": {
+      "regions": ["sin1"],
+      "maxDuration": 60
     }
   },
   "crons": [

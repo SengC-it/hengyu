@@ -1,0 +1,38 @@
+name: HY-DATA-0001 Prospective Collector
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hy-data-0001-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: Collect public derivatives observations
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      HENGYU_API_BASE_URL: ${{ vars.HENGYU_API_BASE_URL || 'https://hengyu-research.vercel.app' }}
+      HENGYU_HY_DATA_0001_INGEST_SECRET: ${{ secrets.HENGYU_HY_DATA_0001_INGEST_SECRET }}
+    steps:
+      - name: Trigger paper-only collector
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${HENGYU_HY_DATA_0001_INGEST_SECRET}"
+          body="{\"schedulerSource\":\"github-actions-hy-data-0001\",\"runId\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\"}"
+          timestamp="$(date +%s)"
+          signature="$(HENGYU_BODY="${body}" HENGYU_TIMESTAMP="${timestamp}" node --input-type=module -e "import crypto from 'node:crypto'; process.stdout.write(crypto.createHmac('sha256', process.env.HENGYU_HY_DATA_0001_INGEST_SECRET).update(process.env.HENGYU_TIMESTAMP + '.' + process.env.HENGYU_BODY).digest('hex'));" )"
+          response="$(curl --fail --show-error --silent --max-time 55 \
+            -X POST "${HENGYU_API_BASE_URL}/api/hy-data-0001-collect" \
+            -H 'content-type: application/json' \
+            -H "x-hengyu-timestamp: ${timestamp}" \
+            -H "x-hengyu-signature: ${signature}" \
+            --data "${body}")"
+          echo "${response}" >> "${GITHUB_STEP_SUMMARY}"
