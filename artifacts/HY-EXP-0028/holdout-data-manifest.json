@@ -1,0 +1,205 @@
+{
+  "artifactType": "HY_EXP_0028_HOLDOUT_DATA_MANIFEST",
+  "experimentId": "HY-EXP-0028",
+  "status": "DATA_LOCKED",
+  "immutable": true,
+  "source": "Binance public USD-M REST API",
+  "authorization": "PUBLIC_NO_ACCOUNT_API",
+  "windowStart": "2026-07-01T00:00:00.000Z",
+  "windowEndExclusive": "2026-08-23T00:00:00.000Z",
+  "warmupStart": "2026-05-30T00:00:00.000Z",
+  "requestEndInclusive": "2026-08-22T23:59:59.999Z",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT"
+  ],
+  "streams": [
+    "contract-price-5m",
+    "funding",
+    "causal-public-metadata"
+  ],
+  "noProxyDepth": true,
+  "noPrivateApi": true,
+  "noAccountApi": true,
+  "noOutcomeOutsideWindow": true,
+  "performanceUsesSignalWindowOnly": true,
+  "exchangeInfoUsedForHistoricalEligibility": false,
+  "coverage": {
+    "BTCUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "ETHUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "BNBUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "SOLUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "XRPUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "DOGEUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "LINKUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    },
+    "LTCUSDT": {
+      "klineRows": 24480,
+      "klinePages": 17,
+      "fundingRows": 255,
+      "fundingPages": 1
+    }
+  },
+  "files": [
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/BTCUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "BTCUSDT",
+      "bytes": 3342736,
+      "sha256": "e6fa199114bfbad91a5dcaeef6e2d2f25e51633780fb8a3b00a2f8322403ef4a"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/BTCUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "BTCUSDT",
+      "bytes": 32397,
+      "sha256": "19f666f7cfcf67e7f4693e2f7736fa312bb4b6ecbc014948789bf9156e272970"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/ETHUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "ETHUSDT",
+      "bytes": 3311561,
+      "sha256": "29bba37cae15615c69ed47705f38dbdf2e0f14b18d18ac97e0cd91382f1e6aef"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/ETHUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "ETHUSDT",
+      "bytes": 32169,
+      "sha256": "876147c794612954669445f16c70a0ec606b42b4c65b4a1383a74a7e09c66d0c"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/BNBUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "BNBUSDT",
+      "bytes": 3139474,
+      "sha256": "9133a20b21b7f686d847772e399cd8e1a25651ef31eda069c56fb7273f98a2fa"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/BNBUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "BNBUSDT",
+      "bytes": 31865,
+      "sha256": "8e88cf17f7c3028a976109b242780695aa2378ec386fbda15af28f9a41f0a397"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/SOLUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "SOLUSDT",
+      "bytes": 3305666,
+      "sha256": "21485d08dcb1217bc4258d16a907dff3f6b0585e04460ab9cba1f0ef6507b777"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/SOLUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "SOLUSDT",
+      "bytes": 31720,
+      "sha256": "daacc3f91e1de0593c7d51fac468c71e9e0076408a3458b3db48a1f1fa5c7730"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/XRPUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "XRPUSDT",
+      "bytes": 3152633,
+      "sha256": "e1b13dd6af07acdf7e87574f709283ceec61b86f58b705cd1e26500a8ac37472"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/XRPUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "XRPUSDT",
+      "bytes": 31473,
+      "sha256": "475fe9571256dce958291b46c49a631c17767f4164a55a57abea85781b2d96da"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/DOGEUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "DOGEUSDT",
+      "bytes": 3329336,
+      "sha256": "9e1ecd74f3d4220211f0e76109ceb799a715a12a272df9c2e213a43b72b5d331"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/DOGEUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "DOGEUSDT",
+      "bytes": 31675,
+      "sha256": "caa4753b25f6a2d0ae9ff8f51fa769ba88da46c668bd5a96f4bc820b1cadef05"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/LINKUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "LINKUSDT",
+      "bytes": 2978871,
+      "sha256": "a9b5cde2614e96b2ba5fd57393f7044775e86b5eeb842921f4f0fc2f37b9c8f1"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/LINKUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "LINKUSDT",
+      "bytes": 31655,
+      "sha256": "6a3c888ba7e72c688dfe5e62406a20aef48d44d5bea22f8a0632bb50db85b701"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/klines/LTCUSDT-5m.ndjson",
+      "kind": "contract-price-5m",
+      "symbol": "LTCUSDT",
+      "bytes": 2955469,
+      "sha256": "19736b0a306970f3595b44b659b78563d6d149d66640d31052745724a692bc99"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/funding/LTCUSDT-funding.ndjson",
+      "kind": "funding",
+      "symbol": "LTCUSDT",
+      "bytes": 31691,
+      "sha256": "39881d3991bd8ff4fc35d80f6becf1d7e59aa341433fb119c40257d5e9339845"
+    },
+    {
+      "path": "data/raw/HY-EXP-0028/holdout/metadata/exchange-info.json",
+      "kind": "causal-public-metadata",
+      "bytes": 17881,
+      "sha256": "351b313f2380dee1c2176c8f5b65986b3a26caa9af146da664395087076e2989"
+    }
+  ],
+  "lockedAt": "2026-08-23T03:10:58.081Z",
+  "manifestSha256": "b0d48d6a7a4b8cea46ec14929610d9a5178bf6ade49bc0302074da5fc68c0b56"
+}

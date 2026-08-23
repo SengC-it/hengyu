@@ -1,0 +1,20 @@
+{
+  "experimentId": "HY-EXP-0028",
+  "status": "FAILED",
+  "terminal": true,
+  "failureReason": "FRESH_HOLDOUT_RELEASE_GATES_FAILED",
+  "holdoutResultPath": "artifacts/HY-EXP-0028/holdout-result.json",
+  "holdoutResultSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+  "failedGates": [
+    "net27ExpectancyGreaterThan0",
+    "maxLossStreakAtMost6"
+  ],
+  "holdoutPass": false,
+  "experimentalReleaseReady": false,
+  "finalOosRead": false,
+  "productionDeploy": false,
+  "signalOnly": true,
+  "paperOnly": true,
+  "noRuleB": true,
+  "noParameterRescue": true
+}
