@@ -1,0 +1,19 @@
+{
+  "experimentId": "HY-EXP-0026",
+  "evidenceClass": "D0_DEVELOPMENT_ONLY",
+  "baseCommit": "5f6303c8c5303d40b8290d4ea2700a5f089ab599",
+  "preregistrationSha256": "4b2f94db67b51ddd3cf1734371643f25ea4f2ba1212425abfdf97fc50e59a46f",
+  "sourceExperimentId": "HY-EXP-0001",
+  "sourceManifestSha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544",
+  "developmentStart": "2024-01-01T00:00:00.000Z",
+  "developmentEndExclusive": "2026-07-01T00:00:00.000Z",
+  "developmentPnlComputed": true,
+  "finalOosPnlComputed": false,
+  "finalOosRead": false,
+  "paperOnly": true,
+  "signalOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApi": false,
+  "orderApi": false,
+  "sourceRule": "Only the already-consumed HY-EXP-0024 Development source and its locked manifest may be used for this research validation; HY-EXP-0025 result/trades are not reused and Final OOS is sealed."
+}
