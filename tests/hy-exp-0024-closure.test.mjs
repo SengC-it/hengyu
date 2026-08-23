@@ -68,7 +68,7 @@ test('HY-EXP-0024 closure preserves the frozen result and records separate popul
   assert.equal(closure.riskMetricStatus, EMPTY_SAMPLE_NOT_EVALUABLE);
 });
 
-test('failure decomposition is deterministic, pre-Net-Edge, and does not create HY-EXP-0025', () => {
+test('failure decomposition is deterministic and pre-Net-Edge', () => {
   const decomposition = readJson(DECOMPOSITION_PATH);
   assert.equal(decomposition.status, 'FAILURE_DECOMPOSITION_COMPLETE');
   assert.match(decomposition.source.sourceHashes.lockedDiagnosticsSha256, /^[a-f0-9]{64}$/);
@@ -88,7 +88,7 @@ test('failure decomposition is deterministic, pre-Net-Edge, and does not create 
   assert.ok(decomposition.robustOpportunity.directions.length <= 3);
   assert.equal(decomposition.safety.finalOosRead, false);
   assert.equal(decomposition.safety.noNewExperimentCreated, true);
-  assert.equal(fs.existsSync('registry/experiments/HY-EXP-0025'), false);
+  assert.equal(decomposition.experimentId, 'HY-EXP-0024');
 });
 
 test('empty advisory risk metrics are explicitly non-evaluable', () => {

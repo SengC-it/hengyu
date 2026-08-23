@@ -364,9 +364,23 @@ function appendMark(marks, side, row, entryPrice) {
   }));
 }
 
+function fiveMinuteAt(source, openTime) {
+  if (source instanceof Map) return source.get(openTime);
+  let lower = 0;
+  let upper = source.length - 1;
+  while (lower <= upper) {
+    const middle = Math.floor((lower + upper) / 2);
+    const candidate = source[middle];
+    if (candidate.openTime === openTime) return candidate;
+    if (candidate.openTime < openTime) lower = middle + 1;
+    else upper = middle - 1;
+  }
+  return null;
+}
+
 function exactEntryAndExit({ candidate, bars1h, bars5m, fiveByOpenTime }) {
   const requiredOpenTime = historicalExecutionOpenTime(candidate.theoreticalDecisionTime);
-  const entryBar = fiveByOpenTime.get(requiredOpenTime);
+  const entryBar = fiveMinuteAt(fiveByOpenTime, requiredOpenTime);
   if (!entryBar) return { usable: false, rejection: 'MISSING_EXACT_5M_EXECUTION_PROXY' };
   const entryPrice = entryBar.open;
   const stopPrice = candidate.side === 'BUY'
@@ -384,7 +398,7 @@ function exactEntryAndExit({ candidate, bars1h, bars5m, fiveByOpenTime }) {
   for (const { row, index } of evaluationBars) {
     const periodRows = [];
     for (let openTime = cursor; openTime < row.closeBoundary; openTime += FIVE_MINUTES) {
-      const five = fiveByOpenTime.get(openTime);
+      const five = fiveMinuteAt(fiveByOpenTime, openTime);
       if (!five) return { usable: false, rejection: 'MISSING_FORWARD_5M_LABEL_BAR' };
       periodRows.push(five);
     }
@@ -477,16 +491,18 @@ function realizedFundingForTrade({ side, entryPrice, entryTime, exitTime, rows, 
   return { fundingPnlBps, fundingPnlPerUnit: fundingPnl, events: details };
 }
 
-function candidateRows(dataset) {
+function candidateRows(dataset, { cacheFiveMinuteMaps = true } = {}) {
   const reference = dataset.bars1hBySymbol.BTCUSDT;
   const firstIndex = Math.max(180 * 4, 180, 120, 60, 20);
   const contexts = [];
   const candidates = [];
   let rawCandidateCount = 0;
-  const fiveMaps = Object.fromEntries(HY_EXP_0024_SYMBOLS.map(symbol => [
-    symbol,
-    new Map(dataset.bars5mBySymbol[symbol].map(row => [row.openTime, row]))
-  ]));
+  const fiveMaps = cacheFiveMinuteMaps
+    ? Object.fromEntries(HY_EXP_0024_SYMBOLS.map(symbol => [
+      symbol,
+      new Map(dataset.bars5mBySymbol[symbol].map(row => [row.openTime, row]))
+    ]))
+    : null;
   for (let index = firstIndex; index < reference.length; index++) {
     const context = buildContext({ bars1hBySymbol: dataset.bars1hBySymbol, bars4hBySymbol: dataset.bars4hBySymbol, index });
     if (!context) continue;
@@ -522,12 +538,18 @@ function candidateRows(dataset) {
         candidate: base,
         bars1h: dataset.bars1hBySymbol[symbol],
         bars5m: dataset.bars5mBySymbol[symbol],
-        fiveByOpenTime: fiveMaps[symbol]
+        fiveByOpenTime: cacheFiveMinuteMaps ? fiveMaps[symbol] : dataset.bars5mBySymbol[symbol]
       });
       if (label.usable) candidates.push({ ...base, label });
     }
   }
   return { contexts, candidates, fiveMaps, rawCandidateCount };
+}
+
+/** Reuse the accepted causal candidate/label construction without fitting HY-EXP-0024's Ridge model. */
+export function buildHyExp0024CandidateRows({ dataset = loadHyExp0024Dataset() } = {}) {
+  const { candidates, rawCandidateCount } = candidateRows(dataset, { cacheFiveMinuteMaps: false });
+  return { candidates, rawCandidateCount };
 }
 
 function rowsForFold(candidates, fold) {
