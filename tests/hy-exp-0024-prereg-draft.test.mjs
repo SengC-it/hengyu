@@ -16,6 +16,25 @@ function readLedger() {
     .map(line => JSON.parse(line));
 }
 
+function syntheticDevelopmentDecision({ close, priorHigh, proxyOpen, exitPrice }) {
+  const candidate = close > priorHigh
+    ? { exists: true, side: 'BUY', regime: 'BULL', features: { close, priorHigh } }
+    : { exists: false, side: null, regime: 'SIDEWAYS', features: { close, priorHigh } };
+  const label = candidate.exists ? (exitPrice / proxyOpen - 1) * 10_000 : null;
+  return { candidate, label };
+}
+
+function expectedFundingAtDecision({ side, latestPublishedRate, nextFundingTime, decisionTime, maxHoldMs }) {
+  if (nextFundingTime > decisionTime + maxHoldMs) return 0;
+  return (side === 'BUY' ? -1 : 1) * latestPublishedRate * 10_000;
+}
+
+function coverageOnlyExtension({ bullCandidates, bearCandidates }) {
+  return bullCandidates >= 40 && bearCandidates >= 40
+    ? 'UNLOCK_DAY90'
+    : 'EXTEND_EXACTLY_90_DAYS';
+}
+
 test('HY-EXP-0024 draft is not preregistered and leaves registry unchanged', () => {
   const draft = readDraft();
   const ledger = readLedger();
@@ -58,14 +77,19 @@ test('HY-EXP-0024 primary universe, regime, direction and candidate family are f
 
 test('HY-EXP-0024 draft freezes causal timing, executable entry and exact exit', () => {
   const { causality, entry, exit } = readDraft().primaryModel;
+  const { historicalDevelopmentExecutionProxy } = entry;
   assert.equal(causality.forming4hUse, false);
   assert.equal(causality.regimeSnapshotRule.includes('completedCloseTime <= decisionTime'), true);
   assert.equal(entry.maximumScannerDelayMs, 900000);
   assert.equal(entry.delayRule.includes('MISSED_SIGNAL'), true);
   assert.equal(entry.executableReference.entryPrice.includes('never a 1h/4h bar open'), true);
   assert.equal(entry.executableReference.maximumBookAgeMs, 1000);
-  assert.equal(entry.historicalNextBarLookahead, false);
-  assert.equal(entry.historicalExecutionRule.includes('next bar'), true);
+  assert.equal(historicalDevelopmentExecutionProxy.name, 'HISTORICAL_5M_EXECUTION_PROXY');
+  assert.equal(historicalDevelopmentExecutionProxy.entryPrice.includes('5m bar OPEN'), true);
+  assert.equal(historicalDevelopmentExecutionProxy.classification.includes('NOT_L2'), true);
+  assert.equal(historicalDevelopmentExecutionProxy.classification.includes('DEVELOPMENT_ONLY'), true);
+  assert.equal(historicalDevelopmentExecutionProxy.historicalNextBarLookahead, false);
+  assert.equal(entry.historicalExecutionRule.includes('next 5m observation'), true);
   assert.equal(entry.noRetroactiveAdvisory, true);
   assert.equal(exit.atrBars, 20);
   assert.equal(exit.channelBars, 60);
@@ -126,10 +150,53 @@ test('HY-EXP-0024 draft freezes development folds, gates and fail-closed OOS fir
   assert.equal(oosFirewall.startResolution.developmentPassRequired, true);
   assert.equal(oosFirewall.startResolution.edgeModelArtifactLockRequired, true);
   assert.equal(oosFirewall.startResolution.earlyStartForbidden, true);
-  assert.equal(oosFirewall.startResolution.endExclusive, 'oosStart + 90 * 24 hours');
+  assert.equal(oosFirewall.startResolution.endExclusive.includes('180'), true);
   assert.deepEqual(oosFirewall.dataWorkflow.beforeDevelopmentPass, ['write', 'hash', 'integrity_check']);
   assert.equal(oosFirewall.dataWorkflow.unknownOperation, 'Reject');
+  assert.equal(oosFirewall.dataWorkflow.accessClasses.ONLINE_INFERENCE_INPUT.allowedDuringOos, true);
+  assert.equal(oosFirewall.dataWorkflow.accessClasses.ONLINE_DECISION_OUTPUT.allowedDuringOos, true);
+  assert.equal(oosFirewall.dataWorkflow.accessClasses.SEALED_OUTCOME_EVALUATION.allowedBeforeUnlock, false);
+  assert.equal(oosFirewall.coverageOnlyExtension.perCellMinimumEdgeAvailableCandidates, 40);
+  assert.equal(oosFirewall.coverageOnlyExtension.maximumOosDays, 180);
   assert.equal(draft.gates.failureAction.includes('Final OOS unreadable'), true);
+});
+
+test('historical 5m proxy changes only the post-decision label, never candidate creation', () => {
+  const first = syntheticDevelopmentDecision({ close: 110, priorHigh: 100, proxyOpen: 100, exitPrice: 101 });
+  const second = syntheticDevelopmentDecision({ close: 110, priorHigh: 100, proxyOpen: 105, exitPrice: 101 });
+  assert.deepEqual(second.candidate, first.candidate);
+  assert.notEqual(second.label, first.label);
+  assert.equal(readDraft().primaryModel.entry.historicalDevelopmentExecutionProxy.cannotAffect.includes('candidate existence'), true);
+  assert.equal(readDraft().development.executionProxy.developmentOnly, true);
+  assert.equal(readDraft().development.executionProxy.notL2, true);
+});
+
+test('expected funding is decision-time only and realized funding is outcome-only', () => {
+  const draft = readDraft();
+  const funding = draft.primaryModel.fundingCausality;
+  const decisionTime = Date.parse('2026-01-01T00:00:00.000Z');
+  const nextFundingTime = Date.parse('2026-01-01T04:00:00.000Z');
+  const first = expectedFundingAtDecision({ side: 'BUY', latestPublishedRate: 0.0001, nextFundingTime, decisionTime, maxHoldMs: 6 * 60 * 60 * 1_000 });
+  const second = expectedFundingAtDecision({ side: 'BUY', latestPublishedRate: 0.0001, nextFundingTime, decisionTime, maxHoldMs: 6 * 60 * 60 * 1_000 });
+  assert.equal(first, second);
+  assert.equal(funding.expectedFundingBps.futureRealizedRateRead, false);
+  assert.equal(funding.realizedFundingBps.candidateInput, false);
+  assert.equal(funding.realizedFundingBps.netEdgeDecisionInput, false);
+  assert.equal(funding.leakageRule.includes('future realized funding'), true);
+});
+
+test('OOS extension decision uses coverage only and calibration is pre-Net-Edge', () => {
+  const draft = readDraft();
+  assert.equal(coverageOnlyExtension({ bullCandidates: 40, bearCandidates: 40 }), 'UNLOCK_DAY90');
+  assert.equal(coverageOnlyExtension({ bullCandidates: 1000, bearCandidates: 39 }), 'EXTEND_EXACTLY_90_DAYS');
+  assert.equal(coverageOnlyExtension({ bullCandidates: 40, bearCandidates: 40, pnl: -1_000_000, pf: 0 }), 'UNLOCK_DAY90');
+  assert.equal(draft.gates.measurementDefinitions.calibrationPopulation.includes('before Net Edge and Portfolio Risk filtering'), true);
+  assert.equal(draft.gates.development.calibrationMinimumValidationSamplesPerCell, 100);
+  assert.equal(draft.gates.finalOos.calibrationMinimumValidationSamplesPerCell, 40);
+  assert.equal(draft.gates.development.modelMAEOverZeroEdgeBaselineMax, 0.95);
+  assert.equal(draft.gates.development.modelRMSEOverZeroEdgeBaselineMax, 0.98);
+  assert.equal(draft.gates.finalOos.modelMAEOverZeroEdgeBaselineMax, 1);
+  assert.equal(draft.gates.finalOos.modelRMSEOverZeroEdgeBaselineMax, 1);
 });
 
 test('HY-EXP-0024 draft preserves paper-only delivery and historical experiment boundaries', () => {
@@ -140,6 +207,10 @@ test('HY-EXP-0024 draft preserves paper-only delivery and historical experiment 
   assert.equal(draft.safetyInvariants.orderApi, false);
   assert.equal(draft.safetyInvariants.noProductionH12Change, true);
   assert.equal(draft.safetyInvariants.noGmailDeliveryChange, true);
+  assert.equal(draft.safetyInvariants.noCurrentExchangeInfoBackfill, true);
+  assert.equal(draft.safetyInvariants.noFutureRealizedFundingDecisionInput, true);
+  assert.equal(draft.safetyInvariants.oosOnlineInferenceAllowed, true);
+  assert.equal(draft.safetyInvariants.oosOutcomeEvaluationSealed, true);
   assert.equal(draft.experimentIsolation['HY-EXP-0023'].mustNotBeModified, true);
   assert.equal(draft.reviewRequired.preregistrationCommitMustBeSeparate, true);
 });

@@ -1,7 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "artifactType": "HY_EXP_0024_PREREGISTRATION_DRAFT",
   "experimentId": "HY-EXP-0024",
+  "draftRevision": "P0-REVISION-1",
+  "baseDraftCommit": "c8c40c2ed72297f5d458b1bfbe6c6406438ad55c",
   "status": "DRAFT_NOT_PREREGISTERED",
   "createdAt": "2026-08-22T23:53:21.756515Z",
   "createdFromCommit": "3d19e7128e5b972e20649075d608bc70858d13d2",
@@ -86,19 +88,37 @@
       "contractType": "PERPETUAL",
       "usdcPrimaryUniverse": false,
       "dynamicEligibility": {
-        "rule": "At each decisionTime, primaryUniverse = the frozen eight-symbol list intersected with symbols causally verified eligible at or before decisionTime.",
-        "requiredFields": [
-          "symbol",
-          "status=TRADING",
-          "contractType=PERPETUAL",
-          "quoteAsset=USDT",
-          "listing/onboard time <= decisionTime",
-          "valid tickSize",
-          "valid stepSize",
-          "valid minQty",
-          "valid minNotional"
-        ],
-        "missingInformation": "Exclude that symbol for the decision point; never use a current snapshot to backfill an earlier decision.",
+        "historicalDevelopment": {
+          "classification": "FIXED8_HISTORICAL_RESEARCH_UNIVERSE",
+          "rule": "Use exactly the frozen eight symbols as a Development research universe when their historical contract bars and required funding observations exist.",
+          "requiredHistoricalEvidence": [
+            "symbol historical contract data exists",
+            "causal completed 1h/4h/5m bars exist",
+            "funding archive exists where the holding interval requires it"
+          ],
+          "pitExchangeInfoRequired": false,
+          "historicalPITClaim": false,
+          "currentExchangeInfoBackfill": false,
+          "missingInformation": "Exclude the row; do not rewrite past eligibility with a current exchangeInfo snapshot.",
+          "developmentOnly": true
+        },
+        "prospectiveFinalOos": {
+          "classification": "CAUSAL_LIVE_ELIGIBILITY",
+          "rule": "At each decisionTime, primaryUniverse = the frozen eight-symbol list intersected with symbols causally verified eligible at or before decisionTime.",
+          "requiredFields": [
+            "symbol",
+            "status=TRADING",
+            "contractType=PERPETUAL",
+            "quoteAsset=USDT",
+            "listing/onboard time <= decisionTime",
+            "valid tickSize",
+            "valid stepSize",
+            "valid minQty",
+            "valid minNotional"
+          ],
+          "missingInformation": "Exclude that symbol for the decision point; never use a later snapshot to backfill an earlier decision.",
+          "authoritativeForRealEligibility": true
+        },
         "btcMissing": "SIDEWAYS/NO_TRADE because BTC is required for the regime; do not substitute another benchmark.",
         "coverageClaim": "This is an eight-symbol primary design; it makes no 20- or 30-symbol coverage claim."
       },
@@ -160,20 +180,30 @@
       "theoreticalDecisionTime": "The completed 1h bar close boundary used only for scheduler-delay measurement.",
       "maximumScannerDelayMs": 900000,
       "delayRule": "schedulerDelayMs = decisionTime - theoreticalDecisionTime; if schedulerDelayMs > 900000, classify MISSED_SIGNAL and emit no Candidate eligible for trading or Advisory.",
-        "executableReference": {
+      "executableReference": {
         "buy": "First valid causal ask-side executable price received at or after decisionTime, using the public Binance book available to the scanner.",
         "sell": "First valid causal bid-side executable price received at or after decisionTime, using the public Binance book available to the scanner.",
         "entryPrice": "The size-aware executable reference used by the existing Net Edge book walk; never a 1h/4h bar open.",
         "requiredTimestamps": ["decisionTime", "receivedAt", "bookTime"],
         "maximumBookAgeMs": 1000,
         "missingBook": "NO_TRADE / ENTRY_DATA_MISSING",
-        "historicalDevelopmentRule": "If a causal executable reference is unavailable for a historical row, exclude the row; do not substitute a theoretical bar open or silently use a later book.",
-          "fullHistoricalL2Required": false
-        },
-        "historicalNextBarLookahead": false,
-        "historicalExecutionRule": "A historical row may use only a causal executable observation available after the decision event; the next bar's OHLC is never used to decide whether a signal exists or to manufacture an entry price.",
-        "noRetroactiveAdvisory": true
+        "prospectiveFinalOosOnly": true
       },
+      "historicalDevelopmentExecutionProxy": {
+        "name": "HISTORICAL_5M_EXECUTION_PROXY",
+        "source": "Binance USD-M contract-price archived 5m bars",
+        "selection": "After candidate/regime/features/side are frozen, select the first archived 5m bar with openTime >= theoreticalDecisionTime.",
+        "entryPrice": "The selected 5m bar OPEN only for the post-decision Development execution simulation.",
+        "missingRow": "Exclude the row; no later-bar rescue.",
+        "cannotAffect": ["candidate existence", "regime", "features", "direction", "Edge availability"],
+        "classification": ["DEVELOPMENT_ONLY", "NOT_L2", "NOT_EXACT_FILL", "NOT_PROMOTION_EVIDENCE_BY_ITSELF"],
+        "historicalNextBarLookahead": false,
+        "postDecisionExecutionSimulation": true,
+        "prospectiveOosReplacement": "Use the real causal bid/ask/book executable reference and existing Net Edge book walk."
+      },
+      "historicalExecutionRule": "The next 5m observation is read only after the signal decision is frozen; it can change the Development label/outcome, never candidate creation.",
+      "noRetroactiveAdvisory": true
+    },
     "exit": {
       "initialStop": "BUY stop = executable entry - 2.0 * ATR20; SELL stop = executable entry + 2.0 * ATR20.",
       "atrBars": 20,
@@ -185,7 +215,7 @@
       "researchExpirySeparation": "Research/advisory expiry controls record validity only; it never substitutes for or closes the trade exit.",
       "horizonFrozen": true
     },
-    "edgeTarget": {
+      "edgeTarget": {
       "name": "GROSS_DIRECTIONAL_PRICE_RETURN_BPS",
       "definition": "For BUY: 10000 * (exitPrice / executableEntryPrice - 1). For SELL: 10000 * (1 - exitPrice / executableEntryPrice). Exit is the exact frozen stop/channel/terminal policy before any cost.",
       "expectedPriceEdgeBps": "Prediction of the gross directional price-return target only.",
@@ -203,6 +233,23 @@
       ],
       "invariant": "EDGE_TARGET_MUST_EXCLUDE_NET_EDGE_COST_COMPONENTS",
       "noDoubleCounting": true
+    },
+    "fundingCausality": {
+      "maximumHoldBars": 6,
+      "expectedFundingBps": {
+        "role": "Decision-time Net Edge input only",
+        "inputsAllowed": ["latest causally published funding rate", "nextFundingTime", "decisionTime", "side"],
+        "rule": "If nextFundingTime is outside the possible six-hour hold, expectedFundingBps=0. If it falls inside the possible hold, use the latest published funding rate once, side-adjusted: BUY=-rate*10000 and SELL=rate*10000.",
+        "futureRealizedRateRead": false,
+        "additionalUnknownFunding": "Represent only with frozen fundingStressBps; never read a future realized rate."
+      },
+      "realizedFundingBps": {
+        "role": "Post-hoc label/outcome evaluation only",
+        "source": "Actual funding events whose fundingTime falls in the realized holding interval",
+        "candidateInput": false,
+        "netEdgeDecisionInput": false
+      },
+      "leakageRule": "expectedFundingBps and realizedFundingBps are separate fields; future realized funding cannot affect Candidate, Edge availability or the decision-time Net Edge result."
     },
     "edgeModel": {
       "modelId": "HY-EXP-0024-EDGE-RIDGE-L1",
@@ -297,17 +344,36 @@
       "start": "2024-01-01T00:00:00.000Z",
       "endExclusive": "2026-07-01T00:00:00.000Z",
       "maximumHistoricalEndpoint": true,
+      "eligibilityClass": "FIXED8_HISTORICAL_RESEARCH_UNIVERSE",
+      "historicalPITExchangeInfoRequired": false,
+      "historicalExactEligibilityClaim": false,
       "prior0019Window": "2025-07-01T00:00:00.000Z through 2026-07-01T00:00:00.000Z remains Development information and can never be independent OOS.",
       "dataRule": "Use only already-consumed or otherwise available historical information; no new data result is created by this draft.",
       "finalOosRead": false
     },
     "dataSources": {
-      "bars": "Binance USD-M contract-price completed 1h and 4h public kline records; mark-price kline is not a signal source.",
+      "bars": "Binance USD-M contract-price completed 1h, 4h and archived 5m public kline records; mark-price kline is not a signal source.",
       "funding": "Binance USD-M realized funding records with fundingTime <= record receivedAt; missing required funding makes the row unusable.",
-      "eligibility": "Only PIT public exchange/eligibility information available no later than decisionTime; missing filters or status excludes the symbol.",
-      "entry": "Existing-stack public executable bid/ask/book observation with source timestamp and receivedAt; no bar-open fallback.",
-      "depth": "No historical full-L2 purchase or dependency; no OHLCV/bookTicker depth proxy is promoted as historical L2 evidence.",
-      "backfill": "No retrospective source or metadata backfill may create a missing causal row."
+      "eligibility": "FIXED8_HISTORICAL_RESEARCH_UNIVERSE for Development; no historical PIT exchangeInfo claim and no current exchangeInfo backfill.",
+      "entry": "HISTORICAL_5M_EXECUTION_PROXY after decision freeze for Development; live causal bid/ask/book for Prospective Final OOS.",
+      "depth": "No historical full-L2 purchase or dependency; the 5m proxy is explicitly NOT_L2 and NOT_EXACT_FILL.",
+      "backfill": "No retrospective source or metadata backfill may create a missing causal bar, funding row or execution-proxy row.",
+      "historicalProxyEvidence": "DEVELOPMENT_ONLY; NOT_PROMOTION_EVIDENCE_BY_ITSELF"
+    },
+    "executionProxy": {
+      "classification": "HISTORICAL_5M_EXECUTION_PROXY",
+      "source": "Binance USD-M contract-price archived 5m bar",
+      "selection": "first 5m bar openTime >= theoreticalDecisionTime, selected only after Candidate/regime/features/side are frozen",
+      "price": "selected 5m open",
+      "notL2": true,
+      "notExactFill": true,
+      "developmentOnly": true,
+      "missingAction": "exclude row",
+      "laterBarRescue": false
+    },
+    "fundingCausality": {
+      "expectedFundingBps": "Decision-time latest published rate plus nextFundingTime rule from primaryModel.fundingCausality; no future realized rate.",
+      "realizedFundingBps": "Outcome-only actual funding events after the decision; never a Candidate or Net Edge input."
     },
     "warmup": {
       "minimumCompleted4hBars": 180,
@@ -346,7 +412,10 @@
       "maxMTMDrawdown": "Worst peak-to-trough mark-to-market NAV drawdown under the frozen research risk policy; closed-equity drawdown alone is insufficient.",
       "cvar95": "Mean of the worst 5% daily mark-to-market NAV returns, expressed as a positive loss fraction.",
       "lossStreak": "Maximum consecutive admitted advisories with negative realized net return.",
-      "calibration": "Out-of-fold predicted gross edge versus realized gross directional price return, computed pooled and separately per model cell."
+      "calibration": "Out-of-fold predicted gross edge versus realized gross directional price return, computed pooled and separately per model cell before Net Edge and Portfolio Risk filtering.",
+      "calibrationPopulation": "All primary TREND_BREAKOUT candidates for which the frozen Edge model returns available=true, before Net Edge and Portfolio Risk filtering; rejected advisories are retained in the calibration population.",
+      "zeroEdgeBaseline": "Prediction of 0 gross bps on the same calibration rows, evaluated with the same MAE/RMSE definitions.",
+      "coverageOnly": "Regime, candidate, Edge-available candidate, distinct symbol and month counts only; no outcome, PnL, return, PF, DD, CVaR or realized calibration field."
     },
     "development": {
       "allMandatory": true,
@@ -366,8 +435,10 @@
       "maxMTMDrawdownFractionMax": 0.12,
       "cvar95LossFractionMax": 0.05,
       "maximumLossStreak": 8,
-      "edgeMAEBpsMax": 60,
-      "edgeRMSEBpsMax": 100,
+      "modelMAEOverZeroEdgeBaselineMax": 0.95,
+      "modelRMSEOverZeroEdgeBaselineMax": 0.98,
+      "absoluteMAEDiagnosticMaxBps": 60,
+      "absoluteRMSEDiagnosticMaxBps": 100,
       "calibrationSlopeMin": 0.75,
       "calibrationSlopeMax": 1.25,
       "calibrationInterceptAbsBpsMax": 20,
@@ -389,7 +460,7 @@
     },
     "finalOos": {
       "allMandatory": true,
-      "rationale": "The 90-day OOS gate keeps the same 12-per-30-day usable-frequency target while requiring both directions and a positive net result after realistic base and stressed costs.",
+      "rationale": "The 90-day OOS gate keeps the same 12-per-30-day usable-frequency target while requiring positive net results after realistic base and stressed costs. Regime-side advisory gates are conditional on the separate frozen coverage gate.",
       "advisoryCountMin": 36,
       "monthlyAdvisoryRatePer30dMin": 12,
       "bullBuyAdvisoryCountMin": 12,
@@ -405,13 +476,18 @@
       "maxMTMDrawdownFractionMax": 0.1,
       "cvar95LossFractionMax": 0.04,
       "maximumLossStreak": 6,
-      "edgeMAEBpsMax": 65,
-      "edgeRMSEBpsMax": 110,
+      "modelMAEOverZeroEdgeBaselineMax": 1,
+      "modelRMSEOverZeroEdgeBaselineMax": 1,
+      "absoluteMAEDiagnosticMaxBps": 65,
+      "absoluteRMSEDiagnosticMaxBps": 110,
       "calibrationSlopeMin": 0.7,
       "calibrationSlopeMax": 1.3,
       "calibrationInterceptAbsBpsMax": 25,
       "spearmanRankCorrelationMin": 0.15,
-      "calibrationMinimumValidationSamplesPerCell": 100,
+      "calibrationMinimumValidationSamplesPerCell": 40,
+      "calibrationPopulationRule": "All Edge-available primary TREND_BREAKOUT candidates before Net Edge and Portfolio Risk filtering; do not restrict to Gmail advisories.",
+      "coverageMinimumPerCell": 40,
+      "coverageConditionalSideGates": "Apply BULL/BUY and BEAR/SELL advisory minimums only for cells meeting coverageMinimumPerCell; if a cell remains below coverage at day180, result is INCONCLUSIVE_REGIME_COVERAGE and cannot promote.",
       "costStress1_5x": {
         "netExpectancyBpsMin": 2,
         "netProfitFactorMin": 1.03,
@@ -436,16 +512,43 @@
       "lockContents": ["model artifact hash", "code hash", "draft/spec hash", "cost config hash", "risk config hash"],
       "anchor": "max(developmentPassRecordedAt, finalEdgeModelArtifactLockedAt) + 24 hours",
       "start": "First UTC 00:00 boundary at or after the anchor; resolve once and then freeze.",
-      "endExclusive": "oosStart + 90 * 24 hours",
+      "endExclusive": "oosStart + 90 * 24 hours when day90 coverage is sufficient; otherwise oosStart + 180 * 24 hours under the frozen coverage-only extension rule.",
       "immutable": true,
       "earlyStartForbidden": true
     },
+    "coverageOnlyExtension": {
+      "day90Inspection": "Before any performance field is read, inspect only coverage fields.",
+      "allowedFields": ["regime counts", "candidate counts", "Edge-available candidate counts", "distinct symbols", "distinct months"],
+      "perCellMinimumEdgeAvailableCandidates": 40,
+      "ifBothCellsMeetMinimum": "Unlock final evaluation after the first 90-day period; do not extend.",
+      "ifEitherCellBelowMinimum": "Automatically extend exactly one additional 90-day period without reading PnL or performance; no optional stopping.",
+      "maximumOosDays": 180,
+      "day180Action": "Evaluation is mandatory. If a cell remains below 40 Edge-available candidates, result=INCONCLUSIVE_REGIME_COVERAGE and no production promotion.",
+      "extensionCannotUse": ["PnL", "return", "expectancy", "PF", "positive months", "drawdown", "CVaR", "loss streak", "realized calibration", "lambda performance"]
+    },
     "dataWorkflow": {
       "beforeDevelopmentPass": ["write", "hash", "integrity_check"],
-      "afterDevelopmentPass": ["read only explicitly whitelisted research fields after OOS end"],
+      "accessClasses": {
+        "ONLINE_INFERENCE_INPUT": {
+          "allowedDuringOos": true,
+          "readableFields": ["live Binance completed bars", "causal exchangeInfo/eligibility", "funding known at decisionTime", "live bid/ask/book"],
+          "purpose": "Frozen online inference only; not an OOS-result read."
+        },
+        "ONLINE_DECISION_OUTPUT": {
+          "allowedDuringOos": true,
+          "writableFields": ["candidate", "Edge output", "Net Edge result", "Portfolio Risk result", "NO_TRADE reason", "paper advisory", "Supabase persistence", "Gmail delivery metadata"],
+          "researchRead": false
+        },
+        "SEALED_OUTCOME_EVALUATION": {
+          "allowedBeforeUnlock": false,
+          "unlockedAfter": "Full OOS period ends and coverage rule permits evaluation",
+          "forbiddenBeforeUnlock": ["future outcome prices", "realized trade PnL", "aggregate expectancy", "PF", "positive months", "drawdown", "CVaR", "loss streak", "realized Edge calibration", "lambda performance comparisons"]
+        }
+      },
+      "afterDevelopmentPass": "Only ONLINE_INFERENCE_INPUT reads and ONLINE_DECISION_OUTPUT writes are allowed during OOS; SEALED_OUTCOME_EVALUATION remains unreadable until its explicit unlock.",
       "beforeOosStart": "No final OOS record may enter a Development fit or metric.",
       "duringOos": "GitHub Actions -> Vercel -> Binance public data -> Candidate -> frozen Edge -> Net Edge -> Portfolio Risk -> Supabase; existing Gmail may deliver PAPER advisories.",
-      "afterOosEnd": "Evaluate once after the full 90-day period; no early promotion or OOS-based retraining.",
+      "afterOosEnd": "Evaluate once after the full permitted 90- or 180-day period; no early promotion or OOS-based retraining.",
       "unknownOperation": "Reject",
       "prohibited": ["delete", "overwrite", "move", "export_unsealed", "order", "account", "trade", "execute", "retrain", "optimize"]
     },
@@ -471,6 +574,12 @@
     "historicalBackfill": false,
     "historicalL2Dependency": false,
     "proxyDepthAsEvidence": false,
+    "historical5mProxyIsNotL2": true,
+    "historical5mProxyDevelopmentOnly": true,
+    "noCurrentExchangeInfoBackfill": true,
+    "noFutureRealizedFundingDecisionInput": true,
+    "oosOnlineInferenceAllowed": true,
+    "oosOutcomeEvaluationSealed": true,
     "noNewResultArtifactsInDraft": true,
     "noRegistryAppend": true,
     "noProductionH12Change": true,
