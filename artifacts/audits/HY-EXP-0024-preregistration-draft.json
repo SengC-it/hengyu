@@ -2,8 +2,8 @@
   "schemaVersion": 2,
   "artifactType": "HY_EXP_0024_PREREGISTRATION_DRAFT",
   "experimentId": "HY-EXP-0024",
-  "draftRevision": "P0-REVISION-1",
-  "baseDraftCommit": "c8c40c2ed72297f5d458b1bfbe6c6406438ad55c",
+  "draftRevision": "P0-REVISION-2",
+  "baseDraftCommit": "18d29b164972d520a9b58d90ff077f3fbcf7c797",
   "status": "DRAFT_NOT_PREREGISTERED",
   "createdAt": "2026-08-22T23:53:21.756515Z",
   "createdFromCommit": "3d19e7128e5b972e20649075d608bc70858d13d2",
@@ -192,7 +192,8 @@
       "historicalDevelopmentExecutionProxy": {
         "name": "HISTORICAL_5M_EXECUTION_PROXY",
         "source": "Binance USD-M contract-price archived 5m bars",
-        "selection": "After candidate/regime/features/side are frozen, select the first archived 5m bar with openTime >= theoreticalDecisionTime.",
+        "historicalExecutionDelayProxyMs": 300000,
+        "selection": "After candidate/regime/features/side are frozen, select the first archived 5m bar with openTime >= theoreticalDecisionTime + 300000ms (5 minutes).",
         "entryPrice": "The selected 5m bar OPEN only for the post-decision Development execution simulation.",
         "missingRow": "Exclude the row; no later-bar rescue.",
         "cannotAffect": ["candidate existence", "regime", "features", "direction", "Edge availability"],
@@ -201,7 +202,7 @@
         "postDecisionExecutionSimulation": true,
         "prospectiveOosReplacement": "Use the real causal bid/ask/book executable reference and existing Net Edge book walk."
       },
-      "historicalExecutionRule": "The next 5m observation is read only after the signal decision is frozen; it can change the Development label/outcome, never candidate creation.",
+      "historicalExecutionRule": "The first archived 5m observation with openTime >= theoreticalDecisionTime + 5 minutes is read only after the signal decision is frozen; it can change the Development label/outcome, never candidate creation. No better-price search or later-bar rescue is allowed.",
       "noRetroactiveAdvisory": true
     },
     "exit": {
@@ -277,11 +278,16 @@
         "eligibleSymbolCountOverEight",
         "log1pPriorSixCompleted4hQuoteVolume",
         "ATR20OverClose",
-        "sideAdjustedPrior60ChannelDistanceOverATR20",
-        "latestKnownFundingRateBps",
-        "bookSpreadBps",
-        "schedulerDelayFractionOf15Minutes"
+        "sideAdjustedPrior60ChannelDistanceOverATR20"
       ],
+      "featureParity": {
+        "primaryFeaturesReproducibleInHistoricalDevelopment": true,
+        "historicalDevelopmentInputs": "Completed causal bars and fixed-eight historical research-universe fields only.",
+        "fundingOutsideEdgeModel": true,
+        "spreadBookOutsideEdgeModel": true,
+        "schedulerDelayOutsideEdgeModel": true,
+        "forbiddenPrimaryFeatures": ["latestKnownFundingRateBps", "bookSpreadBps", "schedulerDelayFractionOf15Minutes"]
+      },
       "featureTransform": {
         "missingFeature": "Exclude row and do not impute.",
         "winsorization": "For each feature, fit lower/upper bounds at the training 1st/99th percentiles and clip validation/OOS values to those frozen bounds.",
@@ -305,7 +311,7 @@
       ]
     },
     "costs": {
-      "engine": "Existing HENGYU-NET-EDGE-001 implementation and config/net-edge-model.json; unchanged.",
+      "engine": "Existing HENGYU-NET-EDGE-001 implementation and config/net-edge-model.json; unchanged and reserved for Prospective Final OOS.",
       "base": {
         "feeRatePerFill": 0.0005,
         "bookStressMultiplier": 2,
@@ -320,6 +326,43 @@
         "multiplier": 1.5,
         "rule": "Multiply fee, stressed book cost, impact, latency and funding-stress components by 1.5; leave gross price return and realized funding observations unchanged.",
         "noReoptimization": true
+      },
+      "historicalDevelopmentNetEdgeProxy": {
+        "name": "HISTORICAL_DEVELOPMENT_NET_EDGE_PROXY",
+        "evidenceClass": ["DEVELOPMENT_ONLY", "NOT_L2", "NOT_EXACT_EXECUTION", "NOT_PROMOTION_EVIDENCE_BY_ITSELF"],
+        "baseCostsBps": {
+          "feeBps": 10,
+          "spreadAndBookProxyBps": 4,
+          "impactBps": 2,
+          "latencyBps": 2,
+          "totalExecutionCostBps": 18
+        },
+        "formula": {
+          "expectedGrossEdgeBps": "expectedPriceEdgeBps + expectedFundingBps",
+          "expectedNetEdgeBps": "expectedGrossEdgeBps - 18",
+          "conservativeNetEdgeBps": "expectedNetEdgeBps - 1.645 * standardErrorBps - fundingStressBps",
+          "grossToCostRatio": "expectedGrossEdgeBps / 18"
+        },
+        "thresholds": {
+          "minimumConservativeNetBps": 3,
+          "minimumGrossToCostRatio": 1.5
+        },
+        "stress": {
+          "multiplier": 1.5,
+          "stressedComponentCostsBps": {
+            "feeBps": 15,
+            "spreadAndBookProxyBps": 6,
+            "impactBps": 3,
+            "latencyBps": 3,
+            "totalExecutionCostBps": 27,
+            "fundingStressMultiplier": 1.5
+          },
+          "formula": "stressedConservativeNetEdgeBps = expectedGrossEdgeBps - 27 - 1.645 * standardErrorBps - 1.5 * fundingStressBps",
+          "noReoptimization": true
+        },
+        "fabricatedHistoricalBook": false,
+        "finalOosForbidden": true,
+        "finalOosReplacement": "Prospective Final OOS uses real causal bid/ask/book and the unchanged HENGYU-NET-EDGE-001 implementation."
       },
       "fundingDoubleCount": false
     },
@@ -363,13 +406,22 @@
     "executionProxy": {
       "classification": "HISTORICAL_5M_EXECUTION_PROXY",
       "source": "Binance USD-M contract-price archived 5m bar",
-      "selection": "first 5m bar openTime >= theoreticalDecisionTime, selected only after Candidate/regime/features/side are frozen",
+      "historicalExecutionDelayProxyMs": 300000,
+      "selection": "first 5m bar openTime >= theoreticalDecisionTime + 300000ms, selected only after Candidate/regime/features/side are frozen",
       "price": "selected 5m open",
       "notL2": true,
       "notExactFill": true,
       "developmentOnly": true,
       "missingAction": "exclude row",
       "laterBarRescue": false
+    },
+    "netEdgeProxy": {
+      "name": "HISTORICAL_DEVELOPMENT_NET_EDGE_PROXY",
+      "totalExecutionCostBps": 18,
+      "developmentOnly": true,
+      "notL2": true,
+      "fabricatedBook": false,
+      "finalOosUse": false
     },
     "fundingCausality": {
       "expectedFundingBps": "Decision-time latest published rate plus nextFundingTime rule from primaryModel.fundingCausality; no future realized rate.",
@@ -506,6 +558,12 @@
   },
   "prospectiveFinalOos": {
     "mode": "PAPER_OOS",
+    "execution": {
+      "netEdgeEngine": "HENGYU-NET-EDGE-001",
+      "requiresRealCausalBook": true,
+      "historicalDevelopmentNetEdgeProxyAllowed": false,
+      "historicalDevelopmentNetEdgeProxyNeverUsedInFinalOos": true
+    },
     "startResolution": {
       "developmentPassRequired": true,
       "edgeModelArtifactLockRequired": true,
@@ -580,6 +638,8 @@
     "noFutureRealizedFundingDecisionInput": true,
     "oosOnlineInferenceAllowed": true,
     "oosOutcomeEvaluationSealed": true,
+    "DEVELOPMENT_NET_EDGE_PROXY_NEVER_USED_IN_FINAL_OOS": true,
+    "historicalDevelopmentNetEdgeProxyDevelopmentOnly": true,
     "noNewResultArtifactsInDraft": true,
     "noRegistryAppend": true,
     "noProductionH12Change": true,

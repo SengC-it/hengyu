@@ -35,6 +35,25 @@ function coverageOnlyExtension({ bullCandidates, bearCandidates }) {
     : 'EXTEND_EXACTLY_90_DAYS';
 }
 
+function historicalDevelopmentNetEdge({ expectedPriceEdgeBps, expectedFundingBps, standardErrorBps, fundingStressBps, stressMultiplier = 1 }) {
+  const expectedGrossEdgeBps = expectedPriceEdgeBps + expectedFundingBps;
+  const totalExecutionCostBps = (10 + 4 + 2 + 2) * stressMultiplier;
+  return {
+    expectedGrossEdgeBps,
+    expectedNetEdgeBps: expectedGrossEdgeBps - totalExecutionCostBps,
+    conservativeNetEdgeBps: expectedGrossEdgeBps - totalExecutionCostBps - 1.645 * standardErrorBps - stressMultiplier * fundingStressBps,
+    grossToCostRatio: expectedGrossEdgeBps / totalExecutionCostBps
+  };
+}
+
+function historicalExecutionObservationAccepted({ theoreticalDecisionTime, openTime, delayMs }) {
+  return openTime >= theoreticalDecisionTime + delayMs;
+}
+
+function schedulerClassification({ theoreticalDecisionTime, decisionTime, maximumDelayMs }) {
+  return decisionTime - theoreticalDecisionTime > maximumDelayMs ? 'MISSED_SIGNAL' : 'ELIGIBLE';
+}
+
 test('HY-EXP-0024 draft is not preregistered and leaves registry unchanged', () => {
   const draft = readDraft();
   const ledger = readLedger();
@@ -88,8 +107,9 @@ test('HY-EXP-0024 draft freezes causal timing, executable entry and exact exit',
   assert.equal(historicalDevelopmentExecutionProxy.entryPrice.includes('5m bar OPEN'), true);
   assert.equal(historicalDevelopmentExecutionProxy.classification.includes('NOT_L2'), true);
   assert.equal(historicalDevelopmentExecutionProxy.classification.includes('DEVELOPMENT_ONLY'), true);
+  assert.equal(historicalDevelopmentExecutionProxy.historicalExecutionDelayProxyMs, 300000);
   assert.equal(historicalDevelopmentExecutionProxy.historicalNextBarLookahead, false);
-  assert.equal(entry.historicalExecutionRule.includes('next 5m observation'), true);
+  assert.equal(entry.historicalExecutionRule.includes('first archived 5m observation'), true);
   assert.equal(entry.noRetroactiveAdvisory, true);
   assert.equal(exit.atrBars, 20);
   assert.equal(exit.channelBars, 60);
@@ -110,8 +130,63 @@ test('HY-EXP-0024 draft has two candidate-level ridge cells and gross-only edge 
   assert.equal(edgeModel.pooledMeanForbidden, true);
   assert.equal(edgeModel.minimumTrainingSamplesPerCell, 100);
   assert.equal(edgeModel.featureTransform.targetTransform, 'No target winsorization or normalization; target remains bps.');
+  assert.deepEqual(edgeModel.featuresInOrder, [
+    'sideAdjustedBreakoutDistanceOverATR20',
+    'sideAdjustedTrendStrengthOverATR20',
+    'sideAdjustedSMA60MinusSMA180OverATR20',
+    'regimeBreadthFraction',
+    'eligibleSymbolCountOverEight',
+    'log1pPriorSixCompleted4hQuoteVolume',
+    'ATR20OverClose',
+    'sideAdjustedPrior60ChannelDistanceOverATR20'
+  ]);
+  assert.equal(edgeModel.featureParity.primaryFeaturesReproducibleInHistoricalDevelopment, true);
+  assert.equal(edgeModel.featureParity.fundingOutsideEdgeModel, true);
+  assert.equal(edgeModel.featureParity.spreadBookOutsideEdgeModel, true);
+  assert.equal(edgeModel.featureParity.schedulerDelayOutsideEdgeModel, true);
+  assert.deepEqual(edgeModel.featureParity.forbiddenPrimaryFeatures, [
+    'latestKnownFundingRateBps',
+    'bookSpreadBps',
+    'schedulerDelayFractionOf15Minutes'
+  ]);
   assert.equal(costs.engine.includes('HENGYU-NET-EDGE-001'), true);
+  assert.equal(costs.engine.includes('Prospective Final OOS'), true);
   assert.equal(costs.fundingDoubleCount, false);
+});
+
+test('Historical Development Net Edge uses a fixed non-book proxy and Final OOS uses real Net Edge', () => {
+  const draft = readDraft();
+  const proxy = draft.primaryModel.costs.historicalDevelopmentNetEdgeProxy;
+  assert.deepEqual(proxy.baseCostsBps, {
+    feeBps: 10,
+    spreadAndBookProxyBps: 4,
+    impactBps: 2,
+    latencyBps: 2,
+    totalExecutionCostBps: 18
+  });
+  assert.deepEqual(proxy.evidenceClass, ['DEVELOPMENT_ONLY', 'NOT_L2', 'NOT_EXACT_EXECUTION', 'NOT_PROMOTION_EVIDENCE_BY_ITSELF']);
+  assert.equal(proxy.fabricatedHistoricalBook, false);
+  const base = historicalDevelopmentNetEdge({ expectedPriceEdgeBps: 50, expectedFundingBps: 1, standardErrorBps: 2, fundingStressBps: 0.5 });
+  const stressed = historicalDevelopmentNetEdge({ expectedPriceEdgeBps: 50, expectedFundingBps: 1, standardErrorBps: 2, fundingStressBps: 0.5, stressMultiplier: 1.5 });
+  assert.deepEqual(base, {
+    expectedGrossEdgeBps: 51,
+    expectedNetEdgeBps: 33,
+    conservativeNetEdgeBps: 29.21,
+    grossToCostRatio: 51 / 18
+  });
+  assert.deepEqual(stressed, {
+    expectedGrossEdgeBps: 51,
+    expectedNetEdgeBps: 24,
+    conservativeNetEdgeBps: 19.96,
+    grossToCostRatio: 51 / 27
+  });
+  assert.equal(stressed.expectedNetEdgeBps < base.expectedNetEdgeBps, true);
+  assert.equal(proxy.thresholds.minimumConservativeNetBps, 3);
+  assert.equal(proxy.thresholds.minimumGrossToCostRatio, 1.5);
+  assert.equal(draft.prospectiveFinalOos.execution.netEdgeEngine, 'HENGYU-NET-EDGE-001');
+  assert.equal(draft.prospectiveFinalOos.execution.requiresRealCausalBook, true);
+  assert.equal(draft.prospectiveFinalOos.execution.historicalDevelopmentNetEdgeProxyAllowed, false);
+  assert.equal(draft.safetyInvariants.DEVELOPMENT_NET_EDGE_PROXY_NEVER_USED_IN_FINAL_OOS, true);
 });
 
 test('HY-EXP-0024 draft freezes development folds, gates and fail-closed OOS firewall', () => {
@@ -169,6 +244,17 @@ test('historical 5m proxy changes only the post-decision label, never candidate 
   assert.equal(readDraft().primaryModel.entry.historicalDevelopmentExecutionProxy.cannotAffect.includes('candidate existence'), true);
   assert.equal(readDraft().development.executionProxy.developmentOnly, true);
   assert.equal(readDraft().development.executionProxy.notL2, true);
+});
+
+test('historical entry waits five minutes while live delay above fifteen minutes misses the signal', () => {
+  const draft = readDraft();
+  const theoreticalDecisionTime = Date.parse('2026-01-01T00:00:00.000Z');
+  assert.equal(historicalExecutionObservationAccepted({ theoreticalDecisionTime, openTime: theoreticalDecisionTime + 299_999, delayMs: 300_000 }), false);
+  assert.equal(historicalExecutionObservationAccepted({ theoreticalDecisionTime, openTime: theoreticalDecisionTime + 300_000, delayMs: 300_000 }), true);
+  assert.equal(draft.development.executionProxy.historicalExecutionDelayProxyMs, 300000);
+  assert.equal(draft.development.executionProxy.selection.includes('+ 300000ms'), true);
+  assert.equal(schedulerClassification({ theoreticalDecisionTime, decisionTime: theoreticalDecisionTime + 900_001, maximumDelayMs: draft.primaryModel.entry.maximumScannerDelayMs }), 'MISSED_SIGNAL');
+  assert.equal(draft.primaryModel.entry.maximumScannerDelayMs, 900000);
 });
 
 test('expected funding is decision-time only and realized funding is outcome-only', () => {
