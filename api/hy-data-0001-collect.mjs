@@ -1,10 +1,10 @@
 import {
   activationTimestampFromEnvironment,
   collectHyData0001Cycle,
-  HY_DATA_0001_BASE_COMMIT,
   HY_DATA_0001_DATASET_ID,
   HY_DATA_0001_SAFETY,
   HY_DATA_0001_TABLES,
+  resolveHyData0001SourceCommit,
   toHyData0001HealthRow,
   toHyData0001ObservationRow,
   verifyHyData0001RequestSignature
@@ -18,12 +18,12 @@ function header(request, name) {
   return headers?.[name] ?? headers?.[name.toLowerCase()] ?? null;
 }
 
-function activationRow({ activatedAt, now }) {
+function activationRow({ activatedAt, now, sourceCommit }) {
   return {
     dataset_id: HY_DATA_0001_DATASET_ID,
     collector_activated_at: new Date(activatedAt).toISOString(),
     status: 'ACTIVE',
-    source_commit: process.env.HY_DATA_0001_SOURCE_COMMIT || HY_DATA_0001_BASE_COMMIT,
+    source_commit: sourceCommit,
     signal_only: true,
     authorization_mode: 'PAPER_ONLY',
     live_orders_enabled: false,
@@ -34,14 +34,14 @@ function activationRow({ activatedAt, now }) {
   };
 }
 
-async function loadOrCreateActivation(now) {
+async function loadOrCreateActivation(now, sourceCommit) {
   const existing = await selectRows(HY_DATA_0001_TABLES.activation, {
     filters: { dataset_id: `eq.${HY_DATA_0001_DATASET_ID}` },
     limit: 1
   });
   if (Array.isArray(existing) && existing[0]) return existing[0];
   const configured = activationTimestampFromEnvironment({ now });
-  const row = activationRow({ activatedAt: configured ?? now, now });
+  const row = activationRow({ activatedAt: configured ?? now, now, sourceCommit });
   await insertRow(HY_DATA_0001_TABLES.activation, row, { onConflict: 'dataset_id' });
   const persisted = await selectRows(HY_DATA_0001_TABLES.activation, {
     filters: { dataset_id: `eq.${HY_DATA_0001_DATASET_ID}` },
@@ -53,7 +53,10 @@ async function loadOrCreateActivation(now) {
 
 async function loadPreviousObservations() {
   const rows = await selectRows(HY_DATA_0001_TABLES.observations, {
-    filters: { dataset_id: `eq.${HY_DATA_0001_DATASET_ID}` },
+    filters: {
+      dataset_id: `eq.${HY_DATA_0001_DATASET_ID}`,
+      is_valid: 'eq.true'
+    },
     order: 'symbol.asc,observation_at.desc',
     limit: 500
   });
@@ -89,10 +92,12 @@ export default async function handler(request, response) {
 
   try {
     const requestStartedAt = Date.now();
-    const activation = await loadOrCreateActivation(requestStartedAt);
+    const sourceCommit = resolveHyData0001SourceCommit();
+    const activation = await loadOrCreateActivation(requestStartedAt, sourceCommit);
     const previousBySymbol = await loadPreviousObservations();
     const result = await collectHyData0001Cycle({
       collectorActivatedAt: activation.collector_activated_at,
+      sourceCommit,
       previousBySymbol
     });
     const insertedRows = await Promise.all(result.observations.map(observation => (

@@ -8,6 +8,7 @@ import {
   buildHyData0001HealthReport,
   buildHyData0001Urls,
   collectHyData0001Cycle,
+  enumerateHyData0001MissingIntervals,
   fetchJsonCompleted,
   HY_DATA_0001_EXPECTED_ROWS_PER_DAY,
   HY_DATA_0001_PUBLIC_BASE,
@@ -15,6 +16,7 @@ import {
   HY_DATA_0001_SYMBOLS,
   isPublicHyData0001Endpoint,
   normalizeHyData0001Observation,
+  resolveHyData0001SourceCommit,
   toHyData0001ObservationRow,
   verifyHyData0001RequestSignature
 } from '../src/model/hy-data-0001.mjs';
@@ -34,7 +36,7 @@ function validPayloads({ barOpenTime = OBSERVATION, barCloseTime = BASE - 1 } = 
       symbol: 'BTCUSDT',
       markPrice: '100',
       indexPrice: '99.9',
-      lastFundingRate: '0.0001',
+      lastFundingRate: '0.0002',
       nextFundingTime: String(BASE + 28_799_900),
       time: BASE
     }),
@@ -110,7 +112,9 @@ test('normalization keeps raw and normalized causal derivatives fields', () => {
   assert.equal(observation.symbol, 'BTCUSDT');
   assert.equal(observation.markPrice, 100);
   assert.equal(observation.indexPrice, 99.9);
-  assert.equal(observation.currentFundingRate, 0.0001);
+  assert.equal(observation.currentFundingRate, 0.0002);
+  assert.equal(observation.lastSettledFundingRate, 0.0001);
+  assert.equal(observation.lastSettledFundingTime, new Date(BASE).toISOString());
   assert.equal(observation.openInterest, 1000);
   assert.equal(observation.bestBid, 99.9);
   assert.equal(observation.bestAsk, 100.1);
@@ -146,6 +150,30 @@ test('pre-activation observations and bars are invalid, with no historical backf
   assert.ok(observation.qualityFlags.includes('PRE_ACTIVATION_OBSERVATION'));
   assert.ok(observation.qualityFlags.includes('PRE_ACTIVATION_BAR'));
   assert.equal(observation.barOpen, 99);
+});
+
+test('a pre-activation settled funding event does not invalidate a live post-activation observation', () => {
+  const payloads = validPayloads();
+  payloads.fundingRate.payload[0].fundingTime = ACTIVATION - 1;
+  const observation = normalizeHyData0001Observation({
+    symbol: 'BTCUSDT', payloads, collectorActivatedAt: ACTIVATION, observationAt: OBSERVATION
+  });
+  assert.equal(observation.isValid, true);
+  assert.equal(observation.lastSettledFundingTime, new Date(ACTIVATION - 1).toISOString());
+  assert.equal(observation.currentFundingRate, 0.0002);
+});
+
+test('pre-activation request and receipt remain invalid even when the observation boundary is current', () => {
+  const payloads = validPayloads();
+  for (const payload of Object.values(payloads)) {
+    payload.requestStartedAt = ACTIVATION - 1;
+    payload.receivedAt = ACTIVATION + 1;
+  }
+  const observation = normalizeHyData0001Observation({
+    symbol: 'BTCUSDT', payloads, collectorActivatedAt: ACTIVATION, observationAt: OBSERVATION
+  });
+  assert.equal(observation.isValid, false);
+  assert.ok(observation.qualityFlags.includes('PRE_ACTIVATION_REQUEST'));
 });
 
 test('missing completed bar is flagged instead of being forward-filled', () => {
@@ -192,7 +220,7 @@ test('empty funding and future funding timestamps fail closed', () => {
   const futureObservation = normalizeHyData0001Observation({
     symbol: 'BTCUSDT', payloads: future, collectorActivatedAt: ACTIVATION, observationAt: OBSERVATION
   });
-  assert.ok(futureObservation.qualityFlags.includes('FUTURE_SOURCE_TIMESTAMP:fundingTime'));
+  assert.ok(futureObservation.qualityFlags.includes('FUTURE_SOURCE_TIMESTAMP:lastSettledFundingTime'));
   assert.equal(futureObservation.isValid, false);
 });
 
@@ -243,6 +271,49 @@ test('health report exposes row count, coverage, delay and stale counts', () => 
   assert.equal(health.signalsEmitted, false);
 });
 
+test('health enumerates skipped UTC five-minute boundaries without forward-fill', () => {
+  const previousObservationAt = OBSERVATION - (2 * 300_000);
+  const currentObservationAt = OBSERVATION;
+  assert.deepEqual(
+    enumerateHyData0001MissingIntervals({ previousObservationAt, currentObservationAt }),
+    [new Date(OBSERVATION - 300_000).toISOString()]
+  );
+  const health = buildHyData0001HealthReport({
+    observations: [{
+      symbol: 'BTCUSDT', observationAt: new Date(currentObservationAt).toISOString(), isValid: true,
+      qualityFlags: [], scannerDelayMs: 25, receivedAt: new Date(BASE).toISOString(),
+      collectorActivatedAt: new Date(ACTIVATION).toISOString()
+    }],
+    previousBySymbol: new Map([['BTCUSDT', {
+      symbol: 'BTCUSDT', observation_at: new Date(previousObservationAt).toISOString(), is_valid: true
+    }]]),
+    observationAt: currentObservationAt,
+    cycleStartedAt: currentObservationAt,
+    cycleFinishedAt: currentObservationAt + 1,
+    expectedSymbolCount: 1
+  });
+  assert.deepEqual(health.missingIntervals, [{
+    symbol: 'BTCUSDT',
+    observationAt: new Date(OBSERVATION - 300_000).toISOString(),
+    reason: 'skipped_observation_boundary'
+  }]);
+});
+
+test('collector provenance is explicit and never silently defaults to the old base commit', () => {
+  assert.throws(
+    () => resolveHyData0001SourceCommit({ env: {} }),
+    error => error.code === 'HY_DATA_0001_SOURCE_COMMIT_UNAVAILABLE'
+  );
+  assert.equal(
+    resolveHyData0001SourceCommit({ env: { VERCEL_GIT_COMMIT_SHA: 'abcdef1234567' } }),
+    'abcdef1234567'
+  );
+  assert.equal(
+    resolveHyData0001SourceCommit({ env: { HY_DATA_0001_SOURCE_COMMIT: '1234567890abcdef' } }),
+    '1234567890abcdef'
+  );
+});
+
 test('HY-DATA-0001 request signatures are bounded and do not authorize trading', () => {
   const body = '{"schedulerSource":"test"}';
   const timestamp = Math.floor(BASE / 1_000);
@@ -263,6 +334,7 @@ test('HY-DATA-0001 request signatures are bounded and do not authorize trading',
 test('contract, migration, workflow and API remain data-only and isolated', () => {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/hy-data-0001-contract.json'), 'utf8'));
   const migration = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20260823140000_hy_data_0001_prospective.sql'), 'utf8');
+  const correctionMigration = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20260823160000_hy_data_0001_funding_boundary.sql'), 'utf8');
   const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/hy-data-0001-collector.yml'), 'utf8');
   const api = fs.readFileSync(path.join(ROOT, 'api/hy-data-0001-collect.mjs'), 'utf8');
   assert.equal(contract.datasetId, 'HY-DATA-0001');
@@ -271,6 +343,9 @@ test('contract, migration, workflow and API remain data-only and isolated', () =
   assert.match(migration, /enable row level security/);
   assert.match(migration, /unique \(symbol, observation_at\)/);
   assert.match(migration, /hengyu_hy_data_0001_observations/);
+  assert.match(`${migration}\n${correctionMigration}`, /last_settled_funding_rate/);
+  assert.match(`${migration}\n${correctionMigration}`, /last_settled_funding_time/);
+  assert.match(`${migration}\n${correctionMigration}`, /source_commit/);
   assert.match(workflow, /cron: "\*\/5 \* \* \* \*"/);
   assert.doesNotMatch(api, /fapi\/v1\/(?:order|account|position)/i);
   assert.doesNotMatch(api, /dispatchPendingEmails|sendGmail/i);

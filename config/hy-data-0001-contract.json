@@ -37,7 +37,9 @@
     "historicalBackfill": "FORBIDDEN",
     "futureTimestamp": "FORBIDDEN",
     "forwardFill": "FORBIDDEN",
-    "screenEligibility": "observation_at_and_all_source_timestamps_must_be_at_or_after_collectorActivatedAt"
+    "screenEligibility": "observationAt_requestStartedAt_and_receivedAt_must_each_be_at_or_after_collectorActivatedAt",
+    "stateEventException": "lastSettledFundingTime_may_predate_collectorActivatedAt_when_retrieved_by_a_post_activation_request",
+    "completedBarBoundary": "barOpenTime_must_be_at_or_after_collectorActivatedAt"
   },
   "publicEndpoints": {
     "base": "https://fapi.binance.com/fapi/v1",
@@ -63,8 +65,9 @@
       "markPrice",
       "indexPrice",
       "currentFundingRate",
+      "lastSettledFundingRate",
+      "lastSettledFundingTime",
       "nextFundingTime",
-      "fundingTime",
       "openInterest",
       "bestBid",
       "bestAsk",
@@ -89,6 +92,7 @@
     "audit": [
       "sourceEndpoint",
       "sourceType",
+      "sourceCommit",
       "rawValues",
       "normalizedValues",
       "qualityFlags",

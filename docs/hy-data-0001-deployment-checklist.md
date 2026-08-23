@@ -10,8 +10,11 @@ enable the collector.
    RLS, deny policies, service-role-only grants, checks, and append-only
    triggers.
 3. Set `HENGYU_HY_DATA_0001_INGEST_SECRET` in Vercel and GitHub Actions. Keep
-   it out of the repository and logs. Set `HENGYU_API_BASE_URL` to the reviewed
-   existing Singapore deployment.
+   it out of the repository and logs. Confirm Vercel supplies
+   `VERCEL_GIT_COMMIT_SHA`, or explicitly set `HY_DATA_0001_SOURCE_COMMIT` to
+   the deployed collector commit; the collector must refuse to start without
+   one. Set `HENGYU_API_BASE_URL` to the reviewed existing Singapore
+   deployment.
 4. Choose and record `HENGYU_HY_DATA_0001_ACTIVATED_AT` before the first
    accepted run, or explicitly approve the first-request boundary. It must not
    be a historical backfill timestamp.

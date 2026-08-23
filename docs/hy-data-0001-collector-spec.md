@@ -20,11 +20,20 @@ an explicitly configured, valid runtime timestamp or, when no timestamp is
 configured, the `requestStartedAt` of the first accepted collector cycle. The
 activation record is persisted before observations are accepted.
 
-Every observation and every source timestamp must be at or after
-`collectorActivatedAt`. A pre-activation record, future source timestamp,
-historical backfill, forward-filled value, or synthetic order-book value is
-rejected for research and retained only as an operational failure diagnostic
-when appropriate. A missing interval is never filled by the previous value.
+Every prospective observation must satisfy all three boundary checks:
+`observationAt >= collectorActivatedAt`,
+`requestStartedAt >= collectorActivatedAt`, and
+`receivedAt >= collectorActivatedAt`. A completed 5m bar used as a feature must
+also have `barOpenTime >= collectorActivatedAt`. A pre-activation observation,
+request, receipt, future source timestamp, historical backfill, forward-filled
+value, or synthetic order-book value is rejected for research and retained
+only as an operational failure diagnostic when appropriate.
+
+`lastSettledFundingTime` is a state/event timestamp, not the observation
+boundary. It may predate `collectorActivatedAt` when the latest settled funding
+row is retrieved through a live request after activation; the original event
+time is preserved for audit. A missing interval is never filled by the previous
+value.
 
 The five-minute observation key is the UTC five-minute boundary. The database
 idempotency key is `SYMBOL:observationAt`; an already accepted key is ignored,
@@ -49,10 +58,10 @@ calls only:
 
 | Data | Endpoint | Causal selection |
 | --- | --- | --- |
-| Mark, index, current/next funding context | `/premiumIndex?symbol=...` | Keep exchange time and receipt time; never use a future event. |
+| Mark, index, current/next funding context | `/premiumIndex?symbol=...` | `lastFundingRate` is `currentFundingRate`; keep exchange time and receipt time; never use a future event. |
 | Open interest | `/openInterest?symbol=...` | Keep the exchange timestamp and receipt time. |
 | Best bid/ask and small depth | `/depth?symbol=...&limit=5` | Store the top five levels, update id, and crossed-book check. |
-| Funding event | `/fundingRate?symbol=...&limit=1` | Store `fundingTime`, `fundingRate`, and require `fundingTime <= receivedAt`. |
+| Settled funding state | `/fundingRate?symbol=...&limit=1` | Store `fundingRate` as `lastSettledFundingRate` and `fundingTime` as `lastSettledFundingTime`; require event time `<= receivedAt`, but do not use it as current funding. |
 | Completed 5m bar | `/klines?symbol=...&interval=5m&limit=2` | Select only a row with `closeTime < requestStartedAt`; no historical backfill. |
 
 The kline array is normalized to open/close time, OHLCV, quote volume, trade
@@ -77,9 +86,15 @@ There is no silent retry repair or forward fill. A retry may produce a new
 cycle attempt, but it cannot rewrite an accepted idempotency key.
 
 The previous accepted observation for the symbol is used only to detect a
-source timestamp reversal. It is never used as a replacement value. Health
-reports count the actual accepted/invalid rows and list missing intervals and
-stale observations separately.
+source timestamp reversal and enumerate skipped UTC five-minute boundaries.
+It is never used as a replacement value. Health reports count the actual
+accepted/invalid rows and list every missing boundary, stale observation and
+scheduler delay separately.
+
+Each activation row must record the actual collector implementation commit.
+The runtime accepts only `HY_DATA_0001_SOURCE_COMMIT` or
+`VERCEL_GIT_COMMIT_SHA`; if neither is available the collector fails closed.
+The design/base commit is not a valid runtime fallback.
 
 ## Storage and health
 

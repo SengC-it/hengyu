@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 
 export const HY_DATA_0001_DATASET_ID = 'HY-DATA-0001';
-export const HY_DATA_0001_BASE_COMMIT = '31e3e278eb82fb77fc962fdabe866f615b481f83';
 export const HY_DATA_0001_INTERVAL_MS = 5 * 60 * 1_000;
 export const HY_DATA_0001_MAX_SOURCE_AGE_MS = 10 * 60 * 1_000;
 export const HY_DATA_0001_EXPECTED_ROWS_PER_DAY = 8 * 24 * 12;
@@ -32,6 +31,16 @@ export const HY_DATA_0001_SAFETY = Object.freeze({
   pnlComputed: false,
   finalOosRead: false
 });
+
+export function resolveHyData0001SourceCommit({ env = process.env } = {}) {
+  const value = env.VERCEL_GIT_COMMIT_SHA || env.HY_DATA_0001_SOURCE_COMMIT;
+  if (typeof value !== 'string' || !/^[0-9a-f]{7,64}$/i.test(value)) {
+    const error = new Error('hy_data_0001_source_commit_unavailable');
+    error.code = 'HY_DATA_0001_SOURCE_COMMIT_UNAVAILABLE';
+    throw error;
+  }
+  return value;
+}
 
 const ENDPOINT_PATHS = Object.freeze({
   premiumIndex: '/premiumIndex',
@@ -268,6 +277,7 @@ export function normalizeHyData0001Observation({
   payloads,
   collectorActivatedAt,
   observationAt,
+  sourceCommit = null,
   previousObservation = null,
   maxSourceAgeMs = HY_DATA_0001_MAX_SOURCE_AGE_MS
 }) {
@@ -296,9 +306,9 @@ export function normalizeHyData0001Observation({
   const markPrice = readNumber(premiumPayload?.markPrice, flags, 'markPrice', { positive: true });
   const indexPrice = readNumber(premiumPayload?.indexPrice, flags, 'indexPrice', { positive: true });
   const nextFundingTime = readTimestamp(premiumPayload?.nextFundingTime, flags, 'nextFundingTime');
-  const premiumFundingRate = readNumber(premiumPayload?.lastFundingRate, flags, 'lastFundingRate');
-  const fundingRate = readNumber(fundingRow?.fundingRate ?? premiumPayload?.lastFundingRate, flags, 'currentFundingRate');
-  const fundingTime = readTimestamp(fundingRow?.fundingTime, flags, 'fundingTime');
+  const currentFundingRate = readNumber(premiumPayload?.lastFundingRate, flags, 'currentFundingRate');
+  const lastSettledFundingRate = readNumber(fundingRow?.fundingRate, flags, 'lastSettledFundingRate');
+  const lastSettledFundingTime = readTimestamp(fundingRow?.fundingTime, flags, 'lastSettledFundingTime');
   const openInterest = readNumber(interestPayload?.openInterest, flags, 'openInterest', { nonNegative: true });
 
   const depth = normalizeDepth(depthPayload, flags);
@@ -363,23 +373,41 @@ export function normalizeHyData0001Observation({
   if (!Number.isFinite(receivedAt) || receivedAt <= 0) addFlag(flags, 'MISSING_RECEIVED_TIMESTAMP');
   if (!Number.isFinite(requestStarted)) addFlag(flags, 'MISSING_REQUEST_TIMESTAMP');
   if (receivedAt < requestStarted) addFlag(flags, 'TIMESTAMP_REVERSAL:requestReceived');
+  if (activationAt !== null) {
+    if (observationBoundary !== null && observationBoundary < activationAt) {
+      addFlag(flags, 'PRE_ACTIVATION_OBSERVATION');
+    }
+    if (Number.isFinite(requestStarted) && requestStarted < activationAt) {
+      addFlag(flags, 'PRE_ACTIVATION_REQUEST');
+    }
+    if (Number.isFinite(receivedAt) && receivedAt < activationAt) {
+      addFlag(flags, 'PRE_ACTIVATION_RECEIPT');
+    }
+    for (const [label, response] of Object.entries(responses)) {
+      const sourceRequestStartedAt = timestampMs(response?.requestStartedAt);
+      const sourceReceivedAt = timestampMs(response?.receivedAt);
+      if (sourceRequestStartedAt !== null && sourceRequestStartedAt < activationAt) {
+        addFlag(flags, `PRE_ACTIVATION_REQUEST:${label}`);
+      }
+      if (sourceReceivedAt !== null && sourceReceivedAt < activationAt) {
+        addFlag(flags, `PRE_ACTIVATION_RECEIPT:${label}`);
+      }
+    }
+  }
 
   const eventTimes = {
     premiumIndex: timestampMs(premiumPayload?.time),
     openInterest: timestampMs(interestPayload?.time),
-    fundingTime,
+    lastSettledFundingTime,
     barOpenTime,
     barCloseTime
   };
-  checkFutureAndActivation(eventTimes, receivedAt, activationAt, flags);
+  checkFutureAndActivation(eventTimes, receivedAt, null, flags);
   checkStale(eventTimes.premiumIndex, receivedAt, maxSourceAgeMs, flags, 'premiumIndex');
   checkStale(eventTimes.openInterest, receivedAt, maxSourceAgeMs, flags, 'openInterest');
   checkStale(eventTimes.barCloseTime, receivedAt, maxSourceAgeMs, flags, 'bar');
-  if (fundingTime !== null && fundingTime > (timestampMs(fundingResponse?.receivedAt) ?? receivedAt)) {
-    addFlag(flags, 'FUTURE_SOURCE_TIMESTAMP:fundingTime');
-  }
-  if (activationAt !== null && observationBoundary !== null && observationBoundary < activationAt) {
-    addFlag(flags, 'PRE_ACTIVATION_OBSERVATION');
+  if (lastSettledFundingTime !== null && lastSettledFundingTime > (timestampMs(fundingResponse?.receivedAt) ?? receivedAt)) {
+    addFlag(flags, 'FUTURE_SOURCE_TIMESTAMP:lastSettledFundingTime');
   }
   if (activationAt !== null && barOpenTime !== null && barOpenTime < activationAt) {
     addFlag(flags, 'PRE_ACTIVATION_BAR');
@@ -401,8 +429,8 @@ export function normalizeHyData0001Observation({
     openInterest: sourceTimestampRecord(interest, { exchangeEventAt: iso(eventTimes.openInterest) }),
     depth: sourceTimestampRecord(depthResponse),
     fundingRate: sourceTimestampRecord(fundingResponse, {
-      exchangeEventAt: iso(fundingTime),
-      fundingTime: iso(fundingTime)
+      exchangeEventAt: iso(lastSettledFundingTime),
+      lastSettledFundingTime: iso(lastSettledFundingTime)
     }),
     klines: sourceTimestampRecord(klinesResponse, {
       exchangeEventAt: iso(barCloseTime),
@@ -426,9 +454,10 @@ export function normalizeHyData0001Observation({
       : null,
     markPrice,
     indexPrice,
-    currentFundingRate: fundingRate ?? premiumFundingRate,
+    currentFundingRate,
+    lastSettledFundingRate,
     nextFundingTime: iso(nextFundingTime),
-    fundingTime: iso(fundingTime),
+    lastSettledFundingTime: iso(lastSettledFundingTime),
     openInterest,
     bestBid,
     bestAsk,
@@ -453,18 +482,20 @@ export function normalizeHyData0001Observation({
     premiumBasisBps,
     sourceEndpoint: Object.values(ENDPOINT_PATHS).map(path => `${HY_DATA_0001_PUBLIC_BASE}${path}`).join(','),
     sourceType: 'BINANCE_USDM_PUBLIC_REST',
+    sourceCommit,
     sourceTimestamps,
     rawValues: Object.fromEntries(Object.entries(responses).map(([name, response]) => [name, response?.payload ?? null])),
     normalizedValues: {
       markPrice,
       indexPrice,
-      currentFundingRate: fundingRate ?? premiumFundingRate,
+      currentFundingRate,
+      lastSettledFundingRate,
       nextFundingTime: iso(nextFundingTime),
+      lastSettledFundingTime: iso(lastSettledFundingTime),
       openInterest,
       bestBid,
       bestAsk,
       spreadBps,
-      fundingTime: iso(fundingTime),
       depthSnapshot: {
         lastUpdateId: depth.lastUpdateId,
         bids: depth.bids,
@@ -491,10 +522,30 @@ export function normalizeHyData0001Observation({
   return normalized;
 }
 
+export function enumerateHyData0001MissingIntervals({
+  previousObservationAt,
+  currentObservationAt,
+  includeCurrent = false
+}) {
+  const previous = timestampMs(previousObservationAt);
+  const current = timestampMs(currentObservationAt);
+  if (previous === null || current === null || current <= previous + HY_DATA_0001_INTERVAL_MS) return [];
+  const missing = [];
+  for (
+    let boundary = previous + HY_DATA_0001_INTERVAL_MS;
+    boundary < current || (includeCurrent && boundary === current);
+    boundary += HY_DATA_0001_INTERVAL_MS
+  ) {
+    missing.push(new Date(boundary).toISOString());
+  }
+  return missing;
+}
+
 export async function collectHyData0001Cycle({
   fetchImpl = globalThis.fetch,
   clock = () => Date.now(),
   collectorActivatedAt,
+  sourceCommit = null,
   previousBySymbol = new Map(),
   symbols = HY_DATA_0001_SYMBOLS,
   maxSourceAgeMs = HY_DATA_0001_MAX_SOURCE_AGE_MS
@@ -516,6 +567,7 @@ export async function collectHyData0001Cycle({
         payloads,
         collectorActivatedAt: activationAt,
         observationAt,
+        sourceCommit,
         previousObservation: previous,
         maxSourceAgeMs
       }));
@@ -532,7 +584,10 @@ export async function collectHyData0001Cycle({
     failures,
     cycleStartedAt,
     cycleFinishedAt: clock(),
-    expectedSymbolCount: symbols.length
+    expectedSymbolCount: symbols.length,
+    observationAt,
+    previousBySymbol,
+    collectorActivatedAt: activationAt
   });
   return { observations, failures, health, cycleStartedAt, activationAt };
 }
@@ -542,16 +597,44 @@ export function buildHyData0001HealthReport({
   failures = [],
   cycleStartedAt,
   cycleFinishedAt,
-  expectedSymbolCount = HY_DATA_0001_SYMBOLS.length
+  expectedSymbolCount = HY_DATA_0001_SYMBOLS.length,
+  observationAt,
+  previousBySymbol = new Map(),
+  collectorActivatedAt
 }) {
   const rows = Array.isArray(observations) ? observations : [];
   const covered = [...new Set(rows.map(row => row.symbol))].sort();
   const staleObservations = rows.filter(row => row.qualityFlags.some(flag => flag.startsWith('STALE_DATA'))).length;
-  const missingIntervals = failures.map(failure => ({
-    symbol: failure.symbol,
-    observationAt: iso(cycleStartedAt),
-    reason: failure.reason
-  }));
+  const currentObservationAt = timestampMs(observationAt)
+    ?? Math.floor(cycleStartedAt / HY_DATA_0001_INTERVAL_MS) * HY_DATA_0001_INTERVAL_MS;
+  const previousFor = symbol => previousBySymbol instanceof Map
+    ? previousBySymbol.get(symbol)
+    : previousBySymbol?.[symbol];
+  const missingIntervals = [];
+  for (const row of rows) {
+    const previous = previousFor(row.symbol);
+    for (const boundary of enumerateHyData0001MissingIntervals({
+      previousObservationAt: previous?.observationAt ?? previous?.observation_at,
+      currentObservationAt: row.observationAt,
+      includeCurrent: false
+    })) {
+      missingIntervals.push({ symbol: row.symbol, observationAt: boundary, reason: 'skipped_observation_boundary' });
+    }
+  }
+  for (const failure of failures) {
+    const previous = previousFor(failure.symbol);
+    const boundaries = enumerateHyData0001MissingIntervals({
+      previousObservationAt: previous?.observationAt ?? previous?.observation_at,
+      currentObservationAt,
+      includeCurrent: true
+    });
+    if (boundaries.length === 0) {
+      boundaries.push(iso(currentObservationAt));
+    }
+    for (const boundary of boundaries) {
+      missingIntervals.push({ symbol: failure.symbol, observationAt: boundary, reason: failure.reason });
+    }
+  }
   const delays = rows.map(row => row.scannerDelayMs).filter(value => Number.isFinite(value));
   const validRows = rows.filter(row => row.isValid);
   const lastSuccessful = validRows
@@ -561,7 +644,7 @@ export function buildHyData0001HealthReport({
   return {
     datasetId: HY_DATA_0001_DATASET_ID,
     reportedAt: iso(cycleFinishedAt ?? Date.now()),
-    collectorActivatedAt: iso(rows[0]?.collectorActivatedAt ?? cycleStartedAt),
+    collectorActivatedAt: iso(rows[0]?.collectorActivatedAt ?? collectorActivatedAt ?? cycleStartedAt),
     rowsCollected: rows.length,
     symbolsCovered: covered,
     expectedObservationCount: expectedSymbolCount,
@@ -590,6 +673,7 @@ export function toHyData0001ObservationRow(observation) {
     idempotency_key: observation.idempotencyKey,
     source_endpoint: observation.sourceEndpoint,
     source_type: observation.sourceType,
+    source_commit: observation.sourceCommit,
     request_started_at: observation.requestStartedAt,
     exchange_event_at: observation.exchangeEventAt,
     received_at: observation.receivedAt,
@@ -598,7 +682,8 @@ export function toHyData0001ObservationRow(observation) {
     index_price: observation.indexPrice,
     current_funding_rate: observation.currentFundingRate,
     next_funding_time: observation.nextFundingTime,
-    funding_time: observation.fundingTime,
+    last_settled_funding_rate: observation.lastSettledFundingRate,
+    last_settled_funding_time: observation.lastSettledFundingTime,
     open_interest: observation.openInterest,
     best_bid: observation.bestBid,
     best_ask: observation.bestAsk,
