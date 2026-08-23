@@ -54,6 +54,49 @@ function schedulerClassification({ theoreticalDecisionTime, decisionTime, maximu
   return decisionTime - theoreticalDecisionTime > maximumDelayMs ? 'MISSED_SIGNAL' : 'ELIGIBLE';
 }
 
+function exactHistoricalEntry({ theoreticalDecisionTime, bars }) {
+  const requiredOpenTime = theoreticalDecisionTime + 300_000;
+  const row = bars.find(bar => bar.openTime === requiredOpenTime);
+  return row ? { included: true, entryPrice: row.open } : { included: false, entryPrice: null };
+}
+
+function historicalFundingExpectation({ side, theoreticalDecisionTime, rows, maximumHoldMs = 6 * 60 * 60 * 1_000 }) {
+  const pastRows = rows
+    .filter(row => row.eventTime <= theoreticalDecisionTime)
+    .sort((left, right) => left.eventTime - right.eventTime);
+  const latest = pastRows.at(-1);
+  if (!latest || !Number.isFinite(latest.fundingRate) || !Number.isFinite(latest.fundingIntervalHours) || latest.fundingIntervalHours <= 0) {
+    return { usable: false, expectedFundingBps: null };
+  }
+  const nextFundingTimeProxy = latest.eventTime + latest.fundingIntervalHours * 60 * 60 * 1_000;
+  if (nextFundingTimeProxy <= theoreticalDecisionTime) return { usable: false, expectedFundingBps: null };
+  if (nextFundingTimeProxy > theoreticalDecisionTime + maximumHoldMs) return { usable: true, expectedFundingBps: 0 };
+  return {
+    usable: true,
+    expectedFundingBps: (side === 'BUY' ? -1 : 1) * latest.fundingRate * 10_000,
+    nextFundingTimeProxy
+  };
+}
+
+function evaluatePostEntryStop({ side, stopPrice, entryTime, bars }) {
+  for (const bar of bars.filter(candidate => candidate.openTime >= entryTime).sort((left, right) => left.openTime - right.openTime)) {
+    if (side === 'BUY') {
+      if (bar.open <= stopPrice) return { triggered: true, fill: bar.open, reason: 'GAP_OPEN' };
+      if (bar.low <= stopPrice) return { triggered: true, fill: stopPrice, reason: 'INTRABAR' };
+    } else {
+      if (bar.open >= stopPrice) return { triggered: true, fill: bar.open, reason: 'GAP_OPEN' };
+      if (bar.high >= stopPrice) return { triggered: true, fill: stopPrice, reason: 'INTRABAR' };
+    }
+  }
+  return { triggered: false, fill: null, reason: null };
+}
+
+function sixthCompletedCloseAfterEntry({ entryTime, closes }) {
+  return closes
+    .filter(close => close.time > entryTime)
+    .sort((left, right) => left.time - right.time)[5]?.time ?? null;
+}
+
 test('HY-EXP-0024 draft is not preregistered and leaves registry unchanged', () => {
   const draft = readDraft();
   const ledger = readLedger();
@@ -108,8 +151,10 @@ test('HY-EXP-0024 draft freezes causal timing, executable entry and exact exit',
   assert.equal(historicalDevelopmentExecutionProxy.classification.includes('NOT_L2'), true);
   assert.equal(historicalDevelopmentExecutionProxy.classification.includes('DEVELOPMENT_ONLY'), true);
   assert.equal(historicalDevelopmentExecutionProxy.historicalExecutionDelayProxyMs, 300000);
+  assert.equal(historicalDevelopmentExecutionProxy.requiredExecutionOpenTime, 'theoreticalDecisionTime + 300000ms');
+  assert.equal(historicalDevelopmentExecutionProxy.laterBarRescueForbidden, true);
   assert.equal(historicalDevelopmentExecutionProxy.historicalNextBarLookahead, false);
-  assert.equal(entry.historicalExecutionRule.includes('first archived 5m observation'), true);
+  assert.equal(entry.historicalExecutionRule.includes('exact archived 5m observation'), true);
   assert.equal(entry.noRetroactiveAdvisory, true);
   assert.equal(exit.atrBars, 20);
   assert.equal(exit.channelBars, 60);
@@ -252,9 +297,75 @@ test('historical entry waits five minutes while live delay above fifteen minutes
   assert.equal(historicalExecutionObservationAccepted({ theoreticalDecisionTime, openTime: theoreticalDecisionTime + 299_999, delayMs: 300_000 }), false);
   assert.equal(historicalExecutionObservationAccepted({ theoreticalDecisionTime, openTime: theoreticalDecisionTime + 300_000, delayMs: 300_000 }), true);
   assert.equal(draft.development.executionProxy.historicalExecutionDelayProxyMs, 300000);
-  assert.equal(draft.development.executionProxy.selection.includes('+ 300000ms'), true);
+  assert.equal(draft.development.executionProxy.selection.includes('openTime === requiredExecutionOpenTime'), true);
   assert.equal(schedulerClassification({ theoreticalDecisionTime, decisionTime: theoreticalDecisionTime + 900_001, maximumDelayMs: draft.primaryModel.entry.maximumScannerDelayMs }), 'MISSED_SIGNAL');
   assert.equal(draft.primaryModel.entry.maximumScannerDelayMs, 900000);
+});
+
+test('historical entry requires the exact +5m bar and never rescues with a later bar', () => {
+  const theoreticalDecisionTime = Date.parse('2026-01-01T00:00:00.000Z');
+  const missingExact = exactHistoricalEntry({
+    theoreticalDecisionTime,
+    bars: [{ openTime: theoreticalDecisionTime + 600_000, open: 105 }]
+  });
+  const exact = exactHistoricalEntry({
+    theoreticalDecisionTime,
+    bars: [
+      { openTime: theoreticalDecisionTime + 600_000, open: 105 },
+      { openTime: theoreticalDecisionTime + 300_000, open: 101 }
+    ]
+  });
+  assert.deepEqual(missingExact, { included: false, entryPrice: null });
+  assert.deepEqual(exact, { included: true, entryPrice: 101 });
+  const proxy = readDraft().development.executionProxy;
+  assert.equal(proxy.requiredExecutionOpenTime, 'theoreticalDecisionTime + 300000ms');
+  assert.equal(proxy.laterBarRescue, false);
+  assert.equal(readDraft().safetyInvariants.HISTORICAL_ENTRY_LATER_BAR_RESCUE_FORBIDDEN, true);
+});
+
+test('historical funding expectation uses only the latest past row and fails closed on bad schedules', () => {
+  const theoreticalDecisionTime = Date.parse('2026-01-01T00:00:00.000Z');
+  const pastRow = { eventTime: theoreticalDecisionTime - 2 * 60 * 60 * 1_000, fundingIntervalHours: 4, fundingRate: 0.0002 };
+  const futureRow = { eventTime: theoreticalDecisionTime + 2 * 60 * 60 * 1_000, fundingIntervalHours: 4, fundingRate: 0.0099 };
+  const expectedWithoutFuture = historicalFundingExpectation({ side: 'BUY', theoreticalDecisionTime, rows: [pastRow] });
+  const expectedWithFuture = historicalFundingExpectation({ side: 'BUY', theoreticalDecisionTime, rows: [pastRow, futureRow] });
+  assert.deepEqual(expectedWithFuture, expectedWithoutFuture);
+  assert.equal(expectedWithFuture.expectedFundingBps, -2);
+  assert.equal(historicalFundingExpectation({ side: 'SELL', theoreticalDecisionTime, rows: [pastRow] }).expectedFundingBps, 2);
+  assert.equal(historicalFundingExpectation({ side: 'BUY', theoreticalDecisionTime, rows: [{ ...pastRow, fundingIntervalHours: 9 }] }).expectedFundingBps, 0);
+  assert.equal(historicalFundingExpectation({ side: 'BUY', theoreticalDecisionTime, rows: [{ ...pastRow, fundingIntervalHours: 0 }] }).usable, false);
+  assert.equal(historicalFundingExpectation({ side: 'BUY', theoreticalDecisionTime, rows: [] }).usable, false);
+  const proxy = readDraft().primaryModel.fundingCausality.historicalDevelopmentFundingExpectationProxy;
+  assert.equal(proxy.futureFundingRateRead, false);
+  assert.equal(proxy.classification.includes('NOT_LIVE_FUNDING_FORECAST'), true);
+  assert.equal(readDraft().safetyInvariants.noFutureFundingRowRateForHistoricalExpectation, true);
+});
+
+test('stop labels use post-entry 5m bars, conservative gap fills, and shared OOS semantics', () => {
+  const entryTime = Date.parse('2026-01-01T00:05:00.000Z');
+  const buyStop = 100;
+  const buyBars = [
+    { openTime: entryTime - 300_000, open: 99, low: 95, high: 101 },
+    { openTime: entryTime, open: 102, low: 99, high: 103 },
+    { openTime: entryTime + 300_000, open: 98, low: 97, high: 99 }
+  ];
+  assert.deepEqual(evaluatePostEntryStop({ side: 'BUY', stopPrice: buyStop, entryTime, bars: buyBars }), { triggered: true, fill: 100, reason: 'INTRABAR' });
+  assert.deepEqual(evaluatePostEntryStop({ side: 'BUY', stopPrice: buyStop, entryTime, bars: [{ openTime: entryTime, open: 99, low: 98, high: 101 }] }), { triggered: true, fill: 99, reason: 'GAP_OPEN' });
+  assert.deepEqual(evaluatePostEntryStop({ side: 'SELL', stopPrice: 100, entryTime, bars: [{ openTime: entryTime, open: 101, low: 99, high: 102 }] }), { triggered: true, fill: 101, reason: 'GAP_OPEN' });
+  assert.deepEqual(evaluatePostEntryStop({ side: 'SELL', stopPrice: 100, entryTime, bars: [{ openTime: entryTime, open: 98, low: 97, high: 101 }] }), { triggered: true, fill: 100, reason: 'INTRABAR' });
+  const exit = readDraft().primaryModel.exit;
+  assert.equal(exit.stopMonitoring.startsAt, 'entryTime inclusive');
+  assert.equal(exit.stopMonitoring.preEntryPricesUsed, false);
+  assert.equal(exit.stopMonitoring.noPreEntryContainingHour, true);
+  assert.equal(exit.channelMonitoring.completed1hCloseOnly, true);
+  assert.equal(exit.channelMonitoring.referenceExcludesCurrentBar, true);
+  assert.equal(exit.sameBarPrecedence.includes('stop fill is applied first'), true);
+  assert.equal(sixthCompletedCloseAfterEntry({ entryTime, closes: Array.from({ length: 6 }, (_, index) => ({ time: entryTime + (index + 1) * 60 * 60 * 1_000 })) }), entryTime + 6 * 60 * 60 * 1_000);
+  assert.equal(exit.prospectiveOosUsesIdenticalLabelSemantics, true);
+  assert.equal(readDraft().prospectiveFinalOos.execution.labelSemantics.includes('same frozen outcome definitions'), true);
+  assert.equal(readDraft().safetyInvariants.historicalStopUsesPostEntry5mOnly, true);
+  assert.equal(readDraft().safetyInvariants.channelReferenceExcludesCurrent1hBar, true);
+  assert.equal(readDraft().safetyInvariants.terminalExitSixthCompleted1hCloseAfterEntry, true);
 });
 
 test('expected funding is decision-time only and realized funding is outcome-only', () => {

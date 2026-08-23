@@ -193,27 +193,51 @@
         "name": "HISTORICAL_5M_EXECUTION_PROXY",
         "source": "Binance USD-M contract-price archived 5m bars",
         "historicalExecutionDelayProxyMs": 300000,
-        "selection": "After candidate/regime/features/side are frozen, select the first archived 5m bar with openTime >= theoreticalDecisionTime + 300000ms (5 minutes).",
+        "requiredExecutionOpenTime": "theoreticalDecisionTime + 300000ms",
+        "selection": "After candidate/regime/features/side are frozen, require an archived Binance USD-M contract-price 5m bar whose openTime === requiredExecutionOpenTime.",
         "entryPrice": "The selected 5m bar OPEN only for the post-decision Development execution simulation.",
-        "missingRow": "Exclude the row; no later-bar rescue.",
+        "missingRow": "Exclude the row; no later-bar rescue and no selection of any later 5m bar.",
+        "laterBarRescueForbidden": true,
         "cannotAffect": ["candidate existence", "regime", "features", "direction", "Edge availability"],
         "classification": ["DEVELOPMENT_ONLY", "NOT_L2", "NOT_EXACT_FILL", "NOT_PROMOTION_EVIDENCE_BY_ITSELF"],
         "historicalNextBarLookahead": false,
         "postDecisionExecutionSimulation": true,
         "prospectiveOosReplacement": "Use the real causal bid/ask/book executable reference and existing Net Edge book walk."
       },
-      "historicalExecutionRule": "The first archived 5m observation with openTime >= theoreticalDecisionTime + 5 minutes is read only after the signal decision is frozen; it can change the Development label/outcome, never candidate creation. No better-price search or later-bar rescue is allowed.",
+      "historicalExecutionRule": "The exact archived 5m observation with openTime === theoreticalDecisionTime + 5 minutes is read only after the signal decision is frozen; it can change the Development label/outcome, never candidate creation. If that exact row is missing, exclude the row; no better-price search or later-bar rescue is allowed.",
       "noRetroactiveAdvisory": true
     },
     "exit": {
       "initialStop": "BUY stop = executable entry - 2.0 * ATR20; SELL stop = executable entry + 2.0 * ATR20.",
       "atrBars": 20,
-      "dynamicChannel": "At each completed 1h bar, BUY exits on a close <= the minimum LOW of the prior 60 completed 1h bars; SELL exits on a close >= the maximum HIGH of the prior 60 completed 1h bars.",
+      "dynamicChannel": "At each completed 1h close, BUY exits when close <= the minimum LOW of the prior 60 completed 1h bars excluding the current bar; SELL exits when close >= the maximum HIGH of the prior 60 completed 1h bars excluding the current bar.",
       "channelBars": 60,
       "maximumHoldBars": 6,
-      "terminalExit": "If neither stop nor adverse channel exits first, exit at the close of the sixth completed 1h bar.",
-      "sameBarPrecedence": "If stop and adverse channel are both observable in the same bar, charge the stop first as the conservative outcome.",
+      "stopMonitoring": {
+        "source": "Binance USD-M contract-price archived 5m bars",
+        "startsAt": "entryTime inclusive",
+        "preEntryPricesUsed": false,
+        "buy": {
+          "gapThroughStop": "If a post-entry 5m OPEN <= stopPrice, stop fill = that 5m OPEN.",
+          "intrabarCross": "Otherwise, if that 5m LOW <= stopPrice, stop fill = stopPrice."
+        },
+        "sell": {
+          "gapThroughStop": "If a post-entry 5m OPEN >= stopPrice, stop fill = that 5m OPEN.",
+          "intrabarCross": "Otherwise, if that 5m HIGH >= stopPrice, stop fill = stopPrice."
+        },
+        "stopPrecedence": "If stop and channel are both triggered in the same evaluation period, stop wins.",
+        "noPreEntryContainingHour": true
+      },
+      "channelMonitoring": {
+        "completed1hCloseOnly": true,
+        "referenceExcludesCurrentBar": true,
+        "buyRule": "Exit when completed close <= minimum LOW of prior 60 completed 1h bars.",
+        "sellRule": "Exit when completed close >= maximum HIGH of prior 60 completed 1h bars."
+      },
+      "terminalExit": "If neither stop nor adverse channel exits first, exit at the close of the sixth completed 1h bar strictly after entryTime.",
+      "sameBarPrecedence": "If stop and adverse channel are both observable in the same evaluation period, stop fill is applied first as the conservative outcome.",
       "researchExpirySeparation": "Research/advisory expiry controls record validity only; it never substitutes for or closes the trade exit.",
+      "prospectiveOosUsesIdenticalLabelSemantics": true,
       "horizonFrozen": true
     },
       "edgeTarget": {
@@ -243,6 +267,19 @@
         "rule": "If nextFundingTime is outside the possible six-hour hold, expectedFundingBps=0. If it falls inside the possible hold, use the latest published funding rate once, side-adjusted: BUY=-rate*10000 and SELL=rate*10000.",
         "futureRealizedRateRead": false,
         "additionalUnknownFunding": "Represent only with frozen fundingStressBps; never read a future realized rate."
+      },
+      "historicalDevelopmentFundingExpectationProxy": {
+        "name": "HISTORICAL_FUNDING_EXPECTATION_PROXY",
+        "classification": ["DEVELOPMENT_ONLY", "NOT_LIVE_FUNDING_FORECAST", "NOT_PROMOTION_EVIDENCE_BY_ITSELF"],
+        "inputs": ["eventTime", "fundingIntervalHours", "fundingRate"],
+        "latestFundingRow": "Latest historical funding row with eventTime <= theoreticalDecisionTime; if none, the row is unusable.",
+        "nextFundingTimeProxy": "latestFundingRow.eventTime + latestFundingRow.fundingIntervalHours * 1 hour",
+        "withinWindowRule": "If theoreticalDecisionTime < nextFundingTimeProxy <= theoreticalDecisionTime + 6 hours, use the latestFundingRow.fundingRate once, side-adjusted; otherwise expectedFundingBps=0 when the derived schedule is valid but outside the window.",
+        "buyFormula": "-latestFundingRow.fundingRate * 10000",
+        "sellFormula": "+latestFundingRow.fundingRate * 10000",
+        "futureFundingRateRead": false,
+        "invalidOrStaleSchedule": "Fail closed and exclude the row.",
+        "prospectiveOosReplacement": "Use the actual causally available live funding information at decisionTime."
       },
       "realizedFundingBps": {
         "role": "Post-hoc label/outcome evaluation only",
@@ -396,9 +433,9 @@
     },
     "dataSources": {
       "bars": "Binance USD-M contract-price completed 1h, 4h and archived 5m public kline records; mark-price kline is not a signal source.",
-      "funding": "Binance USD-M realized funding records with fundingTime <= record receivedAt; missing required funding makes the row unusable.",
+      "funding": "Historical Development uses HISTORICAL_FUNDING_EXPECTATION_PROXY from eventTime, fundingIntervalHours and fundingRate; Prospective Final OOS uses causally available live funding. Missing or invalid historical schedule makes the row unusable.",
       "eligibility": "FIXED8_HISTORICAL_RESEARCH_UNIVERSE for Development; no historical PIT exchangeInfo claim and no current exchangeInfo backfill.",
-      "entry": "HISTORICAL_5M_EXECUTION_PROXY after decision freeze for Development; live causal bid/ask/book for Prospective Final OOS.",
+      "entry": "HISTORICAL_5M_EXECUTION_PROXY requires the exact +300000ms 5m open for Development; live causal bid/ask/book for Prospective Final OOS.",
       "depth": "No historical full-L2 purchase or dependency; the 5m proxy is explicitly NOT_L2 and NOT_EXACT_FILL.",
       "backfill": "No retrospective source or metadata backfill may create a missing causal bar, funding row or execution-proxy row.",
       "historicalProxyEvidence": "DEVELOPMENT_ONLY; NOT_PROMOTION_EVIDENCE_BY_ITSELF"
@@ -407,13 +444,22 @@
       "classification": "HISTORICAL_5M_EXECUTION_PROXY",
       "source": "Binance USD-M contract-price archived 5m bar",
       "historicalExecutionDelayProxyMs": 300000,
-      "selection": "first 5m bar openTime >= theoreticalDecisionTime + 300000ms, selected only after Candidate/regime/features/side are frozen",
+      "requiredExecutionOpenTime": "theoreticalDecisionTime + 300000ms",
+      "selection": "exactly one 5m bar with openTime === requiredExecutionOpenTime, selected only after Candidate/regime/features/side are frozen",
       "price": "selected 5m open",
       "notL2": true,
       "notExactFill": true,
       "developmentOnly": true,
       "missingAction": "exclude row",
-      "laterBarRescue": false
+      "laterBarRescue": false,
+      "HISTORICAL_ENTRY_LATER_BAR_RESCUE_FORBIDDEN": true
+    },
+    "fundingExpectationProxy": {
+      "name": "HISTORICAL_FUNDING_EXPECTATION_PROXY",
+      "developmentOnly": true,
+      "notLiveFundingForecast": true,
+      "futureFundingRateRead": false,
+      "missingOrInvalidAction": "fail closed / exclude row"
     },
     "netEdgeProxy": {
       "name": "HISTORICAL_DEVELOPMENT_NET_EDGE_PROXY",
@@ -423,9 +469,10 @@
       "fabricatedBook": false,
       "finalOosUse": false
     },
-    "fundingCausality": {
-      "expectedFundingBps": "Decision-time latest published rate plus nextFundingTime rule from primaryModel.fundingCausality; no future realized rate.",
-      "realizedFundingBps": "Outcome-only actual funding events after the decision; never a Candidate or Net Edge input."
+      "fundingCausality": {
+      "expectedFundingBps": "HISTORICAL_FUNDING_EXPECTATION_PROXY for Development; decision-time latest published rate plus nextFundingTime rule for Prospective OOS; never a future realized rate.",
+      "realizedFundingBps": "Outcome-only actual funding events after the decision; never a Candidate or Net Edge input.",
+      "historicalProxy": "Use only the latest eventTime <= theoreticalDecisionTime plus its recorded fundingIntervalHours; never read the next future funding row's rate."
     },
     "warmup": {
       "minimumCompleted4hBars": 180,
@@ -562,7 +609,8 @@
       "netEdgeEngine": "HENGYU-NET-EDGE-001",
       "requiresRealCausalBook": true,
       "historicalDevelopmentNetEdgeProxyAllowed": false,
-      "historicalDevelopmentNetEdgeProxyNeverUsedInFinalOos": true
+      "historicalDevelopmentNetEdgeProxyNeverUsedInFinalOos": true,
+      "labelSemantics": "Use the exact primaryModel.exit stop, channel and terminal label semantics; Development and Prospective Paper OOS use the same frozen outcome definitions and never use different label rules."
     },
     "startResolution": {
       "developmentPassRequired": true,
@@ -640,6 +688,13 @@
     "oosOutcomeEvaluationSealed": true,
     "DEVELOPMENT_NET_EDGE_PROXY_NEVER_USED_IN_FINAL_OOS": true,
     "historicalDevelopmentNetEdgeProxyDevelopmentOnly": true,
+    "HISTORICAL_ENTRY_LATER_BAR_RESCUE_FORBIDDEN": true,
+    "historicalFundingExpectationProxyDevelopmentOnly": true,
+    "noFutureFundingRowRateForHistoricalExpectation": true,
+    "historicalStopUsesPostEntry5mOnly": true,
+    "historicalStopGapThroughUsesWorseOpen": true,
+    "channelReferenceExcludesCurrent1hBar": true,
+    "terminalExitSixthCompleted1hCloseAfterEntry": true,
     "noNewResultArtifactsInDraft": true,
     "noRegistryAppend": true,
     "noProductionH12Change": true,
