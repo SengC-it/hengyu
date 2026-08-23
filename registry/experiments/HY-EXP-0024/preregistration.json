@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0024_PREREGISTRATION",
+  "experimentId": "HY-EXP-0024",
+  "title": "Fast-track signal-only development validation",
+  "status": "PREREGISTERED",
+  "declaredAt": "2026-08-23T00:00:00.000Z",
+  "authorization": "PAPER_ONLY",
+  "signalOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApi": false,
+  "orderApi": false,
+  "developmentAllowed": true,
+  "trainingAllowed": true,
+  "backtestAllowed": true,
+  "oosAllowed": false,
+  "productionAllowed": false,
+  "promotionEligible": false,
+  "pnlComputed": false,
+  "oosRead": false,
+  "productionChanges": false,
+  "frozenSpecification": {
+    "sourcePath": "artifacts/audits/HY-EXP-0024-preregistration-draft.json",
+    "sourceSha256": "0B43CC128101BF7DE635BB1CBF23406595DF4365BBA30EC30D90843C7A5E856A",
+    "sourceCommit": "072b582541524c268d923d4866e360a5f0251ea1",
+    "authoritative": true,
+    "copyOrOverride": false,
+    "rule": "The accepted draft at sourcePath and sourceSha256 is the complete frozen implementation specification. This registration wrapper adds authorization and registry identity without duplicating or overriding strategy semantics."
+  },
+  "implementation": {
+    "mode": "EXPERIMENTAL_SIGNAL_ONLY",
+    "primaryModel": "The frozen primary model in the referenced specification",
+    "historicalDevelopment": {
+      "start": "2024-01-01T00:00:00.000Z",
+      "endExclusive": "2026-07-01T00:00:00.000Z"
+    },
+    "finalOos": {
+      "startResolution": "Use the immutable startResolution rules in the referenced frozen specification; no fixed date in this wrapper overrides them.",
+      "researchReadAllowed": false
+    },
+    "noParameterRescue": true,
+    "noHistoricalOosClaim": true
+  },
+  "fastTrackReleaseGates": {
+    "netProfitFactorGreaterThan": 1.1,
+    "netExpectancyBpsGreaterThan": 0,
+    "usableAdvisoriesPer30CalendarDaysAtLeast": 10,
+    "maxMtmDrawdownFractionAtMost": 0.15,
+    "failureAction": "EXPERIMENTAL_RELEASE_READY=false; stop; report failure analysis; do not lower thresholds or retune"
+  },
+  "registry": {
+    "appendExactlyOneEvent": true,
+    "historicalEntriesImmutable": true
+  }
+}
