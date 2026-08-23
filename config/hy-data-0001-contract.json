@@ -1,0 +1,144 @@
+{
+  "datasetId": "HY-DATA-0001",
+  "status": "DATA_COLLECTION_ONLY",
+  "baseCommit": "31e3e278eb82fb77fc962fdabe866f615b481f83",
+  "authorization": {
+    "signalOnly": true,
+    "paperOnly": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false
+  },
+  "universe": {
+    "mode": "FIXED_PROSPECTIVE_UNIVERSE",
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "market": "BINANCE_USDM_PERPETUAL"
+  },
+  "cadence": {
+    "interval": "5m",
+    "expectedObservationsPerDay": 288,
+    "expectedRowsPerDay": 2304,
+    "observationTimestamp": "UTC_FIVE_MINUTE_BOUNDARY"
+  },
+  "prospectiveBoundary": {
+    "activationField": "collectorActivatedAt",
+    "activationSource": "first_accepted_collector_cycle_or_explicit_runtime_value",
+    "preActivationEvidence": "FORBIDDEN",
+    "historicalBackfill": "FORBIDDEN",
+    "futureTimestamp": "FORBIDDEN",
+    "forwardFill": "FORBIDDEN",
+    "screenEligibility": "observation_at_and_all_source_timestamps_must_be_at_or_after_collectorActivatedAt"
+  },
+  "publicEndpoints": {
+    "base": "https://fapi.binance.com/fapi/v1",
+    "premiumIndex": "/premiumIndex?symbol={symbol}",
+    "openInterest": "/openInterest?symbol={symbol}",
+    "depth": "/depth?symbol={symbol}&limit=5",
+    "fundingRate": "/fundingRate?symbol={symbol}&limit=1",
+    "klines": "/klines?symbol={symbol}&interval=5m&limit=2",
+    "privateEndpoints": "NONE"
+  },
+  "observationFields": {
+    "identity": ["datasetId", "symbol", "observationAt", "idempotencyKey"],
+    "timing": [
+      "collectorActivatedAt",
+      "observationAt",
+      "requestStartedAt",
+      "exchangeEventAt",
+      "receivedAt",
+      "scannerDelayMs",
+      "sourceTimestamps"
+    ],
+    "market": [
+      "markPrice",
+      "indexPrice",
+      "currentFundingRate",
+      "nextFundingTime",
+      "fundingTime",
+      "openInterest",
+      "bestBid",
+      "bestAsk",
+      "spreadBps",
+      "depthSnapshot",
+      "premiumBasisBps"
+    ],
+    "bar": [
+      "barOpenTime",
+      "barCloseTime",
+      "barOpen",
+      "barHigh",
+      "barLow",
+      "barClose",
+      "barVolume",
+      "barQuoteVolume",
+      "barTradeCount",
+      "barTakerBuyVolume",
+      "barTakerBuyQuoteVolume",
+      "takerBuyRatio"
+    ],
+    "audit": [
+      "sourceEndpoint",
+      "sourceType",
+      "rawValues",
+      "normalizedValues",
+      "qualityFlags",
+      "isValid"
+    ]
+  },
+  "quality": {
+    "maxSourceAgeMs": 600000,
+    "receivedAtRule": "AFTER_RESPONSE_BODY_COMPLETION",
+    "requiredSymbol": true,
+    "invalidNumeric": "FLAG_AND_REJECT_FOR_RESEARCH",
+    "staleData": "FLAG_AND_REJECT_FOR_RESEARCH",
+    "timestampReversal": "FLAG_AND_REJECT_FOR_RESEARCH",
+    "missingInterval": "FLAG_AND_REJECT_FOR_RESEARCH",
+    "repeatedBar": "FLAG_AND_REJECT_FOR_RESEARCH",
+    "crossedBook": "FLAG_AND_REJECT_FOR_RESEARCH",
+    "noSilentRepair": true
+  },
+  "storage": {
+    "supabaseProject": "EXISTING_HENGYU_PROJECT",
+    "tableNamespace": "public.hengyu_hy_data_0001_*",
+    "idempotencyKey": "symbol:observationAt",
+    "appendOnlyEvidence": true,
+    "rawPayloadRetention": "rawValues_jsonb_in_observation_row",
+    "preExistingExperimentArtifacts": "NOT_MODIFIED"
+  },
+  "health": {
+    "required": [
+      "rowsCollected",
+      "symbolsCovered",
+      "expectedObservationCount",
+      "actualObservationCount",
+      "missingIntervals",
+      "staleObservations",
+      "maximumCollectionDelayMs",
+      "lastSuccessfulTimestamp"
+    ],
+    "signalsEmitted": false,
+    "tradingAlertsEmitted": false
+  },
+  "screenPreparation": {
+    "screenId": "HY-SCREEN-0002",
+    "execution": "FORBIDDEN_IN_DATA_COLLECTION_STAGE",
+    "allowedFamilies": [
+      "FUNDING_DISLOCATION",
+      "FUNDING_OPEN_INTEREST_CONFIRMATION",
+      "BASIS_DISLOCATION",
+      "TAKER_FLOW_IMBALANCE",
+      "FUNDING_TAKER_FLOW"
+    ],
+    "thresholdSource": "SEPARATE_PREREGISTRATION_ONLY"
+  }
+}
