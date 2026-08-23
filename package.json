@@ -64,6 +64,7 @@
     "hy-exp-0028:holdout": "node scripts/hy-exp-0028-holdout.mjs",
     "hy-exp-0029:development": "node scripts/hy-exp-0029-development.mjs run",
     "hy-exp-0030:development": "node scripts/hy-exp-0030-development.mjs run",
+    "hy-screen-0001:run": "node scripts/hy-screen-0001.mjs run",
     "hy-exp-0023:supervisor": "node scripts/hy-exp-0023-supervisor.mjs",
     "advisory:server": "node scripts/advisory-server.mjs",
     "advisory:evaluate": "node scripts/advisory-evaluate.mjs",
