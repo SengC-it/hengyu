@@ -14,6 +14,8 @@ const REASON_LABELS = Object.freeze({
   H9_FORCE_PRESSURE_RECOVERY: '价格下跌后出现反弹迹象',
   PRESSURE_THRESHOLD_BREACH: '市场波动达到提醒标准',
   DEPTH_RECOVERY: '当前买卖力量正在恢复',
+  H12_BROAD_BEAR_REGIME: '广泛熊市过滤通过',
+  H12_120_BAR_DOWNSIDE_BREAKOUT: '完成120根4小时通道向下突破',
   future_timestamp: '数据时间异常',
   stale_forecast: '预测数据已经过时',
   stale_book: '市场价格数据已经过时',
@@ -41,11 +43,11 @@ function levelOf(signal) {
 
 function directionOf(signal) {
   const action = String(signal?.action ?? '').toUpperCase();
-  if (action === 'REVIEW_BUY' || action === 'BUY') return '买入';
-  if (action === 'REVIEW_SELL' || action === 'SELL') return '卖出';
+  if (action === 'REVIEW_BUY' || action === 'BUY') return '做多';
+  if (action === 'REVIEW_SELL' || action === 'SELL') return '做空';
   const side = String(signal?.side ?? '').toUpperCase();
-  if (side === 'BUY' || side === 'LONG') return '买入';
-  if (side === 'SELL' || side === 'SHORT') return '卖出';
+  if (side === 'BUY' || side === 'LONG') return '做多';
+  if (side === 'SELL' || side === 'SHORT') return '做空';
   return '观察';
 }
 
@@ -53,19 +55,20 @@ function displayTime(value) {
   if (value == null || value === '') return '未提供';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '未提供';
-  return date.toLocaleString('zh-CN', {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Shanghai',
-    hour12: false
-  }) + '（北京时间）';
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(date).map(({ type, value: part }) => [type, part]));
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}（北京时间）`;
 }
 
 function displayPrice(value) {
   return value == null || value === '' ? '未提供' : String(value);
-}
-
-function displayNetSpace(value) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? (parsed / 100).toFixed(2) + '%' : '未提供';
 }
 
 function displayReasons(reasons) {
@@ -74,15 +77,63 @@ function displayReasons(reasons) {
   return labels.join('；') || '系统条件已满足';
 }
 
+function displayMarketState(signal, fallback = '未提供') {
+  return signal.marketState
+    ?? signal.market_status
+    ?? signal.marketRegime
+    ?? signal.regime
+    ?? fallback;
+}
+
+function displayRiskReward(signal, direction, { dynamicExit = false } = {}) {
+  if (dynamicExit) return '未提供（动态退出）';
+  const explicit = signal.riskRewardRatio
+    ?? signal.riskReward
+    ?? signal.reference?.riskRewardRatio
+    ?? signal.reference?.riskReward;
+  const parsedExplicit = Number(explicit);
+  if (Number.isFinite(parsedExplicit) && parsedExplicit > 0) return `1:${parsedExplicit.toFixed(2)}`;
+
+  const entry = Number(signal.reference?.entryPrice);
+  const stop = Number(signal.reference?.stopPrice);
+  const takeProfit = Number(signal.reference?.takeProfitPrice
+    ?? signal.reference?.exitReferencePrice
+    ?? signal.reference?.exitPrice);
+  const risk = direction === '做多' ? entry - stop : stop - entry;
+  const reward = direction === '做多' ? takeProfit - entry : entry - takeProfit;
+  if (![entry, stop, takeProfit, risk, reward].every(Number.isFinite) || risk <= 0 || reward <= 0) {
+    return '未提供';
+  }
+  return `1:${(reward / risk).toFixed(2)}`;
+}
+
+function advisoryFields(signal, { dynamicExit = false, marketFallback = '未提供' } = {}) {
+  const direction = directionOf(signal);
+  const takeProfit = dynamicExit
+    ? '无固定止盈价（动态退出）'
+    : displayPrice(signal.reference?.takeProfitPrice
+      ?? signal.reference?.exitReferencePrice
+      ?? signal.reference?.exitPrice);
+  return [
+    `交易品种：${signal.symbol ?? 'UNKNOWN'}`,
+    `方向：${direction}`,
+    `入场价：${displayPrice(signal.reference?.entryPrice)}`,
+    `止盈价：${takeProfit}`,
+    `止损价：${displayPrice(signal.reference?.stopPrice)}`,
+    `失效时间：${displayTime(signal.expiresAt)}`,
+    `盈亏比：${displayRiskReward(signal, direction, { dynamicExit })}`,
+    `市场状态：${displayMarketState(signal, marketFallback)}`,
+    `信号强度：${LEVEL_LABELS[levelOf(signal)]}`,
+    `信号理由：${displayReasons(signal.reasons)}`
+  ];
+}
+
+const ENTRY_EXPIRY_NOTICE = '超过失效时间未入场，则本信号作废。';
+const EXIT_SEMANTICS_NOTICE = '失效时间仅限制新入场；已入场后仍按原止盈、止损或退出规则执行。';
+
 export function formatAdvisoryEmail(signal) {
   const level = levelOf(signal);
   const symbol = signal.symbol ?? 'UNKNOWN';
-  const entry = signal.reference?.entryPrice;
-  const stop = signal.reference?.stopPrice;
-  const takeProfit = signal.reference?.takeProfitPrice
-    ?? signal.reference?.exitReferencePrice
-    ?? signal.reference?.exitPrice;
-  const direction = directionOf(signal);
   const levelLabel = LEVEL_LABELS[level];
   if (signal.hypothesisId === 'H12' || signal.reviewModel === 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL') {
     const subject = `[HengYu] ${symbol} H12 做空提醒（${level}）｜仅供研究`;
@@ -91,36 +142,27 @@ export function formatAdvisoryEmail(signal) {
       text: [
         subject,
         '',
-        '策略：H12 广泛熊市过滤＋120根4小时通道向下突破',
-        '方向：仅做空',
-        `交易品种：${symbol}`,
-        `参考入场价：${displayPrice(entry)}`,
-        `固定初始止损价：${displayPrice(stop)}`,
-        `信号时初始60根通道参考：${displayPrice(signal.initialExitChannelPrice)}`,
-        `动态退出规则：${signal.exitRule ?? '完成的4小时收盘价突破此前60根高点后，在下一根4小时开盘退出。'}`,
+        ...advisoryFields(signal, { dynamicExit: true, marketFallback: '广泛熊市' }),
         '',
+        '策略：H12 广泛熊市过滤＋120根4小时通道向下突破。',
+        `初始60根通道参考：${displayPrice(signal.initialExitChannelPrice)}`,
+        `动态退出规则：${signal.exitRule ?? '完成的4小时收盘价突破此前60根高点后，在下一根4小时开盘退出。'}`,
         '重要：H12没有固定止盈价，不能使用固定TP/SL模型复盘。',
-        '本邮件是PAPER_ONLY研究提醒；需要人工确认，系统不会自动下单、不会读取账户，也不会提供仓位或杠杆。'
+        ENTRY_EXPIRY_NOTICE,
+        EXIT_SEMANTICS_NOTICE,
+        '本邮件是PAPER_ONLY研究提醒；需要人工确认，系统不会自动下单、不会读取账户。'
       ].join('\n')
     };
   }
+  const direction = directionOf(signal);
   const subject = '[HengYu] ' + symbol + ' ' + direction + '提醒（' + levelLabel + '）｜仅供参考';
   const text = [
     subject,
     '',
-    '信号方向：' + direction,
-    '信号强度：' + levelLabel,
-    '交易品种：' + symbol,
+    ...advisoryFields(signal),
     '',
-    '价格参考（复盘只使用下面三项）：',
-    '入场价：' + displayPrice(entry),
-    '止损价：' + displayPrice(stop),
-    '止盈价：' + displayPrice(takeProfit),
-    '',
-    '信号有效到：' + displayTime(signal.expiresAt),
-    '结算规则：入场后，止损价和止盈价谁先触及就按谁结算；如果两者都没有触及，就继续持仓，不会因为时间到了自动平仓。',
-    '预计扣除费用后的空间：' + displayNetSpace(signal.costs?.conservativeNetEdgeBps) + '（仅作参考，不代表保证盈利）',
-    '触发原因：' + displayReasons(signal.reasons),
+    ENTRY_EXPIRY_NOTICE,
+    EXIT_SEMANTICS_NOTICE,
     '',
     '重要提醒：这是一封研究提醒，不是买卖指令。系统不会自动下单，也不会读取或动用你的账户资金。'
   ].join('\n');

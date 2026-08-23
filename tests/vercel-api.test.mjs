@@ -6,6 +6,7 @@ import { publicSignal } from '../api/_lib/read-model.mjs';
 import { verifySignedRequest } from '../api/_lib/signature.mjs';
 import { gmailFromHeader, gmailStatus } from '../api/_lib/gmail.mjs';
 import { emailReferences } from '../api/_lib/review-read-model.mjs';
+import { formatAdvisoryEmail } from '../src/model/alert-outbox.mjs';
 import { buildEmailOutboxRow } from '../api/ingest.mjs';
 import testEmailHandler from '../api/test-email.mjs';
 import h12ScanHandler from '../api/h12-scan.mjs';
@@ -73,12 +74,18 @@ test('advisory bundle email row contains the same three reference prices', () =>
     stop_reference: 98,
     exit_reference: 103,
     dedupe_key: 'test-advisory',
-    metadata: { reasons: ['H9_FORCE_PRESSURE_RECOVERY'] }
+    metadata: {
+      reasons: ['H9_FORCE_PRESSURE_RECOVERY'],
+      marketState: '上涨趋势',
+      riskRewardRatio: 1.5
+    }
   }, '00000000-0000-4000-8000-000000000001');
   assert.equal(row.from_address, 'research@example.com');
   assert.match(row.body_plain, /入场价：100/);
   assert.match(row.body_plain, /止损价：98/);
   assert.match(row.body_plain, /止盈价：103/);
+  assert.match(row.body_plain, /市场状态：上涨趋势/);
+  assert.match(row.body_plain, /盈亏比：1:1.50/);
   assert.match(row.body_sha256, /^[0-9a-f]{64}$/);
   if (previousFrom === undefined) delete process.env.HENGYU_GMAIL_FROM_ADDRESS;
   else process.env.HENGYU_GMAIL_FROM_ADDRESS = previousFrom;
@@ -155,9 +162,74 @@ test('Gmail SMTP App Password mode needs only the three Hengyu email variables',
 test('Gmail sender header uses HengYu as the default display name', () => {
   const previous = process.env.HENGYU_GMAIL_FROM_NAME;
   delete process.env.HENGYU_GMAIL_FROM_NAME;
-  assert.equal(gmailFromHeader('zunxian.chi@example.com'), 'HengYu <zunxian.chi@example.com>');
+  assert.equal(gmailFromHeader('zunxian.chi@gmail.com'), 'HengYu <zunxian.chi@gmail.com>');
   if (previous === undefined) delete process.env.HENGYU_GMAIL_FROM_NAME;
   else process.env.HENGYU_GMAIL_FROM_NAME = previous;
+});
+
+test('formal signal email uses the fixed Chinese field order and hides unrequested metrics', () => {
+  const { text } = formatAdvisoryEmail({
+    alertLevel: 'STRONG',
+    action: 'REVIEW_BUY',
+    symbol: 'BTCUSDT',
+    expiresAt: '2026-08-23T04:15:00.000Z',
+    marketState: '上涨趋势',
+    reference: { entryPrice: 100, takeProfitPrice: 103, stopPrice: 98 },
+    reasons: ['H9_FORCE_PRESSURE_RECOVERY']
+  });
+  const labels = ['交易品种：', '方向：', '入场价：', '止盈价：', '止损价：', '失效时间：',
+    '盈亏比：', '市场状态：', '信号强度：', '信号理由：'];
+  const positions = labels.map(label => text.indexOf(label));
+  assert.ok(positions.every(position => position >= 0));
+  assert.deepEqual(positions, [...positions].sort((left, right) => left - right));
+  assert.match(text, /失效时间：2026-08-23 12:15（北京时间）/);
+  assert.match(text, /方向：做多/);
+  assert.match(text, /盈亏比：1:1.50/);
+  assert.match(text, /超过失效时间未入场，则本信号作废。/);
+  assert.match(text, /失效时间仅限制新入场；已入场后仍按原止盈、止损或退出规则执行。/);
+  assert.doesNotMatch(text, /信号有效到/);
+  assert.doesNotMatch(text, /Funding|Basis|Taker Buy|Taker Buy Ratio/i);
+  assert.doesNotMatch(text, /建议仓位|建议杠杆/);
+});
+
+test('H12 formal email preserves dynamic exit semantics and the fixed field order', () => {
+  const { text } = formatAdvisoryEmail({
+    alertLevel: 'MEDIUM',
+    action: 'REVIEW_SELL',
+    hypothesisId: 'H12',
+    reviewModel: 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL',
+    symbol: 'BTCUSDT',
+    expiresAt: '2026-08-23T04:15:00.000Z',
+    reference: { entryPrice: 100, stopPrice: 105 },
+    reasons: ['H12_BROAD_BEAR_REGIME', 'H12_120_BAR_DOWNSIDE_BREAKOUT'],
+    initialExitChannelPrice: 95,
+    exitRule: '动态通道退出'
+  });
+  assert.match(text, /止盈价：无固定止盈价（动态退出）/);
+  assert.match(text, /盈亏比：未提供（动态退出）/);
+  assert.match(text, /方向：做空/);
+  assert.match(text, /市场状态：广泛熊市/);
+  assert.match(text, /信号理由：广泛熊市过滤通过；完成120根4小时通道向下突破/);
+  assert.match(text, /超过失效时间未入场，则本信号作废。/);
+  assert.match(text, /失效时间仅限制新入场；已入场后仍按原止盈、止损或退出规则执行。/);
+  assert.doesNotMatch(text, /Funding|Basis|Taker Buy|Taker Buy Ratio/i);
+  assert.doesNotMatch(text, /建议仓位|建议杠杆/);
+});
+
+test('email-only direction wording maps every supported long and short input', () => {
+  const base = {
+    alertLevel: 'MEDIUM',
+    symbol: 'BTCUSDT',
+    expiresAt: '2026-08-23T04:15:00.000Z',
+    reference: { entryPrice: 100, takeProfitPrice: 103, stopPrice: 98 },
+    reasons: []
+  };
+  for (const input of [{ action: 'BUY' }, { action: 'REVIEW_BUY' }, { side: 'LONG' }]) {
+    assert.match(formatAdvisoryEmail({ ...base, ...input }).text, /方向：做多/);
+  }
+  for (const input of [{ action: 'SELL' }, { action: 'REVIEW_SELL' }, { side: 'SHORT' }]) {
+    assert.match(formatAdvisoryEmail({ ...base, ...input }).text, /方向：做空/);
+  }
 });
 
 test('test email endpoint rejects an unsigned request without sending', async () => {
