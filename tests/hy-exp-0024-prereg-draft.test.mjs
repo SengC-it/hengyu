@@ -1,12 +1,23 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import test from 'node:test';
 
 const DRAFT_PATH = 'artifacts/audits/HY-EXP-0024-preregistration-draft.json';
-const EXPECTED_REGISTRY_HEAD = '2fad0c8968251456f59167adf42a6c387a3fdaa0ca4071933712800fff551b91';
+const FORMAL_PATH = 'registry/experiments/HY-EXP-0024/preregistration.json';
+const EXPECTED_DRAFT_SHA256 = '0B43CC128101BF7DE635BB1CBF23406595DF4365BBA30EC30D90843C7A5E856A';
+const EXPECTED_REGISTRY_HEAD = '72d306480bb78861665e47ac197f7c6e56f9d49ef7442627b1ac59ecfca997da';
 
 function readDraft() {
   return JSON.parse(fs.readFileSync(DRAFT_PATH, 'utf8'));
+}
+
+function readFormal() {
+  return JSON.parse(fs.readFileSync(FORMAL_PATH, 'utf8'));
+}
+
+function sha256(file) {
+  return createHash('sha256').update(fs.readFileSync(file)).digest('hex').toUpperCase();
 }
 
 function readLedger() {
@@ -97,8 +108,9 @@ function sixthCompletedCloseAfterEntry({ entryTime, closes }) {
     .sort((left, right) => left.time - right.time)[5]?.time ?? null;
 }
 
-test('HY-EXP-0024 draft is not preregistered and leaves registry unchanged', () => {
+test('HY-EXP-0024 draft remains immutable and formal preregistration is separately registered', () => {
   const draft = readDraft();
+  const formal = readFormal();
   const ledger = readLedger();
   assert.equal(draft.status, 'DRAFT_NOT_PREREGISTERED');
   assert.equal(draft.registryAppended, false);
@@ -109,9 +121,21 @@ test('HY-EXP-0024 draft is not preregistered and leaves registry unchanged', () 
   assert.equal(draft.productionAllowed, false);
   assert.equal(draft.promotionEligible, false);
   assert.equal(draft.pnlComputed, false);
-  assert.equal(ledger.length, 78);
+  assert.equal(sha256(DRAFT_PATH), EXPECTED_DRAFT_SHA256);
+  assert.equal(formal.status, 'PREREGISTERED');
+  assert.equal(formal.authorization, 'PAPER_ONLY');
+  assert.equal(formal.signalOnly, true);
+  assert.equal(formal.liveOrdersEnabled, false);
+  assert.equal(formal.accountApi, false);
+  assert.equal(formal.orderApi, false);
+  assert.equal(formal.frozenSpecification.authoritative, true);
+  assert.equal(formal.frozenSpecification.copyOrOverride, false);
+  assert.equal(formal.frozenSpecification.sourceSha256, EXPECTED_DRAFT_SHA256);
+  assert.equal(ledger.length, 79);
   assert.equal(ledger.at(-1).hash, EXPECTED_REGISTRY_HEAD);
-  assert.equal(ledger.filter(entry => entry.experiment_id === 'HY-EXP-0024').length, 0);
+  assert.equal(ledger.filter(entry => entry.experiment_id === 'HY-EXP-0024').length, 1);
+  assert.equal(ledger.at(-1).event_type, 'preregistered');
+  assert.equal(ledger.at(-1).payload_path, FORMAL_PATH);
 });
 
 test('HY-EXP-0024 primary universe, regime, direction and candidate family are frozen', () => {

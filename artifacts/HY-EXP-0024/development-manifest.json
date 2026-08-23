@@ -1,0 +1,17 @@
+{
+  "experimentId": "HY-EXP-0024",
+  "evidenceClass": "D0_DEVELOPMENT_ONLY",
+  "sourceExperimentId": "HY-EXP-0001",
+  "sourceManifestSha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544",
+  "preregistrationSha256": "80105f436f5de95adf0b24b9604cc3ad5e02932202069b2f5ff1487fe73a1e43",
+  "frozenDraftSha256": "0b43cc128101bf7de635bb1cbf23406595df4365bba30ec30d90843c7a5e856a",
+  "developmentStart": "2024-01-01T00:00:00.000Z",
+  "developmentEndExclusive": "2026-07-01T00:00:00.000Z",
+  "finalOosRead": false,
+  "developmentPnlComputed": true,
+  "finalOosPnlComputed": false,
+  "paperOnly": true,
+  "liveOrdersEnabled": false,
+  "sourceRule": "Binance official public contract klines and funding from locked HY-EXP-0001 manifest; no historical L2 or current metadata backfill.",
+  "generatedAt": "2026-08-23T01:05:18.135Z"
+}
