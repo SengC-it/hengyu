@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0026_PREREGISTRATION",
+  "experimentId": "HY-EXP-0026",
+  "title": "Fast-track rule advisory validation",
+  "status": "PREREGISTERED",
+  "declaredAt": "2026-08-23T00:00:00.000Z",
+  "baseCommit": "cf1d0e8d57ced7e4575c7ebcfc5669cc91002057",
+  "authorization": "PAPER_ONLY",
+  "signalOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApi": false,
+  "orderApi": false,
+  "developmentAllowed": true,
+  "trainingAllowed": true,
+  "backtestAllowed": true,
+  "oosAllowed": false,
+  "productionAllowed": false,
+  "promotionEligible": false,
+  "pnlComputed": false,
+  "oosRead": false,
+  "productionChanges": false,
+  "predecessor": {
+    "experimentId": "HY-EXP-0025",
+    "status": "FAILED_TERMINAL",
+    "baseCommit": "e43924784fd604a9f731897ce1abf342ec6d57b1",
+    "failureReason": "DEVELOPMENT_GATES_FAILED",
+    "noResultReuse": true,
+    "noParameterRescue": true,
+    "ruleSemanticsReuseOnly": true
+  },
+  "development": {
+    "source": {
+      "experimentId": "HY-EXP-0001",
+      "manifestPath": "artifacts/HY-EXP-0001/data-manifest.json",
+      "sourceRule": "Only the already-consumed HY-EXP-0024 Development source and its locked manifest may be used for this research validation; HY-EXP-0025 result/trades are not reused and Final OOS is sealed.",
+      "historicalWindowStart": "2024-01-01T00:00:00.000Z",
+      "historicalWindowEndExclusive": "2026-07-01T00:00:00.000Z",
+      "finalOosRead": false,
+      "futureDataAllowed": false
+    },
+    "walkForward": {
+      "method": "expanding_walk_forward_purged",
+      "purgeBars": 6,
+      "embargoBars": 6,
+      "purgeUnit": "completed 4h bars",
+      "noCrossFoldReuse": true,
+      "folds": [
+        {"id":"DEV-01","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-01-01T00:00:00.000Z","validationStart":"2025-01-01T00:00:00.000Z","validationEndExclusive":"2025-04-01T00:00:00.000Z"},
+        {"id":"DEV-02","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-04-01T00:00:00.000Z","validationStart":"2025-04-01T00:00:00.000Z","validationEndExclusive":"2025-07-01T00:00:00.000Z"},
+        {"id":"DEV-03","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-07-01T00:00:00.000Z","validationStart":"2025-07-01T00:00:00.000Z","validationEndExclusive":"2025-10-01T00:00:00.000Z"},
+        {"id":"DEV-04","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-10-01T00:00:00.000Z","validationStart":"2025-10-01T00:00:00.000Z","validationEndExclusive":"2026-01-01T00:00:00.000Z"},
+        {"id":"DEV-05","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2026-01-01T00:00:00.000Z","validationStart":"2026-01-01T00:00:00.000Z","validationEndExclusive":"2026-04-01T00:00:00.000Z"},
+        {"id":"DEV-06","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2026-04-01T00:00:00.000Z","validationStart":"2026-04-01T00:00:00.000Z","validationEndExclusive":"2026-07-01T00:00:00.000Z"}
+      ],
+      "trainingLabelRule": "training signalTime is inside train window and labelEndTime <= validationStart - purgeBars*4h",
+      "validationLabelRule": "validation signalTime is inside validation window and labelEndTime < 2026-07-01T00:00:00.000Z"
+    }
+  },
+  "primaryHypothesis": {
+    "direction": "BULL/BUY/TREND_BREAKOUT",
+    "modelType": "RULE_BASED_ADVISORY",
+    "onlyPrimaryDirection": true,
+    "bearSellAllowed": false,
+    "ridgeAllowed": false,
+    "secondaryDiagnosticsOnly": [
+      "BULL/BUY x sideAdjustedSMA60MinusSMA180OverATR20 Q1",
+      "BULL/BUY x sideAdjustedBreakoutDistanceOverATR20 Q4"
+    ],
+    "secondarySelectionAllowed": false,
+    "multiFeatureSearchAllowed": false
+  },
+  "universe": {
+    "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","DOGEUSDT","LINKUSDT","LTCUSDT"],
+    "contractRule": "USDT perpetual symbols only",
+    "eligibleSymbolDefinition": "All eight fixed symbols with complete causal 4h/1h/5m/funding rows at the decision context",
+    "breadthRequiredFormula": "ceil(eligibleSymbols * 2 / 3)",
+    "universeFilterChangeAllowed": false
+  },
+  "signalSpecification": {
+    "regime": {
+      "bars": "completed UTC contract-price 4h bars",
+      "btcFast": "SMA of the last 60 completed BTCUSDT 4h closes including the latest completed bar",
+      "btcSlow": "SMA of the last 180 completed BTCUSDT 4h closes including the latest completed bar",
+      "bull": "btcFast > btcSlow AND latest BTCUSDT 4h close > btcSlow AND count(symbol close > each symbol SMA180) >= ceil(eligibleSymbols*2/3)",
+      "sidewaysOrBear": "NO_SIGNAL",
+      "decisionBoundary": "Use the latest 4h bar whose closeBoundary <= the completed 1h signal bar close; never use a forming 4h bar"
+    },
+    "candidate": {
+      "side": "BUY",
+      "breakout": "completed 1h close > max(high of the prior 120 completed 1h bars)",
+      "currentBarExcludedFromPrior120": true,
+      "channelDistanceFeature": {
+        "name": "sideAdjustedPrior60ChannelDistanceOverATR20",
+        "atr20": "20-period true-range ATR on completed 1h bars, including the current completed signal bar",
+        "priorChannel": "minimum(low of the prior 60 completed 1h bars), excluding current signal bar",
+        "formula": "(signalClose - prior60Low) / ATR20",
+        "trainingQ75Filter": "feature >= the fold's training-only Q75"
+      },
+      "noOtherFeatureFilters": true
+    }
+  },
+  "q75Protocol": {
+    "name": "TRAINING_ONLY_EMPIRICAL_Q75",
+    "population": "qualifying BULL/BUY/TREND_BREAKOUT training rows with valid label and channel-distance feature",
+    "algorithm": "sort training feature values ascending; position=(n-1)*0.75; linearly interpolate adjacent values",
+    "strictTrainingOnly": true,
+    "validationUsesFrozenTrainingQ75": true,
+    "q75RecomputedPerFold": true,
+    "global0024Q4CutpointAllowed": false,
+    "minimumQualifiedTrainingRows": 20,
+    "comparison": "feature >= frozen Q75",
+    "finalLiveRule": "after Development PASS only, freeze Q75 from the full allowed Development training set; never calculate it from live or Final OOS observations"
+  },
+  "ruleAdvisorySemantics": {
+    "validationEligibility": "Every OOF validation candidate satisfying BULL, BUY breakout, and its fold's frozen training-only Q75 becomes a PAPER validation advisory candidate",
+    "perSignalUncertaintyVeto": false,
+    "conservativeNetEdgeVeto": false,
+    "standardErrorOfMeanUse": "diagnostics and email context only; never suppresses a qualifying historical validation advisory",
+    "realizedOutcomeRequired": true,
+    "candidateDecisionAuthority": "RULE_QUALIFICATION_ONLY",
+    "noAutomaticTrade": true
+  },
+  "edgeDiagnostics": {
+    "modelId": "HY-EXP-0026-EMPIRICAL-BUCKET-Q75-DIAGNOSTIC",
+    "edgeSource": "HENGYU-HY-EXP-0026-TRAINING-Q75-EMPIRICAL-MEAN-DIAGNOSTIC",
+    "type": "EMPIRICAL_BUCKET_DIAGNOSTIC",
+    "target": "gross directional price return bps before costs and funding",
+    "trainingRows": "only rows passing the fold's training-only Q75 and satisfying the fold's purge rule",
+    "expectedPriceEdgeBps": "arithmetic mean of qualifying training gross directional returns",
+    "standardErrorOfMeanBps": "sample standard deviation divided by sqrt(n), n-1 denominator",
+    "monthlyClusteredStandardErrorBps": "sample standard deviation of UTC signal-month training means divided by sqrt(number of months); diagnostic only",
+    "minimumTrainingSamples": 20,
+    "noMl": true,
+    "noRidge": true,
+    "noPooledMeanAcrossDirections": true,
+    "outputFields": ["expectedPriceEdgeBps","standardErrorBps","monthlyClusteredStandardErrorBps","edgeSource","edgeModelId","sampleSize","validationWindow","trainingQ75"]
+  },
+  "execution": {
+    "historicalDevelopment": {
+      "entry": "exact 5m contract-price bar open at theoreticalDecisionTime + 5 minutes",
+      "exactEntryRequired": true,
+      "laterBarRescue": false,
+      "stop": "entryPrice - 2*ATR20 for BUY",
+      "adverseChannel": "prior 60 completed 1h low, excluding current exit bar",
+      "exit": "ATR_STOP first; otherwise dynamic adverse channel exit after completed 1h close; otherwise terminal exit at the close of the sixth completed 1h holding bar",
+      "maximumHoldCompleted1hBars": 6,
+      "researchHorizon": "6 completed 1h bars"
+    },
+    "costs": {
+      "baseTotalBps": 18,
+      "stressTotalBps": 27,
+      "historicalNet18Formula": "gross directional return + realized funding - 18bps",
+      "historicalStressNet27Formula": "gross directional return + realized funding - 27bps",
+      "fundingSeparateFromPriceEdge": true,
+      "historicalFunding": "realized causal funding rows from the locked source; no forecast substituted for realized label funding"
+    },
+    "liveQualityGate": {
+      "realBookRequired": true,
+      "rejectOnly": ["MISSING_BOOK","STALE_BOOK","INVALID_MARKET_STATUS","SCHEDULER_DELAY_OVER_15M","ABNORMAL_EXECUTION_COST"],
+      "perSignalStandardErrorVeto": false,
+      "perSignalConservativeNetEdgeVeto": false,
+      "showCurrentExecutionCost": true,
+      "showCurrentFunding": true
+    },
+    "portfolioRisk": {
+      "equityUsdt": 100000,
+      "maximumPositions": 5,
+      "maximumGrossLeverage": 1,
+      "maximumNetExposureFraction": 0.2,
+      "maximumBetaExposureFraction": 0.2,
+      "maximumPortfolioLossFraction": 0.02,
+      "maximumSinglePositionFraction": 0.5,
+      "maximumClusterLossFraction": 0.01,
+      "riskSizing": "paper research reporting only; no live quantity or order is emitted"
+    }
+  },
+  "developmentGates": {
+    "advisoryCountAtLeast": 60,
+    "usableAdvisoriesPer30DaysAtLeast": 6,
+    "netExpectancy18BpsGreaterThan": 10,
+    "netProfitFactor18GreaterThan": 1.2,
+    "stressNetExpectancy27BpsGreaterThan": 0,
+    "stressProfitFactor27GreaterThan": 1.05,
+    "positiveMonthShareAtLeast": 0.55,
+    "distinctCalendarMonthsAtLeast": 6,
+    "distinctSymbolsAtLeast": 5,
+    "maximumSingleSymbolShareAtMost": 0.4,
+    "maxMtmDrawdownFractionAtMost": 0.15,
+    "nonEmptySampleRequired": true,
+    "zeroAdvisoryRule": "maxMtmDD=null; CVaR95=null; riskMetricStatus=EMPTY_SAMPLE_NOT_EVALUABLE; release cannot pass",
+    "failureAction": "HY-EXP-0026 FAIL; stop; do not lower Q75, costs, gates, or switch to secondary diagnostics"
+  },
+  "liveSignalPath": {
+    "implementationConditionalOnDevelopmentPass": true,
+    "allowedInfrastructure": ["Binance public APIs","GitHub Actions","Vercel Singapore","Supabase","Gmail"],
+    "noNewInfrastructure": true,
+    "flow": "GitHub Actions -> Vercel -> Binance public APIs -> BULL regime -> BUY breakout -> frozen training Q75 -> causal book quality gate -> existing signal-only advisory layer -> Supabase -> Gmail",
+    "emailSubject": "[EXPERIMENTAL SIGNAL] SYMBOL BUY",
+    "emailFields": ["symbol","BUY","signal time","reference executable price","ChannelDistance value","frozen Q75","historical empirical edge","current expected funding","current execution cost estimate","reference ATR stop","6h research horizon"],
+    "emailSafetyText": ["Signal only.","No automatic trade was placed.","Entry, size and exit are manually decided by the user."],
+    "classification": ["STRONG","MEDIUM"],
+    "classificationDoesNotTrade": true,
+    "noNoSignalEmail": true,
+    "noOrderOrAccountApi": true,
+    "noAutomaticDeployment": true
+  },
+  "safety": {
+    "SIGNAL_ONLY": true,
+    "PAPER_ONLY": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "automaticTrading": false,
+    "productionDeployment": false
+  },
+  "registry": {
+    "appendExactlyOnePreregisteredEventBeforeDevelopment": true,
+    "historicalEntriesImmutable": true,
+    "terminalFailureIfGatesFail": true,
+    "noAlternateExperiment": true
+  }
+}
