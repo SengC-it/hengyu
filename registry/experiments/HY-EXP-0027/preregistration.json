@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0027_PREREGISTRATION",
+  "experimentId": "HY-EXP-0027",
+  "title": "Fast-track diversified rule advisory",
+  "status": "PREREGISTERED",
+  "declaredAt": "2026-08-23T00:00:00.000Z",
+  "baseCommit": "bfb46a6bb3caf8d6b5dbdc633fc519c576e46825",
+  "authorization": "PAPER_ONLY",
+  "signalOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApi": false,
+  "orderApi": false,
+  "developmentAllowed": true,
+  "trainingAllowed": true,
+  "backtestAllowed": true,
+  "oosAllowed": false,
+  "productionAllowed": false,
+  "promotionEligible": false,
+  "pnlComputed": false,
+  "oosRead": false,
+  "productionChanges": false,
+  "predecessor": {
+    "experimentId": "HY-EXP-0026",
+    "status": "FAILED_TERMINAL",
+    "baseCommit": "bfb46a6bb3caf8d6b5dbdc633fc519c576e46825",
+    "failureReason": "DEVELOPMENT_GATES_FAILED",
+    "noResultReuse": true,
+    "noParameterRescue": true,
+    "ruleSemanticsReuseOnly": true
+  },
+  "development": {
+    "source": {
+      "experimentId": "HY-EXP-0001",
+      "manifestPath": "artifacts/HY-EXP-0001/data-manifest.json",
+      "sourceRule": "Use only already-consumed Development market data and locked causal labels; do not read HY-EXP-0026 result as training data and do not read Final OOS.",
+      "historicalWindowStart": "2024-01-01T00:00:00.000Z",
+      "historicalWindowEndExclusive": "2026-07-01T00:00:00.000Z",
+      "finalOosRead": false,
+      "futureDataAllowed": false
+    },
+    "walkForward": {
+      "method": "expanding_walk_forward_purged",
+      "purgeBars": 6,
+      "embargoBars": 6,
+      "purgeUnit": "completed 4h bars",
+      "noCrossFoldReuse": true,
+      "folds": [
+        {"id":"DEV-01","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-01-01T00:00:00.000Z","validationStart":"2025-01-01T00:00:00.000Z","validationEndExclusive":"2025-04-01T00:00:00.000Z"},
+        {"id":"DEV-02","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-04-01T00:00:00.000Z","validationStart":"2025-04-01T00:00:00.000Z","validationEndExclusive":"2025-07-01T00:00:00.000Z"},
+        {"id":"DEV-03","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-07-01T00:00:00.000Z","validationStart":"2025-07-01T00:00:00.000Z","validationEndExclusive":"2025-10-01T00:00:00.000Z"},
+        {"id":"DEV-04","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2025-10-01T00:00:00.000Z","validationStart":"2025-10-01T00:00:00.000Z","validationEndExclusive":"2026-01-01T00:00:00.000Z"},
+        {"id":"DEV-05","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2026-01-01T00:00:00.000Z","validationStart":"2026-01-01T00:00:00.000Z","validationEndExclusive":"2026-04-01T00:00:00.000Z"},
+        {"id":"DEV-06","trainStart":"2024-01-01T00:00:00.000Z","trainEndExclusive":"2026-04-01T00:00:00.000Z","validationStart":"2026-04-01T00:00:00.000Z","validationEndExclusive":"2026-07-01T00:00:00.000Z"}
+      ],
+      "trainingLabelRule": "training signalTime is inside train window and labelEndTime <= validationStart - purgeBars*4h",
+      "validationLabelRule": "validation signalTime is inside validation window and labelEndTime < 2026-07-01T00:00:00.000Z"
+    },
+    "frequencyExposureWindow": {
+      "start": "2025-01-01T00:00:00.000Z",
+      "endExclusive": "2026-07-01T00:00:00.000Z",
+      "excludeInitialTrainingOnlyPeriod": "2024-01-01T00:00:00.000Z through 2024-12-31T23:59:59.999Z",
+      "usableAdvisoriesPer30Days": "dedup advisory count * 30 / exact calendar days in this OOF validation exposure window"
+    }
+  },
+  "primaryHypothesis": {
+    "direction": "BULL/BUY/TREND_BREAKOUT",
+    "modelType": "RULE_BASED_ADVISORY",
+    "onlyPrimaryDirection": true,
+    "bearSellAllowed": false,
+    "ridgeAllowed": false,
+    "parameterSearchAllowed": false,
+    "secondarySelectionAllowed": false,
+    "multiFeatureSearchAllowed": false
+  },
+  "universe": {
+    "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","DOGEUSDT","LINKUSDT","LTCUSDT"],
+    "contractRule": "USDT perpetual symbols only",
+    "eligibleSymbolDefinition": "All eight fixed symbols with complete causal 4h/1h/5m/funding rows at the decision context",
+    "breadthRequiredFormula": "ceil(eligibleSymbols * 2 / 3)",
+    "universeFilterChangeAllowed": false
+  },
+  "baseSignalSpecification": {
+    "regime": {
+      "bars": "completed UTC contract-price 4h bars",
+      "btcFast": "SMA of the last 60 completed BTCUSDT 4h closes including the latest completed bar",
+      "btcSlow": "SMA of the last 180 completed BTCUSDT 4h closes including the latest completed bar",
+      "bull": "btcFast > btcSlow AND latest BTCUSDT 4h close > btcSlow AND count(symbol close > each symbol SMA180) >= ceil(eligibleSymbols*2/3)",
+      "sidewaysOrBear": "NO_SIGNAL",
+      "decisionBoundary": "latest completed 4h bar whose closeBoundary <= completed 1h signal bar close"
+    },
+    "candidate": {
+      "side": "BUY",
+      "breakout": "completed 1h close > max(high of prior 120 completed 1h bars)",
+      "currentBarExcludedFromPrior120": true,
+      "noBearSell": true
+    }
+  },
+  "rules": {
+    "A": {
+      "id": "RULE_A_CHANNEL_DISTANCE_Q75",
+      "feature": "sideAdjustedPrior60ChannelDistanceOverATR20",
+      "formula": "(signalClose - minimum(low of prior 60 completed 1h bars excluding current signal bar)) / ATR20",
+      "atr20": "20-period true-range ATR on completed 1h bars including current completed signal bar",
+      "threshold": "feature >= Q75 computed from this fold's qualifying training rows only"
+    },
+    "B": {
+      "id": "RULE_B_BREAKOUT_DISTANCE_Q75",
+      "feature": "sideAdjustedBreakoutDistanceOverATR20",
+      "formula": "(signalClose - prior120High) / ATR20",
+      "atr20": "same completed-bar ATR20 as Rule A",
+      "threshold": "feature >= Q75 computed from this fold's qualifying training rows only"
+    },
+    "q75": {
+      "algorithm": "sort training feature values ascending; position=(n-1)*0.75; linearly interpolate adjacent values",
+      "strictTrainingOnly": true,
+      "recomputedPerFold": true,
+      "globalCutpointAllowed": false,
+      "minimumTrainingRowsForEachRule": 20
+    },
+    "advisory": {
+      "predicate": "BULL AND BUY breakout AND (Rule A OR Rule B)",
+      "deduplicateKey": "symbol + decisionTime",
+      "matchedRuleValues": ["A","B","A+B"],
+      "bothRulesSameCandidate": "one paper advisory with matchedRule=A+B",
+      "perSignalStandardErrorVeto": false,
+      "perSignalConservativePredictionVeto": false,
+      "noRidge": true,
+      "noAutomaticTrade": true
+    }
+  },
+  "execution": {
+    "historicalDevelopment": {
+      "entry": "exact 5m contract-price bar open at theoreticalDecisionTime + 5 minutes",
+      "exactEntryRequired": true,
+      "laterBarRescue": false,
+      "stop": "entryPrice - 2*ATR20 for BUY",
+      "adverseChannel": "prior 60 completed 1h low, excluding current exit bar",
+      "exit": "ATR_STOP first; otherwise dynamic adverse channel exit after completed 1h close; otherwise terminal exit at close of sixth completed 1h holding bar",
+      "maximumHoldCompleted1hBars": 6,
+      "researchHorizon": "6 completed 1h bars"
+    },
+    "costs": {
+      "baseTotalBps": 18,
+      "stressTotalBps": 27,
+      "net18Formula": "gross directional return + realized funding - 18bps",
+      "net27Formula": "gross directional return + realized funding - 27bps",
+      "fundingSeparateFromPriceEdge": true,
+      "realizedFundingRequired": true
+    }
+  },
+  "temporalRobustness": {
+    "old30MonthPositiveDenominatorForbidden": true,
+    "activeMonthCount": "calendar months containing at least one deduplicated advisory",
+    "positiveActiveMonthShare": "positive active months / activeMonthCount",
+    "bestMonthPositivePnlShare": "best positive month PnL / total positive month PnL",
+    "netPnlWithoutBestMonth": "total net18 PnL minus best positive month PnL",
+    "bestMonthShareGate": 0.6
+  },
+  "developmentGates": {
+    "advisoryCountAtLeast": 100,
+    "usableAdvisoriesPer30DaysAtLeast": 6,
+    "netExpectancy18BpsGreaterThan": 10,
+    "netProfitFactor18GreaterThan": 1.2,
+    "stressNetExpectancy27BpsGreaterThan": 0,
+    "stressProfitFactor27GreaterThan": 1.05,
+    "activeMonthCountAtLeast": 9,
+    "positiveActiveMonthShareAtLeast": 0.4,
+    "distinctSymbolsAtLeast": 5,
+    "maximumSingleSymbolShareAtMost": 0.4,
+    "maxMtmDrawdownFractionAtMost": 0.15,
+    "bestMonthPositivePnlShareAtMost": 0.6,
+    "netPnlWithoutBestMonthGreaterThan": 0,
+    "nonEmptySampleRequired": true,
+    "zeroAdvisoryRule": "maxMtmDD=null; CVaR95=null; riskMetricStatus=EMPTY_SAMPLE_NOT_EVALUABLE; release cannot pass",
+    "failureAction": "HY-EXP-0027 FAIL; stop; do not alter thresholds, costs, denominator, rules, or rescue with a secondary rule"
+  },
+  "liveSignalPath": {
+    "implementationConditionalOnDevelopmentPass": true,
+    "allowedInfrastructure": ["Binance public APIs","GitHub Actions","Vercel Singapore","Supabase","Gmail"],
+    "noNewInfrastructure": true,
+    "qualityRejectOnly": ["INVALID_MARKET","STALE_BOOK","MISSING_BOOK","SCHEDULER_DELAY_OVER_15M","ABNORMAL_CURRENT_EXECUTION_COST"],
+    "perSignalStandardErrorVeto": false,
+    "emailSubject": "[EXPERIMENTAL SIGNAL] SYMBOL BUY",
+    "emailFields": ["symbol","BUY","matched rule","signal time","reference executable price","current execution cost","current funding","ATR stop reference","6h research horizon"],
+    "emailSafetyText": ["Signal only.","No automatic trade was placed.","Entry, size and exit are manually decided by the user."],
+    "noOrderOrAccountApi": true,
+    "noAutomaticDeployment": true
+  },
+  "safety": {
+    "SIGNAL_ONLY": true,
+    "PAPER_ONLY": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "automaticTrading": false,
+    "productionDeployment": false
+  },
+  "registry": {
+    "appendExactlyOnePreregisteredEventBeforeDevelopment": true,
+    "historicalEntriesImmutable": true,
+    "terminalFailureIfGatesFail": true,
+    "noAlternateExperiment": true
+  }
+}
