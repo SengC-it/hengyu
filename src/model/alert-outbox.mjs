@@ -43,11 +43,11 @@ function levelOf(signal) {
 
 function directionOf(signal) {
   const action = String(signal?.action ?? '').toUpperCase();
-  if (action === 'REVIEW_BUY' || action === 'BUY') return '买入';
-  if (action === 'REVIEW_SELL' || action === 'SELL') return '卖出';
+  if (action === 'REVIEW_BUY' || action === 'BUY') return '做多';
+  if (action === 'REVIEW_SELL' || action === 'SELL') return '做空';
   const side = String(signal?.side ?? '').toUpperCase();
-  if (side === 'BUY' || side === 'LONG') return '买入';
-  if (side === 'SELL' || side === 'SHORT') return '卖出';
+  if (side === 'BUY' || side === 'LONG') return '做多';
+  if (side === 'SELL' || side === 'SHORT') return '做空';
   return '观察';
 }
 
@@ -92,19 +92,19 @@ function displayRiskReward(signal, direction, { dynamicExit = false } = {}) {
     ?? signal.reference?.riskRewardRatio
     ?? signal.reference?.riskReward;
   const parsedExplicit = Number(explicit);
-  if (Number.isFinite(parsedExplicit) && parsedExplicit > 0) return `${parsedExplicit.toFixed(2)}:1`;
+  if (Number.isFinite(parsedExplicit) && parsedExplicit > 0) return `1:${parsedExplicit.toFixed(2)}`;
 
   const entry = Number(signal.reference?.entryPrice);
   const stop = Number(signal.reference?.stopPrice);
   const takeProfit = Number(signal.reference?.takeProfitPrice
     ?? signal.reference?.exitReferencePrice
     ?? signal.reference?.exitPrice);
-  const risk = direction === '买入' ? entry - stop : stop - entry;
-  const reward = direction === '买入' ? takeProfit - entry : entry - takeProfit;
+  const risk = direction === '做多' ? entry - stop : stop - entry;
+  const reward = direction === '做多' ? takeProfit - entry : entry - takeProfit;
   if (![entry, stop, takeProfit, risk, reward].every(Number.isFinite) || risk <= 0 || reward <= 0) {
     return '未提供';
   }
-  return `${(reward / risk).toFixed(2)}:1`;
+  return `1:${(reward / risk).toFixed(2)}`;
 }
 
 function advisoryFields(signal, { dynamicExit = false, marketFallback = '未提供' } = {}) {
@@ -129,7 +129,7 @@ function advisoryFields(signal, { dynamicExit = false, marketFallback = '未提�
 }
 
 const ENTRY_EXPIRY_NOTICE = '超过失效时间未入场，则本信号作废。';
-const EXIT_SEMANTICS_NOTICE = '失效时间只限制是否还能新入场；如果在失效时间前已经入场，失效时间到达不会自动平仓，已入场后的退出继续遵循策略原有止盈、止损或退出规则。';
+const EXIT_SEMANTICS_NOTICE = '失效时间仅限制新入场；已入场后仍按原止盈、止损或退出规则执行。';
 
 export function formatAdvisoryEmail(signal) {
   const level = levelOf(signal);

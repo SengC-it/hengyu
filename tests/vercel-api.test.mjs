@@ -85,7 +85,7 @@ test('advisory bundle email row contains the same three reference prices', () =>
   assert.match(row.body_plain, /止损价：98/);
   assert.match(row.body_plain, /止盈价：103/);
   assert.match(row.body_plain, /市场状态：上涨趋势/);
-  assert.match(row.body_plain, /盈亏比：1.50:1/);
+  assert.match(row.body_plain, /盈亏比：1:1.50/);
   assert.match(row.body_sha256, /^[0-9a-f]{64}$/);
   if (previousFrom === undefined) delete process.env.HENGYU_GMAIL_FROM_ADDRESS;
   else process.env.HENGYU_GMAIL_FROM_ADDRESS = previousFrom;
@@ -174,7 +174,6 @@ test('formal signal email uses the fixed Chinese field order and hides unrequest
     symbol: 'BTCUSDT',
     expiresAt: '2026-08-23T04:15:00.000Z',
     marketState: '上涨趋势',
-    riskRewardRatio: 1.5,
     reference: { entryPrice: 100, takeProfitPrice: 103, stopPrice: 98 },
     reasons: ['H9_FORCE_PRESSURE_RECOVERY']
   });
@@ -184,8 +183,10 @@ test('formal signal email uses the fixed Chinese field order and hides unrequest
   assert.ok(positions.every(position => position >= 0));
   assert.deepEqual(positions, [...positions].sort((left, right) => left - right));
   assert.match(text, /失效时间：2026-08-23 12:15（北京时间）/);
+  assert.match(text, /方向：做多/);
+  assert.match(text, /盈亏比：1:1.50/);
   assert.match(text, /超过失效时间未入场，则本信号作废。/);
-  assert.match(text, /失效时间只限制是否还能新入场/);
+  assert.match(text, /失效时间仅限制新入场；已入场后仍按原止盈、止损或退出规则执行。/);
   assert.doesNotMatch(text, /信号有效到/);
   assert.doesNotMatch(text, /Funding|Basis|Taker Buy|Taker Buy Ratio/i);
   assert.doesNotMatch(text, /建议仓位|建议杠杆/);
@@ -206,12 +207,29 @@ test('H12 formal email preserves dynamic exit semantics and the fixed field orde
   });
   assert.match(text, /止盈价：无固定止盈价（动态退出）/);
   assert.match(text, /盈亏比：未提供（动态退出）/);
+  assert.match(text, /方向：做空/);
   assert.match(text, /市场状态：广泛熊市/);
   assert.match(text, /信号理由：广泛熊市过滤通过；完成120根4小时通道向下突破/);
   assert.match(text, /超过失效时间未入场，则本信号作废。/);
-  assert.match(text, /失效时间到达不会自动平仓/);
+  assert.match(text, /失效时间仅限制新入场；已入场后仍按原止盈、止损或退出规则执行。/);
   assert.doesNotMatch(text, /Funding|Basis|Taker Buy|Taker Buy Ratio/i);
   assert.doesNotMatch(text, /建议仓位|建议杠杆/);
+});
+
+test('email-only direction wording maps every supported long and short input', () => {
+  const base = {
+    alertLevel: 'MEDIUM',
+    symbol: 'BTCUSDT',
+    expiresAt: '2026-08-23T04:15:00.000Z',
+    reference: { entryPrice: 100, takeProfitPrice: 103, stopPrice: 98 },
+    reasons: []
+  };
+  for (const input of [{ action: 'BUY' }, { action: 'REVIEW_BUY' }, { side: 'LONG' }]) {
+    assert.match(formatAdvisoryEmail({ ...base, ...input }).text, /方向：做多/);
+  }
+  for (const input of [{ action: 'SELL' }, { action: 'REVIEW_SELL' }, { side: 'SHORT' }]) {
+    assert.match(formatAdvisoryEmail({ ...base, ...input }).text, /方向：做空/);
+  }
 });
 
 test('test email endpoint rejects an unsigned request without sending', async () => {
