@@ -1,0 +1,23 @@
+{
+  "experimentId": "HY-EXP-0027",
+  "status": "FAILED",
+  "terminal": true,
+  "failureReason": "DEVELOPMENT_GATES_FAILED",
+  "developmentResultPath": "artifacts/HY-EXP-0027/development-result.json",
+  "developmentResultSha256": "a7db9acf1242d0609dad5606ba34d4185ffd92da4ff45ac830ec7ba067bed1b4",
+  "experimentalReleaseReady": false,
+  "finalOosRead": false,
+  "productionDeploy": false,
+  "signalOnly": true,
+  "paperOnly": true,
+  "noParameterRescue": true,
+  "noSecondarySelection": true,
+  "uncertaintyVetoApplied": false,
+  "failedGates": [
+    "netProfitFactor18GreaterThan1_20",
+    "stressProfitFactor27GreaterThan1_05",
+    "positiveActiveMonthShareAtLeast0_40",
+    "bestMonthPositivePnlShareAtMost0_60",
+    "netPnlWithoutBestMonthGreaterThan0"
+  ]
+}

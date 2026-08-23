@@ -146,6 +146,8 @@ class ScenarioWebSocket {
   }
 }
 
+let combinedScenarioLock = Promise.resolve();
+
 async function runCombinedScenario({
   symbols,
   snapshotIds = {},
@@ -153,6 +155,10 @@ async function runCombinedScenario({
   events,
   maxRuntimeMs = 500
 }) {
+  const previousScenario = combinedScenarioLock;
+  let releaseScenario;
+  combinedScenarioLock = new Promise(resolve => { releaseScenario = resolve; });
+  await previousScenario;
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-0020-alignment-'));
   const levels = book();
   const timeline = { emissions: [], snapshots: {}, snapshotRecords: [] };
@@ -216,6 +222,7 @@ async function runCombinedScenario({
     return { result, timeline };
   } finally {
     ScenarioWebSocket.config = null;
+    releaseScenario();
   }
 }
 

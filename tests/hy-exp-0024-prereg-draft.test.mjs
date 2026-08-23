@@ -6,7 +6,7 @@ import test from 'node:test';
 const DRAFT_PATH = 'artifacts/audits/HY-EXP-0024-preregistration-draft.json';
 const FORMAL_PATH = 'registry/experiments/HY-EXP-0024/preregistration.json';
 const EXPECTED_DRAFT_SHA256 = '0B43CC128101BF7DE635BB1CBF23406595DF4365BBA30EC30D90843C7A5E856A';
-const EXPECTED_REGISTRY_HEAD = '55a81a20a46367c61f3906a4e0131f1afdafc58330d31b882c3184af1a3a1246';
+const EXPECTED_REGISTRY_HEAD = '25ef5e70563b14e8e7873e47c0d3196819aaa45aba53700145b1b7437f2b2e1b';
 
 function readDraft() {
   return JSON.parse(fs.readFileSync(DRAFT_PATH, 'utf8'));
@@ -131,7 +131,7 @@ test('HY-EXP-0024 draft remains immutable and formal preregistration is separate
   assert.equal(formal.frozenSpecification.authoritative, true);
   assert.equal(formal.frozenSpecification.copyOrOverride, false);
   assert.equal(formal.frozenSpecification.sourceSha256, EXPECTED_DRAFT_SHA256);
-  assert.equal(ledger.length, 84);
+  assert.equal(ledger.length, 86);
   assert.equal(ledger.at(-1).hash, EXPECTED_REGISTRY_HEAD);
   const events = ledger.filter(entry => entry.experiment_id === 'HY-EXP-0024');
   assert.equal(events.length, 2);
