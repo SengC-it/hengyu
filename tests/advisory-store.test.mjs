@@ -26,8 +26,9 @@ test('advisory store is append-only and deduplicates web/email delivery', () => 
   assert.equal(first.outbox.appended, true);
   assert.match(first.outbox.entry.message.subject, /BTCUSDT 买入提醒/);
   assert.match(first.outbox.entry.message.text, /止盈价/);
-  assert.match(first.outbox.entry.message.text, /谁先触及/);
-  assert.match(first.outbox.entry.message.text, /不会因为时间到了自动平仓/);
+  assert.match(first.outbox.entry.message.text, /失效时间/);
+  assert.match(first.outbox.entry.message.text, /超过失效时间未入场，则本信号作废/);
+  assert.match(first.outbox.entry.message.text, /不会自动平仓/);
   assert.doesNotMatch(first.outbox.entry.message.text, /Reference|manual review|Conservative net edge|PAPER_ONLY/i);
   assert.equal(second.signal.duplicate, true);
   assert.equal(second.outbox.duplicate, true);

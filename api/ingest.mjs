@@ -77,6 +77,8 @@ function advisoryEmailSignal(advisory) {
     },
     costs: { conservativeNetEdgeBps: advisory.conservative_net_edge_bps },
     reasons: Array.isArray(metadata.reasons) ? metadata.reasons : [],
+    marketState: metadata.marketState ?? metadata.market_state ?? metadata.regime ?? null,
+    riskRewardRatio: metadata.riskRewardRatio ?? metadata.risk_reward_ratio ?? null,
     hypothesisId: metadata.hypothesisId ?? null,
     exitRule: metadata.exitRule ?? null,
     initialExitChannelPrice: metadata.initialExitChannelPrice ?? null,
