@@ -1,0 +1,21 @@
+{
+  "artifactType": "HY_EXP_0028_FROZEN_LIVE_Q75",
+  "experimentId": "HY-EXP-0028",
+  "sourceExperimentId": "HY-EXP-0001",
+  "sourceManifestSha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544",
+  "sourceWindowStart": "2024-01-01T00:00:00.000Z",
+  "sourceWindowEndExclusive": "2026-07-01T00:00:00.000Z",
+  "population": {
+    "cell": "BULL/BUY/TREND_BREAKOUT",
+    "feature": "sideAdjustedPrior60ChannelDistanceOverATR20",
+    "featureIndex": 7,
+    "requiresValidCompletedLabel": true,
+    "labelEndBeforeSourceWindowEnd": true,
+    "trainingRowCount": 1434
+  },
+  "algorithm": "sort feature values ascending; position=(n-1)*0.75; linearly interpolate adjacent values",
+  "frozenQ75": 10.051547664406323,
+  "frozenBeforeHoldoutRetrieval": true,
+  "holdoutDataRead": false,
+  "holdoutOutcomesUsed": false
+}

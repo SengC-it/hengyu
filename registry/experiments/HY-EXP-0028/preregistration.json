@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0028_PREREGISTRATION",
+  "experimentId": "HY-EXP-0028",
+  "title": "Fresh holdout validation and release decision for frozen HY-EXP-0026 Rule A",
+  "status": "PREREGISTERED",
+  "declaredAt": "2026-08-23T00:00:00.000Z",
+  "baseCommit": "6fe8c045d09d028cab0cfa48d338183e6fe73bf1",
+  "authorization": "PAPER_ONLY",
+  "signalOnly": true,
+  "liveOrdersEnabled": false,
+  "accountApi": false,
+  "orderApi": false,
+  "developmentAllowed": false,
+  "backtestAllowed": false,
+  "oosAllowed": false,
+  "productionAllowed": false,
+  "promotionEligible": false,
+  "pnlComputed": false,
+  "oosRead": false,
+  "productionChanges": false,
+  "predecessor": {
+    "experimentId": "HY-EXP-0026",
+    "status": "FAILED_TERMINAL",
+    "noResultReuse": true,
+    "ruleSemanticsOnly": true,
+    "noParameterRescue": true
+  },
+  "frozenRule": {
+    "sourceExperimentId": "HY-EXP-0026",
+    "direction": "BULL/BUY/TREND_BREAKOUT",
+    "bearSellAllowed": false,
+    "universe": {
+      "market": "Binance USD-M",
+      "quoteAsset": "USDT",
+      "contractType": "PERPETUAL",
+      "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT"],
+      "breadthFormula": "ceil(eligible symbols * 2 / 3)"
+    },
+    "regime": {
+      "bars": "completed UTC contract-price 4h bars",
+      "bull": "BTCUSDT SMA60 > SMA180 AND BTCUSDT close > SMA180 AND count(symbol close > symbol SMA180) >= ceil(eligible symbols * 2 / 3)",
+      "otherwise": "NO_SIGNAL"
+    },
+    "candidate": {
+      "bar": "completed 1h contract-price bar",
+      "predicate": "close > maximum high of prior 120 completed 1h bars",
+      "currentBarExcludedFromPrior120": true,
+      "side": "BUY"
+    },
+    "filter": {
+      "feature": "sideAdjustedPrior60ChannelDistanceOverATR20",
+      "featureFormula": "(signalClose - minimum low of prior 60 completed 1h bars excluding current signal bar) / ATR20",
+      "atr": "20-period true-range ATR on completed 1h bars including current completed signal bar",
+      "comparison": ">= frozenQ75",
+      "frozenQ75": 10.051547664406323,
+      "frozenQ75Artifact": "artifacts/HY-EXP-0028/frozen-q75.json",
+      "frozenQ75ArtifactSha256": "1d85f472c24d45b3ea09ecb28be68269fe89f298464b0a58d9da286445ae3ed3",
+      "holdoutValuesCannotChangeQ75": true,
+      "ruleBAllowed": false,
+      "featureSearchAllowed": false,
+      "ridgeAllowed": false,
+      "q75TuningAllowed": false
+    }
+  },
+  "holdout": {
+    "start": "2026-07-01T00:00:00.000Z",
+    "endExclusive": "2026-08-23T00:00:00.000Z",
+    "source": "Binance public USD-M API only",
+    "previouslyUnused": true,
+    "allowedSymbolsOnly": true,
+    "requiredStreams": ["contract-price-5m", "funding", "causal-public-metadata"],
+    "completedDataOnly": true,
+    "noHistoricalBackfillOutsideWindow": true,
+    "performanceRowsMustSatisfy": "2026-07-01T00:00:00.000Z <= signalTime < 2026-08-23T00:00:00.000Z",
+    "accountOrPrivateApi": false
+  },
+  "execution": {
+    "signalTime": "completed 1h boundary",
+    "entry": "exact contract-price 5m bar OPEN at theoretical signal time + 5 minutes",
+    "exactEntryRequired": true,
+    "laterBarRescue": false,
+    "stop": "entryPrice - 2 * ATR20 for BUY",
+    "adverseChannel": "prior 60 completed 1h low excluding current exit bar",
+    "exitPriority": ["ATR_STOP", "DYNAMIC_ADVERSE_CHANNEL", "TERMINAL_SIXTH_COMPLETED_1H_BAR"],
+    "maximumHoldCompleted1hBars": 6,
+    "researchHorizon": "6 completed 1h bars",
+    "baseCostBps": 18,
+    "stressCostBps": 27,
+    "funding": "actual realized holdout funding outcome only; no predicted funding substitution"
+  },
+  "advisorySemantics": {
+    "everyRuleAMatchIsPaperAdvisory": true,
+    "deduplicationKey": "symbol + decisionTime",
+    "postOutcomeFiltering": false,
+    "standardErrorVeto": false,
+    "conservativePredictionVeto": false,
+    "automaticTrade": false
+  },
+  "releaseGates": {
+    "advisoryCountAtLeast": 8,
+    "net18ExpectancyBpsGreaterThan": 0,
+    "net18ProfitFactorGreaterThan": 1.1,
+    "net27ExpectancyBpsGreaterThan": 0,
+    "net27ProfitFactorGreaterThan": 1.0,
+    "distinctSymbolsAtLeast": 4,
+    "largestSingleSymbolShareAtMost": 0.4,
+    "maxMtmDrawdownFractionAtMost": 0.15,
+    "maxLossStreakAtMost": 6,
+    "bestTradePositivePnlShareAtMost": 0.5,
+    "positiveMonthShareGate": "not applicable; holdout is shorter than two complete calendar months",
+    "allGatesRequired": true,
+    "failureAction": "HOLDOUT_PASS=false; EXPERIMENTAL_RELEASE_READY=false; STOP; no rescue experiment"
+  },
+  "dataManifest": {
+    "lockedBeforePerformance": true,
+    "rawFilesHashed": true,
+    "immutable": true,
+    "provenanceRequired": true,
+    "manifestPath": "artifacts/HY-EXP-0028/holdout-data-manifest.json"
+  },
+  "liveSignalPath": {
+    "preparedOnlyIfHoldoutPass": true,
+    "infrastructure": ["GitHub Actions", "Vercel Singapore", "Binance public APIs", "Supabase", "Gmail"],
+    "qualityRejectOnly": ["INVALID_MARKET", "MISSING_OR_STALE_BOOK", "SCHEDULER_DELAY_OVER_15M", "ABNORMAL_CURRENT_EXECUTION_COST"],
+    "rule": "Rule A only; Rule B forbidden",
+    "emailSubject": "[EXPERIMENTAL SIGNAL] SYMBOL BUY",
+    "emailFields": ["symbol", "BUY", "signal time", "reference executable price", "ChannelDistance", "frozen Q75", "current funding", "current estimated execution cost", "reference 2ATR stop", "6h research horizon"],
+    "safetyText": ["Signal only.", "No automatic trade was placed.", "Entry, position size, leverage and exit are manually decided by the user."],
+    "noDeploymentInThisTask": true
+  },
+  "commitOrder": {
+    "commitA": "preregistration plus frozen Q75 and holdout dates before any holdout retrieval",
+    "commitB": "locked holdout data manifest, implementation, result, tests, and live-ready code only if all gates pass"
+  },
+  "safety": {
+    "SIGNAL_ONLY": true,
+    "PAPER_ONLY": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false,
+    "finalOosRead": false,
+    "productionDeployment": false
+  },
+  "registry": {
+    "appendExactlyOnePreregisteredEventBeforeHoldoutRetrieval": true,
+    "historicalEntriesImmutable": true,
+    "terminalDecisionAfterGates": true
+  }
+}
