@@ -16,7 +16,7 @@ const PREREG_PATH = 'registry/experiments/HY-EXP-0029/preregistration.json';
 const RESULT_PATH = 'artifacts/HY-EXP-0029/development-result.json';
 const CLOSURE_PATH = 'artifacts/HY-EXP-0029/closure.json';
 const REGISTRY_PATH = 'registry/ledger.jsonl';
-const REGISTRY_HEAD = 'e68b2d6f93c571928319c93fc0b278768b826fd1ee9c4cf9f8c123538a981f62';
+const REGISTRY_HEAD = 'a75bb8e274891f48845b42a358af4c33b56d83589259e14ea7c9c6e72b650201';
 
 const HOUR = 60 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
