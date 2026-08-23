@@ -16,6 +16,7 @@ import {
   predictHyExp0024Ridge,
   summarizeHyExp0024Calibration
 } from '../model/hy-exp-0024-edge.mjs';
+import { emptySampleRiskMetrics } from './reporting-semantics.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const HY_EXP_0024_EXPERIMENT_ID = 'HY-EXP-0024';
@@ -605,6 +606,12 @@ function modelPredictions(candidates) {
   return { rows: output, modelSummaries };
 }
 
+export function buildHyExp0024DevelopmentRows({ dataset = loadHyExp0024Dataset() } = {}) {
+  const { contexts, candidates, rawCandidateCount } = candidateRows(dataset);
+  const { rows: predictions, modelSummaries } = modelPredictions(candidates);
+  return { contexts, candidates, predictions, rawCandidateCount, modelSummaries };
+}
+
 function positionSize(row) {
   const stopDistanceBps = Math.abs(row.label.entryPrice - row.label.stopPrice) / row.label.entryPrice * 10_000;
   if (!(stopDistanceBps > 0)) return null;
@@ -845,7 +852,7 @@ function summarizeTrades(trades, diagnostics, candidateStats, calibration, sensi
     else currentLossStreak = 0;
     lossStreak = Math.max(lossStreak, currentLossStreak);
   }
-  const mtm = markToMarketMetrics(ordered);
+  const mtm = ordered.length ? markToMarketMetrics(ordered) : emptySampleRiskMetrics(ordered.length);
   const cellRows = Object.fromEntries(['BULL/BUY/TREND_BREAKOUT', 'BEAR/SELL/TREND_BREAKOUT'].map(cell => {
     const rows = ordered.filter(row => row.cell === cell);
     return [cell, {
@@ -889,6 +896,7 @@ function summarizeTrades(trades, diagnostics, candidateStats, calibration, sensi
     maxMtmDrawdownBps: mtm.maxMtmDrawdownBps,
     cvar95LossFraction: mtm.cvar95LossFraction,
     cvar95LossBps: mtm.cvar95LossBps,
+    riskMetricStatus: mtm.riskMetricStatus ?? 'EVALUABLE',
     fundingPnl: ordered.reduce((sum, row) => sum + row.realizedFunding.fundingPnlPerUnit * row.notional / row.entryPrice, 0),
     feeBpsPerRoundTrip: 10,
     executionCostBps: HISTORICAL_BASE_COST_BPS,
@@ -898,7 +906,8 @@ function summarizeTrades(trades, diagnostics, candidateStats, calibration, sensi
       netReturn: stressPnl / RESEARCH_EQUITY_USDT,
       positiveMonths: months.filter(month => stressMonthly[month] > 0).length,
       executionCostBps: HISTORICAL_STRESS_COST_BPS,
-      noReoptimization: true
+      noReoptimization: true,
+      riskMetricStatus: mtm.riskMetricStatus ?? 'EVALUABLE'
     },
     bullBuyAdvisoryCount: ordered.filter(row => row.cell === 'BULL/BUY/TREND_BREAKOUT').length,
     bearSellAdvisoryCount: ordered.filter(row => row.cell === 'BEAR/SELL/TREND_BREAKOUT').length,
@@ -926,7 +935,7 @@ function fastTrackGates(metrics) {
     netProfitFactorGreaterThan1_10: metrics.netProfitFactor != null && metrics.netProfitFactor > 1.1,
     netExpectancyPositive: metrics.netExpectancyBps != null && metrics.netExpectancyBps > 0,
     usableAdvisoriesPer30AtLeast10: metrics.usableAdvisoriesPer30CalendarDays >= 10,
-    maxMtmDrawdownAtMost15Percent: metrics.maxMtmDrawdown <= 0.15
+    maxMtmDrawdownAtMost15Percent: metrics.maxMtmDrawdown != null && metrics.maxMtmDrawdown <= 0.15
   };
   return { checks, pass: Object.values(checks).every(Boolean) };
 }
@@ -942,7 +951,7 @@ function fullDevelopmentGates(metrics) {
     baseExpectancyMin8: metrics.netExpectancyBps >= 8,
     basePfMin1_2: metrics.netProfitFactor >= 1.2,
     positiveMonthShareMin0_6: metrics.positiveMonthShare >= 0.6,
-    maxDrawdownMax0_12: metrics.maxMtmDrawdown <= 0.12,
+    maxDrawdownMax0_12: metrics.maxMtmDrawdown != null && metrics.maxMtmDrawdown <= 0.12,
     cvarMax0_05: metrics.cvar95LossFraction != null && metrics.cvar95LossFraction <= 0.05,
     lossStreakMax8: metrics.maxLossStreak <= 8,
     stressExpectancyMin3: metrics.stress.netExpectancyBps >= 3,
@@ -956,8 +965,7 @@ export function runHyExp0024Development({ dataset = loadHyExp0024Dataset() } = {
   const formal = JSON.parse(fs.readFileSync(FORMAL_PREREG, 'utf8'));
   if (formal.status !== 'PREREGISTERED') throw new Error('HY-EXP-0024 is not formally preregistered');
   if (String(formal.frozenSpecification.sourceSha256).toLowerCase() !== sha256(draftBuffer)) throw new Error('frozen HY-EXP-0024 draft hash mismatch');
-  const { contexts, candidates, rawCandidateCount } = candidateRows(dataset);
-  const { rows: predictions, modelSummaries } = modelPredictions(candidates);
+  const { contexts, candidates, predictions, rawCandidateCount, modelSummaries } = buildHyExp0024DevelopmentRows({ dataset });
   const calibrationRows = predictions
     .filter(row => row.edge.available)
     .map(row => ({

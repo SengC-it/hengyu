@@ -1,0 +1,49 @@
+{
+  "experimentId": "HY-EXP-0024",
+  "status": "FAILED",
+  "terminal": true,
+  "failureReason": "DEVELOPMENT_EDGE_MODEL_FAILED_AND_ZERO_ADVISORIES",
+  "closurePolicy": "HY-EXP-0024 must never be resumed; any new strategy/model requires HY-EXP-0025.",
+  "frozenDevelopmentEvidence": {
+    "rawCandidates": 2459,
+    "labeledCandidates": 2459,
+    "oofPredictions": 1412,
+    "edgeAvailable": 1412,
+    "advisories": 0,
+    "rejections": {
+      "INSUFFICIENT_CONSERVATIVE_NET_EDGE": 1412,
+      "INSUFFICIENT_COST_COVERAGE": 738,
+      "NON_POSITIVE_PRICE_EDGE": 334
+    },
+    "calibration": {
+      "MAE": 182.5993,
+      "RMSE": 240.2098,
+      "zeroMAE": 173.1599,
+      "zeroRMSE": 232.7283,
+      "maeRatio": 1.0545,
+      "rmseRatio": 1.0321,
+      "slope": -0.7127,
+      "spearman": -0.1267
+    }
+  },
+  "failureDecompositionArtifact": {
+    "path": "artifacts/HY-EXP-0024/failure-decomposition.json",
+    "sha256": "4006ea3d4be9a697ac10cc8f9249c35eda420e912488fbc21cfd448c8484e4c1"
+  },
+  "sourceEvidence": {
+    "developmentManifestSha256": "0a26f687ee12457dcbd0bd75d1e16e8b47dacd013359b2c6f105720a3cc96146",
+    "frozenDevelopmentResultSha256": "6a5268438bbb2f4b9e156a9afd497b30684809f73a04a5f840f375c0b7871f81",
+    "lockedDiagnosticsSha256": "274f7ee5d9271ff9220f2c498630e4c74d7945e830c2ee7852c06e161ec09cc0",
+    "sourceManifestSha256": "cc168a87ae5dc202768e23fc616ecb878fbafd963c0e18dfa7c2d6f0e0ca0544"
+  },
+  "developmentPnlComputed": true,
+  "finalOosRead": false,
+  "finalOosPnlComputed": false,
+  "experimentalReleaseReady": false,
+  "productionDeploy": false,
+  "signalOnly": true,
+  "paperOnly": true,
+  "riskMetricStatus": "EMPTY_SAMPLE_NOT_EVALUABLE",
+  "noParameterRescue": true,
+  "noNewExperimentCreated": true
+}

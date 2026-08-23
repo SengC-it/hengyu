@@ -6,7 +6,7 @@ import test from 'node:test';
 const DRAFT_PATH = 'artifacts/audits/HY-EXP-0024-preregistration-draft.json';
 const FORMAL_PATH = 'registry/experiments/HY-EXP-0024/preregistration.json';
 const EXPECTED_DRAFT_SHA256 = '0B43CC128101BF7DE635BB1CBF23406595DF4365BBA30EC30D90843C7A5E856A';
-const EXPECTED_REGISTRY_HEAD = '72d306480bb78861665e47ac197f7c6e56f9d49ef7442627b1ac59ecfca997da';
+const EXPECTED_REGISTRY_HEAD = '99acf242bb9685ece7066f7a0bb503285f1b56872e25ed497634d187f3f12620';
 
 function readDraft() {
   return JSON.parse(fs.readFileSync(DRAFT_PATH, 'utf8'));
@@ -131,11 +131,14 @@ test('HY-EXP-0024 draft remains immutable and formal preregistration is separate
   assert.equal(formal.frozenSpecification.authoritative, true);
   assert.equal(formal.frozenSpecification.copyOrOverride, false);
   assert.equal(formal.frozenSpecification.sourceSha256, EXPECTED_DRAFT_SHA256);
-  assert.equal(ledger.length, 79);
+  assert.equal(ledger.length, 80);
   assert.equal(ledger.at(-1).hash, EXPECTED_REGISTRY_HEAD);
-  assert.equal(ledger.filter(entry => entry.experiment_id === 'HY-EXP-0024').length, 1);
-  assert.equal(ledger.at(-1).event_type, 'preregistered');
-  assert.equal(ledger.at(-1).payload_path, FORMAL_PATH);
+  const events = ledger.filter(entry => entry.experiment_id === 'HY-EXP-0024');
+  assert.equal(events.length, 2);
+  assert.equal(events[0].event_type, 'preregistered');
+  assert.equal(events[0].payload_path, FORMAL_PATH);
+  assert.equal(events[1].event_type, 'failed');
+  assert.equal(events[1].payload_path, 'artifacts/HY-EXP-0024/closure.json');
 });
 
 test('HY-EXP-0024 primary universe, regime, direction and candidate family are frozen', () => {
