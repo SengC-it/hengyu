@@ -75,6 +75,23 @@
       "funding": "actual realized funding; no prediction substitution"
     }
   },
+  "candidateEngine": {
+    "authoritativeInputs": [
+      "completed causal 1h bars for all eight symbols",
+      "completed causal 4h bars for all eight symbols"
+    ],
+    "derivedInternally": [
+      "BTC SMA60/SMA180 regime",
+      "eight-symbol breadth",
+      "ATR20",
+      "prior 120 completed 1h breakout channel",
+      "prior 60 completed 1h exit channel",
+      "prior six completed 4h quote volume",
+      "eight-feature vector including feature[7] channel distance"
+    ],
+    "externalPrecomputedValuesAuthority": false,
+    "diagnosticParityAssertionsOnly": true
+  },
   "warmup": {
     "historicalPublicDataAllowed": true,
     "tag": "WARMUP_ONLY",

@@ -104,13 +104,17 @@ export function appendShadowSignal({ root, signal }) {
   });
 }
 
-export function appendShadowResolution({ root, resolution }) {
-  assertSafety(resolution);
-  const idempotencyKey = `${resolution.validationId}:${resolution.signalId}`;
+export function appendShadowResolution({ root, resolution, result } = {}) {
+  const finalResolution = resolution ?? result;
+  if (finalResolution?.status !== 'RESOLVED' || finalResolution?.paperPnlComputed !== true) {
+    throw new Error('only final RESOLVED shadow evidence may be persisted');
+  }
+  assertSafety(finalResolution);
+  const idempotencyKey = `${finalResolution.validationId}:${finalResolution.signalId}`;
   return appendIdempotent({
     root,
     table: 'resolutions',
-    row: { ...resolution, idempotencyKey, immutable: true },
+    row: { ...finalResolution, idempotencyKey, immutable: true },
     key: idempotencyKey
   });
 }

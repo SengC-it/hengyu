@@ -4,9 +4,9 @@ This is a paper/shadow extension of the frozen HY-EXP-0028 Rule A. It is not a n
 
 ## Source lock
 
-The implementation records the immutable source commit `a61cb20318af1e0b188c0276a1a3d65e52bc4467`, the HY-EXP-0028 preregistration hash `4085fad293275ce055a67516d1c8168331f221a91b688f3b093ff2eef11708a3`, and the frozen holdout result hash `92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5`. The referenced source file hashes are frozen in `config/hy-val-0028-001.json`.
+The implementation records the immutable source commit `a61cb20318af1e0b188c0276a1a3d65e52bc4467`, the HY-EXP-0028 preregistration hash `4085fad293275ce055a67516d1c8168331f221a91b688f3b093ff2eef11708a3`, and the frozen holdout result hash `92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5`. The referenced source file hashes are frozen in `config/hy-val-0028-001.json` and checked by `verifyFrozenSourceManifest`; hash drift fails closed.
 
-The port preserves the exact Rule A contract: BULL/BUY only, the eight fixed USDT perpetual symbols, Q75 `10.051547664406323`, entry at the exact completed contract-price 5m bar open at `decisionTime + 5 minutes`, BUY stop `entryPrice - 2 * ATR20`, dynamic prior-60 completed 1h channel exit, terminal exit after six completed 1h bars, actual realized funding, and 18/27bps base/stress costs.
+The frozen shadow candidate engine does not accept regime, side, ATR, signal close, or feature values as admission inputs. It derives the latest completed 4h context, BTC SMA60/SMA180 regime, eight-symbol breadth, each symbol's ATR20, prior-120 breakout channel, prior-60 exit channel, six-bar quote-volume feature, and the complete eight-feature vector from causal completed bars. It then applies the fixed BULL/BUY Rule A and Q75 `10.051547664406323` gate. The resulting contract is exact: eight fixed USDT perpetual symbols, entry at the exact completed contract-price 5m bar open at `decisionTime + 5 minutes`, BUY stop `entryPrice - 2 * ATR20`, dynamic prior-60 completed 1h channel exit, terminal exit after six completed 1h bars, actual realized funding, and 18/27bps base/stress costs.
 
 ## Activation and warmup
 
@@ -20,8 +20,9 @@ Historical Binance public USD-M data may be used to build causal indicator warmu
 2. Store an immutable `SHADOW_SIGNAL` under `(validation_id, symbol, decision_time)`.
 3. Do not email, write the production advisory outbox, or place an order.
 4. At `decisionTime + 5 minutes`, use the exact completed contract-price 5m bar open as the theoretical paper entry.
-5. Resolve only after the relevant public bars/funding events have occurred; otherwise keep the resolution `PENDING` with no PnL.
-6. Store realized gross bps, actual funding, net18/net27 bps, paper PnL, exit reason, MAE/MFE, MTM drawdown, timestamps, and source provenance.
+5. Resolve only after the relevant public bars/funding events have occurred; otherwise keep the complete safe resolution state `PENDING` in runtime/health state with no PnL.
+6. Persist only a final `RESOLVED` record with `paperPnlComputed=true`; it is immutable and unique by `(validation_id, signal_id)`. A `PENDING` record is rejected by the resolution store and cannot occupy the final-result key.
+7. Store realized gross bps, actual funding, net18/net27 bps, paper PnL, exit reason, MAE/MFE, MTM drawdown, timestamps, and source provenance.
 
 The local append-only adapter uses a separate root such as `data/shadow-validation/HY-VAL-0028-001` and these generic table contracts:
 

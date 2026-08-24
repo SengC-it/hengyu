@@ -21,6 +21,12 @@ export const HY_EXP_0028_SYMBOLS = Object.freeze([
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT',
   'XRPUSDT', 'DOGEUSDT', 'LINKUSDT', 'LTCUSDT'
 ]);
+export const HY_EXP_0028_SOURCE_FILE_HASHES = Object.freeze({
+  'scripts/hy-exp-0028-holdout.mjs': 'f5f04b5cde4ce00c235f0e6c0be08904a71ea0fe2335582724a2298b14ab1ab7',
+  'src/research/hy-exp-0024.mjs': 'd8120efd3650e828bfa6c6277c70605ccab51396e0ecb9107df38b934cd87174',
+  'src/research/hy-exp-0028.mjs': 'a665bc805ea107dcc97df5326b31fc29a9cfba0f01119448e338b2f741d8ce17',
+  'artifacts/HY-EXP-0028/frozen-q75.json': '1d85f472c24d45b3ea09ecb28be68269fe89f298464b0a58d9da286445ae3ed3'
+});
 export const HY_VAL_PUBLIC_ENDPOINTS = Object.freeze([
   'https://fapi.binance.com/fapi/v1/klines',
   'https://fapi.binance.com/fapi/v1/fundingRate',
@@ -30,6 +36,7 @@ export const HY_VAL_PUBLIC_ENDPOINTS = Object.freeze([
 const HOUR = 60 * 60 * 1_000;
 const FIVE_MINUTES = 5 * 60 * 1_000;
 const REQUIRED_FEATURE_INDEX = 7;
+const DERIVED_CONTEXT_TOKEN = Symbol('HY-VAL-0028-001 derived causal context');
 
 function finite(name, value) {
   const parsed = Number(value);
@@ -101,13 +108,51 @@ export function classifyWarmupRecord(recordTime, activation) {
   };
 }
 
+export function verifyFrozenSourceManifest(source = HY_VAL_0028_001.immutableSource) {
+  if (source?.commit !== HY_EXP_0028_SOURCE_COMMIT
+    || source?.preregistrationSha256 !== HY_EXP_0028_PREREGISTRATION_SHA256
+    || source?.holdoutResultSha256 !== HY_EXP_0028_HOLDOUT_RESULT_SHA256) {
+    throw new Error('HY-EXP-0028 immutable source provenance drifted');
+  }
+  const configured = Object.fromEntries((source.files ?? []).map(file => [file.path, file.sha256]));
+  const configuredKeys = Object.keys(configured).sort();
+  const expectedKeys = Object.keys(HY_EXP_0028_SOURCE_FILE_HASHES).sort();
+  if (JSON.stringify(configuredKeys) !== JSON.stringify(expectedKeys)
+    || configuredKeys.some(key => configured[key] !== HY_EXP_0028_SOURCE_FILE_HASHES[key])) {
+    throw new Error('HY-EXP-0028 immutable source file hash drifted');
+  }
+  return { ok: true, files: configured };
+}
+
 function validateFrozenSource(sourceCommit = HY_EXP_0028_SOURCE_COMMIT) {
+  verifyFrozenSourceManifest();
   if (sourceCommit !== HY_EXP_0028_SOURCE_COMMIT) throw new Error('HY-EXP-0028 source commit drifted');
 }
 
 function expectedChannelDistance({ signalClose, priorExitLow, atr20 }) {
   if (!(atr20 > 0)) return null;
   return (signalClose - priorExitLow) / atr20;
+}
+
+function mean(values) {
+  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+}
+
+function simpleMovingAverage(rows, index, period) {
+  if (index < period - 1) return null;
+  return mean(rows.slice(index - period + 1, index + 1).map(row => Number(row.close)));
+}
+
+function averageTrueRange(rows, index, period = 20) {
+  if (index < period) return null;
+  const ranges = [];
+  for (let cursor = index - period + 1; cursor <= index; cursor += 1) {
+    const previousClose = Number(rows[cursor - 1].close);
+    const high = Number(rows[cursor].high);
+    const low = Number(rows[cursor].low);
+    ranges.push(Math.max(high - low, Math.abs(high - previousClose), Math.abs(low - previousClose)));
+  }
+  return mean(ranges);
 }
 
 function parseBoundary(value) {
@@ -130,63 +175,162 @@ function hasCausalCompletedHistory(rows, decisionTime, required) {
   });
 }
 
-export function createFrozenRuleACandidate({
-  activation,
-  symbol,
-  decisionTime,
-  regime,
-  side,
-  signalClose,
-  priorEntryHigh,
-  priorEntryBars = [],
-  priorExitLow,
-  priorExitBars = [],
-  atr20,
-  features,
-  sourceCommit = HY_EXP_0028_SOURCE_COMMIT
-} = {}) {
-  validateFrozenSource(sourceCommit);
-  const parsedDecisionTime = timestamp('decisionTime', decisionTime);
+function latestCompletedFourHourIndex(rows, decisionTime) {
+  let selected = -1;
+  for (let index = 0; index < rows.length; index += 1) {
+    if (Number(rows[index].closeBoundary) <= decisionTime) selected = index;
+    else break;
+  }
+  return selected;
+}
+
+function deriveRegime({ bars4hBySymbol, fourHourIndex }) {
+  const btc = bars4hBySymbol.BTCUSDT;
+  if (!btc?.[fourHourIndex]) return null;
+  const btcFastSma = simpleMovingAverage(btc, fourHourIndex, 60);
+  const btcSlowSma = simpleMovingAverage(btc, fourHourIndex, 180);
+  if (btcFastSma == null || btcSlowSma == null) return null;
+  const breadthRequired = Math.ceil(HY_EXP_0028_SYMBOLS.length * 2 / 3);
+  const breadthRows = {};
+  for (const symbol of HY_EXP_0028_SYMBOLS) {
+    const rows = bars4hBySymbol[symbol];
+    const row = rows?.[fourHourIndex];
+    const slowSma = row ? simpleMovingAverage(rows, fourHourIndex, 180) : null;
+    if (!row || slowSma == null) return null;
+    breadthRows[symbol] = {
+      close: Number(row.close),
+      slowSma,
+      aboveSlowSma: Number(row.close) > slowSma,
+      belowSlowSma: Number(row.close) < slowSma
+    };
+  }
+  const breadthAbove = Object.values(breadthRows).filter(row => row.aboveSlowSma).length;
+  const breadthBelow = Object.values(breadthRows).filter(row => row.belowSlowSma).length;
+  const btcClose = Number(btc[fourHourIndex].close);
+  const bull = btcFastSma > btcSlowSma && btcClose > btcSlowSma && breadthAbove >= breadthRequired;
+  const bear = btcFastSma < btcSlowSma && btcClose < btcSlowSma && breadthBelow >= breadthRequired;
+  const breadth = bull ? breadthAbove : bear ? breadthBelow : Math.max(breadthAbove, breadthBelow);
+  return {
+    regime: bull ? 'BULL' : bear ? 'BEAR' : 'SIDEWAYS',
+    side: bull ? 'BUY' : bear ? 'SELL' : null,
+    btcFastSma,
+    btcSlowSma,
+    breadth,
+    breadthFraction: breadth / HY_EXP_0028_SYMBOLS.length,
+    breadthAbove,
+    breadthBelow,
+    breadthRequired,
+    fourHourIndex,
+    fourHourCloseTime: Number(btc[fourHourIndex].closeBoundary),
+    bySymbol: breadthRows
+  };
+}
+
+function deriveFrozenContext({ bars1hBySymbol, bars4hBySymbol, index }) {
+  const btc1h = bars1hBySymbol.BTCUSDT;
+  const signalBar = btc1h?.[index];
+  if (!signalBar) return null;
+  const signalOpenTime = Number(signalBar.openTime);
+  const decisionTime = signalOpenTime + HOUR;
+  const fourHourIndex = latestCompletedFourHourIndex(bars4hBySymbol.BTCUSDT ?? [], decisionTime);
+  const regime = deriveRegime({ bars4hBySymbol, fourHourIndex });
+  if (!regime) return null;
+  const symbols = {};
+  for (const symbol of HY_EXP_0028_SYMBOLS) {
+    const rows = bars1hBySymbol[symbol];
+    const row = rows?.[index];
+    if (!row || Number(row.openTime) !== signalOpenTime) return null;
+    const priorEntry = rows.slice(index - 120, index);
+    const priorExit = rows.slice(index - 60, index);
+    const causalHistoryValid = hasCausalCompletedHistory(priorEntry, decisionTime, 120)
+      && hasCausalCompletedHistory(priorExit, decisionTime, 60);
+    const atr20 = averageTrueRange(rows, index, 20);
+    const sma60 = simpleMovingAverage(rows, index, 60);
+    const sma180 = simpleMovingAverage(rows, index, 180);
+    const priorEntryHigh = priorEntry.length === 120
+      ? Math.max(...priorEntry.map(item => Number(item.high))) : null;
+    const priorExitLow = priorExit.length === 60
+      ? Math.min(...priorExit.map(item => Number(item.low))) : null;
+    const priorExitHigh = priorExit.length === 60
+      ? Math.max(...priorExit.map(item => Number(item.high))) : null;
+    const side = regime.side;
+    const breakout = side === 'BUY'
+      ? priorEntryHigh != null && Number(row.close) > priorEntryHigh
+      : side === 'SELL'
+        ? priorEntry.length === 120 && Number(row.close) < Math.min(...priorEntry.map(item => Number(item.low)))
+        : false;
+    const priorFourHour = (bars4hBySymbol[symbol] ?? []).slice(regime.fourHourIndex - 5, regime.fourHourIndex + 1);
+    const priorSixQuoteVolume = priorFourHour.length === 6
+      ? priorFourHour.reduce((sum, item) => sum + Number(item.quoteVolume), 0)
+      : null;
+    const sideMultiplier = side ? sideSign(side) : 1;
+    const features = breakout && atr20 > 0 && sma60 != null && sma180 != null
+      && priorExitLow != null && priorExitHigh != null && priorSixQuoteVolume != null
+      ? [
+        sideMultiplier * (Number(row.close) - (side === 'BUY' ? priorEntryHigh : Math.min(...priorEntry.map(item => Number(item.low))))) / atr20,
+        sideMultiplier * (Number(row.close) - sma60) / atr20,
+        sideMultiplier * (sma60 - sma180) / atr20,
+        regime.breadthFraction,
+        HY_EXP_0028_SYMBOLS.length / 8,
+        Math.log1p(priorSixQuoteVolume),
+        atr20 / Number(row.close),
+        sideMultiplier * (Number(row.close) - (side === 'BUY' ? priorExitLow : Math.max(...priorExit.map(item => Number(item.high))))) / atr20
+      ]
+      : null;
+    symbols[symbol] = {
+      symbol,
+      side,
+      breakout,
+      signalClose: Number(row.close),
+      atr20,
+      sma60,
+      sma180,
+      priorEntryHigh,
+      priorExitLow,
+      priorExitHigh,
+      priorEntryBars: priorEntry,
+      priorExitBars: priorExit,
+      causalHistoryValid,
+      features,
+      reasons: []
+    };
+  }
+  const context = {
+    signalTime: decisionTime,
+    theoreticalDecisionTime: decisionTime,
+    index,
+    decisionTime,
+    regime,
+    symbols,
+    universeSymbols: [...HY_EXP_0028_SYMBOLS]
+  };
+  for (const detail of Object.values(context.symbols)) {
+    if (detail.features) Object.freeze(detail.features);
+    Object.freeze(detail.priorEntryBars);
+    Object.freeze(detail.priorExitBars);
+    Object.freeze(detail);
+  }
+  Object.freeze(context.regime.bySymbol);
+  Object.freeze(context.regime);
+  Object.freeze(context.symbols);
+  Object.freeze(context.universeSymbols);
+  Object.defineProperty(context, DERIVED_CONTEXT_TOKEN, { value: true });
+  return Object.freeze(context);
+}
+
+function candidateFromDerived({ activation, context, detail, sourceCommit }) {
+  const parsedDecisionTime = timestamp('decisionTime', context.decisionTime);
   const prospective = activation.eligibility(parsedDecisionTime);
   if (!prospective.eligible) return { accepted: false, rejection: prospective.reason };
-  if (!HY_EXP_0028_SYMBOLS.includes(symbol)) return { accepted: false, rejection: 'SYMBOL_NOT_IN_FROZEN_UNIVERSE' };
-  if (regime !== 'BULL' || side !== 'BUY') return { accepted: false, rejection: 'RULE_A_REQUIRES_BULL_BUY' };
-  if (!hasCausalCompletedHistory(priorEntryBars, parsedDecisionTime, 120)
-    || !hasCausalCompletedHistory(priorExitBars, parsedDecisionTime, 60)) {
-    return { accepted: false, rejection: 'INSUFFICIENT_FROZEN_HISTORY' };
+  if (detail.causalHistoryValid !== true) return { accepted: false, rejection: 'INSUFFICIENT_FROZEN_HISTORY' };
+  if (detail.side !== 'BUY' || context.regime.regime !== 'BULL') {
+    return { accepted: false, rejection: 'RULE_A_REQUIRES_BULL_BUY' };
   }
-  const numericEntryBars = priorEntryBars.map(row => Number(row.high));
-  const numericExitBars = priorExitBars.map(row => Number(row.low));
-  const computedPriorEntryHigh = Math.max(...numericEntryBars);
-  const computedPriorExitLow = Math.min(...numericExitBars);
-  if (!numericEntryBars.every(Number.isFinite) || !numericExitBars.every(Number.isFinite)) {
-    return { accepted: false, rejection: 'INCOMPLETE_FROZEN_HISTORY' };
-  }
-  if (Number(priorEntryHigh) !== computedPriorEntryHigh
-    || Number(priorExitLow) !== computedPriorExitLow) {
-    return { accepted: false, rejection: 'FROZEN_REFERENCE_PARITY_MISMATCH' };
-  }
-  const numericSignalClose = Number(signalClose);
-  const numericAtr20 = Number(atr20);
-  const breakout = numericSignalClose > computedPriorEntryHigh;
-  const channelDistance = expectedChannelDistance({
-    signalClose: numericSignalClose,
-    priorExitLow: computedPriorExitLow,
-    atr20: numericAtr20
-  });
-  if (!breakout) return { accepted: false, rejection: 'NO_BREAKOUT' };
+  if (!detail.breakout) return { accepted: false, rejection: 'NO_BREAKOUT' };
+  if (!Array.isArray(detail.features)) return { accepted: false, rejection: 'MISSING_FROZEN_FEATURE_VECTOR' };
+  const channelDistance = detail.features[REQUIRED_FEATURE_INDEX];
   if (!(channelDistance >= HY_EXP_0028_FROZEN_Q75)) {
     return { accepted: false, rejection: 'BELOW_FROZEN_Q75' };
-  }
-  if (!Array.isArray(features) || features.length <= REQUIRED_FEATURE_INDEX) {
-    return { accepted: false, rejection: 'MISSING_FROZEN_FEATURE_VECTOR' };
-  }
-  const numericFeatures = features.map(Number);
-  if (!numericFeatures.every(Number.isFinite)) {
-    return { accepted: false, rejection: 'INVALID_FROZEN_FEATURE_VECTOR' };
-  }
-  if (numericFeatures[REQUIRED_FEATURE_INDEX] !== channelDistance) {
-    return { accepted: false, rejection: 'FROZEN_FEATURE_PARITY_MISMATCH' };
   }
   return {
     accepted: true,
@@ -195,8 +339,8 @@ export function createFrozenRuleACandidate({
       strategyId: HY_EXP_0028_STRATEGY_ID,
       policyId: HY_EXP_0028_POLICY_ID,
       sourceCommit,
-      id: `${symbol}:${parsedDecisionTime}`,
-      symbol,
+      id: `${detail.symbol}:${parsedDecisionTime}`,
+      symbol: detail.symbol,
       side: 'BUY',
       regime: 'BULL',
       rule: 'RULE_A_CHANNEL_DISTANCE_Q75',
@@ -204,13 +348,13 @@ export function createFrozenRuleACandidate({
       theoreticalDecisionTime: parsedDecisionTime,
       theoreticalEntryTime: parsedDecisionTime + HY_EXP_0028_ENTRY_OFFSET_MS,
       shadowValidationActivatedAt: activation.activatedAt,
-      signalClose: numericSignalClose,
-      atr20: numericAtr20,
-      priorEntryHigh: computedPriorEntryHigh,
-      priorExitLow: computedPriorExitLow,
+      signalClose: detail.signalClose,
+      atr20: detail.atr20,
+      priorEntryHigh: detail.priorEntryHigh,
+      priorExitLow: detail.priorExitLow,
       channelDistance,
       frozenQ75: HY_EXP_0028_FROZEN_Q75,
-      features: numericFeatures,
+      features: [...detail.features],
       countedProspective: true,
       candidateAuthority: 'NONE',
       emailSent: false,
@@ -219,6 +363,73 @@ export function createFrozenRuleACandidate({
       safety: publicSafety()
     }
   };
+}
+
+export function createFrozenRuleACandidate({
+  activation,
+  derivedContext,
+  symbol = null,
+  diagnostics = {},
+  sourceCommit = HY_EXP_0028_SOURCE_COMMIT
+} = {}) {
+  validateFrozenSource(sourceCommit);
+  if (!derivedContext?.[DERIVED_CONTEXT_TOKEN] || !derivedContext?.regime || !derivedContext?.symbols) {
+    return { accepted: false, rejection: 'CAUSAL_CANDIDATE_CONTEXT_REQUIRED' };
+  }
+  const diagnosticSymbol = symbol ?? diagnostics.symbol;
+  const detail = derivedContext.symbols[diagnosticSymbol];
+  if (!detail) return { accepted: false, rejection: 'SYMBOL_NOT_IN_FROZEN_UNIVERSE' };
+  const result = candidateFromDerived({ activation, context: derivedContext, detail, sourceCommit });
+  if (!result.accepted) return result;
+  const expectedDiagnostics = {
+    regime: derivedContext.regime.regime,
+    side: detail.side,
+    signalClose: detail.signalClose,
+    atr20: detail.atr20,
+    channelDistance: detail.features[REQUIRED_FEATURE_INDEX]
+  };
+  const mismatchedDiagnostic = Object.entries(diagnostics)
+    .filter(([key]) => key !== 'symbol')
+    .find(([key, value]) => Number.isFinite(Number(value))
+      ? Number(value) !== Number(expectedDiagnostics[key])
+      : value !== expectedDiagnostics[key]);
+  if (mismatchedDiagnostic) return { accepted: false, rejection: 'FROZEN_PARITY_ASSERTION_MISMATCH' };
+  return result;
+}
+
+export function buildFrozenShadowCandidates({
+  activation,
+  bars1hBySymbol,
+  bars4hBySymbol,
+  signalIndex = null,
+  sourceCommit = HY_EXP_0028_SOURCE_COMMIT
+} = {}) {
+  validateFrozenSource(sourceCommit);
+  const reference = bars1hBySymbol?.BTCUSDT;
+  if (!Array.isArray(reference)) throw new Error('BTCUSDT causal 1h bars are required');
+  const firstIndex = Math.max(180 * 4, 180, 120, 60, 20);
+  const indexes = signalIndex == null
+    ? Array.from({ length: Math.max(0, reference.length - firstIndex) }, (_, offset) => firstIndex + offset)
+    : [Number(signalIndex)];
+  const contexts = [];
+  const candidates = [];
+  const rejections = [];
+  for (const index of indexes) {
+    const context = deriveFrozenContext({ bars1hBySymbol, bars4hBySymbol, index });
+    if (!context) continue;
+    contexts.push(context);
+    for (const symbol of HY_EXP_0028_SYMBOLS) {
+      const result = createFrozenRuleACandidate({
+        activation,
+        derivedContext: context,
+        symbol,
+        sourceCommit
+      });
+      if (result.accepted) candidates.push(result.candidate);
+      else rejections.push({ symbol, decisionTime: context.decisionTime, rejection: result.rejection });
+    }
+  }
+  return { contexts, candidates, rejections };
 }
 
 export function buildShadowSignal(candidate) {
@@ -314,6 +525,9 @@ function pending(reason, requiredThrough, signal) {
     reason,
     requiredThrough,
     paperPnlComputed: false,
+    emailSent: false,
+    productionAdvisory: false,
+    orderPlaced: false,
     safety: publicSafety()
   };
 }
@@ -419,6 +633,7 @@ export function resolveFrozenPaperTrade({ signal, bars1h = [], bars5m = [], fund
     funding,
     net18Bps,
     net27Bps,
+    paperPnlComputed: true,
     paperNotional: size.paperNotional,
     paperPnl: size.paperNotional * net18Bps / 10_000,
     stressPaperPnl: size.paperNotional * net27Bps / 10_000,
@@ -427,6 +642,9 @@ export function resolveFrozenPaperTrade({ signal, bars1h = [], bars5m = [], fund
     markToMarketDrawdownBps: markDrawdown(marks),
     marks,
     costs: { baseCostBps: 18, stressCostBps: 27, fundingSeparate: true },
+    emailSent: false,
+    productionAdvisory: false,
+    orderPlaced: false,
     safety: publicSafety()
   };
 }
