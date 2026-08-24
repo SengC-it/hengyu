@@ -1,0 +1,38 @@
+{
+  "policyId": "EMAIL_SIGNAL_RELEASE-001",
+  "version": 1,
+  "purpose": "Govern human-review PAPER_ONLY signal-email release independently from automatic trading.",
+  "authorization": {
+    "signalOnly": true,
+    "paperOnly": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false
+  },
+  "states": [
+    "RESEARCH_ONLY",
+    "EMAIL_SIGNAL_CANDIDATE",
+    "EMAIL_SIGNAL_RELEASE_READY",
+    "EMAIL_SIGNAL_RELEASED",
+    "EMAIL_SIGNAL_SUSPENDED"
+  ],
+  "hardGates": {
+    "minimumValidatedSignals": 80,
+    "minimumValidationDays": 90,
+    "baseCostBps": 18,
+    "minimumBaseCostNetPnl": 0,
+    "minimumNetExpectancyBps": 0,
+    "minimumProfitFactor": 1.1,
+    "maximumMtmDrawdownPct": 10,
+    "minimumDistinctSymbols": 6,
+    "maximumLargestSymbolShare": 0.4,
+    "minimumPositiveActiveMonthShare": 0.5
+  },
+  "warnings": {
+    "stressCostBps": 27,
+    "stressIsVeto": false,
+    "lossStreakWarningAbove": 6,
+    "lossStreakIsVeto": false
+  }
+}
