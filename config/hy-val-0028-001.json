@@ -1,0 +1,111 @@
+{
+  "validationId": "HY-VAL-0028-001",
+  "strategyId": "HY-EXP-0028",
+  "policyId": "EMAIL_SIGNAL_RELEASE-001",
+  "status": "SHADOW_READY_PENDING_ACTIVATION",
+  "activation": {
+    "shadowValidationActivatedAt": null,
+    "setOnce": true,
+    "hardcodedTimestamp": false,
+    "prospectiveEligibility": "decisionTime >= shadowValidationActivatedAt",
+    "preActivationBackfill": false
+  },
+  "immutableSource": {
+    "commit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+    "preregistrationSha256": "4085fad293275ce055a67516d1c8168331f221a91b688f3b093ff2eef11708a3",
+    "holdoutResultPath": "artifacts/HY-EXP-0028/holdout-result.json",
+    "holdoutResultSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "files": [
+      {
+        "path": "scripts/hy-exp-0028-holdout.mjs",
+        "sha256": "f5f04b5cde4ce00c235f0e6c0be08904a71ea0fe2335582724a2298b14ab1ab7"
+      },
+      {
+        "path": "src/research/hy-exp-0024.mjs",
+        "sha256": "d8120efd3650e828bfa6c6277c70605ccab51396e0ecb9107df38b934cd87174"
+      },
+      {
+        "path": "src/research/hy-exp-0028.mjs",
+        "sha256": "a665bc805ea107dcc97df5326b31fc29a9cfba0f01119448e338b2f741d8ce17"
+      },
+      {
+        "path": "artifacts/HY-EXP-0028/frozen-q75.json",
+        "sha256": "1d85f472c24d45b3ea09ecb28be68269fe89f298464b0a58d9da286445ae3ed3"
+      }
+    ],
+    "dependencyChain": [
+      "scripts/hy-exp-0028-holdout.mjs",
+      "src/research/hy-exp-0028.mjs",
+      "src/research/hy-exp-0024.mjs"
+    ]
+  },
+  "frozenRule": {
+    "rule": "RULE_A_CHANNEL_DISTANCE_Q75",
+    "direction": "BULL/BUY",
+    "bearSellAllowed": false,
+    "frozenQ75": 10.051547664406323,
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "entry": {
+      "theoreticalEntryOffsetMs": 300000,
+      "source": "exact completed contract-price 5m bar OPEN",
+      "laterBarRescue": false
+    },
+    "exit": {
+      "stop": "BUY entryPrice - 2 * ATR20",
+      "dynamicChannel": "BUY close <= prior 60 completed 1h low excluding current exit bar",
+      "priority": [
+        "ATR_STOP",
+        "DYNAMIC_CHANNEL_EXIT",
+        "TERMINAL_EXIT"
+      ],
+      "maximumHoldCompleted1hBars": 6
+    },
+    "costs": {
+      "baseCostBps": 18,
+      "stressCostBps": 27,
+      "funding": "actual realized funding; no prediction substitution"
+    }
+  },
+  "warmup": {
+    "historicalPublicDataAllowed": true,
+    "tag": "WARMUP_ONLY",
+    "countsAsProspectiveEvidence": false,
+    "canGenerateCountedSignals": false,
+    "canGeneratePnl": false,
+    "canChangeFrozenParameters": false
+  },
+  "requiredPublicStreams": [
+    "contract-price-5m",
+    "contract-price-1h-derived",
+    "contract-price-4h-derived",
+    "funding",
+    "causal-public-metadata"
+  ],
+  "safety": {
+    "signal_only": true,
+    "authorization_mode": "PAPER_ONLY",
+    "live_orders_enabled": false,
+    "account_api": false,
+    "order_api": false,
+    "automatic_trading": false,
+    "production_gmail_outbox": false,
+    "production_advisory_write": false,
+    "final_oos_read": false
+  },
+  "combination": {
+    "originalValidatedSignals": 43,
+    "originalValidationDays": 53,
+    "prospectiveCountsOnlyAfterActivation": true,
+    "recalculateTradeLevelMetrics": true,
+    "doNotAddAggregatePFOrExpectancy": true
+  }
+}
