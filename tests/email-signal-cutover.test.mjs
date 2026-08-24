@@ -24,6 +24,7 @@ const FIXTURE_START = SIGNAL_TIME - (SIGNAL_INDEX + 1) * HOUR;
 function releasedConfig() {
   return {
     ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    status: 'CUTOVER_RELEASED',
     releaseState: 'EMAIL_SIGNAL_RELEASED'
   };
 }

@@ -48,9 +48,13 @@ function safetyMatches(safety) {
 }
 
 export function isEmailSignalCutoverConfigValid(config = EMAIL_SIGNAL_CUTOVER_CONFIG) {
-  if (!config || config.immutable !== true || config.status !== 'DRAFT_CUTOVER_PREPARED') return false;
+  if (!config || config.immutable !== true) return false;
+  const expectedStatus = {
+    EMAIL_SIGNAL_RELEASE_READY: 'DRAFT_CUTOVER_PREPARED',
+    EMAIL_SIGNAL_RELEASED: 'CUTOVER_RELEASED'
+  }[config.releaseState];
+  if (!expectedStatus || config.status !== expectedStatus) return false;
   if (config.strategyId !== 'HY-EXP-0028'
-    || !['EMAIL_SIGNAL_RELEASE_READY', 'EMAIL_SIGNAL_RELEASED'].includes(config.releaseState)
     || config.releaseStateRequiredForEmail !== 'EMAIL_SIGNAL_RELEASED'
     || config.humanApprovalRequiredForReleased !== true) return false;
   const source = config.evaluationSource;
