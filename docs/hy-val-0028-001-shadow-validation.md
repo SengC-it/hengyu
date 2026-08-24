@@ -23,7 +23,7 @@ Historical Binance public USD-M data may be used to build causal indicator warmu
 3. Do not email, write the production advisory outbox, or place an order.
 4. At `decisionTime + 5 minutes`, use the exact completed contract-price 5m bar open as the theoretical paper entry.
 5. Resolve only after the relevant public bars/funding events have occurred; otherwise keep the complete safe resolution state `PENDING` in runtime/health state with no PnL.
-6. Persist only a final `RESOLVED` record with `paperPnlComputed=true`; it is immutable and unique by `(validation_id, signal_id)`. A `PENDING` record is rejected by the resolution store and cannot occupy the final-result key. `prospectiveValidatedSignals` is derived only from those immutable final resolution rows; emitted `SHADOW_SIGNAL` rows, candidates, and `PENDING` rows never increase the release count.
+6. Persist only a final `RESOLVED` record with `paperPnlComputed=true`; it is immutable and unique by `(validation_id, signal_id)`. A `PENDING` record is rejected by the resolution store and cannot occupy the final-result key. `prospectiveValidatedSignals` is derived only from rows that pass `validateProspectiveResolvedEvidence`: exact validation/strategy/policy/source provenance, frozen symbol, canonical signal and idempotency keys, 18/27bps costs with separate funding, the complete PAPER_ONLY safety envelope, and a persisted finite activation boundary with `decisionTime >= shadowValidationActivatedAt`. Emitted `SHADOW_SIGNAL` rows, candidates, and `PENDING` rows never increase the release count.
 7. Store realized gross bps, actual funding, net18/net27 bps, paper PnL, exit reason, MAE/MFE, MTM drawdown, timestamps, and source provenance.
 
 The local append-only adapter uses a separate root such as `data/shadow-validation/HY-VAL-0028-001` and these generic table contracts:
@@ -39,7 +39,7 @@ No Supabase migration or scheduler activation is included in this PR. A future c
 
 ## Evidence combination
 
-The original HY-EXP-0028 evidence remains `43` signals over `53` days. This validator reports prospective counts separately and exposes a combination ledger of `43 + N` signals and `53 + N` completed validation days. Here `N` is exactly `COUNT OF IMMUTABLE RESOLVED SHADOW TRADE EVIDENCE ROWS`, requiring `status=RESOLVED`, `paperPnlComputed=true`, `immutable=true`, and a unique final-evidence key. Emitted shadow signals, pending records, and candidate rows are excluded. Gaps and warmup are excluded. Final release metrics must be recomputed from combined trade-level rows; aggregate PF/expectancy values must never be added.
+The original HY-EXP-0028 evidence remains `43` signals over `53` days. This validator reports prospective counts separately and exposes a combination ledger of `43 + N` signals and `53 + N` completed validation days. Here `N` is exactly the number of rows accepted by `validateProspectiveResolvedEvidence`; minimal or manually constructed `RESOLVED` rows cannot count. The validator requires `status=RESOLVED`, `paperPnlComputed=true`, `immutable=true`, exact HY-VAL-0028-001/HY-EXP-0028/EMAIL_SIGNAL_RELEASE-001/source-commit provenance, a frozen symbol, canonical evidence keys, frozen costs, safety flags, and activation proof. Emitted shadow signals, pending records, and candidate rows are excluded. Gaps and warmup are excluded. Final release metrics must be recomputed from combined trade-level rows; aggregate PF/expectancy values must never be added.
 
 ## Safety
 

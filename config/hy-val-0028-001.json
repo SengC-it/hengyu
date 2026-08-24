@@ -129,9 +129,27 @@
       "candidate"
     ],
     "prospectiveValidatedSignalRowRequirement": {
+      "validationId": "HY-VAL-0028-001",
+      "strategyId": "HY-EXP-0028",
+      "policyId": "EMAIL_SIGNAL_RELEASE-001",
+      "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
       "status": "RESOLVED",
       "paperPnlComputed": true,
-      "immutable": true
+      "immutable": true,
+      "symbol": "one of frozenRule.symbols",
+      "decisionTime": "finite and >= shadowValidationActivatedAt",
+      "signalId": "${symbol}:${decisionTime}",
+      "idempotencyKey": "${validationId}:${signalId}",
+      "costs": {
+        "baseCostBps": 18,
+        "stressCostBps": 27,
+        "fundingSeparate": true
+      },
+      "emailSent": false,
+      "productionAdvisory": false,
+      "orderPlaced": false,
+      "safety": "publicSafety() exact PAPER_ONLY envelope",
+      "shadowValidationActivatedAt": "finite and persisted in every final row"
     },
     "recalculateTradeLevelMetrics": true,
     "doNotAddAggregatePFOrExpectancy": true

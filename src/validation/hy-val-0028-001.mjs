@@ -73,6 +73,55 @@ function publicSafety() {
   };
 }
 
+export function validateProspectiveResolvedEvidence(row) {
+  if (!row || typeof row !== 'object') return { ok: false, reason: 'EVIDENCE_ROW_REQUIRED' };
+  if (row.validationId !== HY_VAL_0028_001_ID) return { ok: false, reason: 'EVIDENCE_VALIDATION_ID_MISMATCH' };
+  if (row.strategyId !== HY_EXP_0028_STRATEGY_ID) return { ok: false, reason: 'EVIDENCE_STRATEGY_ID_MISMATCH' };
+  if (row.policyId !== HY_EXP_0028_POLICY_ID) return { ok: false, reason: 'EVIDENCE_POLICY_ID_MISMATCH' };
+  if (row.sourceCommit !== HY_EXP_0028_SOURCE_COMMIT) return { ok: false, reason: 'EVIDENCE_SOURCE_COMMIT_MISMATCH' };
+  if (row.status !== 'RESOLVED') return { ok: false, reason: 'EVIDENCE_STATUS_NOT_RESOLVED' };
+  if (row.paperPnlComputed !== true) return { ok: false, reason: 'EVIDENCE_PNL_NOT_COMPUTED' };
+  if (row.immutable !== true) return { ok: false, reason: 'EVIDENCE_NOT_IMMUTABLE' };
+  if (!HY_EXP_0028_SYMBOLS.includes(row.symbol)) return { ok: false, reason: 'EVIDENCE_SYMBOL_NOT_FROZEN' };
+  if (typeof row.decisionTime !== 'number' || !Number.isFinite(row.decisionTime)) {
+    return { ok: false, reason: 'EVIDENCE_DECISION_TIME_INVALID' };
+  }
+  if (row.signalId !== `${row.symbol}:${row.decisionTime}`) return { ok: false, reason: 'EVIDENCE_SIGNAL_ID_NON_CANONICAL' };
+  if (row.idempotencyKey !== `${row.validationId}:${row.signalId}`) {
+    return { ok: false, reason: 'EVIDENCE_IDEMPOTENCY_KEY_NON_CANONICAL' };
+  }
+  if (row.costs?.baseCostBps !== HY_EXP_0028_BASE_COST_BPS) return { ok: false, reason: 'EVIDENCE_BASE_COST_MISMATCH' };
+  if (row.costs?.stressCostBps !== HY_EXP_0028_STRESS_COST_BPS) return { ok: false, reason: 'EVIDENCE_STRESS_COST_MISMATCH' };
+  if (row.costs?.fundingSeparate !== true) return { ok: false, reason: 'EVIDENCE_FUNDING_COST_NOT_SEPARATE' };
+  if (row.emailSent !== false) return { ok: false, reason: 'EVIDENCE_EMAIL_SAFETY_VIOLATION' };
+  if (row.productionAdvisory !== false) return { ok: false, reason: 'EVIDENCE_ADVISORY_SAFETY_VIOLATION' };
+  if (row.orderPlaced !== false) return { ok: false, reason: 'EVIDENCE_ORDER_SAFETY_VIOLATION' };
+  const safety = row.safety;
+  if (safety?.signal_only !== true
+    || safety?.authorization_mode !== 'PAPER_ONLY'
+    || safety?.live_orders_enabled !== false
+    || safety?.account_api !== false
+    || safety?.order_api !== false
+    || safety?.automatic_trading !== false
+    || safety?.final_oos_read !== false) {
+    return { ok: false, reason: 'EVIDENCE_SAFETY_ENVELOPE_INVALID' };
+  }
+  if (typeof row.shadowValidationActivatedAt !== 'number'
+    || !Number.isFinite(row.shadowValidationActivatedAt)) {
+    return { ok: false, reason: 'EVIDENCE_ACTIVATION_PROOF_MISSING' };
+  }
+  if (row.decisionTime < row.shadowValidationActivatedAt) {
+    return { ok: false, reason: 'EVIDENCE_PRE_ACTIVATION_DECISION' };
+  }
+  return { ok: true, reason: null };
+}
+
+export function assertProspectiveResolvedEvidence(row) {
+  const validation = validateProspectiveResolvedEvidence(row);
+  if (!validation.ok) throw new Error(`invalid prospective resolved evidence: ${validation.reason}`);
+  return row;
+}
+
 export class ShadowValidationActivation {
   #activatedAt = null;
 
@@ -827,6 +876,7 @@ export function resolveFrozenPaperTrade({ signal, bars1h = [], bars5m = [], fund
     rule: 'RULE_A_CHANNEL_DISTANCE_Q75',
     status: 'RESOLVED',
     decisionTime,
+    shadowValidationActivatedAt: activationAt,
     entryTime: requiredOpenTime,
     entryPrice,
     executablePrice: entryPrice,
@@ -874,13 +924,9 @@ export function combineValidationEvidence({
   }
   const evidenceKeys = new Set();
   for (const row of prospectiveResolvedRows) {
-    if (row?.status !== 'RESOLVED'
-      || row?.paperPnlComputed !== true
-      || row?.immutable !== true) {
-      throw new Error('only immutable RESOLVED paper evidence counts as prospective validation');
-    }
-    const key = row.idempotencyKey ?? `${row.validationId ?? ''}:${row.signalId ?? ''}`;
-    if (!key || key === ':' || evidenceKeys.has(key)) {
+    assertProspectiveResolvedEvidence(row);
+    const key = row.idempotencyKey;
+    if (evidenceKeys.has(key)) {
       throw new Error('prospective resolved evidence must have unique immutable keys');
     }
     evidenceKeys.add(key);

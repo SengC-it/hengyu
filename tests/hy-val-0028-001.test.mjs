@@ -21,6 +21,7 @@ import {
   HY_VAL_0028_001_ID,
   HY_VAL_PUBLIC_ENDPOINTS,
   ShadowValidationActivation,
+  assertProspectiveResolvedEvidence,
   buildFrozenShadowCandidates,
   buildShadowSignal,
   classifyWarmupRecord,
@@ -28,6 +29,7 @@ import {
   countCompletedValidationDays,
   createFrozenRuleACandidate,
   resolveFrozenPaperTrade,
+  validateProspectiveResolvedEvidence,
   verifyFrozenSourceManifest
 } from '../src/validation/hy-val-0028-001.mjs';
 import {
@@ -124,6 +126,17 @@ function makeShadowSignal() {
   const { built } = buildFixture();
   assert.equal(built.candidates.length, 8);
   return buildShadowSignal(built.candidates[0]);
+}
+
+function makePersistedEvidenceRow() {
+  const signal = makeShadowSignal();
+  const result = resolveFrozenPaperTrade({ signal, ...makeEvaluationData(signal, 'TERMINAL') });
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hy-val-0028-001-evidence-'));
+  try {
+    return appendShadowResolution({ root, result }).row;
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 }
 
 function referenceMean(values) {
@@ -607,6 +620,55 @@ test('resolver emits a complete safe RESOLVED record that persists end-to-end', 
   }
 });
 
+test('only a real immutable resolved row proves provenance and counts once', () => {
+  const row = makePersistedEvidenceRow();
+  assert.deepEqual(validateProspectiveResolvedEvidence(row), { ok: true, reason: null });
+  assert.doesNotThrow(() => assertProspectiveResolvedEvidence(row));
+  const combined = combineValidationEvidence({ prospectiveResolvedRows: [row] });
+  assert.equal(combined.prospectiveValidatedSignals, 1);
+  assert.throws(() => combineValidationEvidence({ prospectiveResolvedRows: [row, row] }), /unique immutable keys/);
+});
+
+test('prospective evidence counting fails closed on provenance, identity, cost, safety, and activation mismatches', () => {
+  const row = makePersistedEvidenceRow();
+  const decisionBeforeActivation = row.shadowValidationActivatedAt - 1;
+  const invalidCases = [
+    ['wrong validationId', { validationId: 'HY-VAL-WRONG' }, 'EVIDENCE_VALIDATION_ID_MISMATCH'],
+    ['wrong strategyId', { strategyId: 'HY-EXP-WRONG' }, 'EVIDENCE_STRATEGY_ID_MISMATCH'],
+    ['wrong policyId', { policyId: 'POLICY-WRONG' }, 'EVIDENCE_POLICY_ID_MISMATCH'],
+    ['wrong sourceCommit', { sourceCommit: 'deadbeef' }, 'EVIDENCE_SOURCE_COMMIT_MISMATCH'],
+    ['invalid symbol', { symbol: 'NOTUSDT' }, 'EVIDENCE_SYMBOL_NOT_FROZEN'],
+    ['mismatched signalId', { signalId: 'BTCUSDT:wrong' }, 'EVIDENCE_SIGNAL_ID_NON_CANONICAL'],
+    ['non-canonical idempotencyKey', { idempotencyKey: 'manual-key' }, 'EVIDENCE_IDEMPOTENCY_KEY_NON_CANONICAL'],
+    ['baseCostBps mismatch', { costs: { ...row.costs, baseCostBps: 10 } }, 'EVIDENCE_BASE_COST_MISMATCH'],
+    ['stressCostBps mismatch', { costs: { ...row.costs, stressCostBps: 20 } }, 'EVIDENCE_STRESS_COST_MISMATCH'],
+    ['unsafe safety envelope', { safety: { ...row.safety, account_api: true } }, 'EVIDENCE_SAFETY_ENVELOPE_INVALID'],
+    ['emailSent true', { emailSent: true }, 'EVIDENCE_EMAIL_SAFETY_VIOLATION'],
+    ['orderPlaced true', { orderPlaced: true }, 'EVIDENCE_ORDER_SAFETY_VIOLATION'],
+    ['missing activation proof', { shadowValidationActivatedAt: undefined }, 'EVIDENCE_ACTIVATION_PROOF_MISSING'],
+    ['decision before activation', {
+      decisionTime: decisionBeforeActivation,
+      signalId: `${row.symbol}:${decisionBeforeActivation}`,
+      idempotencyKey: `${row.validationId}:${row.symbol}:${decisionBeforeActivation}`
+    }, 'EVIDENCE_PRE_ACTIVATION_DECISION'],
+    ['manually constructed minimal RESOLVED row', {
+      validationId: undefined,
+      strategyId: undefined,
+      policyId: undefined,
+      sourceCommit: undefined,
+      status: 'RESOLVED',
+      paperPnlComputed: true,
+      immutable: true
+    }, 'EVIDENCE_VALIDATION_ID_MISMATCH']
+  ];
+  for (const [name, changes, reason] of invalidCases) {
+    const invalid = { ...row, ...changes };
+    assert.deepEqual(validateProspectiveResolvedEvidence(invalid), { ok: false, reason }, name);
+    assert.throws(() => combineValidationEvidence({ prospectiveResolvedRows: [invalid] }), /invalid prospective resolved evidence/, name);
+    assert.throws(() => assertProspectiveResolvedEvidence(invalid), /invalid prospective resolved evidence/, name);
+  }
+});
+
 test('PENDING resolution is runtime-only and cannot block later immutable RESOLVED storage', () => {
   const signal = makeShadowSignal();
   const pending = resolveFrozenPaperTrade({ signal, bars1h: [], bars5m: [], fundingRows: [], asOfTime: signal.decisionTime });
@@ -696,14 +758,16 @@ test('combined evidence keeps original 43 separate and excludes validation gaps'
     completedUtcDays: ['2026-08-24', '2026-08-25', '2026-08-27']
   });
   assert.equal(completedDays, 3);
+  const baseEvidence = makePersistedEvidenceRow();
+  const prospectiveRows = HY_EXP_0028_SYMBOLS.slice(0, 7).map(symbol => ({
+    ...baseEvidence,
+    symbol,
+    signalId: `${symbol}:${baseEvidence.decisionTime}`,
+    idempotencyKey: `${baseEvidence.validationId}:${symbol}:${baseEvidence.decisionTime}`
+  }));
   const combined = combineValidationEvidence({
     originalValidatedSignals: 43,
-    prospectiveResolvedRows: Array.from({ length: 7 }, (_, index) => ({
-      status: 'RESOLVED',
-      paperPnlComputed: true,
-      immutable: true,
-      idempotencyKey: `HY-VAL-0028-001:signal-${index}`
-    })),
+    prospectiveResolvedRows: prospectiveRows,
     originalValidationDays: 53,
     prospectiveCompletedValidationDays: completedDays
   });
@@ -718,5 +782,5 @@ test('combined evidence keeps original 43 separate and excludes validation gaps'
   }), /derived from immutable resolved rows/);
   assert.throws(() => combineValidationEvidence({
     prospectiveResolvedRows: [{ status: 'PENDING', paperPnlComputed: false, immutable: true, idempotencyKey: 'pending' }]
-  }), /only immutable RESOLVED paper evidence/);
+  }), /invalid prospective resolved evidence/);
 });

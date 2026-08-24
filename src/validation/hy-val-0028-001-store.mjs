@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
+  assertProspectiveResolvedEvidence,
   HY_EXP_0028_POLICY_ID,
   HY_EXP_0028_SOURCE_COMMIT,
   HY_EXP_0028_STRATEGY_ID,
@@ -111,10 +112,12 @@ export function appendShadowResolution({ root, resolution, result } = {}) {
   }
   assertSafety(finalResolution);
   const idempotencyKey = `${finalResolution.validationId}:${finalResolution.signalId}`;
+  const row = { ...finalResolution, idempotencyKey, immutable: true };
+  assertProspectiveResolvedEvidence(row);
   return appendIdempotent({
     root,
     table: 'resolutions',
-    row: { ...finalResolution, idempotencyKey, immutable: true },
+    row,
     key: idempotencyKey
   });
 }
