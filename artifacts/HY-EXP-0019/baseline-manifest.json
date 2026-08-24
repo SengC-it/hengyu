@@ -1,0 +1,64 @@
+{
+  "manifestType": "DERIVED_VALIDATED_BASELINE_MANIFEST",
+  "manifestVersion": 1,
+  "baselineExperimentId": "HY-EXP-0019",
+  "status": "FAILED_FROZEN",
+  "evidenceClass": "D0_DEVELOPMENT_ONLY",
+  "source": {
+    "resultArtifactPath": "artifacts/HY-EXP-0019/result.json",
+    "resultArtifactSha256": "3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f",
+    "dataManifestPath": "artifacts/HY-EXP-0019/data-manifest.json",
+    "dataManifestSha256": "136ba1268cb91c700f55cdfa5a487aa3e9bd0c0575996bece314fb5223cf4986",
+    "sourceCommit": "9d6b5298fab9760a611c2b5e52e86c500a6688a1",
+    "frozenAtCommit": "9f23475802f3ca9a85957a5ab2e69ac42b0c1aa2",
+    "closurePath": "artifacts/HY-EXP-0019/closure.json",
+    "closureSha256": "7fba82a12d0e8569f1d4cf2334aaebcf0a685094c342243264a11ded66b46098",
+    "registryTerminalSequence": 69,
+    "registryTerminalEvent": "failed",
+    "registryTerminalHash": "316b208a4d4e2e5971adbc62445cefe6918bf0f0aa06b66731763f00d6300207",
+    "provenanceMode": "ORIGINAL_IMMUTABLE_HISTORY_REFERENCE",
+    "sourceResultPresentInCurrentCheckout": true
+  },
+  "validation": {
+    "windowStart": "2025-07-01T00:00:00.000Z",
+    "windowEndExclusive": "2026-07-01T00:00:00.000Z",
+    "tradeCount": 41,
+    "researchEquityUsdt": 100000,
+    "researchNotionalUsdt": 1000
+  },
+  "costBasis": {
+    "sourcePath": "registry/experiments/HY-EXP-0019/preregistration.json",
+    "feePerFillFraction": 0.0005,
+    "feePerFillBps": 5,
+    "syntheticSpreadBps": 2,
+    "fundingStressBufferBps": 1,
+    "fundingSource": "realized funding archives",
+    "depthSource": "OHLCV_PROXY_NOT_ORDERBOOK",
+    "costBasisStatus": "FROZEN_BASELINE_COSTS_NOT_RELabeled_AS_18BPS"
+  },
+  "metrics": {
+    "netProfitFactor": 0,
+    "netReturn": -0.012763487537771283,
+    "netReturnBps": -127.63487537771283,
+    "normalizedNetBpsPerTrade": -3.113045740919825,
+    "normalizationFormula": "oos.netReturnBps / oos.tradeCount",
+    "positiveMonths": 0,
+    "observedMonths": 12,
+    "markToMarketDrawdown": -0.036301297700173873,
+    "cvar95Bps": -604.943104976418,
+    "fundingPnl": -124.87406470915688,
+    "totalFees": 40.44848101884638
+  },
+  "comparison": {
+    "candidateMetric": "netExpectancyBps at the frozen 18bps candidate cost basis",
+    "baselineMetric": "netReturnBps divided by frozen OOS trade count at the baseline cost basis",
+    "compatibleMetrics": [
+      "netProfitFactor",
+      "normalizedNetBpsPerTrade"
+    ],
+    "rawTotalPnlComparison": false,
+    "baselineMustRemainNegative": true,
+    "derivedOnly": true,
+    "historicalResultRewritten": false
+  }
+}

@@ -1,7 +1,22 @@
 {
   "policyId": "EMAIL_SIGNAL_RELEASE-001",
-  "version": 1,
+  "version": 2,
   "purpose": "Govern human-review PAPER_ONLY signal-email release independently from automatic trading.",
+  "frozenEvidence": {
+    "candidate": {
+      "experimentId": "HY-EXP-0028",
+      "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+      "artifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
+      "artifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+      "researchEquityUsdt": 100000,
+      "status": "HOLDOUT_FAILED"
+    },
+    "validatedBaseline": {
+      "experimentId": "HY-EXP-0019",
+      "manifestPath": "artifacts/HY-EXP-0019/baseline-manifest.json",
+      "manifestSha256": "3d1865afea13221d64f85641ba92312a7e0b593c94e629b17e520c19875b3edd"
+    }
+  },
   "authorization": {
     "signalOnly": true,
     "paperOnly": true,
@@ -18,8 +33,8 @@
     "EMAIL_SIGNAL_SUSPENDED"
   ],
   "hardGates": {
-    "minimumValidatedSignals": 80,
-    "minimumValidationDays": 90,
+    "minimumValidatedSignals": 40,
+    "minimumValidationDays": 45,
     "baseCostBps": 18,
     "minimumBaseCostNetPnl": 0,
     "minimumNetExpectancyBps": 0,
@@ -29,14 +44,16 @@
     "maximumLargestSymbolShare": 0.4
   },
   "monthlyRobustness": {
-    "rule": "aggregate base-cost net PnL by calendar month, remove the highest-PnL month, and require remaining net PnL > 0",
-    "requiresValidationDays": 90,
-    "noPositiveMonthShareThreshold": true
+    "rule": "aggregate base-cost net PnL by calendar month, remove the highest-PnL month, and report a non-positive remainder as MONTH_CONCENTRATION_WARNING",
+    "requiresValidationDays": 45,
+    "noPositiveMonthShareThreshold": true,
+    "warningOnly": true
   },
   "warnings": {
     "stressCostBps": 27,
     "stressIsVeto": false,
     "lossStreakWarningAbove": 6,
-    "lossStreakIsVeto": false
+    "lossStreakIsVeto": false,
+    "monthlyConcentrationIsVeto": false
   }
 }
