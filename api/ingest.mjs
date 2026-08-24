@@ -5,6 +5,7 @@ import { assertPaperOnly } from './_lib/safety.mjs';
 import { verifySignedRequest } from './_lib/signature.mjs';
 import { formatAdvisoryEmail } from '../src/model/alert-outbox.mjs';
 import { gmailStatus } from './_lib/gmail.mjs';
+import { evaluateEmailSignalAdmission } from '../src/model/email-signal-cutover.mjs';
 
 const SPECS = {
   advisory: {
@@ -129,17 +130,23 @@ export async function ingestAdvisoryBundle(record) {
     requested: shouldQueueEmail,
     configured: gmailStatus().configured,
     queued: false,
-    duplicate: false
+    duplicate: false,
+    reason: null
   };
   if (shouldQueueEmail) {
-    const emailRow = buildEmailOutboxRow({ ...advisory, ...advisoryRow }, advisoryRow.advisory_id);
-    if (emailRow) {
-      const emailInserted = await insertRow('hengyu_email_outbox', emailRow, { onConflict: 'dedupe_key' });
-      emailStatus = {
-        ...emailStatus,
-        queued: true,
-        duplicate: Array.isArray(emailInserted) && emailInserted.length === 0
-      };
+    const admission = evaluateEmailSignalAdmission({ advisory: { ...advisory, ...advisoryRow } });
+    if (!admission.allowed) {
+      emailStatus.reason = admission.reason;
+    } else {
+      const emailRow = buildEmailOutboxRow({ ...advisory, ...advisoryRow }, advisoryRow.advisory_id);
+      if (emailRow) {
+        const emailInserted = await insertRow('hengyu_email_outbox', emailRow, { onConflict: 'dedupe_key' });
+        emailStatus = {
+          ...emailStatus,
+          queued: true,
+          duplicate: Array.isArray(emailInserted) && emailInserted.length === 0
+        };
+      }
     }
   }
   return { duplicate, advisoryId: advisoryRow.advisory_id, email: emailStatus };

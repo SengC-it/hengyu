@@ -171,7 +171,8 @@ export function h12AdvisoryBundle(signal, { generatedAt = Date.now() } = {}) {
         }
       },
       email: {
-        requested: true,
+        requested: false,
+        disabledReason: 'EMAIL_STRATEGY_NOT_AUTHORIZED',
         manual_only: true,
         order_placement: false,
         account_access: false

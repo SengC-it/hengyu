@@ -511,10 +511,15 @@ function deriveFrozenContext({ bars1hBySymbol, bars4hBySymbol, index }) {
   return Object.freeze(context);
 }
 
-function candidateFromDerived({ activation, context, detail, sourceCommit }) {
+function candidateFromDerived({ activation, context, detail, sourceCommit, mode = 'SHADOW' }) {
   const parsedDecisionTime = timestamp('decisionTime', context.decisionTime);
-  const prospective = activation.eligibility(parsedDecisionTime);
-  if (!prospective.eligible) return { accepted: false, rejection: prospective.reason };
+  if (mode === 'SHADOW') {
+    if (!activation) return { accepted: false, rejection: 'SHADOW_ACTIVATION_REQUIRED' };
+    const prospective = activation.eligibility(parsedDecisionTime);
+    if (!prospective.eligible) return { accepted: false, rejection: prospective.reason };
+  } else if (mode !== 'PRODUCTION_EMAIL') {
+    return { accepted: false, rejection: 'UNKNOWN_CANDIDATE_MODE' };
+  }
   if (detail.causalHistoryValid !== true) return { accepted: false, rejection: 'INSUFFICIENT_FROZEN_HISTORY' };
   if (detail.side !== 'BUY' || context.regime.regime !== 'BULL') {
     return { accepted: false, rejection: 'RULE_A_REQUIRES_BULL_BUY' };
@@ -525,45 +530,62 @@ function candidateFromDerived({ activation, context, detail, sourceCommit }) {
   if (!(channelDistance >= HY_EXP_0028_FROZEN_Q75)) {
     return { accepted: false, rejection: 'BELOW_FROZEN_Q75' };
   }
+  const commonCandidate = {
+    strategyId: HY_EXP_0028_STRATEGY_ID,
+    policyId: HY_EXP_0028_POLICY_ID,
+    sourceCommit,
+    id: `${detail.symbol}:${parsedDecisionTime}`,
+    symbol: detail.symbol,
+    side: 'BUY',
+    regime: 'BULL',
+    rule: 'RULE_A_CHANNEL_DISTANCE_Q75',
+    decisionTime: parsedDecisionTime,
+    theoreticalDecisionTime: parsedDecisionTime,
+    theoreticalEntryTime: parsedDecisionTime + HY_EXP_0028_ENTRY_OFFSET_MS,
+    signalClose: detail.signalClose,
+    atr20: detail.atr20,
+    priorEntryHigh: detail.priorEntryHigh,
+    priorExitLow: detail.priorExitLow,
+    channelDistance,
+    frozenQ75: HY_EXP_0028_FROZEN_Q75,
+    features: [...detail.features],
+    emailSent: false,
+    productionAdvisory: false,
+    orderPlaced: false,
+    safety: publicSafety()
+  };
+  if (mode === 'PRODUCTION_EMAIL') {
+    return {
+      accepted: true,
+      candidate: {
+        ...commonCandidate,
+        candidateAuthority: 'EMAIL_SIGNAL_CANDIDATE',
+        candidateOnly: true,
+        outcomeDataUsedForAdmission: false,
+        entryRule: 'decisionTime + 5 minutes exact completed contract-price 5m bar OPEN',
+        exitRule: 'ATR20 stop or prior 60 completed 1h dynamic channel; no outcome resolution for admission'
+      }
+    };
+  }
   return {
     accepted: true,
     candidate: {
       validationId: HY_VAL_0028_001_ID,
-      strategyId: HY_EXP_0028_STRATEGY_ID,
-      policyId: HY_EXP_0028_POLICY_ID,
-      sourceCommit,
-      id: `${detail.symbol}:${parsedDecisionTime}`,
-      symbol: detail.symbol,
-      side: 'BUY',
-      regime: 'BULL',
-      rule: 'RULE_A_CHANNEL_DISTANCE_Q75',
-      decisionTime: parsedDecisionTime,
-      theoreticalDecisionTime: parsedDecisionTime,
-      theoreticalEntryTime: parsedDecisionTime + HY_EXP_0028_ENTRY_OFFSET_MS,
+      ...commonCandidate,
       shadowValidationActivatedAt: activation.activatedAt,
-      signalClose: detail.signalClose,
-      atr20: detail.atr20,
-      priorEntryHigh: detail.priorEntryHigh,
-      priorExitLow: detail.priorExitLow,
-      channelDistance,
-      frozenQ75: HY_EXP_0028_FROZEN_Q75,
-      features: [...detail.features],
       countedProspective: true,
       candidateAuthority: 'NONE',
-      emailSent: false,
-      productionAdvisory: false,
-      orderPlaced: false,
-      safety: publicSafety()
     }
   };
 }
 
-export function createFrozenRuleACandidate({
+function createRuleACandidate({
   activation,
   derivedContext,
   symbol = null,
   diagnostics = {},
-  sourceCommit = HY_EXP_0028_SOURCE_COMMIT
+  sourceCommit = HY_EXP_0028_SOURCE_COMMIT,
+  mode = 'SHADOW'
 } = {}) {
   validateFrozenSource(sourceCommit);
   if (!derivedContext?.[DERIVED_CONTEXT_TOKEN] || !derivedContext?.regime || !derivedContext?.symbols) {
@@ -572,7 +594,7 @@ export function createFrozenRuleACandidate({
   const diagnosticSymbol = symbol ?? diagnostics.symbol;
   const detail = derivedContext.symbols[diagnosticSymbol];
   if (!detail) return { accepted: false, rejection: 'SYMBOL_NOT_IN_FROZEN_UNIVERSE' };
-  const result = candidateFromDerived({ activation, context: derivedContext, detail, sourceCommit });
+  const result = candidateFromDerived({ activation, context: derivedContext, detail, sourceCommit, mode });
   if (!result.accepted) return result;
   const expectedDiagnostics = {
     regime: derivedContext.regime.regime,
@@ -590,12 +612,21 @@ export function createFrozenRuleACandidate({
   return result;
 }
 
-export function buildFrozenShadowCandidates({
+export function createFrozenRuleACandidate(input = {}) {
+  return createRuleACandidate({ ...input, mode: 'SHADOW' });
+}
+
+export function createFrozenRuleAProductionCandidate(input = {}) {
+  return createRuleACandidate({ ...input, mode: 'PRODUCTION_EMAIL' });
+}
+
+function buildFrozenCandidates({
   activation,
   bars1hBySymbol,
   bars4hBySymbol,
   signalIndex = null,
-  sourceCommit = HY_EXP_0028_SOURCE_COMMIT
+  sourceCommit = HY_EXP_0028_SOURCE_COMMIT,
+  mode = 'SHADOW'
 } = {}) {
   validateFrozenSource(sourceCommit);
   const reference = bars1hBySymbol?.BTCUSDT;
@@ -628,7 +659,9 @@ export function buildFrozenShadowCandidates({
     if (!context) continue;
     contexts.push(context);
     for (const symbol of HY_EXP_0028_SYMBOLS) {
-      const result = createFrozenRuleACandidate({
+      const result = (mode === 'PRODUCTION_EMAIL'
+        ? createFrozenRuleAProductionCandidate
+        : createFrozenRuleACandidate)({
         activation,
         derivedContext: context,
         symbol,
@@ -639,6 +672,14 @@ export function buildFrozenShadowCandidates({
     }
   }
   return { contexts, candidates, rejections };
+}
+
+export function buildFrozenShadowCandidates(input = {}) {
+  return buildFrozenCandidates({ ...input, mode: 'SHADOW' });
+}
+
+export function buildFrozenProductionEmailCandidates(input = {}) {
+  return buildFrozenCandidates({ ...input, mode: 'PRODUCTION_EMAIL' });
 }
 
 export function buildShadowSignal(candidate) {

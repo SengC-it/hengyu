@@ -1,5 +1,6 @@
 import { insertRow, selectRows, updateRow } from './supabase.mjs';
 import nodemailer from 'nodemailer';
+import { evaluateEmailSignalAdmission } from '../../src/model/email-signal-cutover.mjs';
 
 const DEFAULT_GMAIL_FROM_NAME = 'HengYu';
 
@@ -126,6 +127,21 @@ export async function dispatchPendingEmails(limit = 10) {
   const results = [];
   for (const row of Array.isArray(rows) ? rows : []) {
     const attempt = Number(row.attempts || 0) + 1;
+    const advisoryRows = row.advisory_id
+      ? await selectRows('hengyu_advisories', {
+        select: 'experiment_id,advisory_type,authorization_mode,live_orders_enabled,signal_at,expires_at,metadata',
+        filters: { advisory_id: `eq.${row.advisory_id}` },
+        limit: 1
+      })
+      : [];
+    const admission = evaluateEmailSignalAdmission({ advisory: advisoryRows?.[0] ?? null });
+    if (!admission.allowed) {
+      await updateRow('hengyu_email_outbox', { outbox_id: `eq.${row.outbox_id}` }, {
+        status: 'SKIPPED', attempts: attempt, last_error: admission.reason
+      });
+      results.push({ outboxId: row.outbox_id, status: 'SKIPPED', reason: admission.reason });
+      continue;
+    }
     try {
       const messageId = await sendGmail({
         from: row.from_address || process.env.HENGYU_GMAIL_FROM_ADDRESS,

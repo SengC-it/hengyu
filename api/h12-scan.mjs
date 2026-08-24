@@ -1,5 +1,4 @@
 import { sendJson, methodAllowed } from './_lib/http.mjs';
-import { dispatchPendingEmails } from './_lib/gmail.mjs';
 import { insertRow } from './_lib/supabase.mjs';
 import { verifyGitHubActionsOidc } from './_lib/github-oidc.mjs';
 import { ingestAdvisoryBundle } from './ingest.mjs';
@@ -33,7 +32,6 @@ export default async function handler(request, response) {
       pnl_eligible: false,
       details: { hypothesisId: 'H12', region: process.env.VERCEL_REGION ?? null, signals: signals.length }
     });
-    const emails = await dispatchPendingEmails(20);
     return sendJson(response, 200, {
       ok: true,
       strategy: 'H12',
@@ -42,7 +40,7 @@ export default async function handler(request, response) {
       scannedAt: new Date(now).toISOString(),
       signals: signals.map(signal => signal.signalId),
       ingested,
-      emails
+      emails: { requested: false, reason: 'EMAIL_STRATEGY_NOT_AUTHORIZED' }
     });
   } catch (error) {
     return sendJson(response, 503, { error: 'h12_scan_failed', reason: error.message });
