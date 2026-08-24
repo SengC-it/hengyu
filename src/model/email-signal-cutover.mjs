@@ -68,6 +68,8 @@ export function isEmailSignalCutoverConfigValid(config = EMAIL_SIGNAL_CUTOVER_CO
     || !sameArray(candidate.symbols, HY_EXP_0028_SYMBOLS)
     || candidate.entry?.offsetMs !== 300000
     || candidate.entry?.laterBarRescue !== false
+    || candidate.entry?.waitForBarClose !== false
+    || candidate.entry?.maxEntryCaptureDelayMs !== 90000
     || candidate.exit?.outcomeResolutionUsedForAdmission !== false) return false;
   if (!sameArray(config.legacyEmailAuthority?.strategyIds, ['HY-EXP-0018'])
     || config.legacyEmailAuthority.emailAllowed !== false
@@ -114,6 +116,9 @@ export function evaluateEmailSignalAdmission({
   if (config.releaseState !== config.releaseStateRequiredForEmail) {
     return { allowed: false, reason: 'EMAIL_STRATEGY_NOT_RELEASED' };
   }
+  if (advisory?.status !== 'ACTIVE') {
+    return { allowed: false, reason: 'EMAIL_CANDIDATE_STATUS_INVALID' };
+  }
   const metadata = candidateMetadata(advisory);
   if (!HY_EXP_0028_SYMBOLS.includes(advisory?.symbol)) {
     return { allowed: false, reason: 'EMAIL_CANDIDATE_IDENTITY_INVALID' };
@@ -124,7 +129,13 @@ export function evaluateEmailSignalAdmission({
   if (metadata.strategyId !== config.strategyId
     || metadata.rule !== config.candidateEngine.rule
     || metadata.candidateAuthority !== 'EMAIL_SIGNAL_CANDIDATE'
-    || metadata.frozenQ75 !== config.candidateEngine.frozenQ75) {
+    || metadata.candidateOnly !== true
+    || metadata.policyId !== HY_EXP_0028_POLICY_ID
+    || metadata.sourceCommit !== HY_EXP_0028_SOURCE_COMMIT
+    || metadata.source !== 'hy-exp-0028-frozen-candidate-engine'
+    || metadata.modelId !== 'HY-EXP-0028-RULE-A-EMAIL-001'
+    || metadata.frozenQ75 !== config.candidateEngine.frozenQ75
+    || metadata.entryReferenceSource !== 'CONTRACT_PRICE_5M_OPEN') {
     return { allowed: false, reason: 'EMAIL_CANDIDATE_IDENTITY_INVALID' };
   }
   if (advisory.advisory_type !== 'REVIEW_BUY') {
@@ -137,6 +148,24 @@ export function evaluateEmailSignalAdmission({
     return { allowed: false, reason: 'EMAIL_CANDIDATE_TIME_INVALID' };
   }
   if (signalAt > currentTime) return { allowed: false, reason: 'EMAIL_CANDIDATE_FUTURE' };
+  const candidateDecisionTime = finiteTimestamp(metadata.decisionTime);
+  const entryObservedAt = finiteTimestamp(metadata.entryObservedAt);
+  const entryCaptureDelayMs = Number(metadata.entryCaptureDelayMs);
+  const expectedEntryTime = candidateDecisionTime === null
+    ? null
+    : candidateDecisionTime + config.candidateEngine.entry.offsetMs;
+  if (candidateDecisionTime === null
+    || signalAt !== candidateDecisionTime
+    || metadata.candidateId !== `${advisory.symbol}:${candidateDecisionTime}`
+    || finiteTimestamp(metadata.entryTime) !== expectedEntryTime
+    || entryObservedAt === null
+    || !Number.isFinite(entryCaptureDelayMs)
+    || entryObservedAt !== expectedEntryTime + entryCaptureDelayMs
+    || entryCaptureDelayMs < 0
+    || entryCaptureDelayMs > config.candidateEngine.entry.maxEntryCaptureDelayMs
+    || entryObservedAt > currentTime) {
+    return { allowed: false, reason: 'EMAIL_CANDIDATE_ENTRY_PROVENANCE_INVALID' };
+  }
   if (expiresAt <= currentTime) return { allowed: false, reason: 'EMAIL_SIGNAL_EXPIRED' };
   return {
     allowed: true,

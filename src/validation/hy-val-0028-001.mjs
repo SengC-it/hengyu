@@ -38,6 +38,7 @@ const FIVE_MINUTES = 5 * 60 * 1_000;
 const FOUR_HOURS = 4 * HOUR;
 const REQUIRED_FEATURE_INDEX = 7;
 const DERIVED_CONTEXT_TOKEN = Symbol('HY-VAL-0028-001 derived causal context');
+const PRODUCTION_CANDIDATE_TOKEN = Symbol('HY-EXP-0028 frozen production candidate');
 
 function finite(name, value) {
   const parsed = Number(value);
@@ -71,6 +72,19 @@ function publicSafety() {
     automatic_trading: false,
     final_oos_read: false
   };
+}
+
+function productionSafety() {
+  return { ...publicSafety(), shadow_activated: false };
+}
+
+function markFrozenProductionCandidate(candidate) {
+  Object.defineProperty(candidate, PRODUCTION_CANDIDATE_TOKEN, { value: true });
+  return Object.freeze(candidate);
+}
+
+export function isFrozenProductionEmailCandidate(candidate) {
+  return candidate?.[PRODUCTION_CANDIDATE_TOKEN] === true;
 }
 
 export function validateProspectiveResolvedEvidence(row) {
@@ -557,14 +571,18 @@ function candidateFromDerived({ activation, context, detail, sourceCommit, mode 
   if (mode === 'PRODUCTION_EMAIL') {
     return {
       accepted: true,
-      candidate: {
+      candidate: markFrozenProductionCandidate({
         ...commonCandidate,
+        safety: productionSafety(),
         candidateAuthority: 'EMAIL_SIGNAL_CANDIDATE',
         candidateOnly: true,
+        causalDataQuality: 'PASS',
+        continuityValid: true,
+        alignmentValid: true,
         outcomeDataUsedForAdmission: false,
-        entryRule: 'decisionTime + 5 minutes exact completed contract-price 5m bar OPEN',
+        entryRule: 'decisionTime + 5 minutes exact contract-price 5m bar OPEN; live bar accepted at bar start',
         exitRule: 'ATR20 stop or prior 60 completed 1h dynamic channel; no outcome resolution for admission'
-      }
+      })
     };
   }
   return {

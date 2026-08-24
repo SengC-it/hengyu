@@ -116,6 +116,21 @@ export async function sendGmail({ from, to, subject, text }) {
   throw new Error('gmail_not_enabled');
 }
 
+export function buildDispatchAdmissionAdvisory(row) {
+  if (!row || typeof row !== 'object') return null;
+  return {
+    experiment_id: row.experiment_id,
+    symbol: row.symbol,
+    advisory_type: row.advisory_type,
+    status: row.status,
+    authorization_mode: row.authorization_mode,
+    live_orders_enabled: row.live_orders_enabled,
+    signal_at: row.signal_at,
+    expires_at: row.expires_at,
+    metadata: row.metadata
+  };
+}
+
 export async function dispatchPendingEmails(limit = 10) {
   if (!enabled()) throw new Error('gmail_not_enabled');
   const rows = await selectRows('hengyu_email_outbox', {
@@ -129,12 +144,14 @@ export async function dispatchPendingEmails(limit = 10) {
     const attempt = Number(row.attempts || 0) + 1;
     const advisoryRows = row.advisory_id
       ? await selectRows('hengyu_advisories', {
-        select: 'experiment_id,advisory_type,authorization_mode,live_orders_enabled,signal_at,expires_at,metadata',
+        select: 'experiment_id,symbol,advisory_type,status,authorization_mode,live_orders_enabled,signal_at,expires_at,metadata',
         filters: { advisory_id: `eq.${row.advisory_id}` },
         limit: 1
       })
       : [];
-    const admission = evaluateEmailSignalAdmission({ advisory: advisoryRows?.[0] ?? null });
+    const admission = evaluateEmailSignalAdmission({
+      advisory: buildDispatchAdmissionAdvisory(advisoryRows?.[0] ?? null)
+    });
     if (!admission.allowed) {
       await updateRow('hengyu_email_outbox', { outbox_id: `eq.${row.outbox_id}` }, {
         status: 'SKIPPED', attempts: attempt, last_error: admission.reason

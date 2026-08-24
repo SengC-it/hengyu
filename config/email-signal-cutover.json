@@ -29,9 +29,11 @@
     "frozenQ75": 10.051547664406323,
     "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT"],
     "entry": {
-      "source": "exact completed contract-price 5m bar OPEN",
+      "source": "exact contract-price 5m bar OPEN; live bar accepted at bar start",
       "offsetMs": 300000,
-      "laterBarRescue": false
+      "laterBarRescue": false,
+      "waitForBarClose": false,
+      "maxEntryCaptureDelayMs": 90000
     },
     "exit": {
       "stop": "BUY entryPrice - 2 * ATR20",
