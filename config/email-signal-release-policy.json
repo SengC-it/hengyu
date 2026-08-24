@@ -26,8 +26,12 @@
     "minimumProfitFactor": 1.1,
     "maximumMtmDrawdownPct": 10,
     "minimumDistinctSymbols": 6,
-    "maximumLargestSymbolShare": 0.4,
-    "minimumPositiveActiveMonthShare": 0.5
+    "maximumLargestSymbolShare": 0.4
+  },
+  "monthlyRobustness": {
+    "rule": "aggregate base-cost net PnL by calendar month, remove the highest-PnL month, and require remaining net PnL > 0",
+    "requiresValidationDays": 90,
+    "noPositiveMonthShareThreshold": true
   },
   "warnings": {
     "stressCostBps": 27,

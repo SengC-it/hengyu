@@ -40,7 +40,6 @@
     "distinctSymbols": 8,
     "largestSymbolShare": 0.20930232558139536,
     "netPnlWithoutBestTrade": 4.4107091824917,
-    "positiveActiveMonthShare": 0.5,
     "activeMonths": [
       {
         "month": "2026-07",
@@ -74,6 +73,14 @@
       "pass": false,
       "detail": "requires >= 90 calendar days"
     },
+    "baseCostBasis": {
+      "pass": true,
+      "detail": "metrics.baseCostBps must equal frozen 18"
+    },
+    "stressCostBasis": {
+      "pass": true,
+      "detail": "metrics.stressCostBps must equal frozen 27"
+    },
     "baseCostNetPnlPositive": {
       "pass": true,
       "detail": "base-cost net PnL must be > 0"
@@ -103,8 +110,24 @@
       "detail": "net PnL must remain positive after removing the best trade"
     },
     "monthlyIndependence": {
-      "pass": true,
-      "detail": "positive active-month share must be >= 50%"
+      "pass": null,
+      "status": "DEFERRED",
+      "evaluable": false,
+      "activeMonths": [
+        {
+          "month": "2026-07",
+          "baseCostNetPnl": -564.8740225660517
+        },
+        {
+          "month": "2026-08",
+          "baseCostNetPnl": 1236.65249041285
+        }
+      ],
+      "bestMonth": "2026-08",
+      "bestMonthNetPnl": 1236.65249041285,
+      "netPnlWithoutBestMonth": -564.8740225660517,
+      "monthlyIndependenceEvaluable": false,
+      "detail": "monthly robustness is deferred until validation reaches 90 days"
     },
     "signalOnly": {
       "pass": true,
@@ -155,6 +178,42 @@
       "detail": "final OOS remains unread"
     }
   },
+  "costBasis": {
+    "baseCostBps": 18,
+    "stressCostBps": 27,
+    "expectedBaseCostBps": 18,
+    "expectedStressCostBps": 27,
+    "checks": {
+      "baseCostBasis": {
+        "pass": true,
+        "detail": "metrics.baseCostBps equals frozen 18"
+      },
+      "stressCostBasis": {
+        "pass": true,
+        "detail": "metrics.stressCostBps equals frozen 27"
+      }
+    }
+  },
+  "monthlyRobustness": {
+    "status": "DEFERRED",
+    "evaluable": false,
+    "pass": null,
+    "activeMonths": [
+      {
+        "month": "2026-07",
+        "baseCostNetPnl": -564.8740225660517
+      },
+      {
+        "month": "2026-08",
+        "baseCostNetPnl": 1236.65249041285
+      }
+    ],
+    "bestMonth": "2026-08",
+    "bestMonthNetPnl": 1236.65249041285,
+    "netPnlWithoutBestMonth": -564.8740225660517,
+    "monthlyIndependenceEvaluable": false,
+    "detail": "monthly robustness is deferred until validation reaches 90 days"
+  },
   "hardGateFailures": [
     "minimumValidatedSignals",
     "minimumValidationSpan"
@@ -170,6 +229,7 @@
   "interpretation": {
     "baseCostGates": "PASS",
     "readinessGates": "FAIL",
+    "monthlyIndependence": "DEFERRED / NOT_EVALUABLE before 90 validation days; no PASS claim",
     "oldFrozenExperimentStatusPreserved": true,
     "remainingDevelopmentRequired": "Collect an independent, preregistered validation span of at least 90 calendar days and at least 80 validated signals.",
     "futureOosRead": false,

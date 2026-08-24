@@ -28,13 +28,16 @@ The base-cost economics and risk/concentration gates pass, but the sample is not
 | 18bps base-cost net PnL > 0 | PASS | 671.778467846798 USDT |
 | 18bps net expectancy > 0 | PASS | 5.237781100313037 bps |
 | 18bps net PF >= 1.10 | PASS | 1.1506895886413784 |
+| Cost basis integrity | PASS | baseCostBps=18 and stressCostBps=27 explicitly match policy |
 | Max MTM DD <= 10% | PASS | 7.723556081371896% |
 | Distinct symbols >= 6 | PASS | 8 |
 | Largest symbol share <= 40% | PASS | 20.930232558139536% |
 | Net PnL after best trade removed > 0 | PASS | 4.4107091824917 USDT |
-| Positive active-month share >= 50% | PASS | 1 of 2 active months |
+| Monthly independence | DEFERRED / NOT EVALUABLE | 53 days is below the 90-day evaluation requirement |
 | Validated signals >= 80 | FAIL | 43 |
 | Validation span >= 90 days | FAIL | 53 days |
+
+The frozen monthly calculation is still recorded for audit: July 2026 was `-564.8740225660517` USDT and August 2026 was `1236.65249041285` USDT. Removing the highest-PnL month (August) leaves `-564.8740225660517` USDT. It is not a PASS because monthly independence is explicitly deferred until the validation span reaches 90 days. At 90 or more days, a non-positive remainder will be a hard release failure.
 
 ## Warnings
 

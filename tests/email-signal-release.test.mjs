@@ -35,14 +35,19 @@ const metrics = {
   validatedSignals: 100,
   validationDays: 100,
   baseCostNetPnl: 100,
+  baseCostBps: 18,
   netExpectancyBps: 4,
   netProfitFactor: 1.2,
+  stressCostBps: 27,
   stressNetExpectancyBps: 1,
   maxMtmDrawdownPct: 8,
   distinctSymbols: 8,
   largestSymbolShare: 0.2,
   netPnlWithoutBestTrade: 80,
-  positiveActiveMonthShare: 0.75,
+  activeMonths: [
+    { month: '2026-01', baseCostNetPnl: 60 },
+    { month: '2026-02', baseCostNetPnl: 40 }
+  ],
   maxLossStreak: 3
 };
 
@@ -63,6 +68,8 @@ test('policy freezes the independent email-release gates and safety mode', () =>
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.warnings.stressIsVeto, false);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.warnings.lossStreakIsVeto, false);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.authorization.liveOrdersEnabled, false);
+  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.monthlyRobustness.noPositiveMonthShareThreshold, true);
+  assert.match(EMAIL_SIGNAL_RELEASE_POLICY.monthlyRobustness.rule, /remove the highest-PnL month/);
 });
 
 test('a fully qualifying sample is release-ready but never automatic trading', () => {
@@ -101,10 +108,38 @@ for (const [name, field, value] of [
   });
 }
 
-test('positive active-month share is a fixed hard gate', () => {
-  const result = evaluateEmailSignalRelease(validInput({ positiveActiveMonthShare: 0.49 }));
+test('monthly independence is deferred before 90 validation days', () => {
+  const result = evaluateEmailSignalRelease(validInput({ validationDays: 53 }));
+  assert.equal(result.state, 'EMAIL_SIGNAL_CANDIDATE');
+  assert.equal(result.monthlyRobustness.status, 'DEFERRED');
+  assert.equal(result.monthlyRobustness.evaluable, false);
+  assert.equal(result.monthlyRobustness.monthlyIndependenceEvaluable, false);
+  assert.equal(result.monthlyRobustness.bestMonth, '2026-01');
+  assert.equal(result.monthlyRobustness.bestMonthNetPnl, 60);
+  assert.equal(result.monthlyRobustness.netPnlWithoutBestMonth, 40);
+  assert.equal(result.hardGates.monthlyIndependence.pass, null);
+});
+
+test('90-day monthly independence fails when the best month is removed', () => {
+  const result = evaluateEmailSignalRelease(validInput({
+    validationDays: 90,
+    activeMonths: [
+      { month: '2026-01', baseCostNetPnl: 100 },
+      { month: '2026-02', baseCostNetPnl: -100 }
+    ]
+  }));
   assert.equal(result.state, 'RESEARCH_ONLY');
+  assert.equal(result.monthlyRobustness.status, 'FAIL');
+  assert.equal(result.monthlyRobustness.netPnlWithoutBestMonth, -100);
   assert.equal(result.hardGates.monthlyIndependence.pass, false);
+});
+
+test('90-day monthly independence passes when the best month is removed and PnL remains positive', () => {
+  const result = evaluateEmailSignalRelease(validInput({ validationDays: 90 }));
+  assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(result.monthlyRobustness.status, 'PASS');
+  assert.equal(result.monthlyRobustness.netPnlWithoutBestMonth, 40);
+  assert.equal(result.hardGates.monthlyIndependence.pass, true);
 });
 
 test('negative 27bps stress is a warning, not a veto', () => {
@@ -119,6 +154,19 @@ test('loss streak above six is a warning, not a veto', () => {
   assert.equal(result.warnings.LOSS_STREAK_WARNING, true);
 });
 
+for (const [label, field, value, gateName] of [
+  ['base cost 10bps', 'baseCostBps', 10, 'baseCostBasis'],
+  ['missing base cost', 'baseCostBps', undefined, 'baseCostBasis'],
+  ['stress cost 20bps', 'stressCostBps', 20, 'stressCostBasis'],
+  ['missing stress cost', 'stressCostBps', undefined, 'stressCostBasis']
+]) {
+  test(`${label} fails cost-basis integrity closed`, () => {
+    const result = evaluateEmailSignalRelease(validInput({ [field]: value }));
+    assert.equal(result.state, 'RESEARCH_ONLY');
+    assert.equal(result.hardGates[gateName].pass, false);
+  });
+}
+
 for (const [field, gateName] of [
   ['liveOrdersEnabled', 'liveOrdersDisabled'],
   ['accountApi', 'accountApiDisabled'],
@@ -130,6 +178,25 @@ for (const [field, gateName] of [
       safety: { ...safety, [field]: true }
     });
     assert.equal(unsafe.state, 'RESEARCH_ONLY');
+  assert.equal(unsafe.hardGates[gateName].pass, false);
+  });
+}
+
+for (const [field, label] of [
+  ['automaticTrading', 'automaticTrading'],
+  ['signalOnly', 'signalOnly'],
+  ['paperOnly', 'paperOnly']
+]) {
+  const unsafeValue = field === 'automaticTrading' ? true : false;
+  test(`${label}=${unsafeValue} safety mode fails closed`, () => {
+    const unsafe = evaluateEmailSignalRelease({
+      ...validInput(),
+      safety: { ...safety, [field]: unsafeValue }
+    });
+    assert.equal(unsafe.state, 'RESEARCH_ONLY');
+    const gateName = field === 'automaticTrading'
+      ? 'automaticTradingDisabled'
+      : field === 'signalOnly' ? 'signalOnly' : 'paperOnly';
     assert.equal(unsafe.hardGates[gateName].pass, false);
   });
 }
@@ -143,6 +210,9 @@ test('the committed HY-EXP-0028 evaluation is machine-readable and candidate-onl
   assert.equal(artifact.releaseEligible, false);
   assert.equal(artifact.immutableSource.rewritten, false);
   assert.equal(artifact.authorization.liveOrdersEnabled, false);
+  assert.equal(artifact.hardGates.monthlyIndependence.status, 'DEFERRED');
+  assert.equal(artifact.hardGates.monthlyIndependence.pass, null);
+  assert.equal(artifact.monthlyRobustness.monthlyIndependenceEvaluable, false);
 });
 
 test('HY-EXP-0028 remains an email candidate under the new policy', () => {
@@ -155,14 +225,19 @@ test('HY-EXP-0028 remains an email candidate under the new policy', () => {
       validatedSignals: 43,
       validationDays: 53,
       baseCostNetPnl: 671.778467846798,
+      baseCostBps: 18,
       netExpectancyBps: 5.237781100313037,
       netProfitFactor: 1.1506895886413784,
+      stressCostBps: 27,
       stressNetExpectancyBps: -3.7622188996869474,
       maxMtmDrawdownPct: 7.723556081371896,
       distinctSymbols: 8,
       largestSymbolShare: 0.20930232558139536,
       netPnlWithoutBestTrade: 4.4107091824917,
-      positiveActiveMonthShare: 0.5,
+      activeMonths: [
+        { month: '2026-07', baseCostNetPnl: -564.8740225660517 },
+        { month: '2026-08', baseCostNetPnl: 1236.65249041285 }
+      ],
       maxLossStreak: 12
     }
   });
