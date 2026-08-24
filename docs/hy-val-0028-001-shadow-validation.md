@@ -8,6 +8,8 @@ The implementation records the immutable source commit `a61cb20318af1e0b188c0276
 
 The frozen shadow candidate engine does not accept regime, side, ATR, signal close, or feature values as admission inputs. It derives the latest completed 4h context, BTC SMA60/SMA180 regime, eight-symbol breadth, each symbol's ATR20, prior-120 breakout channel, prior-60 exit channel, six-bar quote-volume feature, and the complete eight-feature vector from causal completed bars. It then applies the fixed BULL/BUY Rule A and Q75 `10.051547664406323` gate. The resulting contract is exact: eight fixed USDT perpetual symbols, entry at the exact completed contract-price 5m bar open at `decisionTime + 5 minutes`, BUY stop `entryPrice - 2 * ATR20`, dynamic prior-60 completed 1h channel exit, terminal exit after six completed 1h bars, actual realized funding, and 18/27bps base/stress costs.
 
+Before any candidate or resolution can be admitted, the authoritative timelines are validated without sorting or repair. Each required 1h/4h series must be strictly ordered, duplicate-free, exactly contiguous, and have `closeBoundary = openTime + interval`; all eight symbols must share the signal 1h timestamp and every completed 4h bucket. Required OHLC and 4h quote-volume fields must be finite and physically valid. Resolution applies the same fail-closed checks to the observed 5m forward series, the evaluated 1h bars, and the prior 60-bar exit channel; a gap or alignment failure remains non-final `PENDING` evidence and cannot create a synthetic outcome.
+
 ## Activation and warmup
 
 `shadowValidationActivatedAt` is unset (`null`) in this PR. A later controlled activation must set it exactly once through `ShadowValidationActivation.setOnce`; a second set is rejected. A signal counts only when `decisionTime >= shadowValidationActivatedAt`.
@@ -21,7 +23,7 @@ Historical Binance public USD-M data may be used to build causal indicator warmu
 3. Do not email, write the production advisory outbox, or place an order.
 4. At `decisionTime + 5 minutes`, use the exact completed contract-price 5m bar open as the theoretical paper entry.
 5. Resolve only after the relevant public bars/funding events have occurred; otherwise keep the complete safe resolution state `PENDING` in runtime/health state with no PnL.
-6. Persist only a final `RESOLVED` record with `paperPnlComputed=true`; it is immutable and unique by `(validation_id, signal_id)`. A `PENDING` record is rejected by the resolution store and cannot occupy the final-result key.
+6. Persist only a final `RESOLVED` record with `paperPnlComputed=true`; it is immutable and unique by `(validation_id, signal_id)`. A `PENDING` record is rejected by the resolution store and cannot occupy the final-result key. `prospectiveValidatedSignals` is derived only from those immutable final resolution rows; emitted `SHADOW_SIGNAL` rows, candidates, and `PENDING` rows never increase the release count.
 7. Store realized gross bps, actual funding, net18/net27 bps, paper PnL, exit reason, MAE/MFE, MTM drawdown, timestamps, and source provenance.
 
 The local append-only adapter uses a separate root such as `data/shadow-validation/HY-VAL-0028-001` and these generic table contracts:
@@ -37,7 +39,7 @@ No Supabase migration or scheduler activation is included in this PR. A future c
 
 ## Evidence combination
 
-The original HY-EXP-0028 evidence remains `43` signals over `53` days. This validator reports prospective counts separately and exposes a combination ledger of `43 + N` signals and `53 + N` completed validation days. Gaps and warmup are excluded. Final release metrics must be recomputed from combined trade-level rows; aggregate PF/expectancy values must never be added.
+The original HY-EXP-0028 evidence remains `43` signals over `53` days. This validator reports prospective counts separately and exposes a combination ledger of `43 + N` signals and `53 + N` completed validation days. Here `N` is exactly `COUNT OF IMMUTABLE RESOLVED SHADOW TRADE EVIDENCE ROWS`, requiring `status=RESOLVED`, `paperPnlComputed=true`, `immutable=true`, and a unique final-evidence key. Emitted shadow signals, pending records, and candidate rows are excluded. Gaps and warmup are excluded. Final release metrics must be recomputed from combined trade-level rows; aggregate PF/expectancy values must never be added.
 
 ## Safety
 

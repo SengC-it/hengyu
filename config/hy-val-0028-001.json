@@ -122,6 +122,17 @@
     "originalValidatedSignals": 43,
     "originalValidationDays": 53,
     "prospectiveCountsOnlyAfterActivation": true,
+    "prospectiveValidatedSignalsDefinition": "COUNT OF IMMUTABLE RESOLVED SHADOW TRADE EVIDENCE ROWS",
+    "prospectiveValidatedSignalsExcludes": [
+      "SHADOW_SIGNAL",
+      "PENDING",
+      "candidate"
+    ],
+    "prospectiveValidatedSignalRowRequirement": {
+      "status": "RESOLVED",
+      "paperPnlComputed": true,
+      "immutable": true
+    },
     "recalculateTradeLevelMetrics": true,
     "doNotAddAggregatePFOrExpectancy": true
   }

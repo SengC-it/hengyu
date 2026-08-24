@@ -35,6 +35,7 @@ export const HY_VAL_PUBLIC_ENDPOINTS = Object.freeze([
 
 const HOUR = 60 * 60 * 1_000;
 const FIVE_MINUTES = 5 * 60 * 1_000;
+const FOUR_HOURS = 4 * HOUR;
 const REQUIRED_FEATURE_INDEX = 7;
 const DERIVED_CONTEXT_TOKEN = Symbol('HY-VAL-0028-001 derived causal context');
 
@@ -156,8 +157,151 @@ function averageTrueRange(rows, index, period = 20) {
 }
 
 function parseBoundary(value) {
-  const parsed = typeof value === 'number' ? value : Date.parse(value);
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value === 'string' && /^-?\d+(?:\.\d+)?$/.test(value.trim())) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+  const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function hasFiniteNumericValue(value) {
+  return value != null && value !== '' && Number.isFinite(Number(value));
+}
+
+function validateNumericBar(row, {
+  kind,
+  intervalMs,
+  requireQuoteVolume = false,
+  boundaryField = 'closeBoundary',
+  boundaryOffsetMs = intervalMs
+} = {}) {
+  if (!row || typeof row !== 'object') return `${kind}_BAR_INVALID`;
+  const openTime = parseBoundary(row.openTime);
+  const boundary = parseBoundary(row[boundaryField]);
+  if (openTime == null || boundary == null || boundary !== openTime + boundaryOffsetMs) {
+    return `${kind}_BOUNDARY_INVALID`;
+  }
+  if (openTime % intervalMs !== 0) return `${kind}_OPEN_TIME_MISALIGNED`;
+  for (const field of ['open', 'high', 'low', 'close']) {
+    if (!hasFiniteNumericValue(row[field])) return `${kind}_OHLC_INVALID`;
+  }
+  const open = Number(row.open);
+  const high = Number(row.high);
+  const low = Number(row.low);
+  const close = Number(row.close);
+  if (high < low || high < Math.max(open, close) || low > Math.min(open, close)) {
+    return `${kind}_OHLC_INVALID`;
+  }
+  if (requireQuoteVolume
+    && (!hasFiniteNumericValue(row.quoteVolume) || Number(row.quoteVolume) < 0)) {
+    return `${kind}_QUOTE_VOLUME_INVALID`;
+  }
+  return null;
+}
+
+function validateSeries(rows, {
+  kind,
+  intervalMs,
+  requireQuoteVolume = false,
+  boundaryField = 'closeBoundary',
+  boundaryOffsetMs = intervalMs
+} = {}) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { ok: false, rejection: `${kind}_MISSING` };
+  }
+  let previousOpenTime = null;
+  for (const row of rows) {
+    const numericFailure = validateNumericBar(row, {
+      kind,
+      intervalMs,
+      requireQuoteVolume,
+      boundaryField,
+      boundaryOffsetMs
+    });
+    if (numericFailure) return { ok: false, rejection: numericFailure };
+    const openTime = parseBoundary(row.openTime);
+    if (previousOpenTime != null) {
+      if (openTime === previousOpenTime) {
+        return { ok: false, rejection: `${kind}_DUPLICATE_OPEN_TIME` };
+      }
+      if (openTime < previousOpenTime) {
+        return { ok: false, rejection: `${kind}_OUT_OF_ORDER` };
+      }
+      if (openTime - previousOpenTime !== intervalMs) {
+        return { ok: false, rejection: `${kind}_GAP` };
+      }
+    }
+    previousOpenTime = openTime;
+  }
+  return { ok: true, rejection: null };
+}
+
+function validateCausalInputs({ bars1hBySymbol, bars4hBySymbol, signalIndexes = [] } = {}) {
+  for (const symbol of HY_EXP_0028_SYMBOLS) {
+    const oneHour = validateSeries(bars1hBySymbol?.[symbol], {
+      kind: 'CAUSAL_1H',
+      intervalMs: HOUR,
+      requireQuoteVolume: false
+    });
+    if (!oneHour.ok) return { ok: false, symbol, rejection: oneHour.rejection };
+    const fourHour = validateSeries(bars4hBySymbol?.[symbol], {
+      kind: 'CAUSAL_4H',
+      intervalMs: FOUR_HOURS,
+      requireQuoteVolume: true
+    });
+    if (!fourHour.ok) return { ok: false, symbol, rejection: fourHour.rejection };
+  }
+
+  const reference4h = bars4hBySymbol.BTCUSDT;
+  const maximumFourHourLength = Math.max(...HY_EXP_0028_SYMBOLS.map(symbol => bars4hBySymbol[symbol].length));
+  for (let index = 0; index < maximumFourHourLength; index += 1) {
+    const reference = reference4h[index];
+    if (!reference) return { ok: false, symbol: 'BTCUSDT', rejection: 'CAUSAL_4H_BUCKET_MISALIGNED' };
+    const referenceOpenTime = parseBoundary(reference.openTime);
+    const referenceCloseBoundary = parseBoundary(reference.closeBoundary);
+    for (const symbol of HY_EXP_0028_SYMBOLS) {
+      const row = bars4hBySymbol[symbol]?.[index];
+      if (!row
+        || parseBoundary(row.openTime) !== referenceOpenTime
+        || parseBoundary(row.closeBoundary) !== referenceCloseBoundary) {
+        return { ok: false, symbol, rejection: 'CAUSAL_4H_BUCKET_MISALIGNED' };
+      }
+    }
+  }
+
+  for (const index of signalIndexes) {
+    if (!Number.isInteger(index) || index < 1) {
+      return { ok: false, symbol: 'ALL', rejection: 'CAUSAL_1H_SIGNAL_INDEX_INVALID' };
+    }
+    const reference = bars1hBySymbol.BTCUSDT[index];
+    if (!reference) return { ok: false, symbol: 'ALL', rejection: 'CAUSAL_1H_SIGNAL_BAR_MISSING' };
+    const signalOpenTime = parseBoundary(reference.openTime);
+    for (const symbol of HY_EXP_0028_SYMBOLS) {
+      const rows = bars1hBySymbol[symbol];
+      const signalBar = rows?.[index];
+      const previousBar = rows?.[index - 1];
+      if (!signalBar || parseBoundary(signalBar.openTime) !== signalOpenTime) {
+        return { ok: false, symbol, rejection: 'CAUSAL_1H_SIGNAL_ALIGNMENT' };
+      }
+      if (!previousBar
+        || parseBoundary(previousBar.closeBoundary) !== signalOpenTime) {
+        return { ok: false, symbol, rejection: 'CAUSAL_1H_PREVIOUS_BAR_BOUNDARY' };
+      }
+      const priorEntry = rows.slice(index - 120, index);
+      const priorExit = rows.slice(index - 60, index);
+      if (priorEntry.length !== 120
+        || parseBoundary(priorEntry.at(-1)?.closeBoundary) !== signalOpenTime) {
+        return { ok: false, symbol, rejection: 'CAUSAL_1H_ENTRY_HISTORY_END_MISMATCH' };
+      }
+      if (priorExit.length !== 60
+        || parseBoundary(priorExit.at(-1)?.closeBoundary) !== signalOpenTime) {
+        return { ok: false, symbol, rejection: 'CAUSAL_1H_EXIT_HISTORY_END_MISMATCH' };
+      }
+    }
+  }
+  return { ok: true, symbol: null, rejection: null };
 }
 
 function hasCausalCompletedHistory(rows, decisionTime, required) {
@@ -411,6 +555,22 @@ export function buildFrozenShadowCandidates({
   const indexes = signalIndex == null
     ? Array.from({ length: Math.max(0, reference.length - firstIndex) }, (_, offset) => firstIndex + offset)
     : [Number(signalIndex)];
+  const continuity = validateCausalInputs({
+    bars1hBySymbol,
+    bars4hBySymbol,
+    signalIndexes: indexes
+  });
+  if (!continuity.ok) {
+    return {
+      contexts: [],
+      candidates: [],
+      rejections: [{
+        symbol: continuity.symbol,
+        decisionTime: null,
+        rejection: continuity.rejection
+      }]
+    };
+  }
   const contexts = [];
   const candidates = [];
   const rejections = [];
@@ -449,7 +609,7 @@ export function buildShadowSignal(candidate) {
 
 function fiveMinuteAt(source, openTime) {
   if (source instanceof Map) return source.get(openTime) ?? null;
-  return (source ?? []).find(row => Number(row.openTime) === openTime) ?? null;
+  return (source ?? []).find(row => parseBoundary(row.openTime) === openTime) ?? null;
 }
 
 function appendMark(marks, side, row, entryPrice) {
@@ -542,21 +702,63 @@ export function resolveFrozenPaperTrade({ signal, bars1h = [], bars5m = [], fund
   }
   const asOf = timestamp('asOfTime', asOfTime);
   const requiredOpenTime = decisionTime + HY_EXP_0028_ENTRY_OFFSET_MS;
-  const fiveMinuteRows = bars5m
-    .filter(row => Number(row.closeTime ?? row.openTime + FIVE_MINUTES - 1) <= asOf)
-    .sort((left, right) => Number(left.openTime) - Number(right.openTime));
+  const fiveMinuteRows = (bars5m ?? []).filter(row => {
+    const openTime = parseBoundary(row.openTime);
+    const closeTime = parseBoundary(row.closeTime ?? (openTime == null ? null : openTime + FIVE_MINUTES - 1));
+    return closeTime != null && closeTime <= asOf;
+  });
+  if (fiveMinuteRows.length) {
+    const continuity = validateSeries(fiveMinuteRows, {
+      kind: 'FORWARD_5M',
+      intervalMs: FIVE_MINUTES,
+      boundaryField: 'closeTime',
+      boundaryOffsetMs: FIVE_MINUTES - 1
+    });
+    if (!continuity.ok) {
+      return {
+        ...pending('FORWARD_5M_CONTINUITY_FAILURE', asOf, signal),
+        continuityRejection: continuity.rejection
+      };
+    }
+  }
   const entryBar = fiveMinuteAt(fiveMinuteRows, requiredOpenTime);
   if (!entryBar) return pending('ENTRY_BAR_NOT_YET_OBSERVED', requiredOpenTime + FIVE_MINUTES - 1, signal);
   const entryPrice = finite('entryPrice', entryBar.open);
   const stopPrice = entryPrice - 2 * finite('atr20', signal.atr20);
   if (!(stopPrice > 0)) throw new Error('invalid frozen stop price');
-  const observed1h = bars1h
-    .filter(row => Number(row.closeBoundary ?? row.openTime + HOUR) <= asOf)
-    .sort((left, right) => Number(left.openTime) - Number(right.openTime));
+  const observed1h = (bars1h ?? []).filter(row => {
+    const openTime = parseBoundary(row.openTime);
+    const closeBoundary = parseBoundary(row.closeBoundary ?? (openTime == null ? null : openTime + HOUR));
+    return closeBoundary != null && closeBoundary <= asOf;
+  });
+  if (!observed1h.length) {
+    return {
+      ...pending('FORWARD_1H_CONTINUITY_FAILURE', asOf, signal),
+      continuityRejection: 'FORWARD_1H_MISSING'
+    };
+  }
+  const oneHourContinuity = validateSeries(observed1h, {
+    kind: 'FORWARD_1H',
+    intervalMs: HOUR
+  });
+  if (!oneHourContinuity.ok) {
+    return {
+      ...pending('FORWARD_1H_CONTINUITY_FAILURE', asOf, signal),
+      continuityRejection: oneHourContinuity.rejection
+    };
+  }
+  const evaluationStartIndex = observed1h.findIndex(row => parseBoundary(row.closeBoundary) > requiredOpenTime);
+  if (evaluationStartIndex < 0) {
+    return pending('MAX_HOLD_WINDOW_NOT_YET_OBSERVED', requiredOpenTime + HY_EXP_0028_MAX_HOLD_BARS * HOUR, signal);
+  }
+  const firstEvaluationBar = observed1h[evaluationStartIndex];
+  if (parseBoundary(firstEvaluationBar.openTime) !== decisionTime
+    || parseBoundary(firstEvaluationBar.closeBoundary) !== decisionTime + HOUR) {
+    return pending('EVALUATION_1H_ALIGNMENT_FAILURE', decisionTime + HOUR, signal);
+  }
   const evaluationBars = observed1h
-    .map((row, index) => ({ row, index }))
-    .filter(item => Number(item.row.closeBoundary ?? item.row.openTime + HOUR) > requiredOpenTime)
-    .slice(0, HY_EXP_0028_MAX_HOLD_BARS);
+    .slice(evaluationStartIndex, evaluationStartIndex + HY_EXP_0028_MAX_HOLD_BARS)
+    .map((row, offset) => ({ row, index: evaluationStartIndex + offset }));
   if (evaluationBars.length < HY_EXP_0028_MAX_HOLD_BARS) {
     const requiredThrough = evaluationBars.at(-1)?.row.closeBoundary
       ?? requiredOpenTime + HY_EXP_0028_MAX_HOLD_BARS * HOUR;
@@ -587,7 +789,10 @@ export function resolveFrozenPaperTrade({ signal, bars1h = [], bars5m = [], fund
     }
     if (exit) break;
     const priorChannel = observed1h.slice(index - 60, index);
-    if (priorChannel.length !== 60) throw new Error('MISSING_FROZEN_CHANNEL_HISTORY');
+    if (priorChannel.length !== 60
+      || parseBoundary(priorChannel.at(-1)?.closeBoundary) !== parseBoundary(row.openTime)) {
+      return pending('DYNAMIC_CHANNEL_HISTORY_INCOMPLETE', closeBoundary, signal);
+    }
     const channelLow = Math.min(...priorChannel.map(item => Number(item.low)));
     if (Number(row.close) <= channelLow) {
       exit = { price: Number(row.close), time: closeBoundary, reason: 'DYNAMIC_CHANNEL_EXIT' };
@@ -598,7 +803,7 @@ export function resolveFrozenPaperTrade({ signal, bars1h = [], bars5m = [], fund
       exit = { price: Number(row.close), time: closeBoundary, reason: 'TERMINAL_EXIT' };
     }
   }
-  if (!exit) throw new Error('MISSING_FROZEN_EXIT');
+  if (!exit) return pending('EXIT_EVIDENCE_INCOMPLETE', asOf, signal);
   const funding = realizedFunding({
     side: 'BUY',
     entryPrice,
@@ -656,13 +861,34 @@ export function countCompletedValidationDays({ completedUtcDays = [], coveredUtc
 
 export function combineValidationEvidence({
   originalValidatedSignals = 43,
-  prospectiveValidatedSignals = 0,
+  prospectiveResolvedRows = [],
+  prospectiveValidatedSignals,
   originalValidationDays = 53,
   prospectiveCompletedValidationDays = 0
 } = {}) {
+  if (prospectiveValidatedSignals !== undefined) {
+    throw new Error('prospectiveValidatedSignals must be derived from immutable resolved rows');
+  }
+  if (!Array.isArray(prospectiveResolvedRows)) {
+    throw new Error('prospectiveResolvedRows must be an array');
+  }
+  const evidenceKeys = new Set();
+  for (const row of prospectiveResolvedRows) {
+    if (row?.status !== 'RESOLVED'
+      || row?.paperPnlComputed !== true
+      || row?.immutable !== true) {
+      throw new Error('only immutable RESOLVED paper evidence counts as prospective validation');
+    }
+    const key = row.idempotencyKey ?? `${row.validationId ?? ''}:${row.signalId ?? ''}`;
+    if (!key || key === ':' || evidenceKeys.has(key)) {
+      throw new Error('prospective resolved evidence must have unique immutable keys');
+    }
+    evidenceKeys.add(key);
+  }
+  const derivedProspectiveValidatedSignals = prospectiveResolvedRows.length;
   for (const [name, value] of Object.entries({
     originalValidatedSignals,
-    prospectiveValidatedSignals,
+    prospectiveValidatedSignals: derivedProspectiveValidatedSignals,
     originalValidationDays,
     prospectiveCompletedValidationDays
   })) {
@@ -670,8 +896,9 @@ export function combineValidationEvidence({
   }
   return {
     originalValidatedSignals,
-    prospectiveValidatedSignals,
-    combinedValidatedSignals: originalValidatedSignals + prospectiveValidatedSignals,
+    prospectiveValidatedSignals: derivedProspectiveValidatedSignals,
+    prospectiveValidatedSignalsDefinition: 'COUNT OF IMMUTABLE RESOLVED SHADOW TRADE EVIDENCE ROWS',
+    combinedValidatedSignals: originalValidatedSignals + derivedProspectiveValidatedSignals,
     originalValidationDays,
     prospectiveCompletedValidationDays,
     combinedValidationDays: originalValidationDays + prospectiveCompletedValidationDays,

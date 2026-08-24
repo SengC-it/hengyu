@@ -240,7 +240,7 @@ function makeEvaluationData(signal, exitMode = 'TERMINAL', { includeEntry = true
       closeBoundary: openTime + HOUR,
       open: 100,
       high: 101,
-      low: evaluation ? 99 : 90,
+      low: evaluation ? Math.min(99, close) : 90,
       close
     };
   });
@@ -439,6 +439,82 @@ test('candidate parity fixtures cover bull, sideways, bear, Q75 rejection, and e
   }
 });
 
+test('causal 1h missing bar immediately before signal is rejected', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  dataset.bars1hBySymbol.BTCUSDT.splice(SIGNAL_INDEX - 1, 1);
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_1H_GAP');
+});
+
+test('causal 1h gap inside the prior 120-entry history is rejected', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  dataset.bars1hBySymbol.ETHUSDT.splice(SIGNAL_INDEX - 60, 1);
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_1H_GAP');
+});
+
+test('causal 1h duplicate timestamp is rejected', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  const duplicate = { ...dataset.bars1hBySymbol.BNBUSDT[SIGNAL_INDEX - 10] };
+  dataset.bars1hBySymbol.BNBUSDT.splice(SIGNAL_INDEX - 10, 0, duplicate);
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_1H_DUPLICATE_OPEN_TIME');
+});
+
+test('one-symbol 1h signal misalignment is rejected', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  dataset.bars1hBySymbol.SOLUSDT = dataset.bars1hBySymbol.SOLUSDT.map(row => ({
+    ...row,
+    openTime: row.openTime + HOUR,
+    closeBoundary: row.closeBoundary + HOUR
+  }));
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_1H_SIGNAL_ALIGNMENT');
+});
+
+test('causal 4h gap inside BTC regime history is rejected', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  dataset.bars4hBySymbol.BTCUSDT.splice(100, 1);
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_4H_GAP');
+});
+
+test('one-symbol 4h bucket misalignment is rejected', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  dataset.bars4hBySymbol.LTCUSDT = dataset.bars4hBySymbol.LTCUSDT.map(row => ({
+    ...row,
+    openTime: row.openTime + 4 * HOUR,
+    closeBoundary: row.closeBoundary + 4 * HOUR
+  }));
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_4H_BUCKET_MISALIGNED');
+});
+
+test('malformed causal OHLC is rejected without coercion', () => {
+  const dataset = structuredClone(makeCausalDataset());
+  const row = dataset.bars1hBySymbol.BTCUSDT[SIGNAL_INDEX];
+  row.high = row.close - 1;
+  const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  assert.equal(built.candidates.length, 0);
+  assert.equal(built.rejections[0].rejection, 'CAUSAL_1H_OHLC_INVALID');
+});
+
+test('negative and non-finite required 4h quote volume are rejected', () => {
+  for (const quoteVolume of [-1, Number.NaN]) {
+    const dataset = structuredClone(makeCausalDataset());
+    dataset.bars4hBySymbol.BTCUSDT[100].quoteVolume = quoteVolume;
+    const built = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+    assert.equal(built.candidates.length, 0);
+    assert.equal(built.rejections[0].rejection, 'CAUSAL_4H_QUOTE_VOLUME_INVALID');
+  }
+});
+
 test('shadow signal uses signal+5m entry and never enters Gmail or production advisory paths', () => {
   const signal = makeShadowSignal();
   assert.equal(signal.status, 'SHADOW_SIGNAL');
@@ -582,6 +658,29 @@ test('missing exact +5m entry remains pending and never fabricates a later entry
   assert.equal(result.orderPlaced, false);
 });
 
+test('missing forward 5m bar remains PENDING and is never resolved', () => {
+  const signal = makeShadowSignal();
+  const data = makeEvaluationData(signal, 'TERMINAL');
+  const missingOpenTime = signal.entryTime + FIVE_MINUTES;
+  data.bars5m = data.bars5m.filter(row => row.openTime !== missingOpenTime);
+  const result = resolveFrozenPaperTrade({ signal, ...data });
+  assert.equal(result.status, 'PENDING');
+  assert.equal(result.reason, 'FORWARD_5M_CONTINUITY_FAILURE');
+  assert.equal(result.continuityRejection, 'FORWARD_5M_GAP');
+  assert.equal(result.paperPnlComputed, false);
+});
+
+test('gap in the prior 60-bar dynamic exit history cannot resolve evidence', () => {
+  const signal = makeShadowSignal();
+  const data = makeEvaluationData(signal, 'TERMINAL');
+  data.bars1h.splice(30, 1);
+  const result = resolveFrozenPaperTrade({ signal, ...data });
+  assert.equal(result.status, 'PENDING');
+  assert.equal(result.reason, 'FORWARD_1H_CONTINUITY_FAILURE');
+  assert.equal(result.continuityRejection, 'FORWARD_1H_GAP');
+  assert.equal(result.paperPnlComputed, false);
+});
+
 test('outcome cannot be resolved for an uncounted or pre-activation signal', () => {
   const signal = makeShadowSignal();
   assert.throws(() => resolveFrozenPaperTrade({ signal: { countedProspective: false }, asOfTime: ACTIVATION_TIME }), /pre-activation/);
@@ -599,13 +698,25 @@ test('combined evidence keeps original 43 separate and excludes validation gaps'
   assert.equal(completedDays, 3);
   const combined = combineValidationEvidence({
     originalValidatedSignals: 43,
-    prospectiveValidatedSignals: 7,
+    prospectiveResolvedRows: Array.from({ length: 7 }, (_, index) => ({
+      status: 'RESOLVED',
+      paperPnlComputed: true,
+      immutable: true,
+      idempotencyKey: `HY-VAL-0028-001:signal-${index}`
+    })),
     originalValidationDays: 53,
     prospectiveCompletedValidationDays: completedDays
   });
   assert.equal(combined.originalValidatedSignals, 43);
   assert.equal(combined.prospectiveValidatedSignals, 7);
+  assert.equal(combined.prospectiveValidatedSignalsDefinition, 'COUNT OF IMMUTABLE RESOLVED SHADOW TRADE EVIDENCE ROWS');
   assert.equal(combined.combinedValidatedSignals, 50);
   assert.equal(combined.combinedValidationDays, 56);
   assert.equal(combined.metricsMustBeRecomputedFromTradeRows, true);
+  assert.throws(() => combineValidationEvidence({
+    prospectiveValidatedSignals: 1
+  }), /derived from immutable resolved rows/);
+  assert.throws(() => combineValidationEvidence({
+    prospectiveResolvedRows: [{ status: 'PENDING', paperPnlComputed: false, immutable: true, idempotencyKey: 'pending' }]
+  }), /only immutable RESOLVED paper evidence/);
 });
