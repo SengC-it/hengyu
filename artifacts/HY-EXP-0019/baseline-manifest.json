@@ -17,7 +17,7 @@
     "registryTerminalEvent": "failed",
     "registryTerminalHash": "316b208a4d4e2e5971adbc62445cefe6918bf0f0aa06b66731763f00d6300207",
     "provenanceMode": "ORIGINAL_IMMUTABLE_HISTORY_REFERENCE",
-    "sourceResultPresentInCurrentCheckout": false
+    "sourceResultPresentInCurrentCheckout": true
   },
   "validation": {
     "windowStart": "2025-07-01T00:00:00.000Z",

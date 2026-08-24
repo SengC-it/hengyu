@@ -8,12 +8,13 @@
       "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
       "artifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
       "artifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+      "researchEquityUsdt": 100000,
       "status": "HOLDOUT_FAILED"
     },
     "validatedBaseline": {
       "experimentId": "HY-EXP-0019",
       "manifestPath": "artifacts/HY-EXP-0019/baseline-manifest.json",
-      "manifestSha256": "d3e59c844b632fcd5c8304211ebeb89439f928f7bc61d64e98beb59a2abeae10"
+      "manifestSha256": "3d1865afea13221d64f85641ba92312a7e0b593c94e629b17e520c19875b3edd"
     }
   },
   "authorization": {

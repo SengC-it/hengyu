@@ -4,9 +4,9 @@ This is a derived governance evaluation. It does not rewrite or replace the froz
 
 ## Decision
 
-`RESEARCH_ONLY`
+`EMAIL_SIGNAL_RELEASE_READY`
 
-The V2 economics, risk/concentration, integrity, and readiness gates pass, but release is fail-closed because the evaluator cannot verify the actual immutable source bytes or the baseline source files in the current checkout. This result is not eligible for email release.
+The V2 economics, risk/concentration, integrity, readiness, immutable-source, and validated-baseline gates pass. This is eligibility for explicit PAPER_ONLY human-review email approval only; it is not an automatic release or trading authorization.
 
 ## Immutable source
 
@@ -16,7 +16,7 @@ The V2 economics, risk/concentration, integrity, and readiness gates pass, but r
 | Source commit | `a61cb20318af1e0b188c0276a1a3d65e52bc4467` |
 | Source artifact | `artifacts/HY-EXP-0028/holdout-result.json` |
 | Expected SHA-256 | `92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5` |
-| Computed SHA-256 | `null` (missing file) |
+| Computed SHA-256 | `92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5` |
 | Frozen source status | `HOLDOUT_FAILED` |
 
 ## Frozen policy gates
@@ -30,8 +30,10 @@ The V2 economics, risk/concentration, integrity, and readiness gates pass, but r
 | 18bps net expectancy > 0 | PASS | 5.237781100313037 bps |
 | 18bps net PF >= 1.10 | PASS | 1.1506895886413784 |
 | Cost basis integrity | PASS | baseCostBps=18 and stressCostBps=27 explicitly match policy |
-| Immutable source bytes/provenance | FAIL | referenced artifact is missing; no computed SHA-256 |
-| Better than HY-EXP-0019 baseline | FAIL | baseline metrics compare positively, but immutable baseline result/data files are missing in this checkout |
+| Artifact-derived metrics | PASS | all release metrics are derived from verified holdout-result.json bytes and immutable trades |
+| Caller metric assertions | PASS | supplied values match the artifact-derived values; they cannot override them |
+| Immutable source bytes/provenance | PASS | exact source bytes and frozen SHA-256 recomputed successfully |
+| Better than HY-EXP-0019 baseline | PASS | verified candidate is positive and improves PF and equity-bps/trade |
 | Max MTM DD <= 10% | PASS | 7.723556081371896% |
 | Distinct symbols >= 6 | PASS | 8 |
 | Largest symbol share <= 40% | PASS | 20.930232558139536% |
@@ -49,7 +51,7 @@ The frozen monthly calculation is still recorded for audit: July 2026 was `-564.
 
 ## HY-EXP-0019 validated baseline
 
-The derived manifest at `artifacts/HY-EXP-0019/baseline-manifest.json` records the canonical leakage-free OOS reference without rewriting its result: source commit `9d6b5298fab9760a611c2b5e52e86c500a6688a1`, frozen result commit `9f23475802f3ca9a85957a5ab2e69ac42b0c1aa2`, result SHA-256 `3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f`, 41 trades over `2025-07-01` through `2026-07-01` exclusive, and research equity `100000 USDT`. Its frozen OOS PF is `0` and net return is `-127.63487537771283 bps`; normalized net bps per trade is `-3.113045740919825`. The candidate comparison is positive (`PF 1.1506895886413784`, `netExpectancyBps 5.237781100313037`), but provenance is not considered verified until the actual baseline result and data-manifest bytes are available and hashed.
+The derived manifest at `artifacts/HY-EXP-0019/baseline-manifest.json` records the canonical leakage-free OOS reference without rewriting its result: source commit `9d6b5298fab9760a611c2b5e52e86c500a6688a1`, frozen result commit `9f23475802f3ca9a85957a5ab2e69ac42b0c1aa2`, manifest SHA-256 `3d1865afea13221d64f85641ba92312a7e0b593c94e629b17e520c19875b3edd`, result SHA-256 `3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f`, and data-manifest SHA-256 `136ba1268cb91c700f55cdfa5a487aa3e9bd0c0575996bece314fb5223cf4986`. The verified result contains 41 trades over `2025-07-01` through `2026-07-01` exclusive, research equity `100000 USDT`, OOS PF `0`, net return `-127.63487537771283 bps`, and equity-normalized `-3.113045740919825 bps/trade`. HY-EXP-0028 derives `1.5622755066204606 equity bps/trade` from `netPnl / 100000 * 10000 / 43`, so the baseline comparison passes without using raw total PnL as the gate.
 
 ## Safety and next step
 

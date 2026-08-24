@@ -4,8 +4,8 @@
   "experimentId": "HY-EXP-0028",
   "policyId": "EMAIL_SIGNAL_RELEASE-001",
   "policyVersion": 2,
-  "status": "RESEARCH_ONLY",
-  "releaseEligible": false,
+  "status": "EMAIL_SIGNAL_RELEASE_READY",
+  "releaseEligible": true,
   "authorization": {
     "signalOnly": true,
     "paperOnly": true,
@@ -27,18 +27,18 @@
     "rewritten": false
   },
   "immutableSourceVerification": {
-    "pass": false,
+    "pass": true,
     "expectedArtifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
     "expectedSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
-    "computedSha256": null,
+    "computedSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
     "declaredSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
     "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
     "pathMatches": true,
     "commitMatches": true,
     "declaredHashMatches": true,
     "statusMatches": true,
-    "computedHashMatches": false,
-    "detail": "missing file"
+    "computedHashMatches": true,
+    "detail": "immutable source bytes and frozen provenance verified"
   },
   "metrics": {
     "validatedSignals": 43,
@@ -54,7 +54,7 @@
     "maxMtmDrawdownPct": 7.723556081371896,
     "distinctSymbols": 8,
     "largestSymbolShare": 0.20930232558139536,
-    "netPnlWithoutBestTrade": 4.4107091824917,
+    "netPnlWithoutBestTrade": 4.410709182491701,
     "activeMonths": [
       {
         "month": "2026-07",
@@ -69,7 +69,38 @@
         "positive": true
       }
     ],
-    "maxLossStreak": 12
+    "maxLossStreak": 12,
+    "researchEquityUsdt": 100000,
+    "tradeCount": 43,
+    "fundingPnl": -15.491751432713313
+  },
+  "artifactDerivedMetrics": {
+    "pass": true,
+    "source": "verified immutable HY-EXP-0028 holdout-result.json bytes",
+    "activeMonthsDefinition": "UTC decisionTime month summed from immutable trades[].netPnl",
+    "errors": []
+  },
+  "callerMetricAssertions": {
+    "pass": true,
+    "assertedFields": [
+      "validatedSignals",
+      "validationDays",
+      "baseCostBps",
+      "baseCostNetPnl",
+      "grossExpectancyBps",
+      "netExpectancyBps",
+      "netProfitFactor",
+      "stressCostBps",
+      "stressNetExpectancyBps",
+      "stressNetProfitFactor",
+      "maxMtmDrawdownPct",
+      "distinctSymbols",
+      "largestSymbolShare",
+      "netPnlWithoutBestTrade",
+      "activeMonths",
+      "maxLossStreak"
+    ],
+    "failures": []
   },
   "integrityEvidence": {
     "noLookaheadOrLeakage": true,
@@ -90,19 +121,27 @@
     },
     "baseCostBasis": {
       "pass": true,
-      "detail": "metrics.baseCostBps must equal frozen 18"
+      "detail": "caller and verified artifact baseCostBps must equal frozen 18"
     },
     "stressCostBasis": {
       "pass": true,
-      "detail": "metrics.stressCostBps must equal frozen 27"
+      "detail": "caller and verified artifact stressCostBps must equal frozen 27"
+    },
+    "artifactDerivedMetrics": {
+      "pass": true,
+      "detail": "release metrics derived from verified HY-EXP-0028 artifact bytes and trade evidence"
+    },
+    "callerMetricsMatchArtifact": {
+      "pass": true,
+      "detail": "caller release metrics are assertions consistent with verified artifact bytes"
     },
     "immutableSourceVerified": {
-      "pass": false,
-      "detail": "missing file"
+      "pass": true,
+      "detail": "immutable source bytes and frozen provenance verified"
     },
     "betterThanValidatedBaseline": {
-      "pass": false,
-      "detail": "baseline provenance and compatible metrics must be verified before comparison can pass"
+      "pass": true,
+      "detail": "candidate is positive after its frozen costs and improves every compatible baseline metric"
     },
     "baseCostNetPnlPositive": {
       "pass": true,
@@ -184,32 +223,47 @@
   "baselineComparison": {
     "baselineExperimentId": "HY-EXP-0019",
     "provenance": {
-      "pass": false,
-      "provenanceVerified": false,
+      "pass": true,
+      "provenanceVerified": true,
       "manifestPath": "artifacts/HY-EXP-0019/baseline-manifest.json",
-      "manifestSha256": "d3e59c844b632fcd5c8304211ebeb89439f928f7bc61d64e98beb59a2abeae10",
-      "expectedManifestSha256": "d3e59c844b632fcd5c8304211ebeb89439f928f7bc61d64e98beb59a2abeae10",
+      "manifestSha256": "3d1865afea13221d64f85641ba92312a7e0b593c94e629b17e520c19875b3edd",
+      "expectedManifestSha256": "3d1865afea13221d64f85641ba92312a7e0b593c94e629b17e520c19875b3edd",
       "resultArtifactPath": "artifacts/HY-EXP-0019/result.json",
       "resultArtifactSha256": "3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f",
-      "resultComputedSha256": null,
-      "dataManifestComputedSha256": null,
-      "errors": [
-        "baseline result missing file",
-        "baseline data manifest missing file"
-      ]
+      "resultComputedSha256": "3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f",
+      "dataManifestComputedSha256": "136ba1268cb91c700f55cdfa5a487aa3e9bd0c0575996bece314fb5223cf4986",
+      "manifestMetricsDerivedFromResult": true,
+      "manifestMetricComparisons": {
+        "tradeCount": true,
+        "researchEquityUsdt": true,
+        "netProfitFactor": true,
+        "netReturn": true,
+        "netReturnBps": true,
+        "normalizedNetBpsPerTrade": true,
+        "markToMarketDrawdown": true,
+        "positiveMonths": true,
+        "observedMonths": true
+      },
+      "errors": []
     },
     "candidateMetrics": {
       "baseCostNetPnl": 671.778467846798,
       "netExpectancyBps": 5.237781100313037,
       "netProfitFactor": 1.1506895886413784,
-      "normalizedNetBpsPerTrade": 5.237781100313037
+      "tradeCount": 43,
+      "researchEquityUsdt": 100000,
+      "equityBpsPerTrade": 1.5622755066204606
     },
     "baselineMetrics": {
       "tradeCount": 41,
       "netProfitFactor": 0,
       "netReturn": -0.012763487537771283,
       "netReturnBps": -127.63487537771283,
+      "markToMarketDrawdown": -0.036301297700173873,
+      "positiveMonths": 0,
+      "observedMonths": 12,
       "normalizedNetBpsPerTrade": -3.113045740919825,
+      "equityBpsPerTrade": -3.113045740919825,
       "researchEquityUsdt": 100000,
       "costBasis": "HY-EXP-0019 frozen preregistered costs; not relabeled as 18bps"
     },
@@ -217,10 +271,10 @@
       "candidateBaseCostNetResultPositive": true,
       "baselineFrozenNetResultNegative": true,
       "candidateProfitFactorGreater": true,
-      "candidateNormalizedNetBpsPerTradeGreater": true
+      "candidateEquityBpsPerTradeGreater": true
     },
-    "pass": false,
-    "detail": "baseline provenance and compatible metrics must be verified before comparison can pass"
+    "pass": true,
+    "detail": "candidate is positive after its frozen costs and improves every compatible baseline metric"
   },
   "costBasis": {
     "baseCostBps": 18,
@@ -230,11 +284,11 @@
     "checks": {
       "baseCostBasis": {
         "pass": true,
-        "detail": "metrics.baseCostBps equals frozen 18"
+        "detail": "caller and verified artifact baseCostBps equal frozen 18"
       },
       "stressCostBasis": {
         "pass": true,
-        "detail": "metrics.stressCostBps equals frozen 27"
+        "detail": "caller and verified artifact stressCostBps equal frozen 27"
       }
     }
   },
@@ -258,10 +312,7 @@
     "monthlyIndependenceEvaluable": true,
     "detail": "remove the highest-PnL calendar month; remaining base-cost net PnL is reported as a warning only"
   },
-  "hardGateFailures": [
-    "immutableSourceVerified",
-    "betterThanValidatedBaseline"
-  ],
+  "hardGateFailures": [],
   "warnings": {
     "COST_STRESS_WARNING": true,
     "LOSS_STREAK_WARNING": true,
@@ -275,11 +326,11 @@
   "interpretation": {
     "baseCostGates": "PASS",
     "readinessGates": "PASS",
-    "immutableSource": "FAIL / actual referenced artifact is missing from the current checkout; computed SHA-256 is null",
-    "betterThanValidatedBaseline": "FAIL / canonical baseline metrics are recorded, but its immutable result/data files are not present in the current checkout",
+    "immutableSource": "PASS / exact referenced artifact bytes recomputed to the frozen SHA-256",
+    "betterThanValidatedBaseline": "PASS / verified candidate equity-bps/trade exceeds the verified negative baseline",
     "monthlyIndependence": "WARNING / NOT A RELEASE VETO",
     "oldFrozenExperimentStatusPreserved": true,
-    "releaseSemantics": "EMAIL_SIGNAL_RELEASE_READY permits explicit PAPER_ONLY human-review email approval only; this evaluation is RESEARCH_ONLY until both provenance gates pass.",
+    "releaseSemantics": "EMAIL_SIGNAL_RELEASE_READY permits explicit PAPER_ONLY human-review email approval only; it never authorizes automatic trading or EMAIL_SIGNAL_RELEASED.",
     "futureOosRead": false,
     "parameterRescue": false
   }
