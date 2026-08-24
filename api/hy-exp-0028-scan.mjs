@@ -111,21 +111,50 @@ export async function runHyExp0028Scan({
 
   const accepted = [];
   const entryRejections = [];
-  for (const candidate of candidates) {
-    let entryBar;
+  const captureStartedAt = nowValue(clock);
+  const entryResults = await Promise.allSettled(candidates.map(async candidate => {
+    const targetEntryTime = candidate.decisionTime + 300_000;
+    const deadlineAt = targetEntryTime + 90_000;
+    if (captureStartedAt > deadlineAt) {
+      return {
+        candidate,
+        entryBar: null,
+        rejection: 'ENTRY_CAPTURE_WINDOW_EXPIRED'
+      };
+    }
     try {
-      entryBar = await entryBarFetcher(candidate.symbol, candidate.theoreticalEntryTime, {
+      const entryBar = await entryBarFetcher(candidate.symbol, targetEntryTime, {
         fetchImpl,
         clock,
-        sleepImpl
+        sleepImpl,
+        deadlineAt,
+        maxDelayMs: 90_000
       });
+      return {
+        candidate,
+        entryBar,
+        rejection: entryBar ? null : 'ENTRY_BAR_NOT_AVAILABLE'
+      };
     } catch {
-      entryBar = null;
+      return {
+        candidate,
+        entryBar: null,
+        rejection: 'ENTRY_BAR_CAPTURE_FAILED'
+      };
     }
-    if (!entryBar) {
-      entryRejections.push({ symbol: candidate.symbol, decisionTime: candidate.decisionTime, rejection: 'ENTRY_BAR_NOT_AVAILABLE' });
+  }));
+
+  for (const settled of entryResults) {
+    if (settled.status !== 'fulfilled' || !settled.value.entryBar) {
+      const value = settled.status === 'fulfilled' ? settled.value : null;
+      entryRejections.push({
+        symbol: value?.candidate?.symbol ?? null,
+        decisionTime: value?.candidate?.decisionTime ?? null,
+        rejection: value?.rejection ?? 'ENTRY_BAR_CAPTURE_FAILED'
+      });
       continue;
     }
+    const { candidate, entryBar } = settled.value;
     const result = advisoryBuilder({
       candidate,
       entryBar,
@@ -149,9 +178,14 @@ export async function runHyExp0028Scan({
   }
   const queued = ingested.filter(result => result?.email?.queued === true);
   const dispatched = queued.length ? await dispatchImpl() : [];
+  const allEntryWindowsExpired = candidates.length > 0
+    && entryRejections.length === candidates.length
+    && entryRejections.every(row => row.rejection === 'ENTRY_CAPTURE_WINDOW_EXPIRED');
   return {
     ok: true,
-    reason: accepted.length ? 'ADVISORIES_PROCESSED' : 'NO_VALID_ENTRY_OBSERVATION',
+    reason: allEntryWindowsExpired
+      ? 'ENTRY_CAPTURE_WINDOW_EXPIRED'
+      : accepted.length ? 'ADVISORIES_PROCESSED' : 'NO_VALID_ENTRY_OBSERVATION',
     marketDataFetched: true,
     candidates: candidates.length,
     advisories: accepted.length,

@@ -19,7 +19,7 @@
     },
     "api/hy-exp-0028-scan.mjs": {
       "regions": ["sin1"],
-      "maxDuration": 60
+      "maxDuration": 120
     }
   },
   "crons": [

@@ -138,11 +138,16 @@ export async function fetchHyExp0028LiveEntryBar(symbol, targetOpenTime, {
   sleepImpl = defaultSleep,
   maxDelayMs = 90_000,
   retryDelayMs = 1_000,
-  maxAttempts = 90
+  maxAttempts = 90,
+  deadlineAt = null
 } = {}) {
   const targetOpen = integer('targetOpenTime', targetOpenTime);
   const targetClose = targetOpen + FIVE_MINUTES - 1;
-  const deadline = targetOpen + maxDelayMs;
+  const frozenDeadline = targetOpen + Math.min(Number(maxDelayMs), 90_000);
+  const requestedDeadline = deadlineAt == null ? null : Number(deadlineAt);
+  const deadline = Number.isFinite(requestedDeadline)
+    ? Math.min(requestedDeadline, frozenDeadline)
+    : frozenDeadline;
   for (let attempt = 0; attempt < maxAttempts && clock() <= deadline; attempt += 1) {
     const result = await fetchJson(publicKlineUrl(symbol, '5m', {
       startTime: targetOpen,

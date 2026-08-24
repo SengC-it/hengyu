@@ -260,6 +260,101 @@ test('target live entry admission is independent of future 5m high/low/close', a
   assert.equal(ingestCalls, 8);
 });
 
+test('all candidates for one decision boundary start entry capture concurrently with one absolute deadline', async () => {
+  const fixture = runnerFixture();
+  const started = [];
+  const deadlines = [];
+  let active = 0;
+  let peakActive = 0;
+  const result = await runHyExp0028Scan({
+    config: releasedConfig(),
+    clock: () => fixture.runNow,
+    causalInputFetcher: fixture.fetchCausal,
+    entryBarFetcher: async (symbol, targetOpen, options) => {
+      started.push(symbol);
+      deadlines.push(options.deadlineAt);
+      active += 1;
+      peakActive = Math.max(peakActive, active);
+      await new Promise(resolve => setTimeout(resolve, 5));
+      active -= 1;
+      return makeEntryBar(symbol, targetOpen);
+    },
+    ingestImpl: async () => ({ email: { queued: false } }),
+    dispatchImpl: async () => []
+  });
+  assert.equal(result.advisories, 8);
+  assert.deepEqual(new Set(started), new Set(HY_EXP_0028_SYMBOLS));
+  assert.equal(new Set(deadlines).size, 1);
+  assert.equal(deadlines[0], SIGNAL_TIME + 5 * 60 * 1_000 + 90_000);
+  assert.equal(peakActive, 8);
+});
+
+test('slow BTC can exhaust its window while fast ETH still produces an advisory', async () => {
+  const fixture = runnerFixture();
+  let btcDone = false;
+  let ethCompletedBeforeBtc = false;
+  const result = await runHyExp0028Scan({
+    config: releasedConfig(),
+    clock: () => fixture.runNow,
+    causalInputFetcher: fixture.fetchCausal,
+    entryBarFetcher: async (symbol, targetOpen) => {
+      if (symbol === 'BTCUSDT') {
+        await new Promise(resolve => setTimeout(resolve, 30));
+        btcDone = true;
+        return null;
+      }
+      if (symbol === 'ETHUSDT') {
+        await new Promise(resolve => setTimeout(resolve, 1));
+        if (!btcDone) ethCompletedBeforeBtc = true;
+      }
+      return makeEntryBar(symbol, targetOpen);
+    },
+    ingestImpl: async () => ({ email: { queued: true } }),
+    dispatchImpl: async () => []
+  });
+  assert.equal(result.advisories, 7);
+  assert.equal(result.outbox, 7);
+  assert.equal(result.entryRejections.find(row => row.symbol === 'BTCUSDT')?.rejection, 'ENTRY_BAR_NOT_AVAILABLE');
+  assert.equal(ethCompletedBeforeBtc, true);
+});
+
+test('one candidate capture rejection does not reject other valid candidates', async () => {
+  const fixture = runnerFixture();
+  const result = await runHyExp0028Scan({
+    config: releasedConfig(),
+    clock: () => fixture.runNow,
+    causalInputFetcher: fixture.fetchCausal,
+    entryBarFetcher: async (symbol, targetOpen) => {
+      if (symbol === 'BTCUSDT') throw new Error('simulated_capture_failure');
+      return makeEntryBar(symbol, targetOpen);
+    },
+    ingestImpl: async () => ({ email: { queued: true } }),
+    dispatchImpl: async () => []
+  });
+  assert.equal(result.advisories, 7);
+  assert.equal(result.outbox, 7);
+  assert.equal(result.entryRejections.find(row => row.symbol === 'BTCUSDT')?.rejection, 'ENTRY_BAR_CAPTURE_FAILED');
+});
+
+test('entry capture started after the absolute deadline performs zero entry fetches', async () => {
+  const fixture = runnerFixture();
+  let entryCalls = 0;
+  const result = await runHyExp0028Scan({
+    config: releasedConfig(),
+    clock: () => fixture.runNow + 90_001,
+    causalInputFetcher: fixture.fetchCausal,
+    entryBarFetcher: async () => { entryCalls += 1; return makeEntryBar('BTCUSDT', 0); },
+    ingestImpl: async () => { throw new Error('must not ingest'); },
+    dispatchImpl: async () => { throw new Error('must not dispatch'); }
+  });
+  assert.equal(entryCalls, 0);
+  assert.equal(result.reason, 'ENTRY_CAPTURE_WINDOW_EXPIRED');
+  assert.equal(result.advisories, 0);
+  assert.equal(result.outbox, 0);
+  assert.equal(result.entryRejections.length, 8);
+  assert.ok(result.entryRejections.every(row => row.rejection === 'ENTRY_CAPTURE_WINDOW_EXPIRED'));
+});
+
 test('runner authentication rejects missing and wrong internal credentials before scanning', async () => {
   for (const headers of [{}, { authorization: 'Bearer wrong' }]) {
     const res = mockResponse();
@@ -296,6 +391,24 @@ test('bounded entry fetch uses only exact public contract-price 5m REST target a
   assert.doesNotMatch(JSON.stringify(HY_EXP_0028_PUBLIC_MARKET_ENDPOINTS), /account|order|position|private|fapi\/v2/);
 });
 
+test('entry retry cannot extend the absolute target plus 90-second deadline', async () => {
+  const target = Date.parse('2026-08-24T12:05:00.000Z');
+  let fetchCalls = 0;
+  let sleepCalls = 0;
+  const times = [target + 89_000, target + 91_000, target + 91_000];
+  const entry = await fetchHyExp0028LiveEntryBar('BTCUSDT', target, {
+    clock: () => times.shift() ?? target + 91_000,
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return response(200, []);
+    },
+    sleepImpl: async () => { sleepCalls += 1; }
+  });
+  assert.equal(entry, null);
+  assert.equal(fetchCalls, 1);
+  assert.equal(sleepCalls, 0);
+});
+
 test('prepared scheduler is separate, inactive, and has no HY-EXP-0028 migration applied', () => {
   const scheduler = JSON.parse(fs.readFileSync('config/hy-exp-0028-scheduler.json', 'utf8'));
   assert.equal(scheduler.schedule, '5 * * * *');
@@ -308,6 +421,18 @@ test('prepared scheduler is separate, inactive, and has no HY-EXP-0028 migration
   const dataWorkflow = fs.readFileSync('.github/workflows/hy-data-0001-collector.yml', 'utf8');
   assert.match(dataWorkflow, /hy-data-0001/);
   assert.doesNotMatch(dataWorkflow, /hy-exp-0028-scan/);
+});
+
+test('only the HY-EXP-0028 function receives the 120-second budget', () => {
+  const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+  assert.deepEqual(vercel.functions['api/hy-exp-0028-scan.mjs'], {
+    regions: ['sin1'],
+    maxDuration: 120
+  });
+  assert.deepEqual(vercel.functions['api/h12-scan.mjs'], {
+    regions: ['sin1'],
+    maxDuration: 60
+  });
 });
 
 test('runner is paper-only and never exposes order, account, or automatic trading controls', () => {
