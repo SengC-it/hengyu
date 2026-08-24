@@ -1,14 +1,93 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import {
   EMAIL_SIGNAL_RELEASE_POLICY,
-  evaluateEmailSignalRelease
+  evaluateEmailSignalRelease as evaluateRawEmailSignalRelease
 } from '../src/model/email-signal-release.mjs';
 
+const TEST_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-email-release-'));
+const TEST_CANDIDATE_PATH = 'artifacts/HY-EXP-0028/holdout-result.json';
+const TEST_BASELINE_RESULT_PATH = 'artifacts/HY-EXP-0019/result.json';
+const TEST_BASELINE_DATA_PATH = 'artifacts/HY-EXP-0019/data-manifest.json';
+const TEST_BASELINE_MANIFEST_PATH = 'artifacts/HY-EXP-0019/baseline-manifest.json';
+
+function writeFileAtRoot(root, relativePath, content) {
+  const absolute = path.join(root, relativePath);
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  fs.writeFileSync(absolute, content);
+  return createHash('sha256').update(content).digest('hex');
+}
+
+function writeTestFile(relativePath, content) {
+  return writeFileAtRoot(TEST_ROOT, relativePath, content);
+}
+
+function candidateRootWithBytes(bytes) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-email-candidate-'));
+  writeFileAtRoot(root, TEST_CANDIDATE_PATH, bytes);
+  return root;
+}
+
+const testCandidateBytes = Buffer.from('immutable HY-EXP-0028 test artifact\n');
+const TEST_CANDIDATE_SHA256 = writeTestFile(TEST_CANDIDATE_PATH, testCandidateBytes);
+const testBaselineResultBytes = Buffer.from('{"experimentId":"HY-EXP-0019","status":"FAILED_FROZEN"}\n');
+const TEST_BASELINE_RESULT_SHA256 = writeTestFile(TEST_BASELINE_RESULT_PATH, testBaselineResultBytes);
+const TEST_BASELINE_DATA_SHA256 = writeTestFile(TEST_BASELINE_DATA_PATH, Buffer.from('{"manifest":"HY-EXP-0019"}\n'));
+const testBaselineManifest = {
+  manifestType: 'DERIVED_VALIDATED_BASELINE_MANIFEST',
+  baselineExperimentId: 'HY-EXP-0019',
+  source: {
+    resultArtifactPath: TEST_BASELINE_RESULT_PATH,
+    resultArtifactSha256: TEST_BASELINE_RESULT_SHA256,
+    dataManifestPath: TEST_BASELINE_DATA_PATH,
+    dataManifestSha256: TEST_BASELINE_DATA_SHA256,
+    sourceCommit: '9d6b5298fab9760a611c2b5e52e86c500a6688a1',
+    frozenAtCommit: '9f23475802f3ca9a85957a5ab2e69ac42b0c1aa2',
+    provenanceMode: 'ORIGINAL_IMMUTABLE_HISTORY_REFERENCE'
+  },
+  validation: {
+    windowStart: '2025-07-01T00:00:00.000Z',
+    windowEndExclusive: '2026-07-01T00:00:00.000Z',
+    tradeCount: 41,
+    researchEquityUsdt: 100000
+  },
+  metrics: {
+    netProfitFactor: 0,
+    netReturn: -0.012763487537771283,
+    netReturnBps: -127.63487537771283,
+    normalizedNetBpsPerTrade: -3.113045740919825,
+    costBasis: { feePerFillBps: 5 }
+  }
+};
+const TEST_BASELINE_MANIFEST_SHA256 = writeTestFile(
+  TEST_BASELINE_MANIFEST_PATH,
+  Buffer.from(JSON.stringify(testBaselineManifest))
+);
+
+const TEST_POLICY = JSON.parse(JSON.stringify(EMAIL_SIGNAL_RELEASE_POLICY));
+TEST_POLICY.frozenEvidence.candidate = {
+  ...TEST_POLICY.frozenEvidence.candidate,
+  artifactSha256: TEST_CANDIDATE_SHA256
+};
+TEST_POLICY.frozenEvidence.validatedBaseline = {
+  experimentId: 'HY-EXP-0019',
+  root: TEST_ROOT,
+  manifestPath: TEST_BASELINE_MANIFEST_PATH,
+  manifestSha256: TEST_BASELINE_MANIFEST_SHA256
+};
+
+function evaluateEmailSignalRelease(input, options = {}) {
+  return evaluateRawEmailSignalRelease(input, { policy: TEST_POLICY, ...options });
+}
+
 const source = {
-  artifactPath: 'artifacts/HY-EXP-0028/holdout-result.json',
-  artifactSha256: '92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5',
+  artifactPath: TEST_CANDIDATE_PATH,
+  artifactRoot: TEST_ROOT,
+  artifactSha256: TEST_CANDIDATE_SHA256,
   commit: 'a61cb20318af1e0b188c0276a1a3d65e52bc4467',
   status: 'HOLDOUT_FAILED'
 };
@@ -225,17 +304,21 @@ for (const [field, label] of [
   });
 }
 
-test('the committed HY-EXP-0028 evaluation is machine-readable and V2-ready-only', () => {
+test('the committed HY-EXP-0028 evaluation is machine-readable and fail-closed', () => {
   const artifact = JSON.parse(fs.readFileSync(
     new URL('../artifacts/HY-EXP-0028/email-signal-release-evaluation.json', import.meta.url),
     'utf8'
   ));
-  assert.equal(artifact.status, 'EMAIL_SIGNAL_RELEASE_READY');
-  assert.equal(artifact.releaseEligible, true);
+  assert.equal(artifact.status, 'RESEARCH_ONLY');
+  assert.equal(artifact.releaseEligible, false);
   assert.equal(artifact.immutableSource.rewritten, false);
   assert.equal(artifact.authorization.liveOrdersEnabled, false);
   assert.equal(artifact.policyVersion, 2);
-  assert.equal(artifact.hardGates.monthlyIndependence, undefined);
+  assert.equal(artifact.hardGates.immutableSourceVerified.pass, false);
+  assert.equal(artifact.hardGates.betterThanValidatedBaseline.pass, false);
+  assert.deepEqual(artifact.hardGateFailures, ['immutableSourceVerified', 'betterThanValidatedBaseline']);
+  assert.equal(artifact.immutableSourceVerification.computedSha256, null);
+  assert.equal(artifact.baselineComparison.baselineExperimentId, 'HY-EXP-0019');
   assert.equal(artifact.monthlyRobustness.monthlyIndependenceEvaluable, true);
   assert.equal(artifact.warnings.MONTH_CONCENTRATION_WARNING, true);
 });
@@ -275,4 +358,66 @@ test('HY-EXP-0028 is V2 release-ready but never released automatically', () => {
   assert.equal(result.warnings.LOSS_STREAK_WARNING, true);
   assert.equal(result.warnings.MONTH_CONCENTRATION_WARNING, true);
   assert.equal(result.source.status, 'HOLDOUT_FAILED');
+});
+
+test('immutable source verification recomputes exact bytes and baseline comparison passes', () => {
+  const result = evaluateEmailSignalRelease(validInput());
+  assert.equal(result.hardGates.immutableSourceVerified.pass, true);
+  assert.equal(result.immutableSourceVerification.computedSha256, TEST_CANDIDATE_SHA256);
+  assert.equal(result.baselineComparison.provenance.provenanceVerified, true);
+  assert.equal(result.hardGates.betterThanValidatedBaseline.pass, true);
+});
+
+test('one-byte immutable source mutation fails closed', () => {
+  const mutatedRoot = candidateRootWithBytes(Buffer.from('immutable HY-EXP-0028 test artifact!\n'));
+  const result = evaluateEmailSignalRelease({
+    ...validInput(),
+    source: { ...source, artifactRoot: mutatedRoot }
+  });
+  assert.equal(result.state, 'RESEARCH_ONLY');
+  assert.equal(result.hardGates.immutableSourceVerified.pass, false);
+  assert.notEqual(result.immutableSourceVerification.computedSha256, TEST_CANDIDATE_SHA256);
+});
+
+test('a syntactically valid but incorrect declared SHA-256 fails closed', () => {
+  const result = evaluateEmailSignalRelease({
+    ...validInput(),
+    source: { ...source, artifactSha256: 'a'.repeat(64) }
+  });
+  assert.equal(result.state, 'RESEARCH_ONLY');
+  assert.equal(result.hardGates.immutableSourceVerified.pass, false);
+  assert.equal(result.immutableSourceVerification.computedSha256, TEST_CANDIDATE_SHA256);
+});
+
+test('a missing immutable source artifact fails closed', () => {
+  const missingRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-email-missing-'));
+  const result = evaluateEmailSignalRelease({
+    ...validInput(),
+    source: { ...source, artifactRoot: missingRoot }
+  });
+  assert.equal(result.state, 'RESEARCH_ONLY');
+  assert.equal(result.hardGates.immutableSourceVerified.pass, false);
+  assert.equal(result.immutableSourceVerification.computedSha256, null);
+});
+
+test('an immutable source path mismatch fails closed', () => {
+  const mismatchedPath = 'artifacts/HY-EXP-0028/other.json';
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hengyu-email-path-'));
+  writeFileAtRoot(root, mismatchedPath, testCandidateBytes);
+  const result = evaluateEmailSignalRelease({
+    ...validInput(),
+    source: { ...source, artifactPath: mismatchedPath, artifactRoot: root }
+  });
+  assert.equal(result.state, 'RESEARCH_ONLY');
+  assert.equal(result.hardGates.immutableSourceVerified.pass, false);
+  assert.equal(result.immutableSourceVerification.pathMatches, false);
+});
+
+test('missing baseline provenance fails the comparison gate closed', () => {
+  const policy = JSON.parse(JSON.stringify(TEST_POLICY));
+  policy.frozenEvidence.validatedBaseline.manifestSha256 = '0'.repeat(64);
+  const result = evaluateEmailSignalRelease(validInput(), { policy });
+  assert.equal(result.state, 'RESEARCH_ONLY');
+  assert.equal(result.hardGates.betterThanValidatedBaseline.pass, false);
+  assert.equal(result.baselineComparison.provenance.provenanceVerified, false);
 });

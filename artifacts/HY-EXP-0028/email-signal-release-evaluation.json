@@ -4,8 +4,8 @@
   "experimentId": "HY-EXP-0028",
   "policyId": "EMAIL_SIGNAL_RELEASE-001",
   "policyVersion": 2,
-  "status": "EMAIL_SIGNAL_RELEASE_READY",
-  "releaseEligible": true,
+  "status": "RESEARCH_ONLY",
+  "releaseEligible": false,
   "authorization": {
     "signalOnly": true,
     "paperOnly": true,
@@ -21,9 +21,24 @@
     "commit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
     "artifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
     "artifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "declaredArtifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
     "frozenStatus": "HOLDOUT_FAILED",
     "readMode": "REFERENCE_ONLY",
     "rewritten": false
+  },
+  "immutableSourceVerification": {
+    "pass": false,
+    "expectedArtifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
+    "expectedSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "computedSha256": null,
+    "declaredSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+    "pathMatches": true,
+    "commitMatches": true,
+    "declaredHashMatches": true,
+    "statusMatches": true,
+    "computedHashMatches": false,
+    "detail": "missing file"
   },
   "metrics": {
     "validatedSignals": 43,
@@ -80,6 +95,14 @@
     "stressCostBasis": {
       "pass": true,
       "detail": "metrics.stressCostBps must equal frozen 27"
+    },
+    "immutableSourceVerified": {
+      "pass": false,
+      "detail": "missing file"
+    },
+    "betterThanValidatedBaseline": {
+      "pass": false,
+      "detail": "baseline provenance and compatible metrics must be verified before comparison can pass"
     },
     "baseCostNetPnlPositive": {
       "pass": true,
@@ -158,6 +181,47 @@
       "detail": "final OOS remains unread"
     }
   },
+  "baselineComparison": {
+    "baselineExperimentId": "HY-EXP-0019",
+    "provenance": {
+      "pass": false,
+      "provenanceVerified": false,
+      "manifestPath": "artifacts/HY-EXP-0019/baseline-manifest.json",
+      "manifestSha256": "d3e59c844b632fcd5c8304211ebeb89439f928f7bc61d64e98beb59a2abeae10",
+      "expectedManifestSha256": "d3e59c844b632fcd5c8304211ebeb89439f928f7bc61d64e98beb59a2abeae10",
+      "resultArtifactPath": "artifacts/HY-EXP-0019/result.json",
+      "resultArtifactSha256": "3c45646c589f9576a1645d43ff30d73469900c4aebccbed7a7c2bc3cf8f4878f",
+      "resultComputedSha256": null,
+      "dataManifestComputedSha256": null,
+      "errors": [
+        "baseline result missing file",
+        "baseline data manifest missing file"
+      ]
+    },
+    "candidateMetrics": {
+      "baseCostNetPnl": 671.778467846798,
+      "netExpectancyBps": 5.237781100313037,
+      "netProfitFactor": 1.1506895886413784,
+      "normalizedNetBpsPerTrade": 5.237781100313037
+    },
+    "baselineMetrics": {
+      "tradeCount": 41,
+      "netProfitFactor": 0,
+      "netReturn": -0.012763487537771283,
+      "netReturnBps": -127.63487537771283,
+      "normalizedNetBpsPerTrade": -3.113045740919825,
+      "researchEquityUsdt": 100000,
+      "costBasis": "HY-EXP-0019 frozen preregistered costs; not relabeled as 18bps"
+    },
+    "comparisons": {
+      "candidateBaseCostNetResultPositive": true,
+      "baselineFrozenNetResultNegative": true,
+      "candidateProfitFactorGreater": true,
+      "candidateNormalizedNetBpsPerTradeGreater": true
+    },
+    "pass": false,
+    "detail": "baseline provenance and compatible metrics must be verified before comparison can pass"
+  },
   "costBasis": {
     "baseCostBps": 18,
     "stressCostBps": 27,
@@ -194,7 +258,10 @@
     "monthlyIndependenceEvaluable": true,
     "detail": "remove the highest-PnL calendar month; remaining base-cost net PnL is reported as a warning only"
   },
-  "hardGateFailures": [],
+  "hardGateFailures": [
+    "immutableSourceVerified",
+    "betterThanValidatedBaseline"
+  ],
   "warnings": {
     "COST_STRESS_WARNING": true,
     "LOSS_STREAK_WARNING": true,
@@ -208,9 +275,11 @@
   "interpretation": {
     "baseCostGates": "PASS",
     "readinessGates": "PASS",
+    "immutableSource": "FAIL / actual referenced artifact is missing from the current checkout; computed SHA-256 is null",
+    "betterThanValidatedBaseline": "FAIL / canonical baseline metrics are recorded, but its immutable result/data files are not present in the current checkout",
     "monthlyIndependence": "WARNING / NOT A RELEASE VETO",
     "oldFrozenExperimentStatusPreserved": true,
-    "releaseSemantics": "EMAIL_SIGNAL_RELEASE_READY permits explicit PAPER_ONLY human-review email approval only; it does not authorize automatic trading, orders, sizing, leverage, account access, fund management, or automatic exits.",
+    "releaseSemantics": "EMAIL_SIGNAL_RELEASE_READY permits explicit PAPER_ONLY human-review email approval only; this evaluation is RESEARCH_ONLY until both provenance gates pass.",
     "futureOosRead": false,
     "parameterRescue": false
   }

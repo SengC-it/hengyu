@@ -1,8 +1,24 @@
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const POLICY_PATH = fileURLToPath(new URL('../../config/email-signal-release-policy.json', import.meta.url));
+const PROJECT_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const POLICY = JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8'));
+
+const DEFAULT_FROZEN_CANDIDATE = Object.freeze({
+  experimentId: 'HY-EXP-0028',
+  sourceCommit: 'a61cb20318af1e0b188c0276a1a3d65e52bc4467',
+  artifactPath: 'artifacts/HY-EXP-0028/holdout-result.json',
+  artifactSha256: '92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5',
+  status: 'HOLDOUT_FAILED'
+});
+
+const DEFAULT_VALIDATED_BASELINE = Object.freeze({
+  experimentId: 'HY-EXP-0019',
+  manifestPath: 'artifacts/HY-EXP-0019/baseline-manifest.json'
+});
 
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -25,18 +41,170 @@ function requiredBoolean(name, value) {
   return value;
 }
 
-function sha256(value, name) {
-  if (!/^[a-f0-9]{64}$/.test(value ?? '')) throw new Error(`invalid ${name}`);
-  return value;
-}
-
-function commit(value) {
-  if (!/^[a-f0-9]{40}$/.test(value ?? '')) throw new Error('invalid source commit');
-  return value;
+function sha256Bytes(value) {
+  return createHash('sha256').update(value).digest('hex');
 }
 
 function gate(pass, detail) {
   return { pass: Boolean(pass), detail };
+}
+
+function resolveWithinRoot(root, relativePath) {
+  if (typeof relativePath !== 'string' || !relativePath || path.isAbsolute(relativePath)) return null;
+  const rootAbsolute = path.resolve(root);
+  const absolute = path.resolve(rootAbsolute, relativePath.replaceAll('\\', '/'));
+  const relative = path.relative(rootAbsolute, absolute);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) return null;
+  return absolute;
+}
+
+function readHashedFile(root, relativePath) {
+  const absolute = resolveWithinRoot(root, relativePath);
+  if (!absolute) return { absolute: null, bytes: null, sha256: null, error: 'path escapes verification root' };
+  try {
+    const bytes = fs.readFileSync(absolute);
+    return { absolute, bytes, sha256: sha256Bytes(bytes), error: null };
+  } catch (error) {
+    return { absolute, bytes: null, sha256: null, error: error.code === 'ENOENT' ? 'missing file' : 'unreadable file' };
+  }
+}
+
+function frozenCandidate(policy) {
+  return policy.frozenEvidence?.candidate ?? DEFAULT_FROZEN_CANDIDATE;
+}
+
+function verifyImmutableSource(source, policy) {
+  const expected = frozenCandidate(policy);
+  const artifactPath = source?.artifactPath ?? null;
+  const artifactRoot = source?.artifactRoot ?? PROJECT_ROOT;
+  const file = readHashedFile(artifactRoot, artifactPath);
+  const pathMatches = artifactPath === expected.artifactPath;
+  const commitMatches = source?.commit === expected.sourceCommit;
+  const declaredHashMatches = source?.artifactSha256 === expected.artifactSha256;
+  const statusMatches = source?.status === expected.status;
+  const computedHashMatches = file.sha256 === expected.artifactSha256;
+  const pass = pathMatches
+    && commitMatches
+    && declaredHashMatches
+    && statusMatches
+    && computedHashMatches;
+  const failures = [];
+  if (!pathMatches) failures.push('artifact path mismatch');
+  if (!commitMatches) failures.push('source commit mismatch');
+  if (!declaredHashMatches) failures.push('declared SHA-256 mismatch');
+  if (!statusMatches) failures.push('source status mismatch');
+  if (file.error) failures.push(file.error);
+  else if (!computedHashMatches) failures.push('computed SHA-256 mismatch');
+  return {
+    pass,
+    expectedArtifactPath: expected.artifactPath,
+    expectedSha256: expected.artifactSha256,
+    computedSha256: file.sha256,
+    declaredSha256: source?.artifactSha256 ?? null,
+    sourceCommit: source?.commit ?? null,
+    resolvedPath: file.absolute,
+    pathMatches,
+    commitMatches,
+    declaredHashMatches,
+    statusMatches,
+    computedHashMatches,
+    detail: pass ? 'immutable source bytes and frozen provenance verified' : failures.join('; ')
+  };
+}
+
+function verifyValidatedBaseline(policy) {
+  const configured = policy.frozenEvidence?.validatedBaseline ?? DEFAULT_VALIDATED_BASELINE;
+  const baselineRoot = configured.root ?? PROJECT_ROOT;
+  const manifestFile = readHashedFile(baselineRoot, configured.manifestPath);
+  const errors = [];
+  let manifest = null;
+  if (manifestFile.error) errors.push(manifestFile.error);
+  else {
+    try {
+      manifest = JSON.parse(manifestFile.bytes.toString('utf8'));
+    } catch {
+      errors.push('baseline manifest is invalid JSON');
+    }
+  }
+  const manifestHashMatches = manifestFile.sha256 === configured.manifestSha256
+    && /^[a-f0-9]{64}$/.test(configured.manifestSha256 ?? '');
+  if (!manifestHashMatches) errors.push('baseline manifest SHA-256 mismatch');
+  const source = manifest?.source ?? {};
+  const resultFile = readHashedFile(baselineRoot, source.resultArtifactPath);
+  const dataManifestFile = readHashedFile(baselineRoot, source.dataManifestPath);
+  if (resultFile.error) errors.push(`baseline result ${resultFile.error}`);
+  if (dataManifestFile.error) errors.push(`baseline data manifest ${dataManifestFile.error}`);
+  const resultHashMatches = resultFile.sha256 === source.resultArtifactSha256;
+  const dataManifestHashMatches = dataManifestFile.sha256 === source.dataManifestSha256;
+  if (!resultFile.error && !resultHashMatches) errors.push('baseline result SHA-256 mismatch');
+  if (!dataManifestFile.error && !dataManifestHashMatches) errors.push('baseline data manifest SHA-256 mismatch');
+  const identityMatches = manifest?.baselineExperimentId === configured.experimentId
+    && manifest?.baselineExperimentId === 'HY-EXP-0019'
+    && source.sourceCommit === '9d6b5298fab9760a611c2b5e52e86c500a6688a1'
+    && source.frozenAtCommit === '9f23475802f3ca9a85957a5ab2e69ac42b0c1aa2'
+    && source.provenanceMode === 'ORIGINAL_IMMUTABLE_HISTORY_REFERENCE'
+    && manifest?.validation?.windowStart === '2025-07-01T00:00:00.000Z'
+    && manifest?.validation?.windowEndExclusive === '2026-07-01T00:00:00.000Z';
+  if (!identityMatches) errors.push('baseline identity or validation window mismatch');
+  const validation = manifest?.validation ?? {};
+  const metrics = manifest?.metrics ?? {};
+  const metricsValid = Number.isFinite(Number(validation.tradeCount))
+    && Number(validation.tradeCount) > 0
+    && Number.isFinite(Number(metrics.netProfitFactor))
+    && Number.isFinite(Number(metrics.netReturnBps))
+    && Number.isFinite(Number(metrics.normalizedNetBpsPerTrade));
+  if (!metricsValid) errors.push('baseline comparable metrics are incomplete');
+  const provenanceVerified = errors.length === 0;
+  return {
+    pass: provenanceVerified,
+    provenanceVerified,
+    manifestPath: configured.manifestPath,
+    manifestSha256: manifestFile.sha256,
+    expectedManifestSha256: configured.manifestSha256 ?? null,
+    resultArtifactPath: source.resultArtifactPath ?? null,
+    resultArtifactSha256: source.resultArtifactSha256 ?? null,
+    resultComputedSha256: resultFile.sha256,
+    dataManifestComputedSha256: dataManifestFile.sha256,
+    errors,
+    metrics: {
+      tradeCount: Number(validation.tradeCount),
+      netProfitFactor: Number(metrics.netProfitFactor),
+      netReturn: Number(metrics.netReturn),
+      netReturnBps: Number(metrics.netReturnBps),
+      normalizedNetBpsPerTrade: Number(metrics.normalizedNetBpsPerTrade),
+      researchEquityUsdt: Number(validation.researchEquityUsdt),
+      costBasis: manifest?.costBasis ?? null
+    },
+    manifest
+  };
+}
+
+function compareValidatedBaseline(metrics, policy) {
+  const baseline = verifyValidatedBaseline(policy);
+  const candidateMetrics = {
+    baseCostNetPnl: Number(metrics?.baseCostNetPnl),
+    netExpectancyBps: Number(metrics?.netExpectancyBps),
+    netProfitFactor: Number(metrics?.netProfitFactor),
+    normalizedNetBpsPerTrade: Number(metrics?.netExpectancyBps)
+  };
+  const comparisons = {
+    candidateBaseCostNetResultPositive: candidateMetrics.baseCostNetPnl > 0,
+    baselineFrozenNetResultNegative: baseline.metrics.netReturnBps < 0,
+    candidateProfitFactorGreater: candidateMetrics.netProfitFactor > baseline.metrics.netProfitFactor,
+    candidateNormalizedNetBpsPerTradeGreater: candidateMetrics.normalizedNetBpsPerTrade > baseline.metrics.normalizedNetBpsPerTrade
+  };
+  const pass = baseline.provenanceVerified && Object.values(comparisons).every(Boolean);
+  return {
+    pass,
+    baselineExperimentId: 'HY-EXP-0019',
+    provenance: baseline,
+    candidateMetrics,
+    baselineMetrics: baseline.metrics,
+    comparisons,
+    detail: pass
+      ? 'candidate is positive after its frozen costs and improves every compatible baseline metric'
+      : 'baseline provenance and compatible metrics must be verified before comparison can pass'
+  };
 }
 
 function safetyGates(safety) {
@@ -139,19 +307,26 @@ export function evaluateEmailSignalRelease(input, { policy = EMAIL_SIGNAL_RELEAS
   const integrity = input?.integrity ?? {};
   const safety = input?.safety ?? {};
 
-  const sourceArtifactSha256 = sha256(source.artifactSha256, 'source artifact SHA-256');
-  const sourceCommit = commit(source.commit);
-  const sourceArtifactPath = String(source.artifactPath ?? '');
-  if (!sourceArtifactPath) throw new Error('missing source artifact path');
+  const sourceArtifactPath = source.artifactPath ?? null;
 
+  const sourceVerification = verifyImmutableSource(source, policy);
   const safetyChecks = safetyGates(safety);
   const integrityChecks = integrityGates(integrity);
   const costChecks = costBasisGates(metrics, policy);
   const monthlyCheck = monthlyRobustness(metrics, policy);
+  const baselineComparison = compareValidatedBaseline(metrics, policy);
   const hardGates = {
     ...safetyChecks,
     ...integrityChecks,
     ...costChecks,
+    immutableSourceVerified: gate(
+      sourceVerification.pass,
+      sourceVerification.detail
+    ),
+    betterThanValidatedBaseline: gate(
+      baselineComparison.pass,
+      baselineComparison.detail
+    ),
     minimumValidatedSignals: gate(
       finite('validated signals', metrics.validatedSignals) >= policy.hardGates.minimumValidatedSignals,
       `requires >= ${policy.hardGates.minimumValidatedSignals} independent validated signals`
@@ -230,10 +405,13 @@ export function evaluateEmailSignalRelease(input, { policy = EMAIL_SIGNAL_RELEAS
     emailSignalOnly: true,
     source: {
       artifactPath: sourceArtifactPath,
-      artifactSha256: sourceArtifactSha256,
-      commit: sourceCommit,
+      artifactSha256: sourceVerification.computedSha256 ?? source.artifactSha256 ?? null,
+      declaredArtifactSha256: source.artifactSha256 ?? null,
+      commit: source.commit ?? null,
       status: source.status ?? null
     },
+    immutableSourceVerification: sourceVerification,
+    baselineComparison,
     hardGates,
     hardGateFailures: hardFailures,
     monthlyRobustness: monthlyCheck,
