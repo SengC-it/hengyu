@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "EMAIL_SIGNAL_RELEASE_EVALUATION",
+  "experimentId": "HY-EXP-0028",
+  "policyId": "EMAIL_SIGNAL_RELEASE-001",
+  "policyVersion": 1,
+  "status": "EMAIL_SIGNAL_CANDIDATE",
+  "releaseEligible": false,
+  "authorization": {
+    "signalOnly": true,
+    "paperOnly": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false,
+    "productionDeploy": false,
+    "productionGmailSend": false
+  },
+  "immutableSource": {
+    "repositoryRef": "origin/agent/hengyu-exp-0028",
+    "commit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+    "artifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
+    "artifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "frozenStatus": "HOLDOUT_FAILED",
+    "readMode": "REFERENCE_ONLY",
+    "rewritten": false
+  },
+  "metrics": {
+    "validatedSignals": 43,
+    "validationDays": 53,
+    "baseCostBps": 18,
+    "baseCostNetPnl": 671.778467846798,
+    "grossExpectancyBps": 23.60880158162159,
+    "netExpectancyBps": 5.237781100313037,
+    "netProfitFactor": 1.1506895886413784,
+    "stressCostBps": 27,
+    "stressNetExpectancyBps": -3.7622188996869474,
+    "stressNetProfitFactor": 1.0701186290763716,
+    "maxMtmDrawdownPct": 7.723556081371896,
+    "distinctSymbols": 8,
+    "largestSymbolShare": 0.20930232558139536,
+    "netPnlWithoutBestTrade": 4.4107091824917,
+    "activeMonths": [
+      {
+        "month": "2026-07",
+        "advisories": 2,
+        "baseCostNetPnl": -564.8740225660517,
+        "positive": false
+      },
+      {
+        "month": "2026-08",
+        "advisories": 41,
+        "baseCostNetPnl": 1236.65249041285,
+        "positive": true
+      }
+    ],
+    "maxLossStreak": 12
+  },
+  "integrityEvidence": {
+    "noLookaheadOrLeakage": true,
+    "noFutureLabelsInFeatures": true,
+    "parametersFrozenBeforeValidation": true,
+    "independentHoldout": true,
+    "postOutcomeFiltering": false,
+    "finalOosRead": false
+  },
+  "hardGates": {
+    "minimumValidatedSignals": {
+      "pass": false,
+      "detail": "requires >= 80 independent validated signals"
+    },
+    "minimumValidationSpan": {
+      "pass": false,
+      "detail": "requires >= 90 calendar days"
+    },
+    "baseCostBasis": {
+      "pass": true,
+      "detail": "metrics.baseCostBps must equal frozen 18"
+    },
+    "stressCostBasis": {
+      "pass": true,
+      "detail": "metrics.stressCostBps must equal frozen 27"
+    },
+    "baseCostNetPnlPositive": {
+      "pass": true,
+      "detail": "base-cost net PnL must be > 0"
+    },
+    "netExpectancyPositive": {
+      "pass": true,
+      "detail": "net expectancy at 18bps must be > 0bps"
+    },
+    "netProfitFactor": {
+      "pass": true,
+      "detail": "net PF at 18bps must be >= 1.1"
+    },
+    "mtmDrawdown": {
+      "pass": true,
+      "detail": "max MTM DD must be <= 10%"
+    },
+    "distinctSymbols": {
+      "pass": true,
+      "detail": "requires >= 6 distinct symbols"
+    },
+    "symbolConcentration": {
+      "pass": true,
+      "detail": "largest symbol share must be <= 40%"
+    },
+    "positiveWithoutBestTrade": {
+      "pass": true,
+      "detail": "net PnL must remain positive after removing the best trade"
+    },
+    "monthlyIndependence": {
+      "pass": null,
+      "status": "DEFERRED",
+      "evaluable": false,
+      "activeMonths": [
+        {
+          "month": "2026-07",
+          "baseCostNetPnl": -564.8740225660517
+        },
+        {
+          "month": "2026-08",
+          "baseCostNetPnl": 1236.65249041285
+        }
+      ],
+      "bestMonth": "2026-08",
+      "bestMonthNetPnl": 1236.65249041285,
+      "netPnlWithoutBestMonth": -564.8740225660517,
+      "monthlyIndependenceEvaluable": false,
+      "detail": "monthly robustness is deferred until validation reaches 90 days"
+    },
+    "signalOnly": {
+      "pass": true,
+      "detail": "signal-only mode is required"
+    },
+    "paperOnly": {
+      "pass": true,
+      "detail": "PAPER_ONLY is required"
+    },
+    "liveOrdersDisabled": {
+      "pass": true,
+      "detail": "live order capability must be disabled"
+    },
+    "accountApiDisabled": {
+      "pass": true,
+      "detail": "account API must be disabled"
+    },
+    "orderApiDisabled": {
+      "pass": true,
+      "detail": "order API must be disabled"
+    },
+    "automaticTradingDisabled": {
+      "pass": true,
+      "detail": "automatic trading must be disabled"
+    },
+    "noLookaheadOrLeakage": {
+      "pass": true,
+      "detail": "features and labels are causal"
+    },
+    "noFutureLabelsInFeatures": {
+      "pass": true,
+      "detail": "future labels do not enter features"
+    },
+    "parametersFrozenBeforeValidation": {
+      "pass": true,
+      "detail": "parameters were frozen before validation outcome"
+    },
+    "independentHoldout": {
+      "pass": true,
+      "detail": "fresh holdout evidence is independent"
+    },
+    "noPostOutcomeFiltering": {
+      "pass": true,
+      "detail": "post-outcome filtering is absent"
+    },
+    "finalOosUnread": {
+      "pass": true,
+      "detail": "final OOS remains unread"
+    }
+  },
+  "costBasis": {
+    "baseCostBps": 18,
+    "stressCostBps": 27,
+    "expectedBaseCostBps": 18,
+    "expectedStressCostBps": 27,
+    "checks": {
+      "baseCostBasis": {
+        "pass": true,
+        "detail": "metrics.baseCostBps equals frozen 18"
+      },
+      "stressCostBasis": {
+        "pass": true,
+        "detail": "metrics.stressCostBps equals frozen 27"
+      }
+    }
+  },
+  "monthlyRobustness": {
+    "status": "DEFERRED",
+    "evaluable": false,
+    "pass": null,
+    "activeMonths": [
+      {
+        "month": "2026-07",
+        "baseCostNetPnl": -564.8740225660517
+      },
+      {
+        "month": "2026-08",
+        "baseCostNetPnl": 1236.65249041285
+      }
+    ],
+    "bestMonth": "2026-08",
+    "bestMonthNetPnl": 1236.65249041285,
+    "netPnlWithoutBestMonth": -564.8740225660517,
+    "monthlyIndependenceEvaluable": false,
+    "detail": "monthly robustness is deferred until validation reaches 90 days"
+  },
+  "hardGateFailures": [
+    "minimumValidatedSignals",
+    "minimumValidationSpan"
+  ],
+  "warnings": {
+    "COST_STRESS_WARNING": true,
+    "LOSS_STREAK_WARNING": true,
+    "stressNetExpectancyBps": -3.7622188996869474,
+    "maxLossStreak": 12,
+    "stressIsVeto": false,
+    "lossStreakIsVeto": false
+  },
+  "interpretation": {
+    "baseCostGates": "PASS",
+    "readinessGates": "FAIL",
+    "monthlyIndependence": "DEFERRED / NOT_EVALUABLE before 90 validation days; no PASS claim",
+    "oldFrozenExperimentStatusPreserved": true,
+    "remainingDevelopmentRequired": "Collect an independent, preregistered validation span of at least 90 calendar days and at least 80 validated signals.",
+    "futureOosRead": false,
+    "parameterRescue": false
+  }
+}
