@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "CONTROLLED_EMAIL_RELEASE_PREFLIGHT",
+  "baseCommit": "6e1a370d39be32303fbe1831e81b318aa544b262",
+  "status": "BLOCKED",
+  "releaseAllowed": false,
+  "blockers": [
+    "PRODUCTION_ENV_NOT_VERIFIED",
+    "VERCEL_PLAN_COMPATIBILITY_NOT_VERIFIED",
+    "OIDC_WORKFLOW_REF_TARGET_MISSING"
+  ],
+  "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
+  "productionEnvironment": {
+    "status": "NOT_VERIFIED",
+    "valuesRead": false,
+    "presenceCheck": "PROCESS_ENV_ONLY",
+    "productionCliAvailable": false,
+    "secretValuesPrinted": false,
+    "requiredVariableNames": [
+      "HENGYU_SUPABASE_URL",
+      "HENGYU_SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
+      "HENGYU_GMAIL_FROM_ADDRESS",
+      "HENGYU_GMAIL_TO_ADDRESS",
+      "HENGYU_GMAIL_SEND_ENABLED",
+      "HENGYU_GMAIL_APP_PASSWORD or HENGYU_GMAIL_CLIENT_ID + HENGYU_GMAIL_CLIENT_SECRET + HENGYU_GMAIL_REFRESH_TOKEN",
+      "HENGYU_CRON_SECRET or CRON_SECRET"
+    ]
+  },
+  "vercelCompatibility": {
+    "configPass": true,
+    "planCompatibility": "NOT_VERIFIED",
+    "runnerRoute": "/api/hy-exp-0028-scan",
+    "runnerRegions": ["sin1"],
+    "runnerMaxDurationSeconds": 120,
+    "h12MaxDurationSeconds": 60,
+    "h12Unchanged": true,
+    "schedulerRoutePresent": false
+  },
+  "oidc": {
+    "audience": "hengyu-hy-exp-0028-production",
+    "workflowRef": "SengC-it/hengyu/.github/workflows/hy-exp-0028-scan.yml@refs/heads/main",
+    "repository": "SengC-it/hengyu",
+    "ref": "refs/heads/main",
+    "workflowFileExists": false,
+    "status": "BLOCKED",
+    "reason": "OIDC_WORKFLOW_REF_TARGET_MISSING"
+  },
+  "supabase": {
+    "status": "READ_ONLY_VERIFIED",
+    "projectId": "jfvbikivtpfjgfsnggiz",
+    "tables": [
+      {"name": "hengyu_advisories", "rlsEnabled": true, "publicBlocked": true, "serviceRoleGrant": true},
+      {"name": "hengyu_email_outbox", "rlsEnabled": true, "publicBlocked": true, "serviceRoleGrant": true},
+      {"name": "hengyu_email_deliveries", "rlsEnabled": true, "publicBlocked": true, "serviceRoleGrant": true, "appendOnly": true}
+    ],
+    "rowDataRead": false,
+    "writesPerformed": false
+  },
+  "runner": {
+    "readyNoOp": "TEST_VERIFIED",
+    "noMarketDataBeforeGate": true,
+    "noDatabaseBeforeGate": true,
+    "noSmtpBeforeGate": true,
+    "releasedFixture": "TEST_ONLY_NO_EXTERNAL_IO",
+    "failClosed": {
+      "dedupe": true,
+      "expired": true,
+      "wrongStrategy": true,
+      "wrongProvenance": true,
+      "entryDelayOver90s": true
+    }
+  },
+  "execution": {
+    "releaseExecuted": false,
+    "productionDeployed": false,
+    "schedulerActivated": false,
+    "shadowActivated": false,
+    "autoTrading": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "realEmailSent": false,
+    "finalOosRead": false,
+    "backfill": false,
+    "marketDataCalled": false,
+    "dbWriteCalled": false,
+    "smtpCalled": false,
+    "accountApiCalled": false,
+    "orderApiCalled": false
+  },
+  "runbook": "docs/hy-exp-0028-release-preflight.md"
+}
