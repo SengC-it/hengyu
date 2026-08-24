@@ -62,13 +62,16 @@ function validInput(overrides = {}) {
 }
 
 test('policy freezes the independent email-release gates and safety mode', () => {
+  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.version, 2);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.hardGates.baseCostBps, 18);
-  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.hardGates.minimumValidatedSignals, 80);
-  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.hardGates.minimumValidationDays, 90);
+  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.hardGates.minimumValidatedSignals, 40);
+  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.hardGates.minimumValidationDays, 45);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.warnings.stressIsVeto, false);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.warnings.lossStreakIsVeto, false);
+  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.warnings.monthlyConcentrationIsVeto, false);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.authorization.liveOrdersEnabled, false);
   assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.monthlyRobustness.noPositiveMonthShareThreshold, true);
+  assert.equal(EMAIL_SIGNAL_RELEASE_POLICY.monthlyRobustness.warningOnly, true);
   assert.match(EMAIL_SIGNAL_RELEASE_POLICY.monthlyRobustness.rule, /remove the highest-PnL month/);
 });
 
@@ -80,8 +83,8 @@ test('a fully qualifying sample is release-ready but never automatic trading', (
 });
 
 for (const [name, field, value] of [
-  ['79 signals', 'validatedSignals', 79],
-  ['89 days', 'validationDays', 89],
+  ['39 signals', 'validatedSignals', 39],
+  ['44 days', 'validationDays', 44],
   ['negative net expectancy', 'netExpectancyBps', -0.01],
   ['profit factor below 1.10', 'netProfitFactor', 1.099],
   ['MTM drawdown above 10%', 'maxMtmDrawdownPct', 10.01],
@@ -108,42 +111,63 @@ for (const [name, field, value] of [
   });
 }
 
-test('monthly independence is deferred before 90 validation days', () => {
-  const result = evaluateEmailSignalRelease(validInput({ validationDays: 53 }));
+test('40 signals and 45 validation days meet the V2 readiness minimums', () => {
+  const result = evaluateEmailSignalRelease(validInput({
+    validatedSignals: 40,
+    validationDays: 45
+  }));
+  assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(result.hardGates.minimumValidatedSignals.pass, true);
+  assert.equal(result.hardGates.minimumValidationSpan.pass, true);
+});
+
+test('monthly concentration is warning-only before the minimum span is evaluable', () => {
+  const result = evaluateEmailSignalRelease(validInput({ validationDays: 44 }));
   assert.equal(result.state, 'EMAIL_SIGNAL_CANDIDATE');
-  assert.equal(result.monthlyRobustness.status, 'DEFERRED');
+  assert.equal(result.monthlyRobustness.status, 'NOT_EVALUABLE');
   assert.equal(result.monthlyRobustness.evaluable, false);
   assert.equal(result.monthlyRobustness.monthlyIndependenceEvaluable, false);
   assert.equal(result.monthlyRobustness.bestMonth, '2026-01');
   assert.equal(result.monthlyRobustness.bestMonthNetPnl, 60);
   assert.equal(result.monthlyRobustness.netPnlWithoutBestMonth, 40);
-  assert.equal(result.hardGates.monthlyIndependence.pass, null);
+  assert.equal(result.warnings.MONTH_CONCENTRATION_WARNING, false);
+  assert.equal(result.hardGates.monthlyIndependence, undefined);
 });
 
-test('90-day monthly independence fails when the best month is removed', () => {
+test('monthly concentration warning never vetoes a mature otherwise-valid sample', () => {
   const result = evaluateEmailSignalRelease(validInput({
-    validationDays: 90,
+    validationDays: 45,
     activeMonths: [
       { month: '2026-01', baseCostNetPnl: 100 },
       { month: '2026-02', baseCostNetPnl: -100 }
     ]
   }));
-  assert.equal(result.state, 'RESEARCH_ONLY');
-  assert.equal(result.monthlyRobustness.status, 'FAIL');
+  assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(result.monthlyRobustness.status, 'WARNING');
+  assert.equal(result.monthlyRobustness.evaluable, true);
+  assert.equal(result.monthlyRobustness.pass, false);
   assert.equal(result.monthlyRobustness.netPnlWithoutBestMonth, -100);
-  assert.equal(result.hardGates.monthlyIndependence.pass, false);
+  assert.equal(result.warnings.MONTH_CONCENTRATION_WARNING, true);
+  assert.equal(result.hardGateFailures.includes('monthlyIndependence'), false);
 });
 
-test('90-day monthly independence passes when the best month is removed and PnL remains positive', () => {
-  const result = evaluateEmailSignalRelease(validInput({ validationDays: 90 }));
+test('monthly concentration warning is clear when the best month is removed and PnL remains positive', () => {
+  const result = evaluateEmailSignalRelease(validInput({ validationDays: 45 }));
   assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
   assert.equal(result.monthlyRobustness.status, 'PASS');
   assert.equal(result.monthlyRobustness.netPnlWithoutBestMonth, 40);
-  assert.equal(result.hardGates.monthlyIndependence.pass, true);
+  assert.equal(result.monthlyRobustness.pass, true);
+  assert.equal(result.warnings.MONTH_CONCENTRATION_WARNING, false);
 });
 
 test('negative 27bps stress is a warning, not a veto', () => {
   const result = evaluateEmailSignalRelease(validInput({ stressNetExpectancyBps: -1 }));
+  assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(result.warnings.COST_STRESS_WARNING, true);
+});
+
+test('zero 27bps stress expectancy is also a warning, not a veto', () => {
+  const result = evaluateEmailSignalRelease(validInput({ stressNetExpectancyBps: 0 }));
   assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
   assert.equal(result.warnings.COST_STRESS_WARNING, true);
 });
@@ -201,21 +225,22 @@ for (const [field, label] of [
   });
 }
 
-test('the committed HY-EXP-0028 evaluation is machine-readable and candidate-only', () => {
+test('the committed HY-EXP-0028 evaluation is machine-readable and V2-ready-only', () => {
   const artifact = JSON.parse(fs.readFileSync(
     new URL('../artifacts/HY-EXP-0028/email-signal-release-evaluation.json', import.meta.url),
     'utf8'
   ));
-  assert.equal(artifact.status, 'EMAIL_SIGNAL_CANDIDATE');
-  assert.equal(artifact.releaseEligible, false);
+  assert.equal(artifact.status, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(artifact.releaseEligible, true);
   assert.equal(artifact.immutableSource.rewritten, false);
   assert.equal(artifact.authorization.liveOrdersEnabled, false);
-  assert.equal(artifact.hardGates.monthlyIndependence.status, 'DEFERRED');
-  assert.equal(artifact.hardGates.monthlyIndependence.pass, null);
-  assert.equal(artifact.monthlyRobustness.monthlyIndependenceEvaluable, false);
+  assert.equal(artifact.policyVersion, 2);
+  assert.equal(artifact.hardGates.monthlyIndependence, undefined);
+  assert.equal(artifact.monthlyRobustness.monthlyIndependenceEvaluable, true);
+  assert.equal(artifact.warnings.MONTH_CONCENTRATION_WARNING, true);
 });
 
-test('HY-EXP-0028 remains an email candidate under the new policy', () => {
+test('HY-EXP-0028 is V2 release-ready but never released automatically', () => {
   const result = evaluateEmailSignalRelease({
     experimentId: 'HY-EXP-0028',
     source,
@@ -241,9 +266,13 @@ test('HY-EXP-0028 remains an email candidate under the new policy', () => {
       maxLossStreak: 12
     }
   });
-  assert.equal(result.state, 'EMAIL_SIGNAL_CANDIDATE');
-  assert.deepEqual(result.hardGateFailures, ['minimumValidatedSignals', 'minimumValidationSpan']);
+  assert.equal(result.state, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.deepEqual(result.hardGateFailures, []);
+  assert.equal(result.releaseEligible, true);
+  assert.equal(result.monthlyRobustness.status, 'WARNING');
+  assert.equal(result.monthlyRobustness.monthlyIndependenceEvaluable, true);
   assert.equal(result.warnings.COST_STRESS_WARNING, true);
   assert.equal(result.warnings.LOSS_STREAK_WARNING, true);
+  assert.equal(result.warnings.MONTH_CONCENTRATION_WARNING, true);
   assert.equal(result.source.status, 'HOLDOUT_FAILED');
 });

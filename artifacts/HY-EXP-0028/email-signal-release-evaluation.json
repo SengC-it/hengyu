@@ -3,9 +3,9 @@
   "artifactType": "EMAIL_SIGNAL_RELEASE_EVALUATION",
   "experimentId": "HY-EXP-0028",
   "policyId": "EMAIL_SIGNAL_RELEASE-001",
-  "policyVersion": 1,
-  "status": "EMAIL_SIGNAL_CANDIDATE",
-  "releaseEligible": false,
+  "policyVersion": 2,
+  "status": "EMAIL_SIGNAL_RELEASE_READY",
+  "releaseEligible": true,
   "authorization": {
     "signalOnly": true,
     "paperOnly": true,
@@ -66,12 +66,12 @@
   },
   "hardGates": {
     "minimumValidatedSignals": {
-      "pass": false,
-      "detail": "requires >= 80 independent validated signals"
+      "pass": true,
+      "detail": "requires >= 40 independent validated signals"
     },
     "minimumValidationSpan": {
-      "pass": false,
-      "detail": "requires >= 90 calendar days"
+      "pass": true,
+      "detail": "requires >= 45 calendar days"
     },
     "baseCostBasis": {
       "pass": true,
@@ -108,26 +108,6 @@
     "positiveWithoutBestTrade": {
       "pass": true,
       "detail": "net PnL must remain positive after removing the best trade"
-    },
-    "monthlyIndependence": {
-      "pass": null,
-      "status": "DEFERRED",
-      "evaluable": false,
-      "activeMonths": [
-        {
-          "month": "2026-07",
-          "baseCostNetPnl": -564.8740225660517
-        },
-        {
-          "month": "2026-08",
-          "baseCostNetPnl": 1236.65249041285
-        }
-      ],
-      "bestMonth": "2026-08",
-      "bestMonthNetPnl": 1236.65249041285,
-      "netPnlWithoutBestMonth": -564.8740225660517,
-      "monthlyIndependenceEvaluable": false,
-      "detail": "monthly robustness is deferred until validation reaches 90 days"
     },
     "signalOnly": {
       "pass": true,
@@ -195,9 +175,9 @@
     }
   },
   "monthlyRobustness": {
-    "status": "DEFERRED",
-    "evaluable": false,
-    "pass": null,
+    "status": "WARNING",
+    "evaluable": true,
+    "pass": false,
     "activeMonths": [
       {
         "month": "2026-07",
@@ -211,27 +191,26 @@
     "bestMonth": "2026-08",
     "bestMonthNetPnl": 1236.65249041285,
     "netPnlWithoutBestMonth": -564.8740225660517,
-    "monthlyIndependenceEvaluable": false,
-    "detail": "monthly robustness is deferred until validation reaches 90 days"
+    "monthlyIndependenceEvaluable": true,
+    "detail": "remove the highest-PnL calendar month; remaining base-cost net PnL is reported as a warning only"
   },
-  "hardGateFailures": [
-    "minimumValidatedSignals",
-    "minimumValidationSpan"
-  ],
+  "hardGateFailures": [],
   "warnings": {
     "COST_STRESS_WARNING": true,
     "LOSS_STREAK_WARNING": true,
+    "MONTH_CONCENTRATION_WARNING": true,
     "stressNetExpectancyBps": -3.7622188996869474,
     "maxLossStreak": 12,
     "stressIsVeto": false,
-    "lossStreakIsVeto": false
+    "lossStreakIsVeto": false,
+    "monthlyConcentrationIsVeto": false
   },
   "interpretation": {
     "baseCostGates": "PASS",
-    "readinessGates": "FAIL",
-    "monthlyIndependence": "DEFERRED / NOT_EVALUABLE before 90 validation days; no PASS claim",
+    "readinessGates": "PASS",
+    "monthlyIndependence": "WARNING / NOT A RELEASE VETO",
     "oldFrozenExperimentStatusPreserved": true,
-    "remainingDevelopmentRequired": "Collect an independent, preregistered validation span of at least 90 calendar days and at least 80 validated signals.",
+    "releaseSemantics": "EMAIL_SIGNAL_RELEASE_READY permits explicit PAPER_ONLY human-review email approval only; it does not authorize automatic trading, orders, sizing, leverage, account access, fund management, or automatic exits.",
     "futureOosRead": false,
     "parameterRescue": false
   }

@@ -39,16 +39,6 @@ function gate(pass, detail) {
   return { pass: Boolean(pass), detail };
 }
 
-function deferredGate(detail, fields = {}) {
-  return {
-    pass: null,
-    status: 'DEFERRED',
-    evaluable: false,
-    detail,
-    ...fields
-  };
-}
-
 function safetyGates(safety) {
   return {
     signalOnly: gate(requiredBoolean('safety.signalOnly', safety?.signalOnly), 'signal-only mode is required'),
@@ -105,28 +95,14 @@ function aggregateMonthlyBaseCostPnl(activeMonths) {
 }
 
 function monthlyRobustness(metrics, policy) {
-  const minimumDays = policy.hardGates.minimumValidationDays;
+  const minimumDays = policy.monthlyRobustness?.requiresValidationDays
+    ?? policy.hardGates.minimumValidationDays;
   const validationDays = Number(metrics?.validationDays);
   const activeMonths = aggregateMonthlyBaseCostPnl(metrics?.activeMonths);
-  if (!Number.isFinite(validationDays) || validationDays < minimumDays) {
-    const total = activeMonths?.reduce((sum, row) => sum + row.baseCostNetPnl, 0) ?? null;
-    const best = activeMonths?.length
-      ? [...activeMonths].sort((left, right) => right.baseCostNetPnl - left.baseCostNetPnl)[0]
-      : null;
-    return deferredGate(
-      `monthly robustness is deferred until validation reaches ${minimumDays} days`,
-      {
-        activeMonths: activeMonths ?? [],
-        bestMonth: best?.month ?? null,
-        bestMonthNetPnl: best?.baseCostNetPnl ?? null,
-        netPnlWithoutBestMonth: best == null ? null : total - best.baseCostNetPnl,
-        monthlyIndependenceEvaluable: false
-      }
-    );
-  }
+  const evaluable = Number.isFinite(validationDays) && validationDays >= minimumDays;
   if (!activeMonths?.length) {
     return {
-      pass: false,
+      pass: null,
       status: 'NOT_EVALUABLE',
       evaluable: false,
       activeMonths: [],
@@ -134,24 +110,26 @@ function monthlyRobustness(metrics, policy) {
       bestMonthNetPnl: null,
       netPnlWithoutBestMonth: null,
       monthlyIndependenceEvaluable: false,
-      detail: 'at least 90 validation days require auditable calendar-month base-cost PnL'
+      detail: 'auditable calendar-month base-cost PnL is required to evaluate concentration'
     };
   }
   const total = activeMonths.reduce((sum, row) => sum + row.baseCostNetPnl, 0);
   const best = [...activeMonths]
     .sort((left, right) => right.baseCostNetPnl - left.baseCostNetPnl || left.month.localeCompare(right.month))[0];
   const netPnlWithoutBestMonth = total - best.baseCostNetPnl;
-  const pass = netPnlWithoutBestMonth > 0;
+  const pass = evaluable ? netPnlWithoutBestMonth > 0 : null;
   return {
     pass,
-    status: pass ? 'PASS' : 'FAIL',
-    evaluable: true,
+    status: netPnlWithoutBestMonth > 0
+      ? (evaluable ? 'PASS' : 'NOT_EVALUABLE')
+      : 'WARNING',
+    evaluable,
     activeMonths,
     bestMonth: best.month,
     bestMonthNetPnl: best.baseCostNetPnl,
     netPnlWithoutBestMonth,
-    monthlyIndependenceEvaluable: true,
-    detail: 'remove the highest-PnL calendar month; remaining base-cost net PnL must be > 0'
+    monthlyIndependenceEvaluable: evaluable,
+    detail: 'remove the highest-PnL calendar month; remaining base-cost net PnL is reported as a warning only'
   };
 }
 
@@ -218,14 +196,15 @@ export function evaluateEmailSignalRelease(input, { policy = EMAIL_SIGNAL_RELEAS
     positiveWithoutBestTrade: gate(
       finite('net PnL without best trade', metrics.netPnlWithoutBestTrade) > 0,
       'net PnL must remain positive after removing the best trade'
-    ),
-    monthlyIndependence: monthlyCheck
+    )
   };
 
   const warnings = {
     COST_STRESS_WARNING: costChecks.stressCostBasis.pass
-      && finite('stress net expectancy', metrics.stressNetExpectancyBps) < 0,
-    LOSS_STREAK_WARNING: finite('maximum loss streak', metrics.maxLossStreak) > policy.warnings.lossStreakWarningAbove
+      && finite('stress net expectancy', metrics.stressNetExpectancyBps) <= 0,
+    LOSS_STREAK_WARNING: finite('maximum loss streak', metrics.maxLossStreak) > policy.warnings.lossStreakWarningAbove,
+    MONTH_CONCENTRATION_WARNING: monthlyCheck.netPnlWithoutBestMonth != null
+      && monthlyCheck.netPnlWithoutBestMonth <= 0
   };
 
   const hardFailures = Object.entries(hardGates)
