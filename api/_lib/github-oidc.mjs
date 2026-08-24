@@ -10,7 +10,13 @@ function decodeJson(value) {
   return JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
 }
 
-export async function verifyGitHubActionsOidc(token, { fetchImpl = fetch, now = Date.now() } = {}) {
+export async function verifyGitHubActionsOidc(token, {
+  fetchImpl = fetch,
+  now = Date.now(),
+  audience = AUDIENCE,
+  workflowRef = WORKFLOW_REF,
+  allowedEvents = ['schedule', 'workflow_dispatch']
+} = {}) {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
@@ -20,9 +26,9 @@ export async function verifyGitHubActionsOidc(token, { fetchImpl = fetch, now = 
     const nowSeconds = Math.floor(now / 1000);
     const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
     if (header.alg !== 'RS256' || typeof header.kid !== 'string') return false;
-    if (claims.iss !== ISSUER || !audiences.includes(AUDIENCE)) return false;
-    if (claims.repository !== REPOSITORY || claims.ref !== REF || claims.workflow_ref !== WORKFLOW_REF) return false;
-    if (!['schedule', 'workflow_dispatch'].includes(claims.event_name)) return false;
+    if (claims.iss !== ISSUER || !audiences.includes(audience)) return false;
+    if (claims.repository !== REPOSITORY || claims.ref !== REF || claims.workflow_ref !== workflowRef) return false;
+    if (!allowedEvents.includes(claims.event_name)) return false;
     if (!Number.isFinite(claims.iat) || !Number.isFinite(claims.exp)) return false;
     if (claims.iat > nowSeconds + 60 || claims.exp < nowSeconds || claims.exp - claims.iat > 600) return false;
     const response = await fetchImpl(`${ISSUER}/.well-known/jwks`, { signal: AbortSignal.timeout(10_000) });

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "jobId": "hy-exp-0028-production-email-runner",
+  "jobName": "HY-EXP-0028 production email runner",
+  "strategyId": "HY-EXP-0028",
+  "endpoint": "/api/hy-exp-0028-scan",
+  "schedule": "5 * * * *",
+  "timezone": "UTC",
+  "activated": false,
+  "applied": false,
+  "supabaseMigrationApplied": false,
+  "requiresReleaseState": "EMAIL_SIGNAL_RELEASED",
+  "authorization": "PAPER_ONLY",
+  "separateFrom": "HY-DATA-0001 job #35",
+  "boundedEntryRetryMs": 90000,
+  "notes": "Prepared scheduler definition only; activation requires a separate approved cutover."
+}

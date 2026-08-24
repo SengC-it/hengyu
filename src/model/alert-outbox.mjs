@@ -135,8 +135,26 @@ export function formatAdvisoryEmail(signal) {
   const level = levelOf(signal);
   const symbol = signal.symbol ?? 'UNKNOWN';
   const levelLabel = LEVEL_LABELS[level];
-  if (signal.hypothesisId === 'H12' || signal.reviewModel === 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL') {
-    const subject = `[HengYu] ${symbol} H12 做空提醒（${level}）｜仅供研究`;
+  const dynamicExit = signal.hypothesisId === 'H12'
+    || signal.reviewModel === 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL'
+    || signal.reviewModel === 'DYNAMIC_CHANNEL_OR_ATR_EXIT';
+  if (dynamicExit) {
+    const isH12 = signal.hypothesisId === 'H12' || signal.reviewModel === 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL';
+    const direction = directionOf(signal);
+    const subject = isH12
+      ? `[HengYu] ${symbol} H12 做空提醒（${level}）｜仅供研究`
+      : `[HengYu] ${symbol} ${direction}提醒（${levelLabel}）｜仅供参考`;
+    const strategyLines = isH12
+      ? [
+        '策略：H12 广泛熊市过滤＋120根4小时通道向下突破。',
+        `初始60根通道参考：${displayPrice(signal.initialExitChannelPrice)}`,
+        `动态退出规则：${signal.exitRule ?? '完成的4小时收盘价突破此前60根高点后，在下一根4小时开盘退出。'}`,
+        '重要：H12没有固定止盈价，不能使用固定TP/SL模型复盘。'
+      ]
+      : [
+        '策略：HY-EXP-0028 BULL/BUY RULE_A_CHANNEL_DISTANCE_Q75。',
+        `动态退出规则：${signal.exitRule ?? 'ATR20止损或此前60根已完成1小时通道退出；系统不自动平仓。'}`
+      ];
     return {
       subject,
       text: [
@@ -144,10 +162,7 @@ export function formatAdvisoryEmail(signal) {
         '',
         ...advisoryFields(signal, { dynamicExit: true, marketFallback: '广泛熊市' }),
         '',
-        '策略：H12 广泛熊市过滤＋120根4小时通道向下突破。',
-        `初始60根通道参考：${displayPrice(signal.initialExitChannelPrice)}`,
-        `动态退出规则：${signal.exitRule ?? '完成的4小时收盘价突破此前60根高点后，在下一根4小时开盘退出。'}`,
-        '重要：H12没有固定止盈价，不能使用固定TP/SL模型复盘。',
+        ...strategyLines,
         ENTRY_EXPIRY_NOTICE,
         EXIT_SEMANTICS_NOTICE,
         '本邮件是PAPER_ONLY研究提醒；需要人工确认，系统不会自动下单、不会读取账户。'

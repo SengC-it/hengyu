@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "configId": "HY-EXP-0028-EMAIL-CUTOVER-001",
+  "immutable": true,
+  "status": "DRAFT_CUTOVER_PREPARED",
+  "strategyId": "HY-EXP-0028",
+  "evaluationSource": {
+    "policyId": "EMAIL_SIGNAL_RELEASE-001",
+    "policyVersion": 2,
+    "evaluationStatus": "EMAIL_SIGNAL_RELEASE_READY",
+    "artifactPath": "artifacts/HY-EXP-0028/holdout-result.json",
+    "artifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467"
+  },
+  "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
+  "releaseStateRequiredForEmail": "EMAIL_SIGNAL_RELEASED",
+  "humanApprovalRequiredForReleased": true,
+  "legacyEmailAuthority": {
+    "strategyIds": ["HY-EXP-0018"],
+    "emailAllowed": false,
+    "diagnosticsAllowed": true,
+    "mutuallyExclusiveWithNewAuthority": true
+  },
+  "candidateEngine": {
+    "sourceModule": "src/validation/hy-val-0028-001.mjs",
+    "strategyId": "HY-EXP-0028",
+    "rule": "RULE_A_CHANNEL_DISTANCE_Q75",
+    "direction": "BULL/BUY",
+    "frozenQ75": 10.051547664406323,
+    "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT"],
+    "entry": {
+      "source": "exact contract-price 5m bar OPEN; live bar accepted at bar start",
+      "offsetMs": 300000,
+      "laterBarRescue": false,
+      "waitForBarClose": false,
+      "maxEntryCaptureDelayMs": 90000
+    },
+    "exit": {
+      "stop": "BUY entryPrice - 2 * ATR20",
+      "dynamicChannel": "BUY close <= prior 60 completed 1h low excluding current exit bar",
+      "terminal": "after six completed evaluation 1h bars",
+      "outcomeResolutionUsedForAdmission": false
+    }
+  },
+  "email": {
+    "fromName": "HengYu",
+    "fromAddress": "zunxian.chi@gmail.com",
+    "template": "approved-formal-signal-v1",
+    "humanReviewOnly": true,
+    "expiryLimitsNewEntryOnly": true
+  },
+  "safety": {
+    "signal_only": true,
+    "authorization_mode": "PAPER_ONLY",
+    "live_orders_enabled": false,
+    "account_api": false,
+    "order_api": false,
+    "automatic_trading": false,
+    "final_oos_read": false,
+    "shadow_activated": false
+  }
+}

@@ -37,6 +37,8 @@ test('H12 production bundle remains paper-only and declares dynamic exit', () =>
   assert.equal(bundle.record.advisory.exit_reference, null);
   assert.equal(bundle.record.advisory.metadata.reviewModel, 'DYNAMIC_DONCHIAN_NOT_FIXED_TP_SL');
   assert.equal(bundle.record.advisory.metadata.source, 'vercel-h12-worker');
+  assert.equal(bundle.record.email.requested, false);
+  assert.equal(bundle.record.email.disabledReason, 'EMAIL_STRATEGY_NOT_AUTHORIZED');
 });
 
 test('live H12 falls back to the next official Binance futures endpoint', async () => {

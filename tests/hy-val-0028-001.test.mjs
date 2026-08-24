@@ -23,6 +23,7 @@ import {
   ShadowValidationActivation,
   assertProspectiveResolvedEvidence,
   buildFrozenShadowCandidates,
+  buildFrozenProductionEmailCandidates,
   buildShadowSignal,
   classifyWarmupRecord,
   combineValidationEvidence,
@@ -449,6 +450,33 @@ test('candidate parity fixtures cover bull, sideways, bear, Q75 rejection, and e
     if (fixture.name === 'below-Q75 rejection') {
       assert.equal(built.rejections.filter(row => row.rejection === 'BELOW_FROZEN_Q75').length, 8);
     }
+  }
+});
+
+test('production email candidates reuse frozen Rule A parity without shadow activation or outcomes', () => {
+  const dataset = makeCausalDataset();
+  const shadow = buildFrozenShadowCandidates({ activation: activation(), ...dataset });
+  const production = buildFrozenProductionEmailCandidates(dataset);
+  assert.equal(production.candidates.length, shadow.candidates.length);
+  assert.deepEqual(
+    production.candidates.map(row => row.id),
+    shadow.candidates.map(row => row.id)
+  );
+  for (const candidate of production.candidates) {
+    const expected = shadow.candidates.find(row => row.id === candidate.id);
+    assert.ok(expected);
+    assert.equal(candidate.symbol, expected.symbol);
+    assert.equal(candidate.decisionTime, expected.decisionTime);
+    assert.equal(candidate.channelDistance, expected.channelDistance);
+    assert.deepEqual(candidate.features, expected.features);
+    assert.equal(candidate.theoreticalEntryTime, expected.theoreticalEntryTime);
+    assert.equal(candidate.candidateAuthority, 'EMAIL_SIGNAL_CANDIDATE');
+    assert.equal(candidate.candidateOnly, true);
+    assert.equal(candidate.outcomeDataUsedForAdmission, false);
+    assert.equal(candidate.shadowValidationActivatedAt, undefined);
+    assert.equal(candidate.emailSent, false);
+    assert.equal(candidate.productionAdvisory, false);
+    assert.equal(candidate.orderPlaced, false);
   }
 });
 
