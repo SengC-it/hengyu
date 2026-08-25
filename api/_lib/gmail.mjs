@@ -4,8 +4,8 @@ import { evaluateEmailSignalAdmission } from '../../src/model/email-signal-cutov
 
 const DEFAULT_GMAIL_FROM_NAME = 'HengYu';
 
-function disabled() {
-  return process.env.HENGYU_GMAIL_SEND_ENABLED === 'false';
+function sendEnabled() {
+  return process.env.HENGYU_GMAIL_SEND_ENABLED === 'true';
 }
 
 function gmailFromName() {
@@ -22,29 +22,29 @@ export function gmailFromHeader(value) {
 }
 
 function smtpConfigured() {
-  return !disabled() &&
+  return sendEnabled() && Boolean(
     process.env.HENGYU_GMAIL_FROM_ADDRESS &&
     process.env.HENGYU_GMAIL_TO_ADDRESS &&
-    process.env.HENGYU_GMAIL_APP_PASSWORD;
+    process.env.HENGYU_GMAIL_APP_PASSWORD
+  );
 }
 
 function oauthConfigured() {
-  return !disabled() &&
-    process.env.HENGYU_GMAIL_SEND_ENABLED === 'true' &&
+  return sendEnabled() && Boolean(
     process.env.HENGYU_GMAIL_CLIENT_ID &&
     process.env.HENGYU_GMAIL_CLIENT_SECRET &&
-    process.env.HENGYU_GMAIL_REFRESH_TOKEN;
-}
-
-function enabled() {
-  return Boolean(smtpConfigured() || oauthConfigured());
+    process.env.HENGYU_GMAIL_REFRESH_TOKEN
+  );
 }
 
 export function gmailStatus() {
+  const enabled = sendEnabled();
+  const smtp = smtpConfigured();
+  const oauth = oauthConfigured();
   return {
-    configured: enabled(),
-    enabled: !disabled(),
-    mode: smtpConfigured() ? 'smtp_app_password' : (oauthConfigured() ? 'oauth' : null),
+    configured: smtp || oauth,
+    enabled,
+    mode: smtp ? 'smtp_app_password' : (oauth ? 'oauth' : null),
     fromName: gmailFromName()
   };
 }
@@ -111,6 +111,7 @@ async function sendGmailViaSmtp({ from, to, subject, text }) {
 }
 
 export async function sendGmail({ from, to, subject, text }) {
+  if (!sendEnabled()) throw new Error('gmail_not_enabled');
   if (smtpConfigured()) return sendGmailViaSmtp({ from, to, subject, text });
   if (oauthConfigured()) return sendGmailViaOAuth({ from, to, subject, text });
   throw new Error('gmail_not_enabled');
@@ -132,7 +133,9 @@ export function buildDispatchAdmissionAdvisory(row) {
 }
 
 export async function dispatchPendingEmails(limit = 10) {
-  if (!enabled()) throw new Error('gmail_not_enabled');
+  if (!sendEnabled() || (!smtpConfigured() && !oauthConfigured())) {
+    throw new Error('gmail_not_enabled');
+  }
   const rows = await selectRows('hengyu_email_outbox', {
     select: 'outbox_id,advisory_id,alert_level,from_address,to_address,subject,body_plain,attempts',
     filters: { status: 'eq.PENDING' },
