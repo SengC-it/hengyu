@@ -280,5 +280,16 @@ test('preflight artifact is blocked and contains no PnL or release execution', (
   assert.equal(artifact.execution.finalOosRead, false);
   assert.equal(artifact.governance.status, 'CONFIRMED_NOT_ENFORCED');
   assert.equal(artifact.governance.pass, false);
+  assert.deepEqual(artifact.blockers, [
+    'PRODUCTION_ENV_NOT_VERIFIED',
+    'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED'
+  ]);
+  assert.equal(artifact.vercelCompatibility.capabilityStatus, 'VERIFIED');
+  assert.equal(artifact.vercelCompatibility.capabilityVerificationPass, true);
+  assert.equal(artifact.vercelBuildOutputEvidence.maxDurationSeconds, 120);
+  assert.equal(artifact.vercelBuildOutputEvidence.handler, 'api/hy-exp-0028-scan.js');
+  assert.equal(artifact.vercelPreview.deploymentId, 'dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6');
+  assert.equal(artifact.vercelPreview.endpointHttpStatus, 401);
+  assert.equal(artifact.vercelPreviewHistory[0].runtimeStatus, 'FUNCTION_INVOCATION_FAILED');
   assert.equal(Object.hasOwn(artifact, 'pnl'), false);
 });

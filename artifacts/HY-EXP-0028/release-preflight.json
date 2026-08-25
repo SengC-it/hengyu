@@ -2,12 +2,16 @@
   "schemaVersion": 1,
   "artifactType": "CONTROLLED_EMAIL_RELEASE_PREFLIGHT",
   "baseCommit": "6e1a370d39be32303fbe1831e81b318aa544b262",
+  "verificationCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
   "status": "BLOCKED",
   "releaseAllowed": false,
   "blockers": [
     "PRODUCTION_ENV_NOT_VERIFIED",
-    "VERCEL_MAX_DURATION_CAPABILITY_NOT_VERIFIED",
     "MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED"
+  ],
+  "resolvedBlockers": [
+    "VERCEL_PREVIEW_RUNTIME_FAILED",
+    "VERCEL_MAX_DURATION_CAPABILITY_NOT_VERIFIED"
   ],
   "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
   "productionEnvironment": {
@@ -28,7 +32,8 @@
   },
   "vercelCompatibility": {
     "configPass": true,
-    "capabilityStatus": "NOT_VERIFIED",
+    "capabilityStatus": "VERIFIED",
+    "capabilityVerificationPass": true,
     "runnerRoute": "/api/hy-exp-0028-scan",
     "runnerRegions": ["sin1"],
     "runnerMaxDurationSeconds": 120,
@@ -45,9 +50,73 @@
         "region": "sin1",
         "sourceCommit": "989cf42518e1f70fae107e4eccf005b48fff349a"
       },
-      "maxDurationCapability": "NOT_VERIFIED_BY_READ_ONLY_CONNECTOR"
+      "maxDurationCapability": "VERIFIED_BY_BUILD_OUTPUT_AND_PREVIEW_SMOKE",
+      "buildOutput": {
+        "status": "SUCCESS",
+        "sourceCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
+        "command": "vercel build --yes",
+        "outputConfigPath": ".vercel/output/functions/api/hy-exp-0028-scan.func/.vc-config.json",
+        "handler": "api/hy-exp-0028-scan.js",
+        "runtime": "nodejs24.x",
+        "maxDurationSeconds": 120,
+        "regions": ["sin1"]
+      },
+      "preview": {
+        "deploymentId": "dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6",
+        "deploymentReady": true,
+        "endpointHttpStatus": 401,
+        "endpointAuthResult": "unauthorized",
+        "runtimeStatus": "FUNCTION_STARTED_AUTH_REJECTED",
+        "productionPromoted": false,
+        "deploymentUrl": "https://hengyu-research-8ub4rr07c-seng-c-s-projects.vercel.app"
+      }
     }
   },
+  "vercelBuildOutputEvidence": {
+    "status": "SUCCESS",
+    "sourceCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
+    "command": "vercel build --yes",
+    "outputConfigPath": ".vercel/output/functions/api/hy-exp-0028-scan.func/.vc-config.json",
+    "handler": "api/hy-exp-0028-scan.js",
+    "runtime": "nodejs24.x",
+    "maxDurationSeconds": 120,
+    "regions": ["sin1"]
+  },
+  "vercelPreview": {
+    "deploymentId": "dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6",
+    "deploymentReady": true,
+    "endpointHttpStatus": 401,
+    "endpointAuthResult": "unauthorized",
+    "runtimeStatus": "FUNCTION_STARTED_AUTH_REJECTED",
+    "productionPromoted": false,
+    "deploymentUrl": "https://hengyu-research-8ub4rr07c-seng-c-s-projects.vercel.app"
+  },
+  "vercelPreviewHistory": [
+    {
+      "deploymentId": "dpl_HEq3yPpJFyPzX2MAbAxP1Sk91Dca",
+      "deploymentReady": true,
+      "endpointHttpStatus": 500,
+      "runtimeStatus": "FUNCTION_INVOCATION_FAILED",
+      "runtimeError": "No exports found in module \"/var/task/api/hy-exp-0028-scan.mjs\"",
+      "productionPromoted": false
+    },
+    {
+      "deploymentId": "dpl_76sx7187CoWUvA4SGYdQhKsfZYLG",
+      "deploymentReady": false,
+      "endpointHttpStatus": null,
+      "runtimeStatus": "BUILD_FAILED",
+      "runtimeError": "unused_function: api/h12-scan.mjs was not included in the Preview upload",
+      "productionPromoted": false
+    },
+    {
+      "deploymentId": "dpl_D7TJbWoCtsHyGKXvBQjPScHwKdvr",
+      "deploymentReady": true,
+      "endpointHttpStatus": 500,
+      "runtimeStatus": "FUNCTION_INVOCATION_FAILED",
+      "runtimeError": "Cannot find module './_lib/http.mjs'",
+      "productionPromoted": false
+    }
+  ],
   "oidc": {
     "audience": "hengyu-hy-exp-0028-production",
     "workflowRef": "SengC-it/hengyu/.github/workflows/hy-exp-0028-scan.yml@refs/heads/main",

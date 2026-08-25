@@ -31,9 +31,10 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    configuration.
 3. The branch now contains the exact GitHub Actions workflow referenced by
    `HY_EXP_0028_OIDC_WORKFLOW_REF`. It uses `id-token: write`, targets
-   `refs/heads/main`, accepts only `schedule`/`workflow_dispatch`, and requests
-   the audience `hengyu-hy-exp-0028-production`. The workflow has not been
-   executed and is not active on Production while this branch is unmerged.
+   `refs/heads/main`, accepts only `workflow_dispatch` (there is no `schedule`
+   trigger in the preflight branch), and requests the audience
+   `hengyu-hy-exp-0028-production`. The workflow has not been executed and is
+   not active on Production while this branch is unmerged.
 4. Verify the actual Vercel project/build capability for the reviewed
    `/api/hy-exp-0028-scan` function configuration and its 120-second maximum
    duration. A plan label alone is not evidence and is not used to fail the
@@ -73,11 +74,34 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    rollback operation separately from the state rollback. Do not redeploy from
    an unreviewed working tree.
 
+## Runtime remediation evidence
+
+The Vercel entrypoint is the standard ESM handler in
+`api/hy-exp-0028-scan.js`; the scan runner remains isolated in
+`src/model/hy-exp-0028-runner.mjs`, and the legacy `.mjs` route was removed.
+The local Vercel Build Output for the reviewed source commit records
+`runtime=nodejs24.x`, `maxDuration=120`, handler
+`api/hy-exp-0028-scan.js`, and region `sin1` in
+`.vercel/output/functions/api/hy-exp-0028-scan.func/.vc-config.json`.
+
+Preview deployment `dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6` reached `READY`; an
+unauthorized `GET /api/hy-exp-0028-scan` returned HTTP 401 JSON rather than a
+function invocation failure. No test credential was available, so no
+authorized Preview request was attempted. The earlier 500 deployments remain
+recorded as historical failures and are not treated as passing evidence. This
+resolves the Preview runtime and max-duration blockers only; Production
+environment presence and main-branch governance remain active blockers.
+
+The safe `pull_request` to `main` CI path only runs tests, registry
+verification, and diff checking. It does not request secrets/OIDC tokens and
+does not deploy.
+
 ## Preflight evidence
 
 The machine-readable result is
 `artifacts/HY-EXP-0028/release-preflight.json`. The current `BLOCKED` result is
-expected until Production-only environment presence, actual Vercel
-120-second capability, and main-branch governance are verified by an
-authorized operator. The OIDC workflow contract itself is verified on this
-branch but has not been executed or activated.
+expected until Production-only environment presence and main-branch governance
+are verified by an authorized operator. The Vercel 120-second capability is
+verified by Build Output plus the successful Preview runtime smoke. The OIDC
+workflow contract itself is verified on this branch but has not been executed
+or activated.
