@@ -101,7 +101,8 @@ export function verifyVercelCompatibility(vercelConfig, {
   projectEvidence = null
 } = {}) {
   const functions = vercelConfig?.functions ?? {};
-  const runner = functions['api/hy-exp-0028-scan.mjs'];
+  const runner = functions['api/hy-exp-0028-scan.js'];
+  const legacyRunnerPresent = Object.hasOwn(functions, 'api/hy-exp-0028-scan.mjs');
   const h12 = functions['api/h12-scan.mjs'];
   const runnerConfigValid = Array.isArray(runner?.regions)
     && runner.regions.length === 1
@@ -114,7 +115,7 @@ export function verifyVercelCompatibility(vercelConfig, {
   const runnerCron = (vercelConfig?.crons ?? [])
     .some(cron => String(cron?.path ?? '').includes('hy-exp-0028-scan'));
   return {
-    configPass: runnerConfigValid && h12Unchanged && !runnerCron,
+    configPass: runnerConfigValid && h12Unchanged && !runnerCron && !legacyRunnerPresent,
     capabilityStatus: capabilityVerified ? 'VERIFIED' : 'NOT_VERIFIED',
     capabilityVerificationPass: capabilityVerified === true,
     projectEvidence,
@@ -129,7 +130,12 @@ export function verifyVercelCompatibility(vercelConfig, {
       unchanged: h12Unchanged
     },
     schedulerRoutePresent: runnerCron,
-    pass: runnerConfigValid && h12Unchanged && !runnerCron && capabilityVerified === true
+    legacyRunnerPresent,
+    pass: runnerConfigValid
+      && h12Unchanged
+      && !runnerCron
+      && !legacyRunnerPresent
+      && capabilityVerified === true
   };
 }
 

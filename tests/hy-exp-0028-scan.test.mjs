@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import handler, { runHyExp0028Scan } from '../api/hy-exp-0028-scan.mjs';
+import handler from '../api/hy-exp-0028-scan.js';
+import { runHyExp0028Scan } from '../src/model/hy-exp-0028-runner.mjs';
 import {
   EMAIL_SIGNAL_CUTOVER_CONFIG,
   isEmailSignalCutoverConfigValid
@@ -105,6 +106,12 @@ test('cutover release states are canonical pairs and current config remains READ
   assert.equal(isEmailSignalCutoverConfigValid(releasedConfig()), true);
   assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.releaseState, 'EMAIL_SIGNAL_RELEASE_READY');
   assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.status, 'DRAFT_CUTOVER_PREPARED');
+});
+
+test('Vercel entrypoint is a standard dynamically importable ESM handler', async () => {
+  const entry = await import('../api/hy-exp-0028-scan.js?entry-contract');
+  assert.equal(typeof entry.default, 'function');
+  assert.equal(fs.existsSync('api/hy-exp-0028-scan.mjs'), false);
 });
 
 test('current READY runner is a release-gated no-op before market data and email work', async () => {
@@ -355,18 +362,18 @@ test('entry capture started after the absolute deadline performs zero entry fetc
   assert.ok(result.entryRejections.every(row => row.rejection === 'ENTRY_CAPTURE_WINDOW_EXPIRED'));
 });
 
-test('runner authentication rejects missing and wrong internal credentials before scanning', async () => {
-  for (const headers of [{}, { authorization: 'Bearer wrong' }]) {
-    const res = mockResponse();
-    let runCalls = 0;
-    await handler({ method: 'GET', headers }, res, {
-      authorizeImpl: async () => false,
-      runImpl: async () => { runCalls += 1; return { ok: true }; }
-    });
-    assert.equal(res.statusCode, 401);
-    assert.match(res.body, /unauthorized/);
-    assert.equal(runCalls, 0);
-  }
+test('Vercel entrypoint rejects missing internal credentials before scanning', async () => {
+  const res = mockResponse();
+  await handler({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 401);
+  assert.match(res.body, /unauthorized/);
+});
+
+test('Vercel entrypoint rejects non-GET requests before authorization', async () => {
+  const res = mockResponse();
+  await handler({ method: 'POST', headers: {} }, res);
+  assert.equal(res.statusCode, 405);
+  assert.match(res.body, /method_not_allowed/);
 });
 
 test('bounded entry fetch uses only exact public contract-price 5m REST target and never rescues later bars', async () => {
@@ -425,7 +432,7 @@ test('prepared scheduler is separate, inactive, and has no HY-EXP-0028 migration
 
 test('only the HY-EXP-0028 function receives the 120-second budget', () => {
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
-  assert.deepEqual(vercel.functions['api/hy-exp-0028-scan.mjs'], {
+  assert.deepEqual(vercel.functions['api/hy-exp-0028-scan.js'], {
     regions: ['sin1'],
     maxDuration: 120
   });

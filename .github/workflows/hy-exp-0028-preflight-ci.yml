@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - codex/hy-exp-0028-release-preflight
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

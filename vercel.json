@@ -17,7 +17,7 @@
       "regions": ["sin1"],
       "maxDuration": 60
     },
-    "api/hy-exp-0028-scan.mjs": {
+    "api/hy-exp-0028-scan.js": {
       "regions": ["sin1"],
       "maxDuration": 120
     }

@@ -15,7 +15,7 @@ import {
   verifySupabaseEvidence,
   verifyVercelCompatibility
 } from '../src/model/hy-exp-0028-release-preflight.mjs';
-import { runHyExp0028Scan } from '../api/hy-exp-0028-scan.mjs';
+import { runHyExp0028Scan } from '../src/model/hy-exp-0028-runner.mjs';
 
 const schedulerConfig = {
   activated: false,
@@ -27,7 +27,7 @@ const schedulerConfig = {
 const vercelConfig = {
   functions: {
     'api/h12-scan.mjs': { regions: ['sin1'], maxDuration: 60 },
-    'api/hy-exp-0028-scan.mjs': { regions: ['sin1'], maxDuration: 120 }
+    'api/hy-exp-0028-scan.js': { regions: ['sin1'], maxDuration: 120 }
   },
   crons: [{ path: '/api/cron-health', schedule: '0 0 * * *' }]
 };
@@ -126,7 +126,7 @@ test('OIDC contract requires exact audience/ref and id-token workflow permission
   }).pass, false);
 });
 
-test('committed HY-EXP-0028 workflow has only schedule/workflow_dispatch OIDC triggers', () => {
+test('committed HY-EXP-0028 workflow has only workflow_dispatch OIDC trigger', () => {
   const workflow = fs.readFileSync(
     new URL('../.github/workflows/hy-exp-0028-scan.yml', import.meta.url),
     'utf8'
