@@ -9,8 +9,12 @@ const workflow = fs.readFileSync('.github/workflows/hy-exp-0028-scan.yml', 'utf8
 test('controlled release review is immutable and human approval remains pending', () => {
   assert.equal(review.immutable, true);
   assert.equal(review.reviewedPreflightCommit, '73cc7ee1e83cf858301e088c5d798c8b9e69f6f6');
-  assert.match(review.releaseCandidateCommit, /^[0-9a-f]{40}$/);
-  assert.equal(review.releaseCandidateStatus, 'DRAFT_PR_ONLY');
+  assert.equal(review.releaseProposalCommit, '1119747d6ca5370eb1a120ec739b6e64326cdbf2');
+  assert.equal(review.releaseProposalStatus, 'DRAFT_PR_ONLY');
+  assert.equal(review.activationCommit, null);
+  assert.equal(review.activationStatus, 'NOT_CREATED');
+  assert.equal(review.deploymentSourcePolicy, 'POST_MERGE_MAIN_SHA_ONLY');
+  assert.equal(review.directFeatureBranchDeploymentAllowed, false);
   assert.equal(review.humanApprovalRequired, true);
   assert.equal(review.humanApproval, 'NOT_APPROVED');
   assert.deepEqual(review.releaseState, {
@@ -24,6 +28,8 @@ test('controlled release review is immutable and human approval remains pending'
 
 test('executable cutover remains READY and the draft cannot activate release', () => {
   assert.equal(cutover.releaseState, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(review.releaseState.before, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(review.releaseState.executableConfigChanged, false);
   assert.equal(cutover.status, 'DRAFT_CUTOVER_PREPARED');
   assert.equal(review.safety.paperOnly, true);
   assert.equal(review.safety.signalOnly, true);
@@ -48,7 +54,7 @@ test('review evidence retains the fixed deployment and rollback controls', () =>
   assert.equal(review.preflight.ruleset.requiredCheck, 'Verify release preflight evidence');
   assert.equal(review.preflight.maxDuration.seconds, 120);
   assert.equal(review.preflight.preview.productionPromoted, false);
-  assert.equal(review.deploymentPlan.length, 7);
+  assert.equal(review.deploymentPlan.length, 8);
   assert.equal(review.rollbackPlan[1], 'Set HENGYU_GMAIL_SEND_ENABLED=false in Vercel Production.');
   assert.equal(review.notExecuted.includes('Production deployment'), true);
   assert.equal(review.notExecuted.includes('Real email delivery'), true);

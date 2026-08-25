@@ -17,6 +17,16 @@ humanApproval: NOT_APPROVED
 The proposed after-state is review evidence only. It is not loaded by the
 runner, does not authorize a scan, and does not enable email delivery.
 
+This branch contains a release proposal, not an executable activation commit:
+
+- `reviewedPreflightCommit=73cc7ee1e83cf858301e088c5d798c8b9e69f6f6`
+- `releaseProposalCommit=1119747d6ca5370eb1a120ec739b6e64326cdbf2`
+- `activationCommit=null`
+- `activationStatus=NOT_CREATED`
+
+The proposal commit is evidence for this Draft PR only. There is no executable
+`RELEASED` activation commit yet.
+
 The safety envelope remains fixed in both states:
 
 - `PAPER_ONLY=true`
@@ -37,17 +47,20 @@ separate, future controlled-release approval.
 
 ## Deployment plan (not executed)
 
-The deployment target must be the reviewed, committed release-candidate SHA;
-an uncommitted working tree is never an allowed deployment source.
+`deploymentSourcePolicy=POST_MERGE_MAIN_SHA_ONLY` and
+`directFeatureBranchDeploymentAllowed=false`. The deployment target must be a
+verified post-merge `main` SHA; an uncommitted working tree, this proposal SHA,
+or any other feature-branch SHA is never an allowed deployment source.
 
 1. Merge the approved release PR.
-2. Deploy the reviewed commit SHA to Vercel Production.
-3. Verify the Production route health and safety response.
-4. Run exactly one manual `workflow_dispatch`.
-5. Observe the no-op or paper-only signal result.
-6. Verify advisory, outbox, and delivery evidence without enabling live order
+2. Record and verify the resulting post-merge `main` SHA.
+3. Deploy only that verified post-merge `main` SHA to Vercel Production.
+4. Verify the Production route health and safety response.
+5. Run exactly one manual `workflow_dispatch`.
+6. Observe the no-op or paper-only signal result.
+7. Verify advisory, outbox, and delivery evidence without enabling live order
    or account APIs.
-7. Only after review of the controlled run, propose a separate PR for
+8. Only after review of the controlled run, propose a separate PR for
    scheduler activation.
 
 `HENGYU_GMAIL_SEND_ENABLED` is a separate human-operated step and must remain
