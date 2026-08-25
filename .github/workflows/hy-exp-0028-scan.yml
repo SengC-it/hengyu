@@ -1,0 +1,52 @@
+name: HY-EXP-0028 Controlled Email Scan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: hy-exp-0028-paper-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Trigger gated paper-only scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      HENGYU_API_BASE_URL: ${{ vars.HENGYU_API_BASE_URL || 'https://hengyu-research.vercel.app' }}
+      HY_EXP_0028_WORKFLOW_REF: refs/heads/main
+    steps:
+      - name: Trigger only the release-gated runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(curl --fail --show-error --silent \
+            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=hengyu-hy-exp-0028-production" \
+            | node --input-type=module -e "let s=''; process.stdin.on('data', c => s += c); process.stdin.on('end', () => { const value = JSON.parse(s).value; if (!value) process.exit(1); process.stdout.write(value); });")"
+          test -n "${token}"
+          response_file="$(mktemp)"
+          trap 'rm -f "${response_file}"' EXIT
+          http_code="$(curl --fail --show-error --silent \
+            --output "${response_file}" \
+            --write-out '%{http_code}' \
+            --max-time 55 \
+            -H "Authorization: Bearer ${token}" \
+            "${HENGYU_API_BASE_URL%/}/api/hy-exp-0028-scan")"
+          echo "HTTP ${http_code}"
+          RESPONSE_FILE="${response_file}" node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const response = JSON.parse(fs.readFileSync(process.env.RESPONSE_FILE, 'utf8'));
+          console.log(JSON.stringify({
+            ok: response.ok ?? null,
+            noOp: response.noOp ?? false,
+            reason: response.reason ?? null,
+            paperOnly: response.paperOnly ?? null,
+            signalOnly: response.signalOnly ?? null
+          }));
+          NODE
+          test "${http_code}" = "200"

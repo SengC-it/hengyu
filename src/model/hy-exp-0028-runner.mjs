@@ -1,19 +1,17 @@
-import { sendJson, methodAllowed } from './_lib/http.mjs';
-import { authorizeInternalScheduler } from './_lib/internal-scheduler-auth.mjs';
-import { ingestAdvisoryBundle } from './ingest.mjs';
-import { dispatchPendingEmails } from './_lib/gmail.mjs';
+import { ingestAdvisoryBundle } from '../../api/ingest.mjs';
+import { dispatchPendingEmails } from '../../api/_lib/gmail.mjs';
 import {
   EMAIL_SIGNAL_CUTOVER_CONFIG,
   isEmailSignalCutoverConfigValid
-} from '../src/model/email-signal-cutover.mjs';
+} from './email-signal-cutover.mjs';
 import {
   buildHyExp0028Candidates,
   buildHyExp0028EmailAdvisory
-} from '../src/model/hy-exp-0028-email-signal.mjs';
+} from './hy-exp-0028-email-signal.mjs';
 import {
   fetchHyExp0028CausalInputs,
   fetchHyExp0028LiveEntryBar
-} from '../src/model/hy-exp-0028-market-data.mjs';
+} from './hy-exp-0028-market-data.mjs';
 
 const SIGNAL_EXPIRY_MS = 15 * 60 * 1_000;
 
@@ -199,22 +197,4 @@ export async function runHyExp0028Scan({
     paperOnly: true,
     signalOnly: true
   };
-}
-
-export default async function handler(request, response, {
-  authorizeImpl = authorizeInternalScheduler,
-  runImpl = runHyExp0028Scan
-} = {}) {
-  if (request.method !== 'GET') return methodAllowed(response, ['GET']);
-  if (!await authorizeImpl(request)) return sendJson(response, 401, { error: 'unauthorized' });
-  try {
-    const result = await runImpl();
-    return sendJson(response, result.ok ? 200 : 503, result);
-  } catch {
-    return sendJson(response, 503, {
-      error: 'hy_exp_0028_scan_failed',
-      paperOnly: true,
-      signalOnly: true
-    });
-  }
 }

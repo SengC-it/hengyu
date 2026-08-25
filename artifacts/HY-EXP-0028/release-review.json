@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "CONTROLLED_EMAIL_RELEASE_REVIEW",
+  "immutable": true,
+  "experimentId": "HY-EXP-0028",
+  "reviewedPreflightCommit": "73cc7ee1e83cf858301e088c5d798c8b9e69f6f6",
+  "releaseProposalCommit": "1119747d6ca5370eb1a120ec739b6e64326cdbf2",
+  "releaseProposalStatus": "DRAFT_PR_ONLY",
+  "activationCommit": null,
+  "activationStatus": "NOT_CREATED",
+  "deploymentSourcePolicy": "POST_MERGE_MAIN_SHA_ONLY",
+  "directFeatureBranchDeploymentAllowed": false,
+  "humanApprovalRequired": true,
+  "humanApproval": "NOT_APPROVED",
+  "releaseState": {
+    "before": "EMAIL_SIGNAL_RELEASE_READY",
+    "after": "EMAIL_SIGNAL_RELEASED",
+    "transitionPreparedOnly": true,
+    "executableConfigChanged": false,
+    "releaseAllowed": false
+  },
+  "preflight": {
+    "status": "READY_FOR_RELEASE_REVIEW",
+    "blockers": [],
+    "ci": {
+      "runId": "32809949420",
+      "url": "https://github.com/SengC-it/hengyu/actions/runs/32809949420",
+      "job": "Verify release preflight evidence",
+      "conclusion": "success"
+    },
+    "ruleset": {
+      "id": 21371114,
+      "requiredCheck": "Verify release preflight evidence",
+      "enforcement": "active",
+      "pullRequestRequired": true,
+      "forcePushBlocked": true,
+      "deletionBlocked": true,
+      "bypassActors": [],
+      "currentUserCanBypass": "never"
+    },
+    "preview": {
+      "deploymentId": "dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6",
+      "deploymentReady": true,
+      "endpointHttpStatus": 401,
+      "runtimeStatus": "FUNCTION_STARTED_AUTH_REJECTED",
+      "productionPromoted": false
+    },
+    "maxDuration": {
+      "status": "VERIFIED",
+      "runtime": "nodejs24.x",
+      "seconds": 120,
+      "handler": "api/hy-exp-0028-scan.js",
+      "regions": ["sin1"],
+      "buildOutputConfigPath": ".vercel/output/functions/api/hy-exp-0028-scan.func/.vc-config.json"
+    },
+    "productionEnvironment": {
+      "status": "VERIFIED_PRESENCE_ONLY",
+      "valuesRead": false,
+      "secretValuesPrinted": false,
+      "requiredPresence": "verified",
+      "gmailSendEnabledPresent": true,
+      "gmailSendEnabledValue": false
+    }
+  },
+  "workflow": {
+    "path": ".github/workflows/hy-exp-0028-scan.yml",
+    "workflowDispatchOnly": true,
+    "schedulePresent": false,
+    "schedulerActivated": false,
+    "oidcAudience": "hengyu-hy-exp-0028-production"
+  },
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "autoTrading": false,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "productionDeployed": false,
+    "schedulerActivated": false,
+    "shadowActivated": false,
+    "realEmailSent": false,
+    "gmailSendEnabled": false,
+    "finalOosRead": false,
+    "backfill": false
+  },
+  "deploymentPlan": [
+    "Merge the approved release PR.",
+    "After merge, deploy only the verified post-merge main SHA to Vercel Production.",
+    "Never deploy releaseProposalCommit or any other feature-branch SHA directly.",
+    "Verify the Production route health and safety response.",
+    "Run exactly one manual workflow_dispatch.",
+    "Observe the no-op or paper-only signal result.",
+    "Verify advisory, outbox, and delivery evidence without private or order APIs.",
+    "Prepare a separate approval for scheduler activation only after controlled-run review."
+  ],
+  "rollbackPlan": [
+    "Keep the scheduler disabled.",
+    "Set HENGYU_GMAIL_SEND_ENABLED=false in Vercel Production.",
+    "Revert EMAIL_SIGNAL_RELEASED to EMAIL_SIGNAL_RELEASE_READY (or disabled) in a reviewed commit.",
+    "Verify the runner returns the pre-release no-op before market-data, DB, or SMTP access.",
+    "Keep PAPER_ONLY, signalOnly, and private/order/automatic-trading safety flags enforced."
+  ],
+  "notExecuted": [
+    "Production deployment",
+    "Release activation",
+    "Scheduler activation",
+    "Real email delivery",
+    "Final OOS read",
+    "Backfill",
+    "Account/order/private API access",
+    "Automatic trading"
+  ],
+  "createdAt": "2026-08-25T05:31:31.9090568Z"
+}

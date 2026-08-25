@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "CONTROLLED_EMAIL_RELEASE_PREFLIGHT",
+  "baseCommit": "6e1a370d39be32303fbe1831e81b318aa544b262",
+  "verificationCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
+  "status": "READY_FOR_RELEASE_REVIEW",
+  "releaseAllowed": false,
+  "blockers": [],
+  "resolvedBlockers": [
+    "VERCEL_PREVIEW_RUNTIME_FAILED",
+    "VERCEL_MAX_DURATION_CAPABILITY_NOT_VERIFIED"
+  ],
+  "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
+  "productionEnvironment": {
+    "status": "VERIFIED_PRESENCE_ONLY",
+    "valuesRead": false,
+    "presenceCheck": "VERCEL_PRODUCTION_ENV_LIST",
+    "productionCliAvailable": true,
+    "source": "vercel-production-env-list",
+    "projectId": "prj_5be5o5zHLAmeWGhcZmA1n3Md0tky",
+    "environment": "production",
+    "presence": {
+      "HENGYU_SUPABASE_URL": true,
+      "HENGYU_SUPABASE_SECRET_KEY_or_SUPABASE_SERVICE_ROLE_KEY": true,
+      "HENGYU_GMAIL_FROM_ADDRESS": true,
+      "HENGYU_GMAIL_TO_ADDRESS": true,
+      "HENGYU_GMAIL_SEND_ENABLED": true,
+      "Gmail_transport_credential": true,
+      "CRON_SECRET_or_HENGYU_CRON_SECRET": true
+    },
+    "missingRequired": [],
+    "secretValuesPrinted": false,
+    "requiredVariableNames": [
+      "HENGYU_SUPABASE_URL",
+      "HENGYU_SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
+      "HENGYU_GMAIL_FROM_ADDRESS",
+      "HENGYU_GMAIL_TO_ADDRESS",
+      "HENGYU_GMAIL_SEND_ENABLED",
+      "HENGYU_GMAIL_APP_PASSWORD or HENGYU_GMAIL_CLIENT_ID + HENGYU_GMAIL_CLIENT_SECRET + HENGYU_GMAIL_REFRESH_TOKEN",
+      "HENGYU_CRON_SECRET or CRON_SECRET"
+    ]
+  },
+  "vercelCompatibility": {
+    "configPass": true,
+    "capabilityStatus": "VERIFIED",
+    "capabilityVerificationPass": true,
+    "runnerRoute": "/api/hy-exp-0028-scan",
+    "runnerRegions": ["sin1"],
+    "runnerMaxDurationSeconds": 120,
+    "h12MaxDurationSeconds": 60,
+    "h12Unchanged": true,
+    "schedulerRoutePresent": false,
+    "projectEvidence": {
+      "projectId": "prj_5be5o5zHLAmeWGhcZmA1n3Md0tky",
+      "projectName": "hengyu-research",
+      "latestProductionDeployment": {
+        "id": "dpl_62tp6iC3nuC1nEUJEekeKeLEX1Ao",
+        "readyState": "READY",
+        "target": "production",
+        "region": "sin1",
+        "sourceCommit": "989cf42518e1f70fae107e4eccf005b48fff349a"
+      },
+      "maxDurationCapability": "VERIFIED_BY_BUILD_OUTPUT_AND_PREVIEW_SMOKE",
+      "buildOutput": {
+        "status": "SUCCESS",
+        "sourceCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
+        "command": "vercel build --yes",
+        "outputConfigPath": ".vercel/output/functions/api/hy-exp-0028-scan.func/.vc-config.json",
+        "handler": "api/hy-exp-0028-scan.js",
+        "runtime": "nodejs24.x",
+        "maxDurationSeconds": 120,
+        "regions": ["sin1"]
+      },
+      "preview": {
+        "deploymentId": "dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6",
+        "deploymentReady": true,
+        "endpointHttpStatus": 401,
+        "endpointAuthResult": "unauthorized",
+        "runtimeStatus": "FUNCTION_STARTED_AUTH_REJECTED",
+        "productionPromoted": false,
+        "deploymentUrl": "https://hengyu-research-8ub4rr07c-seng-c-s-projects.vercel.app"
+      }
+    }
+  },
+  "vercelBuildOutputEvidence": {
+    "status": "SUCCESS",
+    "sourceCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
+    "command": "vercel build --yes",
+    "outputConfigPath": ".vercel/output/functions/api/hy-exp-0028-scan.func/.vc-config.json",
+    "handler": "api/hy-exp-0028-scan.js",
+    "runtime": "nodejs24.x",
+    "maxDurationSeconds": 120,
+    "regions": ["sin1"]
+  },
+  "vercelPreview": {
+    "deploymentId": "dpl_FWVfks8W3AXF1tPKLpYYL1RbRJn6",
+    "deploymentReady": true,
+    "endpointHttpStatus": 401,
+    "endpointAuthResult": "unauthorized",
+    "runtimeStatus": "FUNCTION_STARTED_AUTH_REJECTED",
+    "productionPromoted": false,
+    "deploymentUrl": "https://hengyu-research-8ub4rr07c-seng-c-s-projects.vercel.app"
+  },
+  "vercelPreviewHistory": [
+    {
+      "deploymentId": "dpl_HEq3yPpJFyPzX2MAbAxP1Sk91Dca",
+      "deploymentReady": true,
+      "endpointHttpStatus": 500,
+      "runtimeStatus": "FUNCTION_INVOCATION_FAILED",
+      "runtimeError": "No exports found in module \"/var/task/api/hy-exp-0028-scan.mjs\"",
+      "productionPromoted": false
+    },
+    {
+      "deploymentId": "dpl_76sx7187CoWUvA4SGYdQhKsfZYLG",
+      "deploymentReady": false,
+      "endpointHttpStatus": null,
+      "runtimeStatus": "BUILD_FAILED",
+      "runtimeError": "unused_function: api/h12-scan.mjs was not included in the Preview upload",
+      "productionPromoted": false
+    },
+    {
+      "deploymentId": "dpl_D7TJbWoCtsHyGKXvBQjPScHwKdvr",
+      "deploymentReady": true,
+      "endpointHttpStatus": 500,
+      "runtimeStatus": "FUNCTION_INVOCATION_FAILED",
+      "runtimeError": "Cannot find module './_lib/http.mjs'",
+      "productionPromoted": false
+    }
+  ],
+  "oidc": {
+    "audience": "hengyu-hy-exp-0028-production",
+    "workflowRef": "SengC-it/hengyu/.github/workflows/hy-exp-0028-scan.yml@refs/heads/main",
+    "repository": "SengC-it/hengyu",
+    "ref": "refs/heads/main",
+    "workflowFileExists": true,
+    "workflowHasIdTokenPermission": true,
+    "workflowHasAllowedTrigger": true,
+    "workflowHasMainRef": true,
+    "status": "VERIFIED_ON_BRANCH",
+    "reason": null
+  },
+  "supabase": {
+    "status": "READ_ONLY_VERIFIED",
+    "projectId": "jfvbikivtpfjgfsnggiz",
+    "tables": [
+      {"name": "hengyu_advisories", "rlsEnabled": true, "publicBlocked": true, "serviceRoleGrant": true},
+      {"name": "hengyu_email_outbox", "rlsEnabled": true, "publicBlocked": true, "serviceRoleGrant": true},
+      {"name": "hengyu_email_deliveries", "rlsEnabled": true, "publicBlocked": true, "serviceRoleGrant": true, "appendOnly": true}
+    ],
+    "rowDataRead": false,
+    "writesPerformed": false
+  },
+  "governance": {
+    "status": "VERIFIED",
+    "pass": true,
+    "reason": null,
+    "confirmedNotEnforced": false,
+    "branchProtectionAvailable": true,
+    "pullRequestRequired": true,
+    "requiredChecksConfigured": true,
+    "forcePushBlocked": true,
+    "deletionBlocked": true,
+    "apiEvidencePass": true,
+    "evidence": {
+      "source": "github-api-ruleset",
+      "apiRead": true,
+      "apiUrl": "https://api.github.com/repos/SengC-it/hengyu/rulesets/21371114",
+      "rulesetId": 21371114,
+      "rulesetName": "HY-EXP-0028 Main Release Governance",
+      "enforcement": "active",
+      "target": "branch",
+      "includedDefaultBranch": "~DEFAULT_BRANCH",
+      "requiredRules": ["deletion", "non_fast_forward", "pull_request", "required_status_checks"],
+      "requiredStatusChecks": ["Verify release preflight evidence"],
+      "bypassActors": [],
+      "currentUserCanBypass": "never"
+    }
+  },
+  "runner": {
+    "readyNoOp": "TEST_VERIFIED",
+    "noMarketDataBeforeGate": true,
+    "noDatabaseBeforeGate": true,
+    "noSmtpBeforeGate": true,
+    "releasedFixture": "TEST_ONLY_NO_EXTERNAL_IO",
+    "failClosed": {
+      "dedupe": true,
+      "expired": true,
+      "wrongStrategy": true,
+      "wrongProvenance": true,
+      "entryDelayOver90s": true
+    }
+  },
+  "execution": {
+    "releaseExecuted": false,
+    "productionDeployed": false,
+    "schedulerActivated": false,
+    "shadowActivated": false,
+    "autoTrading": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "realEmailSent": false,
+    "finalOosRead": false,
+    "backfill": false,
+    "marketDataCalled": false,
+    "dbWriteCalled": false,
+    "smtpCalled": false,
+    "accountApiCalled": false,
+    "orderApiCalled": false
+  },
+  "runbook": "docs/hy-exp-0028-release-preflight.md"
+}
