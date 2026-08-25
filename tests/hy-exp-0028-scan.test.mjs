@@ -33,6 +33,30 @@ function releasedConfig() {
   };
 }
 
+async function assertReadyConfigMutationFails(mutate) {
+  let runnerLoadCalls = 0;
+  const config = structuredClone(EMAIL_SIGNAL_CUTOVER_CONFIG);
+  mutate(config);
+  const invalidHandler = createHyExp0028Handler({
+    authorize: async () => true,
+    loadConfig: () => config,
+    loadRunner: async () => {
+      runnerLoadCalls += 1;
+      throw new Error('heavy runner must not load for invalid READY config');
+    }
+  });
+  const res = mockResponse();
+  await invalidHandler({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 503);
+  assert.deepEqual(JSON.parse(res.body), {
+    error: 'EMAIL_CUTOVER_CONFIG_INVALID',
+    stage: 'RELEASE_GATE_VALIDATE',
+    paperOnly: true,
+    signalOnly: true
+  });
+  assert.equal(runnerLoadCalls, 0);
+}
+
 function response(status, body) {
   return {
     ok: status >= 200 && status < 300,
@@ -424,6 +448,24 @@ test('invalid lightweight release config fails closed before any external runner
     signalOnly: true
   });
   assert.equal(runnerLoadCalls, 0);
+});
+
+test('READY rejects altered frozen sourceCommit before runner import', async () => {
+  await assertReadyConfigMutationFails(config => {
+    config.evaluationSource.sourceCommit = '0000000000000000000000000000000000000000';
+  });
+});
+
+test('READY rejects altered frozen artifactSha256 before runner import', async () => {
+  await assertReadyConfigMutationFails(config => {
+    config.evaluationSource.artifactSha256 = '0'.repeat(64);
+  });
+});
+
+test('READY rejects altered frozenQ75 before runner import', async () => {
+  await assertReadyConfigMutationFails(config => {
+    config.candidateEngine.frozenQ75 = 10;
+  });
 });
 
 test('RELEASED entry fixture uses injected runner only and preserves safe response behavior', async () => {

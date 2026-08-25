@@ -1,6 +1,8 @@
 import {
   buildFrozenProductionEmailCandidates,
-  isFrozenProductionEmailCandidate,
+  isFrozenProductionEmailCandidate
+} from '../validation/hy-val-0028-001.mjs';
+import {
   HY_EXP_0028_BASE_COST_BPS,
   HY_EXP_0028_ENTRY_OFFSET_MS,
   HY_EXP_0028_FROZEN_Q75,
@@ -8,7 +10,7 @@ import {
   HY_EXP_0028_SOURCE_COMMIT,
   HY_EXP_0028_STRESS_COST_BPS,
   HY_EXP_0028_SYMBOLS
-} from '../validation/hy-val-0028-001.mjs';
+} from '../validation/hy-exp-0028-frozen-constants.mjs';
 import {
   EMAIL_SIGNAL_CUTOVER_CONFIG,
   isEmailSignalCutoverConfigValid

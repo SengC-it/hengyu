@@ -3,7 +3,7 @@ import {
   HY_EXP_0028_POLICY_ID,
   HY_EXP_0028_SOURCE_COMMIT,
   HY_EXP_0028_SYMBOLS
-} from '../validation/hy-val-0028-001.mjs';
+} from '../validation/hy-exp-0028-frozen-constants.mjs';
 import {
   EMAIL_SIGNAL_CUTOVER_CONFIG,
   EMAIL_SIGNAL_CUTOVER_CONFIG_PATH,

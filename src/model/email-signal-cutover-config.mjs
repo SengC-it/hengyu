@@ -1,5 +1,13 @@
 import rawConfig from '../../config/email-signal-cutover.json' with { type: 'json' };
 import { fileURLToPath } from 'node:url';
+import {
+  HY_EXP_0028_FROZEN_Q75,
+  HY_EXP_0028_HOLDOUT_RESULT_SHA256,
+  HY_EXP_0028_POLICY_ID,
+  HY_EXP_0028_SOURCE_COMMIT,
+  HY_EXP_0028_STRATEGY_ID,
+  HY_EXP_0028_SYMBOLS
+} from '../validation/hy-exp-0028-frozen-constants.mjs';
 
 const CONFIG_URL = new URL('../../config/email-signal-cutover.json', import.meta.url);
 
@@ -24,17 +32,6 @@ const REQUIRED_SAFETY = Object.freeze({
   shadow_activated: false
 });
 
-const REQUIRED_SYMBOLS = Object.freeze([
-  'BTCUSDT',
-  'ETHUSDT',
-  'BNBUSDT',
-  'SOLUSDT',
-  'XRPUSDT',
-  'DOGEUSDT',
-  'LINKUSDT',
-  'LTCUSDT'
-]);
-
 function sameArray(left, right) {
   return Array.isArray(left)
     && Array.isArray(right)
@@ -58,25 +55,24 @@ export function isLightweightEmailSignalCutoverConfigValid(config = EMAIL_SIGNAL
     EMAIL_SIGNAL_RELEASED: 'CUTOVER_RELEASED'
   }[config.releaseState];
   if (!expectedStatus || config.status !== expectedStatus) return false;
-  if (config.strategyId !== 'HY-EXP-0028'
+  if (config.strategyId !== HY_EXP_0028_STRATEGY_ID
     || config.releaseStateRequiredForEmail !== 'EMAIL_SIGNAL_RELEASED'
     || config.humanApprovalRequiredForReleased !== true) return false;
 
   const source = config.evaluationSource;
-  if (source?.policyId !== 'EMAIL_SIGNAL_RELEASE-001'
+  if (source?.policyId !== HY_EXP_0028_POLICY_ID
     || source?.policyVersion !== 2
     || source?.evaluationStatus !== 'EMAIL_SIGNAL_RELEASE_READY'
-    || typeof source?.sourceCommit !== 'string'
-    || !/^[0-9a-f]{40}$/.test(source.sourceCommit)
+    || source?.sourceCommit !== HY_EXP_0028_SOURCE_COMMIT
     || source?.artifactPath !== 'artifacts/HY-EXP-0028/holdout-result.json'
-    || !/^[0-9a-f]{64}$/.test(source.artifactSha256)) return false;
+    || source?.artifactSha256 !== HY_EXP_0028_HOLDOUT_RESULT_SHA256) return false;
 
   const candidate = config.candidateEngine;
-  if (candidate?.strategyId !== 'HY-EXP-0028'
+  if (candidate?.strategyId !== HY_EXP_0028_STRATEGY_ID
     || candidate?.rule !== 'RULE_A_CHANNEL_DISTANCE_Q75'
     || candidate?.direction !== 'BULL/BUY'
-    || !Number.isFinite(candidate.frozenQ75)
-    || !sameArray(candidate.symbols, REQUIRED_SYMBOLS)
+    || candidate.frozenQ75 !== HY_EXP_0028_FROZEN_Q75
+    || !sameArray(candidate.symbols, HY_EXP_0028_SYMBOLS)
     || candidate.entry?.offsetMs !== 300000
     || candidate.entry?.laterBarRescue !== false
     || candidate.entry?.waitForBarClose !== false
