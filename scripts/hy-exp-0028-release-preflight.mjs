@@ -65,6 +65,44 @@ const VERCEL_PREVIEW_HISTORY = Object.freeze([
   }
 ]);
 
+const PRODUCTION_ENV_PRESENCE_EVIDENCE = Object.freeze({
+  source: 'vercel-production-env-list',
+  projectId: 'prj_5be5o5zHLAmeWGhcZmA1n3Md0tky',
+  environment: 'production',
+  valuesRead: false,
+  complete: false,
+  presence: {
+    HENGYU_SUPABASE_URL: true,
+    HENGYU_SUPABASE_SECRET_KEY_or_SUPABASE_SERVICE_ROLE_KEY: true,
+    HENGYU_GMAIL_FROM_ADDRESS: true,
+    HENGYU_GMAIL_TO_ADDRESS: true,
+    HENGYU_GMAIL_SEND_ENABLED: false,
+    Gmail_transport_credential: true,
+    CRON_SECRET_or_HENGYU_CRON_SECRET: true
+  },
+  missingRequired: ['HENGYU_GMAIL_SEND_ENABLED']
+});
+
+const GITHUB_MAIN_GOVERNANCE_EVIDENCE = Object.freeze({
+  source: 'github-api-ruleset',
+  apiRead: true,
+  apiUrl: 'https://api.github.com/repos/SengC-it/hengyu/rulesets/21371114',
+  rulesetId: 21371114,
+  rulesetName: 'HY-EXP-0028 Main Release Governance',
+  enforcement: 'active',
+  target: 'branch',
+  includedDefaultBranch: '~DEFAULT_BRANCH',
+  requiredRules: [
+    'deletion',
+    'non_fast_forward',
+    'pull_request',
+    'required_status_checks'
+  ],
+  requiredStatusChecks: ['HY-EXP-0028 Preflight CI'],
+  bypassActors: [],
+  currentUserCanBypass: 'never'
+});
+
 // This is a read-only schema snapshot. It contains no row data or credentials.
 const SUPABASE_EVIDENCE = {
   source: 'read-only information_schema/pg_policies/role_table_grants audit',
@@ -107,6 +145,7 @@ function run() {
     schedulerConfig: SCHEDULER_CONFIG,
     environment: process.env,
     productionEnvironmentVerified: false,
+    productionEnvironmentEvidence: PRODUCTION_ENV_PRESENCE_EVIDENCE,
     vercelCompatibility: verifyVercelCompatibility(VERCEL_CONFIG, {
       capabilityVerified: true,
       projectEvidence: {
@@ -131,21 +170,12 @@ function run() {
     }),
     supabase: verifySupabaseEvidence(SUPABASE_EVIDENCE),
     governance: verifyMainReleaseGovernance({
-      confirmedNotEnforced: true,
-      branchProtectionAvailable: false,
-      pullRequestRequired: false,
-      requiredChecksConfigured: false,
-      forcePushBlocked: false,
-      deletionBlocked: false,
-      evidence: {
-        protected: false,
-        protectionEnabled: false,
-        requiredStatusChecks: 'off',
-        allowForcePushes: true,
-        allowDeletions: true,
-        branchProtectionApi: 'CONFIRMED_READ_ONLY',
-        rulesets: []
-      }
+      branchProtectionAvailable: true,
+      pullRequestRequired: true,
+      requiredChecksConfigured: true,
+      forcePushBlocked: true,
+      deletionBlocked: true,
+      evidence: GITHUB_MAIN_GOVERNANCE_EVIDENCE
     }),
     runnerChecks: {
       readyNoOp: true,

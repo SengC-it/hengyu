@@ -145,11 +145,33 @@ export function verifyMainReleaseGovernance(evidence = {}) {
   const requiredChecksConfigured = evidence.requiredChecksConfigured === true;
   const forcePushBlocked = evidence.forcePushBlocked === true;
   const deletionBlocked = evidence.deletionBlocked === true;
+  const apiRuleset = evidence.evidence;
+  const requiredStatusChecks = apiRuleset?.requiredStatusChecks;
+  const requiredRules = apiRuleset?.requiredRules;
+  const apiEvidencePass = apiRuleset?.source === 'github-api-ruleset'
+    && apiRuleset.apiRead === true
+    && apiRuleset.rulesetId === 21371114
+    && apiRuleset.rulesetName === 'HY-EXP-0028 Main Release Governance'
+    && apiRuleset.enforcement === 'active'
+    && apiRuleset.target === 'branch'
+    && apiRuleset.includedDefaultBranch === '~DEFAULT_BRANCH'
+    && Array.isArray(requiredRules)
+    && requiredRules.includes('deletion')
+    && requiredRules.includes('non_fast_forward')
+    && requiredRules.includes('pull_request')
+    && requiredRules.includes('required_status_checks')
+    && Array.isArray(requiredStatusChecks)
+    && requiredStatusChecks.length === 1
+    && requiredStatusChecks[0] === 'HY-EXP-0028 Preflight CI'
+    && Array.isArray(apiRuleset.bypassActors)
+    && apiRuleset.bypassActors.length === 0
+    && apiRuleset.currentUserCanBypass === 'never';
   const pass = branchProtectionAvailable
     && pullRequestRequired
     && requiredChecksConfigured
     && forcePushBlocked
-    && deletionBlocked;
+    && deletionBlocked
+    && apiEvidencePass;
   const confirmedNotEnforced = evidence.confirmedNotEnforced === true;
   return {
     status: pass ? 'VERIFIED' : confirmedNotEnforced ? 'CONFIRMED_NOT_ENFORCED' : 'NOT_VERIFIED',
@@ -158,6 +180,7 @@ export function verifyMainReleaseGovernance(evidence = {}) {
     requiredChecksConfigured,
     forcePushBlocked,
     deletionBlocked,
+    apiEvidencePass,
     pass,
     reason: pass ? null : 'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED',
     confirmedNotEnforced,
@@ -287,6 +310,7 @@ export function buildPreflightReport({
   schedulerConfig = {},
   environment = {},
   productionEnvironmentVerified = false,
+  productionEnvironmentEvidence = null,
   vercelCompatibility,
   oidc,
   supabase,
@@ -317,8 +341,13 @@ export function buildPreflightReport({
     releaseAllowed: blockers.length === 0,
     blockers,
     productionEnvironment: {
-      status: productionEnvironmentVerified ? 'VERIFIED_PRESENCE_ONLY' : 'NOT_VERIFIED',
+      status: productionEnvironmentVerified
+        ? 'VERIFIED_PRESENCE_ONLY'
+        : productionEnvironmentEvidence?.complete === false
+          ? 'INCOMPLETE_REQUIRED_PRESENCE'
+          : 'NOT_VERIFIED',
       valuesRead: false,
+      presenceEvidence: productionEnvironmentEvidence,
       localPresence: envPresence
     },
     vercelCompatibility,

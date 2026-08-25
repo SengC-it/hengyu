@@ -27,8 +27,10 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
 2. Verify production environment variable *presence* in the Vercel Production
    environment without printing values. Confirm Supabase service-role access,
    one configured Gmail transport, scheduler authentication, and the explicit
-   PAPER_ONLY safety variables. A local `.env` is not evidence of Production
-   configuration.
+   PAPER_ONLY safety variables. The latest Vercel Production presence audit
+   found all listed groups present except `HENGYU_GMAIL_SEND_ENABLED`; that
+   missing required variable keeps this preflight blocked. A local `.env` or
+   Preview environment is not evidence of Production configuration.
 3. The branch now contains the exact GitHub Actions workflow referenced by
    `HY_EXP_0028_OIDC_WORKFLOW_REF`. It uses `id-token: write`, targets
    `refs/heads/main`, accepts only `workflow_dispatch` (there is no `schedule`
@@ -43,9 +45,12 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    roles, service-role grants, dedupe keys, and append-only delivery history.
 6. Verify main branch governance: direct pushes are blocked, PR review is
    required, required CI checks are configured, and force-push/delete are
-   blocked. The current main evidence is explicitly
-   `protected=false`, `protection.enabled=false`, and required checks off, so
-   the report records `CONFIRMED_NOT_ENFORCED` and release remains blocked.
+   blocked. GitHub API ruleset `21371114` now provides independently read
+   evidence: it is active for the default `main` branch, requires a pull
+   request and `HY-EXP-0028 Preflight CI`, blocks non-fast-forward updates and
+   deletion, has no bypass actors, and reports `current_user_can_bypass=never`.
+   This governance blocker is resolved; the missing Production send-enabled
+   variable remains a separate blocker.
 7. Approve a separate, reviewed state transition from
    `EMAIL_SIGNAL_RELEASE_READY` to `EMAIL_SIGNAL_RELEASED`. This transition is
    outside this preflight and requires an explicit human approval.
@@ -100,8 +105,8 @@ does not deploy.
 
 The machine-readable result is
 `artifacts/HY-EXP-0028/release-preflight.json`. The current `BLOCKED` result is
-expected until Production-only environment presence and main-branch governance
-are verified by an authorized operator. The Vercel 120-second capability is
-verified by Build Output plus the successful Preview runtime smoke. The OIDC
-workflow contract itself is verified on this branch but has not been executed
-or activated.
+expected while the required Production `HENGYU_GMAIL_SEND_ENABLED` presence is
+missing. Main-branch governance is verified from the GitHub ruleset API, and
+the Vercel 120-second capability is verified by Build Output plus the
+successful Preview runtime smoke. The OIDC workflow contract itself is
+verified on this branch but has not been executed or activated.

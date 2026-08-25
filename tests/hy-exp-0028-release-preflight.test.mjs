@@ -54,6 +54,21 @@ const supabaseEvidence = {
   }
 };
 
+const githubRulesetEvidence = {
+  source: 'github-api-ruleset',
+  apiRead: true,
+  apiUrl: 'https://api.github.com/repos/SengC-it/hengyu/rulesets/21371114',
+  rulesetId: 21371114,
+  rulesetName: 'HY-EXP-0028 Main Release Governance',
+  enforcement: 'active',
+  target: 'branch',
+  includedDefaultBranch: '~DEFAULT_BRANCH',
+  requiredRules: ['deletion', 'non_fast_forward', 'pull_request', 'required_status_checks'],
+  requiredStatusChecks: ['HY-EXP-0028 Preflight CI'],
+  bypassActors: [],
+  currentUserCanBypass: 'never'
+};
+
 test('environment preflight exposes presence booleans only, never values', () => {
   const inspected = inspectEnvironmentPresence({
     HENGYU_SUPABASE_URL: 'https://example.invalid',
@@ -175,9 +190,25 @@ test('main release governance requires PR, required checks, and force/delete pro
     pullRequestRequired: true,
     requiredChecksConfigured: true,
     forcePushBlocked: true,
-    deletionBlocked: true
+    deletionBlocked: true,
+    evidence: githubRulesetEvidence
   });
   assert.equal(result.pass, true);
+  assert.equal(result.status, 'VERIFIED');
+  assert.equal(result.apiEvidencePass, true);
+});
+
+test('main governance fails closed without independently read GitHub ruleset evidence', () => {
+  const result = verifyMainReleaseGovernance({
+    branchProtectionAvailable: true,
+    pullRequestRequired: true,
+    requiredChecksConfigured: true,
+    forcePushBlocked: true,
+    deletionBlocked: true
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.status, 'NOT_VERIFIED');
+  assert.equal(result.apiEvidencePass, false);
 });
 
 test('current release state and scheduler remain safe and inactive', () => {
@@ -232,6 +263,16 @@ test('preflight report stays blocked when production-only proofs are unavailable
     schedulerConfig,
     environment: {},
     productionEnvironmentVerified: false,
+    productionEnvironmentEvidence: {
+      source: 'test-vercel-production-env-list',
+      valuesRead: false,
+      complete: false,
+      presence: {
+        HENGYU_SUPABASE_URL: true,
+        HENGYU_GMAIL_SEND_ENABLED: false
+      },
+      missingRequired: ['HENGYU_GMAIL_SEND_ENABLED']
+    },
     vercelCompatibility: verifyVercelCompatibility(vercelConfig),
     oidc: verifyOidcContract(),
     supabase: verifySupabaseEvidence(supabaseEvidence),
@@ -248,6 +289,8 @@ test('preflight report stays blocked when production-only proofs are unavailable
   });
   assert.equal(report.status, 'BLOCKED');
   assert.equal(report.releaseAllowed, false);
+  assert.equal(report.productionEnvironment.status, 'INCOMPLETE_REQUIRED_PRESENCE');
+  assert.equal(report.productionEnvironment.presenceEvidence.presence.HENGYU_GMAIL_SEND_ENABLED, false);
   assert.ok(report.blockers.includes('MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED'));
   assert.deepEqual(report.execution, {
     releaseExecuted: false,
@@ -278,12 +321,12 @@ test('preflight artifact is blocked and contains no PnL or release execution', (
   assert.equal(artifact.execution.releaseExecuted, false);
   assert.equal(artifact.execution.realEmailSent, false);
   assert.equal(artifact.execution.finalOosRead, false);
-  assert.equal(artifact.governance.status, 'CONFIRMED_NOT_ENFORCED');
-  assert.equal(artifact.governance.pass, false);
-  assert.deepEqual(artifact.blockers, [
-    'PRODUCTION_ENV_NOT_VERIFIED',
-    'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED'
-  ]);
+  assert.equal(artifact.governance.status, 'VERIFIED');
+  assert.equal(artifact.governance.pass, true);
+  assert.equal(artifact.governance.evidence.rulesetId, 21371114);
+  assert.deepEqual(artifact.blockers, ['PRODUCTION_ENV_NOT_VERIFIED']);
+  assert.equal(artifact.productionEnvironment.status, 'INCOMPLETE_REQUIRED_PRESENCE');
+  assert.equal(artifact.productionEnvironment.presence.HENGYU_GMAIL_SEND_ENABLED, false);
   assert.equal(artifact.vercelCompatibility.capabilityStatus, 'VERIFIED');
   assert.equal(artifact.vercelCompatibility.capabilityVerificationPass, true);
   assert.equal(artifact.vercelBuildOutputEvidence.maxDurationSeconds, 120);

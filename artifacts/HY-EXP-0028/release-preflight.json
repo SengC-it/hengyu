@@ -6,8 +6,7 @@
   "status": "BLOCKED",
   "releaseAllowed": false,
   "blockers": [
-    "PRODUCTION_ENV_NOT_VERIFIED",
-    "MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED"
+    "PRODUCTION_ENV_NOT_VERIFIED"
   ],
   "resolvedBlockers": [
     "VERCEL_PREVIEW_RUNTIME_FAILED",
@@ -15,10 +14,23 @@
   ],
   "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
   "productionEnvironment": {
-    "status": "NOT_VERIFIED",
+    "status": "INCOMPLETE_REQUIRED_PRESENCE",
     "valuesRead": false,
-    "presenceCheck": "PROCESS_ENV_ONLY",
-    "productionCliAvailable": false,
+    "presenceCheck": "VERCEL_PRODUCTION_ENV_LIST",
+    "productionCliAvailable": true,
+    "source": "vercel-production-env-list",
+    "projectId": "prj_5be5o5zHLAmeWGhcZmA1n3Md0tky",
+    "environment": "production",
+    "presence": {
+      "HENGYU_SUPABASE_URL": true,
+      "HENGYU_SUPABASE_SECRET_KEY_or_SUPABASE_SERVICE_ROLE_KEY": true,
+      "HENGYU_GMAIL_FROM_ADDRESS": true,
+      "HENGYU_GMAIL_TO_ADDRESS": true,
+      "HENGYU_GMAIL_SEND_ENABLED": false,
+      "Gmail_transport_credential": true,
+      "CRON_SECRET_or_HENGYU_CRON_SECRET": true
+    },
+    "missingRequired": ["HENGYU_GMAIL_SEND_ENABLED"],
     "secretValuesPrinted": false,
     "requiredVariableNames": [
       "HENGYU_SUPABASE_URL",
@@ -141,23 +153,29 @@
     "writesPerformed": false
   },
   "governance": {
-    "status": "CONFIRMED_NOT_ENFORCED",
-    "pass": false,
-    "reason": "MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED",
-    "confirmedNotEnforced": true,
-    "branchProtectionAvailable": false,
-    "pullRequestRequired": false,
-    "requiredChecksConfigured": false,
-    "forcePushBlocked": false,
-    "deletionBlocked": false,
+    "status": "VERIFIED",
+    "pass": true,
+    "reason": null,
+    "confirmedNotEnforced": false,
+    "branchProtectionAvailable": true,
+    "pullRequestRequired": true,
+    "requiredChecksConfigured": true,
+    "forcePushBlocked": true,
+    "deletionBlocked": true,
+    "apiEvidencePass": true,
     "evidence": {
-      "protected": false,
-      "protectionEnabled": false,
-      "requiredStatusChecks": "off",
-      "allowForcePushes": true,
-      "allowDeletions": true,
-      "branchProtectionApi": "CONFIRMED_READ_ONLY",
-      "rulesets": []
+      "source": "github-api-ruleset",
+      "apiRead": true,
+      "apiUrl": "https://api.github.com/repos/SengC-it/hengyu/rulesets/21371114",
+      "rulesetId": 21371114,
+      "rulesetName": "HY-EXP-0028 Main Release Governance",
+      "enforcement": "active",
+      "target": "branch",
+      "includedDefaultBranch": "~DEFAULT_BRANCH",
+      "requiredRules": ["deletion", "non_fast_forward", "pull_request", "required_status_checks"],
+      "requiredStatusChecks": ["HY-EXP-0028 Preflight CI"],
+      "bypassActors": [],
+      "currentUserCanBypass": "never"
     }
   },
   "runner": {
