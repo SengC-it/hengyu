@@ -158,7 +158,13 @@ test('committed HY-EXP-0028 workflow has only workflow_dispatch OIDC trigger', (
   assert.doesNotMatch(workflow, /^\s*schedule:/m);
   assert.doesNotMatch(workflow, /^\s*push:/m);
   assert.doesNotMatch(workflow, /^\s*pull_request:/m);
-  assert.doesNotMatch(workflow, /smtp|order|account|private/i);
+  for (const field of [
+    'marketDataFetched', 'candidates', 'advisories', 'outbox',
+    'smtpDispatched', 'emailDeliveryEnabled', 'emailDeliverySuppressed'
+  ]) {
+    assert.match(workflow, new RegExp(`${field}: response\\.${field}`));
+  }
+  assert.doesNotMatch(workflow, /order|account|private/i);
 });
 
 test('Supabase advisory/outbox/delivery evidence requires RLS, public denial, columns, and append-only deliveries', () => {

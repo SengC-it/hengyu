@@ -33,6 +33,10 @@ function releasedConfig() {
   };
 }
 
+function enabledDelivery() {
+  return { enabled: true, configured: true };
+}
+
 async function assertReadyConfigMutationFails(mutate) {
   let runnerLoadCalls = 0;
   const config = structuredClone(EMAIL_SIGNAL_CUTOVER_CONFIG);
@@ -170,11 +174,11 @@ test('synthetic RELEASED runner uses frozen candidate, advisory, outbox, and dis
   const seen = new Set();
   const ingested = [];
   let dispatchCalls = 0;
-  const ingest = async ({ advisory }) => {
+  const ingest = async ({ advisory, email }) => {
     const key = `${advisory.symbol}:${advisory.metadata.decisionTime}`;
     const duplicate = seen.has(key);
     seen.add(key);
-    ingested.push({ key, duplicate });
+    ingested.push({ key, duplicate, requested: email?.requested });
     return { duplicate, advisoryId: advisory.advisory_id, email: { queued: !duplicate, duplicate } };
   };
   const result = await runHyExp0028Scan({
@@ -182,6 +186,7 @@ test('synthetic RELEASED runner uses frozen candidate, advisory, outbox, and dis
     clock: () => fixture.runNow,
     causalInputFetcher: fixture.fetchCausal,
     entryBarFetcher: fixture.fetchEntry,
+    gmailStatusImpl: enabledDelivery,
     ingestImpl: ingest,
     dispatchImpl: async () => { dispatchCalls += 1; return [{ status: 'SENT' }]; }
   });
@@ -193,7 +198,54 @@ test('synthetic RELEASED runner uses frozen candidate, advisory, outbox, and dis
   assert.equal(result.smtpDispatched, 1);
   assert.equal(dispatchCalls, 1);
   assert.equal(ingested.length, 8);
+  assert.deepEqual(ingested.map(row => row.requested), Array(8).fill(true));
   assert.equal(new Set(ingested.map(row => row.key)).size, 8);
+});
+
+test('RELEASED runner suppresses email delivery when Gmail is disabled', async () => {
+  const fixture = runnerFixture();
+  const seenEmailRequests = [];
+  let dispatchCalls = 0;
+  const result = await runHyExp0028Scan({
+    config: releasedConfig(),
+    clock: () => fixture.runNow,
+    causalInputFetcher: fixture.fetchCausal,
+    entryBarFetcher: fixture.fetchEntry,
+    gmailStatusImpl: () => ({ enabled: false, configured: true }),
+    ingestImpl: async ({ email }) => {
+      seenEmailRequests.push(email.requested);
+      return { email: { queued: false } };
+    },
+    dispatchImpl: async () => { dispatchCalls += 1; return [{ status: 'SENT' }]; }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.marketDataFetched, true);
+  assert.equal(result.advisories, 8);
+  assert.equal(result.outbox, 0);
+  assert.equal(result.smtpDispatched, 0);
+  assert.equal(result.emailDeliveryEnabled, false);
+  assert.equal(result.emailDeliverySuppressed, true);
+  assert.equal(dispatchCalls, 0);
+  assert.deepEqual(seenEmailRequests, Array(8).fill(false));
+});
+
+test('RELEASED runner with disabled Gmail and no candidate has no delivery side effects', async () => {
+  const fixture = runnerFixture({ distance: 0 });
+  let ingestCalls = 0;
+  let dispatchCalls = 0;
+  const result = await runHyExp0028Scan({
+    config: releasedConfig(),
+    clock: () => fixture.runNow,
+    causalInputFetcher: fixture.fetchCausal,
+    gmailStatusImpl: () => ({ enabled: false, configured: true }),
+    ingestImpl: async () => { ingestCalls += 1; },
+    dispatchImpl: async () => { dispatchCalls += 1; }
+  });
+  assert.equal(result.reason, 'NO_CANDIDATE');
+  assert.equal(result.emailDeliveryEnabled, false);
+  assert.equal(result.emailDeliverySuppressed, true);
+  assert.equal(ingestCalls, 0);
+  assert.equal(dispatchCalls, 0);
 });
 
 test('same symbol and decision invoked twice creates one actionable advisory and outbox row', async () => {
@@ -212,6 +264,7 @@ test('same symbol and decision invoked twice creates one actionable advisory and
     clock: () => fixture.runNow,
     causalInputFetcher: fixture.fetchCausal,
     entryBarFetcher: fixture.fetchEntry,
+    gmailStatusImpl: enabledDelivery,
     ingestImpl: ingest,
     dispatchImpl: async () => []
   };
@@ -341,6 +394,7 @@ test('slow BTC can exhaust its window while fast ETH still produces an advisory'
       }
       return makeEntryBar(symbol, targetOpen);
     },
+    gmailStatusImpl: enabledDelivery,
     ingestImpl: async () => ({ email: { queued: true } }),
     dispatchImpl: async () => []
   });
@@ -360,6 +414,7 @@ test('one candidate capture rejection does not reject other valid candidates', a
       if (symbol === 'BTCUSDT') throw new Error('simulated_capture_failure');
       return makeEntryBar(symbol, targetOpen);
     },
+    gmailStatusImpl: enabledDelivery,
     ingestImpl: async () => ({ email: { queued: true } }),
     dispatchImpl: async () => []
   });
