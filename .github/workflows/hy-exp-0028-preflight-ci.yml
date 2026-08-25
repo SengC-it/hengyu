@@ -1,0 +1,36 @@
+name: HY-EXP-0028 Preflight CI
+
+on:
+  push:
+    branches:
+      - codex/hy-exp-0028-release-preflight
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify release preflight evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Verify registry
+        run: npm run registry:verify
+
+      - name: Check diff whitespace
+        run: git diff --check
