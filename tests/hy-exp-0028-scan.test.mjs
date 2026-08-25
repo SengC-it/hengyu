@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 import handler from '../api/hy-exp-0028-scan.js';
+import { createHyExp0028Handler } from '../src/model/hy-exp-0028-entry.mjs';
 import { runHyExp0028Scan } from '../src/model/hy-exp-0028-runner.mjs';
 import {
   EMAIL_SIGNAL_CUTOVER_CONFIG,
@@ -374,6 +375,104 @@ test('Vercel entrypoint rejects non-GET requests before authorization', async ()
   await handler({ method: 'POST', headers: {} }, res);
   assert.equal(res.statusCode, 405);
   assert.match(res.body, /method_not_allowed/);
+});
+
+test('authenticated READY entry returns no-op before attempting the heavy runner import', async () => {
+  let runnerLoadCalls = 0;
+  const readyHandler = createHyExp0028Handler({
+    authorize: async () => true,
+    loadRunner: async () => {
+      runnerLoadCalls += 1;
+      throw new Error('heavy runner must not load in READY mode');
+    }
+  });
+  const res = mockResponse();
+  await readyHandler({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(JSON.parse(res.body), {
+    ok: true,
+    noOp: true,
+    reason: 'EMAIL_STRATEGY_NOT_RELEASED',
+    marketDataFetched: false,
+    candidates: 0,
+    advisories: 0,
+    outbox: 0,
+    smtpDispatched: 0,
+    paperOnly: true,
+    signalOnly: true
+  });
+  assert.equal(runnerLoadCalls, 0);
+});
+
+test('invalid lightweight release config fails closed before any external runner path', async () => {
+  let runnerLoadCalls = 0;
+  const invalidHandler = createHyExp0028Handler({
+    authorize: async () => true,
+    loadConfig: () => ({ ...EMAIL_SIGNAL_CUTOVER_CONFIG, immutable: false }),
+    loadRunner: async () => {
+      runnerLoadCalls += 1;
+      throw new Error('external path must not load');
+    }
+  });
+  const res = mockResponse();
+  await invalidHandler({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 503);
+  assert.deepEqual(JSON.parse(res.body), {
+    error: 'EMAIL_CUTOVER_CONFIG_INVALID',
+    stage: 'RELEASE_GATE_VALIDATE',
+    paperOnly: true,
+    signalOnly: true
+  });
+  assert.equal(runnerLoadCalls, 0);
+});
+
+test('RELEASED entry fixture uses injected runner only and preserves safe response behavior', async () => {
+  let runCalls = 0;
+  const releasedHandler = createHyExp0028Handler({
+    authorize: async () => true,
+    loadConfig: () => releasedConfig(),
+    loadRunner: async () => ({
+      runHyExp0028Scan: async () => {
+        runCalls += 1;
+        return { ok: true, noOp: false, reason: 'FIXTURE_ONLY', paperOnly: true, signalOnly: true };
+      }
+    })
+  });
+  const res = mockResponse();
+  await releasedHandler({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(JSON.parse(res.body), {
+    ok: true,
+    noOp: false,
+    reason: 'FIXTURE_ONLY',
+    paperOnly: true,
+    signalOnly: true
+  });
+  assert.equal(runCalls, 1);
+});
+
+test('runner import failures expose only the safe stage and safety envelope', async () => {
+  const importFailureHandler = createHyExp0028Handler({
+    authorize: async () => true,
+    loadConfig: () => releasedConfig(),
+    loadRunner: async () => {
+      const error = new Error('private implementation detail');
+      error.code = 'SAFE_RUNNER_IMPORT_FAILURE';
+      throw error;
+    }
+  });
+  const res = mockResponse();
+  await importFailureHandler({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 503);
+  const body = JSON.parse(res.body);
+  assert.deepEqual(body, {
+    error: 'hy_exp_0028_scan_failed',
+    stage: 'RUNNER_IMPORT',
+    paperOnly: true,
+    signalOnly: true
+  });
+  assert.equal(Object.hasOwn(body, 'message'), false);
+  assert.equal(Object.hasOwn(body, 'stack'), false);
 });
 
 test('bounded entry fetch uses only exact public contract-price 5m REST target and never rescues later bars', async () => {

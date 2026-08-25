@@ -31,7 +31,7 @@ jobs:
           test -n "${token}"
           response_file="$(mktemp)"
           trap 'rm -f "${response_file}"' EXIT
-          http_code="$(curl --fail --show-error --silent \
+          http_code="$(curl --show-error --silent \
             --output "${response_file}" \
             --write-out '%{http_code}' \
             --max-time 55 \
@@ -40,11 +40,18 @@ jobs:
           echo "HTTP ${http_code}"
           RESPONSE_FILE="${response_file}" node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const response = JSON.parse(fs.readFileSync(process.env.RESPONSE_FILE, 'utf8'));
+          let response;
+          try {
+            response = JSON.parse(fs.readFileSync(process.env.RESPONSE_FILE, 'utf8'));
+          } catch {
+            response = {};
+          }
           console.log(JSON.stringify({
             ok: response.ok ?? null,
-            noOp: response.noOp ?? false,
+            noOp: response.noOp ?? null,
             reason: response.reason ?? null,
+            error: response.error ?? null,
+            stage: response.stage ?? null,
             paperOnly: response.paperOnly ?? null,
             signalOnly: response.signalOnly ?? null
           }));

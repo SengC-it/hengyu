@@ -151,6 +151,10 @@ test('committed HY-EXP-0028 workflow has only workflow_dispatch OIDC trigger', (
   assert.match(workflow, /audience=hengyu-hy-exp-0028-production/);
   assert.match(workflow, /refs\/heads\/main/);
   assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /http_code="\$\(curl --show-error --silent/);
+  assert.doesNotMatch(workflow, /http_code="\$\(curl --fail/);
+  assert.match(workflow, /error: response\.error/);
+  assert.match(workflow, /stage: response\.stage/);
   assert.doesNotMatch(workflow, /^\s*schedule:/m);
   assert.doesNotMatch(workflow, /^\s*push:/m);
   assert.doesNotMatch(workflow, /^\s*pull_request:/m);

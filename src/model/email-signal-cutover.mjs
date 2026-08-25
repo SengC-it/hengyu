@@ -1,24 +1,16 @@
-import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
   HY_EXP_0028_FROZEN_Q75,
   HY_EXP_0028_POLICY_ID,
   HY_EXP_0028_SOURCE_COMMIT,
   HY_EXP_0028_SYMBOLS
 } from '../validation/hy-val-0028-001.mjs';
+import {
+  EMAIL_SIGNAL_CUTOVER_CONFIG,
+  EMAIL_SIGNAL_CUTOVER_CONFIG_PATH,
+  isLightweightEmailSignalCutoverConfigValid
+} from './email-signal-cutover-config.mjs';
 
-const CONFIG_PATH = fileURLToPath(new URL('../../config/email-signal-cutover.json', import.meta.url));
-const RAW_CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-
-function deepFreeze(value) {
-  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
-  Object.freeze(value);
-  for (const child of Object.values(value)) deepFreeze(child);
-  return value;
-}
-
-export const EMAIL_SIGNAL_CUTOVER_CONFIG = deepFreeze(RAW_CONFIG);
-export const EMAIL_SIGNAL_CUTOVER_CONFIG_PATH = CONFIG_PATH;
+export { EMAIL_SIGNAL_CUTOVER_CONFIG, EMAIL_SIGNAL_CUTOVER_CONFIG_PATH };
 
 const REQUIRED_SAFETY = Object.freeze({
   signal_only: true,
@@ -48,6 +40,7 @@ function safetyMatches(safety) {
 }
 
 export function isEmailSignalCutoverConfigValid(config = EMAIL_SIGNAL_CUTOVER_CONFIG) {
+  if (!isLightweightEmailSignalCutoverConfigValid(config)) return false;
   if (!config || config.immutable !== true) return false;
   const expectedStatus = {
     EMAIL_SIGNAL_RELEASE_READY: 'DRAFT_CUTOVER_PREPARED',
