@@ -3,18 +3,16 @@
   "artifactType": "CONTROLLED_EMAIL_RELEASE_PREFLIGHT",
   "baseCommit": "6e1a370d39be32303fbe1831e81b318aa544b262",
   "verificationCommit": "b940114ce1408bdb1b407788a3c3e6afaf8863aa",
-  "status": "BLOCKED",
+  "status": "READY_FOR_RELEASE_REVIEW",
   "releaseAllowed": false,
-  "blockers": [
-    "PRODUCTION_ENV_NOT_VERIFIED"
-  ],
+  "blockers": [],
   "resolvedBlockers": [
     "VERCEL_PREVIEW_RUNTIME_FAILED",
     "VERCEL_MAX_DURATION_CAPABILITY_NOT_VERIFIED"
   ],
   "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
   "productionEnvironment": {
-    "status": "INCOMPLETE_REQUIRED_PRESENCE",
+    "status": "VERIFIED_PRESENCE_ONLY",
     "valuesRead": false,
     "presenceCheck": "VERCEL_PRODUCTION_ENV_LIST",
     "productionCliAvailable": true,
@@ -26,11 +24,11 @@
       "HENGYU_SUPABASE_SECRET_KEY_or_SUPABASE_SERVICE_ROLE_KEY": true,
       "HENGYU_GMAIL_FROM_ADDRESS": true,
       "HENGYU_GMAIL_TO_ADDRESS": true,
-      "HENGYU_GMAIL_SEND_ENABLED": false,
+      "HENGYU_GMAIL_SEND_ENABLED": true,
       "Gmail_transport_credential": true,
       "CRON_SECRET_or_HENGYU_CRON_SECRET": true
     },
-    "missingRequired": ["HENGYU_GMAIL_SEND_ENABLED"],
+    "missingRequired": [],
     "secretValuesPrinted": false,
     "requiredVariableNames": [
       "HENGYU_SUPABASE_URL",
@@ -173,7 +171,7 @@
       "target": "branch",
       "includedDefaultBranch": "~DEFAULT_BRANCH",
       "requiredRules": ["deletion", "non_fast_forward", "pull_request", "required_status_checks"],
-      "requiredStatusChecks": ["HY-EXP-0028 Preflight CI"],
+      "requiredStatusChecks": ["Verify release preflight evidence"],
       "bypassActors": [],
       "currentUserCanBypass": "never"
     }

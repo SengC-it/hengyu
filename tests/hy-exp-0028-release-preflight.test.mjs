@@ -64,7 +64,7 @@ const githubRulesetEvidence = {
   target: 'branch',
   includedDefaultBranch: '~DEFAULT_BRANCH',
   requiredRules: ['deletion', 'non_fast_forward', 'pull_request', 'required_status_checks'],
-  requiredStatusChecks: ['HY-EXP-0028 Preflight CI'],
+  requiredStatusChecks: ['Verify release preflight evidence'],
   bypassActors: [],
   currentUserCanBypass: 'never'
 };
@@ -196,6 +196,7 @@ test('main release governance requires PR, required checks, and force/delete pro
   assert.equal(result.pass, true);
   assert.equal(result.status, 'VERIFIED');
   assert.equal(result.apiEvidencePass, true);
+  assert.deepEqual(result.evidence.requiredStatusChecks, ['Verify release preflight evidence']);
 });
 
 test('main governance fails closed without independently read GitHub ruleset evidence', () => {
@@ -311,12 +312,12 @@ test('preflight report stays blocked when production-only proofs are unavailable
   });
 });
 
-test('preflight artifact is blocked and contains no PnL or release execution', () => {
+test('preflight artifact is ready for review but never release-authorized', () => {
   const artifact = JSON.parse(fs.readFileSync(
     new URL('../artifacts/HY-EXP-0028/release-preflight.json', import.meta.url),
     'utf8'
   ));
-  assert.equal(artifact.status, 'BLOCKED');
+  assert.equal(artifact.status, 'READY_FOR_RELEASE_REVIEW');
   assert.equal(artifact.releaseAllowed, false);
   assert.equal(artifact.execution.releaseExecuted, false);
   assert.equal(artifact.execution.realEmailSent, false);
@@ -324,9 +325,10 @@ test('preflight artifact is blocked and contains no PnL or release execution', (
   assert.equal(artifact.governance.status, 'VERIFIED');
   assert.equal(artifact.governance.pass, true);
   assert.equal(artifact.governance.evidence.rulesetId, 21371114);
-  assert.deepEqual(artifact.blockers, ['PRODUCTION_ENV_NOT_VERIFIED']);
-  assert.equal(artifact.productionEnvironment.status, 'INCOMPLETE_REQUIRED_PRESENCE');
-  assert.equal(artifact.productionEnvironment.presence.HENGYU_GMAIL_SEND_ENABLED, false);
+  assert.deepEqual(artifact.blockers, []);
+  assert.equal(artifact.productionEnvironment.status, 'VERIFIED_PRESENCE_ONLY');
+  assert.equal(artifact.productionEnvironment.presence.HENGYU_GMAIL_SEND_ENABLED, true);
+  assert.deepEqual(artifact.productionEnvironment.missingRequired, []);
   assert.equal(artifact.vercelCompatibility.capabilityStatus, 'VERIFIED');
   assert.equal(artifact.vercelCompatibility.capabilityVerificationPass, true);
   assert.equal(artifact.vercelBuildOutputEvidence.maxDurationSeconds, 120);

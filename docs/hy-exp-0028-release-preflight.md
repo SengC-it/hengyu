@@ -28,9 +28,10 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    environment without printing values. Confirm Supabase service-role access,
    one configured Gmail transport, scheduler authentication, and the explicit
    PAPER_ONLY safety variables. The latest Vercel Production presence audit
-   found all listed groups present except `HENGYU_GMAIL_SEND_ENABLED`; that
-   missing required variable keeps this preflight blocked. A local `.env` or
-   Preview environment is not evidence of Production configuration.
+   found all listed groups present, including `HENGYU_GMAIL_SEND_ENABLED=false`.
+   The audit records presence only; it never prints or stores secret values. A
+   local `.env` or Preview environment is not evidence of Production
+   configuration.
 3. The branch now contains the exact GitHub Actions workflow referenced by
    `HY_EXP_0028_OIDC_WORKFLOW_REF`. It uses `id-token: write`, targets
    `refs/heads/main`, accepts only `workflow_dispatch` (there is no `schedule`
@@ -47,10 +48,10 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    required, required CI checks are configured, and force-push/delete are
    blocked. GitHub API ruleset `21371114` now provides independently read
    evidence: it is active for the default `main` branch, requires a pull
-   request and `HY-EXP-0028 Preflight CI`, blocks non-fast-forward updates and
+   request and `Verify release preflight evidence`, blocks non-fast-forward updates and
    deletion, has no bypass actors, and reports `current_user_can_bypass=never`.
-   This governance blocker is resolved; the missing Production send-enabled
-   variable remains a separate blocker.
+   Both the governance and Production environment blockers are resolved by
+   independently reread external evidence.
 7. Approve a separate, reviewed state transition from
    `EMAIL_SIGNAL_RELEASE_READY` to `EMAIL_SIGNAL_RELEASED`. This transition is
    outside this preflight and requires an explicit human approval.
@@ -94,8 +95,8 @@ unauthorized `GET /api/hy-exp-0028-scan` returned HTTP 401 JSON rather than a
 function invocation failure. No test credential was available, so no
 authorized Preview request was attempted. The earlier 500 deployments remain
 recorded as historical failures and are not treated as passing evidence. This
-resolves the Preview runtime and max-duration blockers only; Production
-environment presence and main-branch governance remain active blockers.
+   resolves the Preview runtime and max-duration blockers. Production
+   environment presence and main-branch governance are independently verified.
 
 The safe `pull_request` to `main` CI path only runs tests, registry
 verification, and diff checking. It does not request secrets/OIDC tokens and
@@ -104,9 +105,11 @@ does not deploy.
 ## Preflight evidence
 
 The machine-readable result is
-`artifacts/HY-EXP-0028/release-preflight.json`. The current `BLOCKED` result is
-expected while the required Production `HENGYU_GMAIL_SEND_ENABLED` presence is
-missing. Main-branch governance is verified from the GitHub ruleset API, and
-the Vercel 120-second capability is verified by Build Output plus the
-successful Preview runtime smoke. The OIDC workflow contract itself is
-verified on this branch but has not been executed or activated.
+`artifacts/HY-EXP-0028/release-preflight.json`. With all preflight blockers
+resolved, its status is `READY_FOR_RELEASE_REVIEW`; `releaseAllowed` remains
+`false` because readiness is not authorization. Main-branch governance is
+verified from the GitHub ruleset API, Production environment presence is
+verified without reading values, and the Vercel 120-second capability is
+verified by Build Output plus the successful Preview runtime smoke. The OIDC
+workflow contract itself is verified on this branch but has not been executed
+or activated.

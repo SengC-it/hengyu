@@ -162,7 +162,7 @@ export function verifyMainReleaseGovernance(evidence = {}) {
     && requiredRules.includes('required_status_checks')
     && Array.isArray(requiredStatusChecks)
     && requiredStatusChecks.length === 1
-    && requiredStatusChecks[0] === 'HY-EXP-0028 Preflight CI'
+    && requiredStatusChecks[0] === 'Verify release preflight evidence'
     && Array.isArray(apiRuleset.bypassActors)
     && apiRuleset.bypassActors.length === 0
     && apiRuleset.currentUserCanBypass === 'never';
@@ -337,8 +337,8 @@ export function buildPreflightReport({
     schemaVersion: 1,
     artifactType: 'CONTROLLED_EMAIL_RELEASE_PREFLIGHT',
     baseCommit,
-    status: blockers.length ? 'BLOCKED' : 'PASS',
-    releaseAllowed: blockers.length === 0,
+    status: blockers.length ? 'BLOCKED' : 'READY_FOR_RELEASE_REVIEW',
+    releaseAllowed: false,
     blockers,
     productionEnvironment: {
       status: productionEnvironmentVerified

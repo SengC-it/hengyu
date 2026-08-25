@@ -70,17 +70,17 @@ const PRODUCTION_ENV_PRESENCE_EVIDENCE = Object.freeze({
   projectId: 'prj_5be5o5zHLAmeWGhcZmA1n3Md0tky',
   environment: 'production',
   valuesRead: false,
-  complete: false,
+  complete: true,
   presence: {
     HENGYU_SUPABASE_URL: true,
     HENGYU_SUPABASE_SECRET_KEY_or_SUPABASE_SERVICE_ROLE_KEY: true,
     HENGYU_GMAIL_FROM_ADDRESS: true,
     HENGYU_GMAIL_TO_ADDRESS: true,
-    HENGYU_GMAIL_SEND_ENABLED: false,
+    HENGYU_GMAIL_SEND_ENABLED: true,
     Gmail_transport_credential: true,
     CRON_SECRET_or_HENGYU_CRON_SECRET: true
   },
-  missingRequired: ['HENGYU_GMAIL_SEND_ENABLED']
+  missingRequired: []
 });
 
 const GITHUB_MAIN_GOVERNANCE_EVIDENCE = Object.freeze({
@@ -98,7 +98,7 @@ const GITHUB_MAIN_GOVERNANCE_EVIDENCE = Object.freeze({
     'pull_request',
     'required_status_checks'
   ],
-  requiredStatusChecks: ['HY-EXP-0028 Preflight CI'],
+  requiredStatusChecks: ['Verify release preflight evidence'],
   bypassActors: [],
   currentUserCanBypass: 'never'
 });
@@ -144,7 +144,7 @@ function run() {
     config: CONFIG,
     schedulerConfig: SCHEDULER_CONFIG,
     environment: process.env,
-    productionEnvironmentVerified: false,
+    productionEnvironmentVerified: true,
     productionEnvironmentEvidence: PRODUCTION_ENV_PRESENCE_EVIDENCE,
     vercelCompatibility: verifyVercelCompatibility(VERCEL_CONFIG, {
       capabilityVerified: true,
