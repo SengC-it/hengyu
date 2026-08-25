@@ -132,7 +132,7 @@ test('review parser reads prices from both Chinese and historical English emails
   });
 });
 
-test('Gmail SMTP App Password mode needs only the three Hengyu email variables', () => {
+test('Gmail SMTP App Password mode requires the exact true gate and credentials', () => {
   const names = [
     'HENGYU_GMAIL_FROM_ADDRESS',
     'HENGYU_GMAIL_TO_ADDRESS',
@@ -144,6 +144,7 @@ test('Gmail SMTP App Password mode needs only the three Hengyu email variables',
   ];
   const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
   for (const name of names) delete process.env[name];
+  process.env.HENGYU_GMAIL_SEND_ENABLED = 'true';
   process.env.HENGYU_GMAIL_FROM_ADDRESS = 'research@example.com';
   process.env.HENGYU_GMAIL_TO_ADDRESS = 'owner@example.com';
   process.env.HENGYU_GMAIL_APP_PASSWORD = 'test-app-password';
