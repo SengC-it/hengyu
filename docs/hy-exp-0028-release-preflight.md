@@ -42,8 +42,9 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    roles, service-role grants, dedupe keys, and append-only delivery history.
 6. Verify main branch governance: direct pushes are blocked, PR review is
    required, required CI checks are configured, and force-push/delete are
-   blocked. If branch-protection evidence is unavailable, the preflight stays
-   `MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED` and release remains blocked.
+   blocked. The current main evidence is explicitly
+   `protected=false`, `protection.enabled=false`, and required checks off, so
+   the report records `CONFIRMED_NOT_ENFORCED` and release remains blocked.
 7. Approve a separate, reviewed state transition from
    `EMAIL_SIGNAL_RELEASE_READY` to `EMAIL_SIGNAL_RELEASED`. This transition is
    outside this preflight and requires an explicit human approval.

@@ -1,8 +1,6 @@
 name: HY-EXP-0028 Controlled Email Scan
 
 on:
-  schedule:
-    - cron: "5 * * * *"
   workflow_dispatch:
 
 permissions:

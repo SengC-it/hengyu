@@ -82,13 +82,19 @@ function run() {
     }),
     supabase: verifySupabaseEvidence(SUPABASE_EVIDENCE),
     governance: verifyMainReleaseGovernance({
+      confirmedNotEnforced: true,
       branchProtectionAvailable: false,
       pullRequestRequired: false,
       requiredChecksConfigured: false,
       forcePushBlocked: false,
       deletionBlocked: false,
       evidence: {
-        branchProtectionApi: 'FORBIDDEN',
+        protected: false,
+        protectionEnabled: false,
+        requiredStatusChecks: 'off',
+        allowForcePushes: true,
+        allowDeletions: true,
+        branchProtectionApi: 'CONFIRMED_READ_ONLY',
         rulesets: []
       }
     }),

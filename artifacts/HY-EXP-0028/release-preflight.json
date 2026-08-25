@@ -72,16 +72,22 @@
     "writesPerformed": false
   },
   "governance": {
-    "status": "NOT_VERIFIED",
+    "status": "CONFIRMED_NOT_ENFORCED",
     "pass": false,
     "reason": "MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED",
+    "confirmedNotEnforced": true,
     "branchProtectionAvailable": false,
     "pullRequestRequired": false,
     "requiredChecksConfigured": false,
     "forcePushBlocked": false,
     "deletionBlocked": false,
     "evidence": {
-      "branchProtectionApi": "FORBIDDEN",
+      "protected": false,
+      "protectionEnabled": false,
+      "requiredStatusChecks": "off",
+      "allowForcePushes": true,
+      "allowDeletions": true,
+      "branchProtectionApi": "CONFIRMED_READ_ONLY",
       "rulesets": []
     }
   },

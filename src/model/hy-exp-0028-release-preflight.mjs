@@ -144,8 +144,9 @@ export function verifyMainReleaseGovernance(evidence = {}) {
     && requiredChecksConfigured
     && forcePushBlocked
     && deletionBlocked;
+  const confirmedNotEnforced = evidence.confirmedNotEnforced === true;
   return {
-    status: pass ? 'VERIFIED' : 'NOT_VERIFIED',
+    status: pass ? 'VERIFIED' : confirmedNotEnforced ? 'CONFIRMED_NOT_ENFORCED' : 'NOT_VERIFIED',
     branchProtectionAvailable,
     pullRequestRequired,
     requiredChecksConfigured,
@@ -153,6 +154,7 @@ export function verifyMainReleaseGovernance(evidence = {}) {
     deletionBlocked,
     pass,
     reason: pass ? null : 'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED',
+    confirmedNotEnforced,
     evidence: evidence.evidence ?? null
   };
 }

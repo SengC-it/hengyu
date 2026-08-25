@@ -135,8 +135,8 @@ test('committed HY-EXP-0028 workflow has only schedule/workflow_dispatch OIDC tr
   assert.match(workflow, /id-token:\s*write/);
   assert.match(workflow, /audience=hengyu-hy-exp-0028-production/);
   assert.match(workflow, /refs\/heads\/main/);
-  assert.match(workflow, /schedule:/);
   assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /^\s*schedule:/m);
   assert.doesNotMatch(workflow, /^\s*push:/m);
   assert.doesNotMatch(workflow, /^\s*pull_request:/m);
   assert.doesNotMatch(workflow, /smtp|order|account|private/i);
@@ -153,8 +153,9 @@ test('Supabase advisory/outbox/delivery evidence requires RLS, public denial, co
   assert.equal(verifySupabaseEvidence(missing).pass, false);
 });
 
-test('main release governance fails closed when branch protection is unavailable', () => {
+test('main release governance records confirmed disabled protection and fails closed', () => {
   const result = verifyMainReleaseGovernance({
+    confirmedNotEnforced: true,
     branchProtectionAvailable: false,
     pullRequestRequired: false,
     requiredChecksConfigured: false,
@@ -163,7 +164,8 @@ test('main release governance fails closed when branch protection is unavailable
     evidence: { branchProtectionApi: 'FORBIDDEN', rulesets: [] }
   });
   assert.equal(result.pass, false);
-  assert.equal(result.status, 'NOT_VERIFIED');
+  assert.equal(result.status, 'CONFIRMED_NOT_ENFORCED');
+  assert.equal(result.confirmedNotEnforced, true);
   assert.equal(result.reason, 'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED');
 });
 
@@ -276,7 +278,7 @@ test('preflight artifact is blocked and contains no PnL or release execution', (
   assert.equal(artifact.execution.releaseExecuted, false);
   assert.equal(artifact.execution.realEmailSent, false);
   assert.equal(artifact.execution.finalOosRead, false);
-  assert.equal(artifact.governance.status, 'NOT_VERIFIED');
+  assert.equal(artifact.governance.status, 'CONFIRMED_NOT_ENFORCED');
   assert.equal(artifact.governance.pass, false);
   assert.equal(Object.hasOwn(artifact, 'pnl'), false);
 });
