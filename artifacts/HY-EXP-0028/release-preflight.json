@@ -6,8 +6,8 @@
   "releaseAllowed": false,
   "blockers": [
     "PRODUCTION_ENV_NOT_VERIFIED",
-    "VERCEL_PLAN_COMPATIBILITY_NOT_VERIFIED",
-    "OIDC_WORKFLOW_REF_TARGET_MISSING"
+    "VERCEL_MAX_DURATION_CAPABILITY_NOT_VERIFIED",
+    "MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED"
   ],
   "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
   "productionEnvironment": {
@@ -28,22 +28,37 @@
   },
   "vercelCompatibility": {
     "configPass": true,
-    "planCompatibility": "NOT_VERIFIED",
+    "capabilityStatus": "NOT_VERIFIED",
     "runnerRoute": "/api/hy-exp-0028-scan",
     "runnerRegions": ["sin1"],
     "runnerMaxDurationSeconds": 120,
     "h12MaxDurationSeconds": 60,
     "h12Unchanged": true,
-    "schedulerRoutePresent": false
+    "schedulerRoutePresent": false,
+    "projectEvidence": {
+      "projectId": "prj_5be5o5zHLAmeWGhcZmA1n3Md0tky",
+      "projectName": "hengyu-research",
+      "latestProductionDeployment": {
+        "id": "dpl_62tp6iC3nuC1nEUJEekeKeLEX1Ao",
+        "readyState": "READY",
+        "target": "production",
+        "region": "sin1",
+        "sourceCommit": "989cf42518e1f70fae107e4eccf005b48fff349a"
+      },
+      "maxDurationCapability": "NOT_VERIFIED_BY_READ_ONLY_CONNECTOR"
+    }
   },
   "oidc": {
     "audience": "hengyu-hy-exp-0028-production",
     "workflowRef": "SengC-it/hengyu/.github/workflows/hy-exp-0028-scan.yml@refs/heads/main",
     "repository": "SengC-it/hengyu",
     "ref": "refs/heads/main",
-    "workflowFileExists": false,
-    "status": "BLOCKED",
-    "reason": "OIDC_WORKFLOW_REF_TARGET_MISSING"
+    "workflowFileExists": true,
+    "workflowHasIdTokenPermission": true,
+    "workflowHasAllowedTrigger": true,
+    "workflowHasMainRef": true,
+    "status": "VERIFIED_ON_BRANCH",
+    "reason": null
   },
   "supabase": {
     "status": "READ_ONLY_VERIFIED",
@@ -55,6 +70,20 @@
     ],
     "rowDataRead": false,
     "writesPerformed": false
+  },
+  "governance": {
+    "status": "NOT_VERIFIED",
+    "pass": false,
+    "reason": "MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED",
+    "branchProtectionAvailable": false,
+    "pullRequestRequired": false,
+    "requiredChecksConfigured": false,
+    "forcePushBlocked": false,
+    "deletionBlocked": false,
+    "evidence": {
+      "branchProtectionApi": "FORBIDDEN",
+      "rulesets": []
+    }
   },
   "runner": {
     "readyNoOp": "TEST_VERIFIED",

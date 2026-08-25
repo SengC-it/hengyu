@@ -29,25 +29,31 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
    one configured Gmail transport, scheduler authentication, and the explicit
    PAPER_ONLY safety variables. A local `.env` is not evidence of Production
    configuration.
-3. Add and review the exact GitHub Actions workflow referenced by
-   `HY_EXP_0028_OIDC_WORKFLOW_REF`. It must use `id-token: write`, target
-   `refs/heads/main`, accept only `schedule`/`workflow_dispatch`, and request
-   the audience `hengyu-hy-exp-0028-production`.
-4. Verify the Vercel route is deployed with the reviewed `/api/hy-exp-0028-scan`
-   function configuration and that the Vercel plan supports its 120-second
-   maximum duration. The existing H12 route remains unchanged at 60 seconds.
+3. The branch now contains the exact GitHub Actions workflow referenced by
+   `HY_EXP_0028_OIDC_WORKFLOW_REF`. It uses `id-token: write`, targets
+   `refs/heads/main`, accepts only `schedule`/`workflow_dispatch`, and requests
+   the audience `hengyu-hy-exp-0028-production`. The workflow has not been
+   executed and is not active on Production while this branch is unmerged.
+4. Verify the actual Vercel project/build capability for the reviewed
+   `/api/hy-exp-0028-scan` function configuration and its 120-second maximum
+   duration. A plan label alone is not evidence and is not used to fail the
+   check. The existing H12 route remains unchanged at 60 seconds.
 5. Verify the Supabase advisory/outbox/delivery tables, RLS denial for public
    roles, service-role grants, dedupe keys, and append-only delivery history.
-6. Approve a separate, reviewed state transition from
+6. Verify main branch governance: direct pushes are blocked, PR review is
+   required, required CI checks are configured, and force-push/delete are
+   blocked. If branch-protection evidence is unavailable, the preflight stays
+   `MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED` and release remains blocked.
+7. Approve a separate, reviewed state transition from
    `EMAIL_SIGNAL_RELEASE_READY` to `EMAIL_SIGNAL_RELEASED`. This transition is
    outside this preflight and requires an explicit human approval.
-7. Deploy only through the separately approved release process. Do not enable
+8. Deploy only through the separately approved release process. Do not enable
    a scheduler or send a real message as part of a fixture test. A fixture test
    must inject fake market data, ingestion, and dispatch functions and assert
    that no network or SMTP implementation is called.
-8. Observe the first controlled run. Confirm dedupe, expiry, wrong strategy,
+9. Observe the first controlled run. Confirm dedupe, expiry, wrong strategy,
    wrong provenance, and entry capture delays over 90 seconds fail closed.
-9. Record the deployment, workflow run, advisory/outbox IDs, and safety state
+10. Record the deployment, workflow run, advisory/outbox IDs, and safety state
    in an immutable operational record. Keep `EMAIL_SIGNAL_RELEASED` false until
    all prior steps are explicitly approved.
 
@@ -69,6 +75,8 @@ the configuration remains `EMAIL_SIGNAL_RELEASE_READY`.
 ## Preflight evidence
 
 The machine-readable result is
-`artifacts/HY-EXP-0028/release-preflight.json`. A `BLOCKED` result is expected
-until the missing OIDC workflow, Production-only environment verification, and
-Vercel plan verification are completed by an authorized operator.
+`artifacts/HY-EXP-0028/release-preflight.json`. The current `BLOCKED` result is
+expected until Production-only environment presence, actual Vercel
+120-second capability, and main-branch governance are verified by an
+authorized operator. The OIDC workflow contract itself is verified on this
+branch but has not been executed or activated.

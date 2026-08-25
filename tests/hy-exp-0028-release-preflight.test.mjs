@@ -9,6 +9,7 @@ import {
 import {
   buildPreflightReport,
   inspectEnvironmentPresence,
+  verifyMainReleaseGovernance,
   verifyOidcContract,
   verifySafetyState,
   verifySupabaseEvidence,
@@ -75,7 +76,7 @@ test('environment preflight exposes presence booleans only, never values', () =>
 });
 
 test('Vercel route compatibility keeps H12 unchanged and does not activate a cron', () => {
-  const result = verifyVercelCompatibility(vercelConfig, { planSupportsMaxDuration: true });
+  const result = verifyVercelCompatibility(vercelConfig, { capabilityVerified: true });
   assert.equal(result.configPass, true);
   assert.equal(result.pass, true);
   assert.equal(result.h12.unchanged, true);
@@ -86,7 +87,23 @@ test('Vercel route compatibility keeps H12 unchanged and does not activate a cro
       ...vercelConfig.functions,
       'api/hy-exp-0028-scan.mjs': { regions: ['sin1'], maxDuration: 60 }
     }
-  }, { planSupportsMaxDuration: true }).pass, false);
+  }, { capabilityVerified: true }).pass, false);
+});
+
+test('Vercel project evidence does not infer maxDuration capability from a plan name', () => {
+  const result = verifyVercelCompatibility(vercelConfig, {
+    projectEvidence: {
+      projectId: 'prj_test',
+      latestProductionDeployment: { readyState: 'READY', target: 'production' }
+    }
+  });
+  assert.equal(result.configPass, true);
+  assert.equal(result.capabilityStatus, 'NOT_VERIFIED');
+  assert.equal(result.pass, false);
+  assert.deepEqual(result.projectEvidence.latestProductionDeployment, {
+    readyState: 'READY',
+    target: 'production'
+  });
 });
 
 test('OIDC contract fails closed without the referenced workflow', () => {
@@ -109,6 +126,22 @@ test('OIDC contract requires exact audience/ref and id-token workflow permission
   }).pass, false);
 });
 
+test('committed HY-EXP-0028 workflow has only schedule/workflow_dispatch OIDC triggers', () => {
+  const workflow = fs.readFileSync(
+    new URL('../.github/workflows/hy-exp-0028-scan.yml', import.meta.url),
+    'utf8'
+  );
+  assert.equal(verifyOidcContract({ workflowContent: workflow }).pass, true);
+  assert.match(workflow, /id-token:\s*write/);
+  assert.match(workflow, /audience=hengyu-hy-exp-0028-production/);
+  assert.match(workflow, /refs\/heads\/main/);
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /^\s*push:/m);
+  assert.doesNotMatch(workflow, /^\s*pull_request:/m);
+  assert.doesNotMatch(workflow, /smtp|order|account|private/i);
+});
+
 test('Supabase advisory/outbox/delivery evidence requires RLS, public denial, columns, and append-only deliveries', () => {
   const result = verifySupabaseEvidence(supabaseEvidence);
   assert.equal(result.pass, true);
@@ -118,6 +151,31 @@ test('Supabase advisory/outbox/delivery evidence requires RLS, public denial, co
   const missing = structuredClone(supabaseEvidence);
   missing.tables.hengyu_advisories.columns = [];
   assert.equal(verifySupabaseEvidence(missing).pass, false);
+});
+
+test('main release governance fails closed when branch protection is unavailable', () => {
+  const result = verifyMainReleaseGovernance({
+    branchProtectionAvailable: false,
+    pullRequestRequired: false,
+    requiredChecksConfigured: false,
+    forcePushBlocked: false,
+    deletionBlocked: false,
+    evidence: { branchProtectionApi: 'FORBIDDEN', rulesets: [] }
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.status, 'NOT_VERIFIED');
+  assert.equal(result.reason, 'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED');
+});
+
+test('main release governance requires PR, required checks, and force/delete protections', () => {
+  const result = verifyMainReleaseGovernance({
+    branchProtectionAvailable: true,
+    pullRequestRequired: true,
+    requiredChecksConfigured: true,
+    forcePushBlocked: true,
+    deletionBlocked: true
+  });
+  assert.equal(result.pass, true);
 });
 
 test('current release state and scheduler remain safe and inactive', () => {
@@ -175,6 +233,7 @@ test('preflight report stays blocked when production-only proofs are unavailable
     vercelCompatibility: verifyVercelCompatibility(vercelConfig),
     oidc: verifyOidcContract(),
     supabase: verifySupabaseEvidence(supabaseEvidence),
+    governance: verifyMainReleaseGovernance(),
     runnerChecks: { readyNoOp: true, fixtureNoExternalIo: true },
     failClosedChecks: {
       DEDUPE_ENFORCED: true,
@@ -187,6 +246,7 @@ test('preflight report stays blocked when production-only proofs are unavailable
   });
   assert.equal(report.status, 'BLOCKED');
   assert.equal(report.releaseAllowed, false);
+  assert.ok(report.blockers.includes('MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED'));
   assert.deepEqual(report.execution, {
     releaseExecuted: false,
     productionDeployed: false,
@@ -216,5 +276,7 @@ test('preflight artifact is blocked and contains no PnL or release execution', (
   assert.equal(artifact.execution.releaseExecuted, false);
   assert.equal(artifact.execution.realEmailSent, false);
   assert.equal(artifact.execution.finalOosRead, false);
+  assert.equal(artifact.governance.status, 'NOT_VERIFIED');
+  assert.equal(artifact.governance.pass, false);
   assert.equal(Object.hasOwn(artifact, 'pnl'), false);
 });

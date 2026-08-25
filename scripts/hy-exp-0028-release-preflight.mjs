@@ -7,6 +7,7 @@ import {
   HY_EXP_0028_OIDC_WORKFLOW_REF,
   buildPreflightReport,
   verifyOidcContract,
+  verifyMainReleaseGovernance,
   verifySafetyState,
   verifySupabaseEvidence,
   verifyVercelCompatibility
@@ -60,13 +61,37 @@ function run() {
     schedulerConfig: SCHEDULER_CONFIG,
     environment: process.env,
     productionEnvironmentVerified: false,
-    vercelCompatibility: verifyVercelCompatibility(VERCEL_CONFIG),
+    vercelCompatibility: verifyVercelCompatibility(VERCEL_CONFIG, {
+      projectEvidence: {
+        projectId: 'prj_5be5o5zHLAmeWGhcZmA1n3Md0tky',
+        projectName: 'hengyu-research',
+        latestProductionDeployment: {
+          id: 'dpl_62tp6iC3nuC1nEUJEekeKeLEX1Ao',
+          readyState: 'READY',
+          target: 'production',
+          region: 'sin1',
+          sourceCommit: '989cf42518e1f70fae107e4eccf005b48fff349a'
+        },
+        maxDurationCapability: 'NOT_VERIFIED_BY_READ_ONLY_CONNECTOR'
+      }
+    }),
     oidc: verifyOidcContract({
       workflowContent,
       audience: HY_EXP_0028_OIDC_AUDIENCE,
       workflowRef: HY_EXP_0028_OIDC_WORKFLOW_REF
     }),
     supabase: verifySupabaseEvidence(SUPABASE_EVIDENCE),
+    governance: verifyMainReleaseGovernance({
+      branchProtectionAvailable: false,
+      pullRequestRequired: false,
+      requiredChecksConfigured: false,
+      forcePushBlocked: false,
+      deletionBlocked: false,
+      evidence: {
+        branchProtectionApi: 'FORBIDDEN',
+        rulesets: []
+      }
+    }),
     runnerChecks: {
       readyNoOp: true,
       fixtureNoExternalIo: true

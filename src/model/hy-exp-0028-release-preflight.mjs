@@ -97,7 +97,8 @@ export function inspectEnvironmentPresence(environment = {}) {
 }
 
 export function verifyVercelCompatibility(vercelConfig, {
-  planSupportsMaxDuration = false
+  capabilityVerified = false,
+  projectEvidence = null
 } = {}) {
   const functions = vercelConfig?.functions ?? {};
   const runner = functions['api/hy-exp-0028-scan.mjs'];
@@ -114,8 +115,9 @@ export function verifyVercelCompatibility(vercelConfig, {
     .some(cron => String(cron?.path ?? '').includes('hy-exp-0028-scan'));
   return {
     configPass: runnerConfigValid && h12Unchanged && !runnerCron,
-    planCompatibility: planSupportsMaxDuration ? 'VERIFIED' : 'NOT_VERIFIED',
-    planCompatibilityPass: planSupportsMaxDuration === true,
+    capabilityStatus: capabilityVerified ? 'VERIFIED' : 'NOT_VERIFIED',
+    capabilityVerificationPass: capabilityVerified === true,
+    projectEvidence,
     runner: {
       route: '/api/hy-exp-0028-scan',
       regions: runner?.regions ?? null,
@@ -127,7 +129,31 @@ export function verifyVercelCompatibility(vercelConfig, {
       unchanged: h12Unchanged
     },
     schedulerRoutePresent: runnerCron,
-    pass: runnerConfigValid && h12Unchanged && !runnerCron && planSupportsMaxDuration === true
+    pass: runnerConfigValid && h12Unchanged && !runnerCron && capabilityVerified === true
+  };
+}
+
+export function verifyMainReleaseGovernance(evidence = {}) {
+  const branchProtectionAvailable = evidence.branchProtectionAvailable === true;
+  const pullRequestRequired = evidence.pullRequestRequired === true;
+  const requiredChecksConfigured = evidence.requiredChecksConfigured === true;
+  const forcePushBlocked = evidence.forcePushBlocked === true;
+  const deletionBlocked = evidence.deletionBlocked === true;
+  const pass = branchProtectionAvailable
+    && pullRequestRequired
+    && requiredChecksConfigured
+    && forcePushBlocked
+    && deletionBlocked;
+  return {
+    status: pass ? 'VERIFIED' : 'NOT_VERIFIED',
+    branchProtectionAvailable,
+    pullRequestRequired,
+    requiredChecksConfigured,
+    forcePushBlocked,
+    deletionBlocked,
+    pass,
+    reason: pass ? null : 'MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED',
+    evidence: evidence.evidence ?? null
   };
 }
 
@@ -256,6 +282,7 @@ export function buildPreflightReport({
   vercelCompatibility,
   oidc,
   supabase,
+  governance,
   runnerChecks = {},
   failClosedChecks = {},
   safety
@@ -264,9 +291,10 @@ export function buildPreflightReport({
   const blockers = [];
   if (!productionEnvironmentVerified) blockers.push('PRODUCTION_ENV_NOT_VERIFIED');
   if (!vercelCompatibility?.configPass) blockers.push('VERCEL_ROUTE_CONFIG_INVALID');
-  if (!vercelCompatibility?.planCompatibilityPass) blockers.push('VERCEL_PLAN_COMPATIBILITY_NOT_VERIFIED');
+  if (!vercelCompatibility?.capabilityVerificationPass) blockers.push('VERCEL_MAX_DURATION_CAPABILITY_NOT_VERIFIED');
   if (!oidc?.pass) blockers.push(oidc?.reason ?? 'OIDC_CONTRACT_INVALID');
   if (!supabase?.pass) blockers.push('SUPABASE_SCHEMA_OR_PERMISSIONS_INVALID');
+  if (!governance?.pass) blockers.push('MAIN_RELEASE_GOVERNANCE_NOT_ENFORCED');
   if (!safety?.pass) blockers.push('RELEASE_SAFETY_STATE_INVALID');
   if (runnerChecks.readyNoOp !== true) blockers.push('READY_RUNNER_NOOP_NOT_PROVEN');
   if (runnerChecks.fixtureNoExternalIo !== true) blockers.push('RELEASED_FIXTURE_EXTERNAL_IO_NOT_PROVEN');
@@ -288,6 +316,7 @@ export function buildPreflightReport({
     vercelCompatibility,
     oidc,
     supabase,
+    governance,
     runner: {
       readyNoOp: runnerChecks.readyNoOp === true,
       fixture: runnerChecks.fixtureNoExternalIo === true
