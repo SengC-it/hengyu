@@ -33,13 +33,21 @@ function releasedConfig() {
   };
 }
 
+function readyConfig() {
+  return {
+    ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    status: 'DRAFT_CUTOVER_PREPARED',
+    releaseState: 'EMAIL_SIGNAL_RELEASE_READY'
+  };
+}
+
 function enabledDelivery() {
   return { enabled: true, configured: true };
 }
 
 async function assertReadyConfigMutationFails(mutate) {
   let runnerLoadCalls = 0;
-  const config = structuredClone(EMAIL_SIGNAL_CUTOVER_CONFIG);
+  const config = structuredClone(readyConfig());
   mutate(config);
   const invalidHandler = createHyExp0028Handler({
     authorize: async () => true,
@@ -126,15 +134,24 @@ function mockResponse() {
   };
 }
 
-test('cutover release states are canonical pairs and current config remains READY/DRAFT', () => {
+test('cutover release states are canonical pairs and current config is RELEASED', () => {
   assert.equal(isEmailSignalCutoverConfigValid(), true);
   assert.equal(isEmailSignalCutoverConfigValid({
-    ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    ...readyConfig(),
     releaseState: 'EMAIL_SIGNAL_RELEASED'
   }), false);
+  assert.equal(isEmailSignalCutoverConfigValid({
+    ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    status: 'DRAFT_CUTOVER_PREPARED'
+  }), false);
+  assert.equal(isEmailSignalCutoverConfigValid({
+    ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    releaseState: 'EMAIL_SIGNAL_RELEASE_READY'
+  }), false);
   assert.equal(isEmailSignalCutoverConfigValid(releasedConfig()), true);
-  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.releaseState, 'EMAIL_SIGNAL_RELEASE_READY');
-  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.status, 'DRAFT_CUTOVER_PREPARED');
+  assert.equal(isEmailSignalCutoverConfigValid(readyConfig()), true);
+  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.releaseState, 'EMAIL_SIGNAL_RELEASED');
+  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.status, 'CUTOVER_RELEASED');
 });
 
 test('Vercel entrypoint is a standard dynamically importable ESM handler', async () => {
@@ -148,6 +165,7 @@ test('current READY runner is a release-gated no-op before market data and email
   let ingestCalls = 0;
   let dispatchCalls = 0;
   const result = await runHyExp0028Scan({
+    config: readyConfig(),
     causalInputFetcher: async () => { marketCalls += 1; return makeProductionDataset(); },
     ingestImpl: async () => { ingestCalls += 1; },
     dispatchImpl: async () => { dispatchCalls += 1; }
@@ -460,6 +478,7 @@ test('authenticated READY entry returns no-op before attempting the heavy runner
   let runnerLoadCalls = 0;
   const readyHandler = createHyExp0028Handler({
     authorize: async () => true,
+    loadConfig: () => readyConfig(),
     loadRunner: async () => {
       runnerLoadCalls += 1;
       throw new Error('heavy runner must not load in READY mode');

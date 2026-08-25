@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "CONTROLLED_EMAIL_RELEASE_ACTIVATION",
+  "immutable": true,
+  "experimentId": "HY-EXP-0028",
+  "baseMainCommit": "17a43e5820861055dac3483ff6c7003a407a0db1",
+  "executableActivationCommit": "32864d3bc9cb9c7103d24b9e7909367f56973fae",
+  "activationStatus": "PREPARED_AWAITING_HUMAN_APPROVAL",
+  "humanApprovalRequired": true,
+  "humanApproval": "NOT_APPROVED",
+  "releaseAllowed": false,
+  "releaseState": {
+    "before": "EMAIL_SIGNAL_RELEASE_READY",
+    "after": "EMAIL_SIGNAL_RELEASED"
+  },
+  "configStatus": {
+    "before": "DRAFT_CUTOVER_PREPARED",
+    "after": "CUTOVER_RELEASED"
+  },
+  "deploymentSourcePolicy": "POST_MERGE_MAIN_SHA_ONLY",
+  "directFeatureBranchDeploymentAllowed": false,
+  "productionBaseline": {
+    "deploymentId": "dpl_AjSupunRJk2uY1SqEHpwstFVS5qP",
+    "sourceSha": "17a43e5820861055dac3483ff6c7003a407a0db1",
+    "state": "READY",
+    "region": "sin1"
+  },
+  "delivery": {
+    "gmailSendRequiredFalse": true,
+    "schedulerRequiredDisabled": true,
+    "realEmailAllowed": false,
+    "releasedWithGmailDisabled": {
+      "emailDeliveryEnabled": false,
+      "emailDeliverySuppressed": true,
+      "outbox": 0,
+      "smtpDispatched": 0
+    }
+  },
+  "expectedBehavior": {
+    "allowed": [
+      "public Binance market data",
+      "frozen candidate calculation",
+      "PAPER advisory generation",
+      "PAPER advisory DB ingest"
+    ],
+    "prohibited": [
+      "email outbox",
+      "SMTP",
+      "OAuth token",
+      "Gmail API",
+      "private Binance API",
+      "account API",
+      "order API",
+      "automatic trading"
+    ]
+  },
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "autoTrading": false,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "shadowActivated": false
+  }
+}

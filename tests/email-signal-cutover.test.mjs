@@ -29,6 +29,14 @@ function releasedConfig() {
   };
 }
 
+function readyConfig() {
+  return {
+    ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    status: 'DRAFT_CUTOVER_PREPARED',
+    releaseState: 'EMAIL_SIGNAL_RELEASE_READY'
+  };
+}
+
 function validAdvisory(overrides = {}) {
   const entryTime = SIGNAL_TIME + 5 * 60 * 1_000;
   const entryObservedAt = entryTime + 30_000;
@@ -153,10 +161,12 @@ function realProductionCandidate() {
   return built.candidates[0];
 }
 
-test('cutover config is immutable, current state is READY, and safety is closed', () => {
+test('cutover config is immutable, current state is RELEASED, and safety is closed', () => {
   assert.equal(Object.isFrozen(EMAIL_SIGNAL_CUTOVER_CONFIG), true);
   assert.equal(isEmailSignalCutoverConfigValid(), true);
-  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.releaseState, 'EMAIL_SIGNAL_RELEASE_READY');
+  assert.equal(isEmailSignalCutoverConfigValid(readyConfig()), true);
+  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.releaseState, 'EMAIL_SIGNAL_RELEASED');
+  assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.status, 'CUTOVER_RELEASED');
   assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.releaseStateRequiredForEmail, 'EMAIL_SIGNAL_RELEASED');
   assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.legacyEmailAuthority.emailAllowed, false);
   assert.equal(EMAIL_SIGNAL_CUTOVER_CONFIG.safety.signal_only, true);
@@ -199,7 +209,7 @@ test('legacy H12 and any other strategy cannot impersonate the new email authori
 
 test('READY is fail-closed while an explicitly released config admits only a valid candidate', () => {
   assert.deepEqual(
-    evaluateEmailSignalAdmission({ advisory: validAdvisory(), now: NOW }),
+    evaluateEmailSignalAdmission({ advisory: validAdvisory(), config: readyConfig(), now: NOW }),
     { allowed: false, reason: 'EMAIL_STRATEGY_NOT_RELEASED' }
   );
   assert.equal(
@@ -238,7 +248,7 @@ test('dispatch reload shape preserves admission fields and fails closed by statu
     );
   }
   assert.equal(
-    evaluateEmailSignalAdmission({ advisory: reloaded, now: NOW }).reason,
+    evaluateEmailSignalAdmission({ advisory: reloaded, config: readyConfig(), now: NOW }).reason,
     'EMAIL_STRATEGY_NOT_RELEASED'
   );
   assert.equal(
