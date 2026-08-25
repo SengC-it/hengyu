@@ -53,7 +53,14 @@ jobs:
             error: response.error ?? null,
             stage: response.stage ?? null,
             paperOnly: response.paperOnly ?? null,
-            signalOnly: response.signalOnly ?? null
+            signalOnly: response.signalOnly ?? null,
+            marketDataFetched: response.marketDataFetched ?? null,
+            candidates: response.candidates ?? null,
+            advisories: response.advisories ?? null,
+            outbox: response.outbox ?? null,
+            smtpDispatched: response.smtpDispatched ?? null,
+            emailDeliveryEnabled: response.emailDeliveryEnabled ?? null,
+            emailDeliverySuppressed: response.emailDeliverySuppressed ?? null
           }));
           NODE
           test "${http_code}" = "200"

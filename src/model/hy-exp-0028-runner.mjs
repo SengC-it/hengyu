@@ -1,5 +1,5 @@
 import { ingestAdvisoryBundle } from '../../api/ingest.mjs';
-import { dispatchPendingEmails } from '../../api/_lib/gmail.mjs';
+import { dispatchPendingEmails, gmailStatus } from '../../api/_lib/gmail.mjs';
 import {
   EMAIL_SIGNAL_CUTOVER_CONFIG,
   isEmailSignalCutoverConfigValid
@@ -52,6 +52,20 @@ function invalidConfigResult() {
   };
 }
 
+function deliveryResult(gmailStatusImpl) {
+  let status;
+  try {
+    status = gmailStatusImpl();
+  } catch {
+    status = null;
+  }
+  const emailDeliveryEnabled = status?.enabled === true && status?.configured === true;
+  return {
+    emailDeliveryEnabled,
+    emailDeliverySuppressed: !emailDeliveryEnabled
+  };
+}
+
 export async function runHyExp0028Scan({
   config = EMAIL_SIGNAL_CUTOVER_CONFIG,
   fetchImpl = fetch,
@@ -62,11 +76,14 @@ export async function runHyExp0028Scan({
   advisoryBuilder = buildHyExp0028EmailAdvisory,
   ingestImpl = ingestAdvisoryBundle,
   dispatchImpl = dispatchPendingEmails,
+  gmailStatusImpl = gmailStatus,
   sleepImpl
 } = {}) {
   // This gate intentionally precedes every market-data, ingestion, and SMTP call.
   if (!isEmailSignalCutoverConfigValid(config)) return invalidConfigResult();
   if (config.releaseState !== 'EMAIL_SIGNAL_RELEASED') return notReleasedResult();
+
+  const delivery = deliveryResult(gmailStatusImpl);
 
   const scannedAt = nowValue(clock);
   let causalInput;
@@ -85,6 +102,7 @@ export async function runHyExp0028Scan({
       advisories: 0,
       outbox: 0,
       smtpDispatched: 0,
+      ...delivery,
       paperOnly: true,
       signalOnly: true
     };
@@ -102,6 +120,7 @@ export async function runHyExp0028Scan({
       outbox: 0,
       smtpDispatched: 0,
       rejections: built?.rejections ?? [],
+      ...delivery,
       paperOnly: true,
       signalOnly: true
     };
@@ -172,10 +191,15 @@ export async function runHyExp0028Scan({
 
   const ingested = [];
   for (const result of accepted) {
-    ingested.push(await ingestImpl({ advisory: result.advisory, email: result.email }));
+    const email = delivery.emailDeliveryEnabled
+      ? result.email
+      : { ...(result.email ?? {}), requested: false };
+    ingested.push(await ingestImpl({ advisory: result.advisory, email }));
   }
-  const queued = ingested.filter(result => result?.email?.queued === true);
-  const dispatched = queued.length ? await dispatchImpl() : [];
+  const queued = delivery.emailDeliveryEnabled
+    ? ingested.filter(result => result?.email?.queued === true)
+    : [];
+  const dispatched = delivery.emailDeliveryEnabled && queued.length ? await dispatchImpl() : [];
   const allEntryWindowsExpired = candidates.length > 0
     && entryRejections.length === candidates.length
     && entryRejections.every(row => row.rejection === 'ENTRY_CAPTURE_WINDOW_EXPIRED');
@@ -194,6 +218,7 @@ export async function runHyExp0028Scan({
     entryRejections,
     ingest: ingested,
     dispatch: dispatched,
+    ...delivery,
     paperOnly: true,
     signalOnly: true
   };
