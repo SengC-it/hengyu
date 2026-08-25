@@ -1,4 +1,4 @@
-import { HY_EXP_0028_SYMBOLS } from '../validation/hy-val-0028-001.mjs';
+import { HY_EXP_0028_SYMBOLS } from '../validation/hy-exp-0028-frozen-constants.mjs';
 
 const PUBLIC_BASE_URL = 'https://fapi.binance.com';
 const KLINES_PATH = '/fapi/v1/klines';
