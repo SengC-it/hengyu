@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0032_DATA_QUALITY_FAILURE",
+  "immutable": true,
+  "experimentId": "HY-EXP-0032",
+  "status": "DATA_FAIL_PRE_OUTCOME",
+  "reason": "NON_CONTIGUOUS_MARK_5M_SERIES",
+  "preregistrationSha256": "8fc889559c9ace1a166f050b0e0d7f36653d52867ec786eee725969ba0e35177",
+  "dataManifestSha256": "cd8dbe032a85bd061a650fe2f1ea88ce47203f4ef8d0609420745f3347e15458",
+  "window": {
+    "start": "2024-08-26T00:00:00Z",
+    "endExclusive": "2026-08-26T00:00:00Z"
+  },
+  "continuity": {
+    "cadence": "5m",
+    "expectedRowsPerStream": 210240,
+    "contractStreamsPassed": 16,
+    "markStreamsFailed": 16,
+    "missingBarsPerMarkStream": 288,
+    "previousObservedBar": "2026-06-28T23:55:00.000Z",
+    "missingIntervalStart": "2026-06-29T00:00:00.000Z",
+    "missingIntervalEndExclusive": "2026-06-30T00:00:00.000Z",
+    "nextObservedBar": "2026-06-30T00:00:00.000Z",
+    "failedMarkSymbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "SOLUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT",
+      "ADAUSDT",
+      "BCHUSDT",
+      "DOTUSDT",
+      "AVAXUSDT",
+      "TRXUSDT",
+      "ETCUSDT",
+      "FILUSDT",
+      "APTUSDT"
+    ]
+  },
+  "sourceIntegrity": {
+    "manifestMissingFileCount": 0,
+    "manifestHashesVerified": true,
+    "nativeBarsInterpolated": false,
+    "forwardFilled": false,
+    "gapFilled": false,
+    "outcomeRead": false,
+    "pnlComputed": false,
+    "finalOosRead": false
+  },
+  "decision": "STOP_HY_EXP_0032_BEFORE_OUTCOME_COMPUTATION",
+  "requiredRemediation": "A new immutable data lock or a new experiment ID is required; the locked manifest must not be edited in place.",
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false,
+    "workflowDispatch": false
+  }
+}
