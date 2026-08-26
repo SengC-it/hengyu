@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - codex/hy-exp-0028-release-preflight
+      - codex/hy-exp-0034-actionable-alpha-discovery
   pull_request:
     branches:
       - main
