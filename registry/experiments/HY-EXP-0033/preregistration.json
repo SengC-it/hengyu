@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0033",
+  "title": "Recovered-data strategy family tournament: H12 broad-bear short, H6 funding carry, H7 relative value",
+  "declaredDate": "2026-08-26",
+  "status": "PREREGISTERED",
+  "experimentType": "DEVELOPMENT_STRATEGY_FAMILY_TOURNAMENT",
+  "authorization": "PAPER_ONLY",
+  "baseMainCommit": "ea494d4a32ce1adca97ae454de3f3b8635a248d1",
+  "purpose": "Compare the exact HY-EXP-0032 strategy-family specifications after a narrowly frozen, source-traceable recovery of one immutable mark-price gap. This is development evidence only and cannot authorize Gmail, trading, or an independent OOS claim.",
+  "recoveryDisclosure": "HY-EXP-0033 was created after HY-EXP-0032 was terminally closed for a non-contiguous mark-price archive gap. Only the data acquisition/recovery policy changes; all strategy economics, risk gates, costs, bootstrap, and winner rules are inherited unchanged.",
+  "selectionDisclosure": "H12, H6, and H7 were selected after observing prior development evidence. This creates historical winner-selection bias; the tournament is not independent validation and cannot enable email release.",
+  "negativeControl": {
+    "experimentId": "HY-EXP-0030",
+    "role": "NEGATIVE_CONTROL_ONLY",
+    "useForWinnerSelection": false,
+    "frozenConclusion": "NOT_READY",
+    "note": "HY-EXP-0030 remains closed/failed and is not retuned or used as a positive comparator. Its existing terminal failed registry event is immutable."
+  },
+  "dataWindow": {
+    "start": "2024-08-26T00:00:00Z",
+    "endExclusive": "2026-08-26T00:00:00Z",
+    "calendarDays": 730,
+    "minimumCalendarDays": 365,
+    "preferredCalendarDays": 730,
+    "outcomeReadAllowedOnlyAfter": "PREREG_COMMIT",
+    "finalOosRead": false,
+    "freshHoldoutCreated": false
+  },
+  "dataPolicy": {
+    "sources": [
+      "PRIMARY: Binance official public historical USD-M archive: https://data.binance.vision/data/futures/um",
+      "SECONDARY: Binance official public USD-M REST markPriceKlines only for the registered gap: https://fapi.binance.com/fapi/v1/markPriceKlines"
+    ],
+    "allowedStreams": ["completed contract 5m klines", "completed mark-price 5m klines", "realized funding events", "point-in-time archive membership"],
+    "reuseRule": "Reuse only the immutable HY-EXP-0032 hash-locked archive files and manifest entries without changing them. Recovery files require exact endpoint/query, retrieval timestamp, raw-byte SHA-256, normalized SHA-256 and a new HY-EXP-0033 manifest entry before any outcome computation.",
+    "recoveryPolicy": {
+      "purpose": "Recover only the known HY-EXP-0032 archive gap; recovery is not a general backfill policy.",
+      "primarySource": "BINANCE_OFFICIAL_PUBLIC_ARCHIVE",
+      "secondarySource": "BINANCE_PUBLIC_REST_MARK_PRICE_KLINES",
+      "allowedStream": "mark-price 5m",
+      "intervalStart": "2026-06-29T00:00:00Z",
+      "intervalEndExclusive": "2026-06-30T00:00:00Z",
+      "allowedSymbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT", "ADAUSDT", "BCHUSDT", "DOTUSDT", "AVAXUSDT", "TRXUSDT", "ETCUSDT", "FILUSDT", "APTUSDT"],
+      "exactRestEndpoint": "GET https://fapi.binance.com/fapi/v1/markPriceKlines",
+      "exactQuery": "interval=5m&startTime=1782691200000&endTime=1782777599999&limit=288",
+      "requiredRowsPerSymbol": 288,
+      "recoverySourceSemantic": "native Binance USD-M mark-price kline rows only; no contract-price, index-price, premium-index, interpolation, forward-fill, synthetic row, or OHLC reconstruction",
+      "unregisteredGapAction": "HY-EXP-0033 DATA_FAIL",
+      "dateExpansionAllowed": false,
+      "symbolExpansionAllowed": false
+    },
+    "parityPolicy": {
+      "semantic": "Archive-native and REST-native rows must both be Binance USD-M mark-price 5m data.",
+      "overlapWindows": [
+        {"start":"2026-06-28T23:00:00Z","endExclusive":"2026-06-29T00:00:00Z","rowsPerSymbol":12},
+        {"start":"2026-06-30T00:00:00Z","endExclusive":"2026-06-30T01:00:00Z","rowsPerSymbol":12}
+      ],
+      "comparison": "Exact openTime set and exact normalized OHLC values after decimal normalization; mismatch is DATA_SOURCE_SEMANTICS_MISMATCH and stops before outcomes."
+    },
+    "privateApis": false,
+    "accountApis": false,
+    "orderApis": false,
+    "historicalL2Required": false,
+    "ohlcvDepthProxy": false,
+    "survivorshipPolicy": "Do not select symbols because they survive today. Reconstruct membership from point-in-time archive presence, first available native bars, contract identity/status and continuous coverage. Unknown membership is excluded with a reason.",
+    "qualityFailure": "Corrupt, hash-mismatched, duplicate, non-contiguous, incomplete, non-causal or non-PIT data fails the affected family before PnL; no interpolation, forward-fill, synthetic bars, unregistered recovery, or current exchangeInfo backfill."
+  },
+  "universe": {
+    "fixedBaseline": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT"],
+    "expandedRule": {
+      "quoteAsset": "USDT",
+      "contractType": "PERPETUAL",
+      "listingAgeDaysAtLeast": 30,
+      "maximumSymbols": 50,
+      "pointInTime": true,
+      "unknownIdentityAction": "EXCLUDE_WITH_REASON",
+      "unreconstructableAction": "REPORT_PIT_UNIVERSE_NOT_EVALUABLE_AND_USE_FIXED_BASELINE_ONLY"
+    },
+    "outcomeSelection": "No symbol, pair or cohort may be selected or removed after outcome inspection."
+  },
+  "families": {
+    "H12_BROAD_BEAR_SHORT": {
+      "hypothesisId": "H12",
+      "sourceExperiment": "HY-EXP-0018",
+      "sourceSemantics": "Exact HY-EXP-0018 economic semantics; only the development window/universe accounting boundary is specified by HY-EXP-0032. Any economic rule change voids this experiment.",
+      "direction": "SELL_ONLY",
+      "regime": {
+        "btcFastSmaBars": 60,
+        "btcSlowSmaBars": 180,
+        "minimumBreadthBelowSlowSma": 4,
+        "formula": "At each completed UTC 4h signal bar, BTC close < its prior 180-bar SMA, BTC 60-bar SMA < BTC 180-bar SMA, and at least four of the frozen six H12 baseline symbols are below their own prior 180-bar SMA. All values are known at the signal close."
+      },
+      "entry": {
+        "signalInterval": "completed UTC 4h",
+        "channelBars": 120,
+        "formula": "When the broad bear regime is true and a completed symbol 4h close is strictly below its prior 120 completed 4h lows, sell at the next valid frozen 4h entry open.",
+        "nextValidEntry": "The next completed prospective 4h boundary/open with a valid causal contract bar; no later-bar rescue or interpolation.",
+        "longSignals": "IGNORED"
+      },
+      "exit": {
+        "exitChannelBars": 60,
+        "atrBars": 30,
+        "initialStopAtrMultiple": 2,
+        "dynamicExit": "Exit at the next valid 4h open after a completed close is strictly above the prior 60-bar high.",
+        "stopPriority": "Intrabar initial 2-ATR stop takes precedence over a later close-based channel exit.",
+        "regimeChange": "Does not force an exit.",
+        "terminalExit": "Liquidate at the close of the last complete 4h bar before the frozen window boundary.",
+        "overlap": "At most one short per symbol, no pyramiding or reversal."
+      },
+      "allocation": "At most one position per frozen H12 baseline symbol with equal frozen slot allocation; idle slots earn zero; no compounding."
+    },
+    "H6_BETA_NEUTRAL_FUNDING_CARRY": {
+      "hypothesisId": "H6",
+      "sourceExperiment": "HY-EXP-0010",
+      "sourceSemantics": "Exact HY-EXP-0010 beta-neutral cross-sectional funding-carry semantics; no deletion of the long sleeve, ETH, hedge or funding mechanism.",
+      "benchmark": "BTCUSDT",
+      "crossSection": {
+        "eligibleUniverse": "The 12 most liquid PIT-eligible non-BTC perpetual alts from the frozen H6 panel when all requirements are available.",
+        "rebalanceDays": 14,
+        "anchor": "2024-08-26T00:00:00Z",
+        "fundingLookbackDays": 14,
+        "minimumFundingEvents": 42,
+        "fundingScore": "Sum realized funding rates strictly after eventTime-14d through eventTime.",
+        "betaLookbackBars": 8640,
+        "liquidityLookbackBars": 8640,
+        "capacityLookbackBars": 12,
+        "betaModel": "OLS beta and residual volatility for each alt versus BTC using synchronized close-to-close returns ending before eventTime.",
+        "btcTrendRegime": "Sign of BTC log return over the prior 14 calendar days ending before eventTime.",
+        "longSelection": "Three lowest trailing funding scores among the 12 most liquid eligible alts.",
+        "shortSelection": "Three highest trailing funding scores among the 12 most liquid eligible alts.",
+        "sleeves": "Inverse prior residual volatility; normalized alt longs +0.5 and alt shorts -0.5.",
+        "btcHedge": "Negative of selected-alt prior beta exposure.",
+        "minimumProjectedFundingReturn": 0.0024,
+        "maximumAbsolutePretradeBetaExposure": 1e-10,
+        "referenceGrossNotionalUsdt": 10000,
+        "maximumReferenceParticipation": 0.02,
+        "capacityFailure": "Skip the entire rebalance event."
+      },
+      "holding": "Exactly 14 calendar days from each actual entry; successive portfolios are contiguous and non-overlapping within each execution scenario.",
+      "observationUnit": "One complete rebalance portfolio, never individual legs or funding settlements."
+    },
+    "H7_CROSS_ASSET_RELATIVE_VALUE": {
+      "hypothesisId": "H7",
+      "sourceExperiment": "HY-EXP-0011",
+      "sourceSemantics": "Exact HY-EXP-0011 rolling cross-asset relative-value semantics; no pair deletion, beta-range change, rearm change or hold change.",
+      "pairs": [
+        {"pairId":"BTC_LTC","x":"BTCUSDT","y":"LTCUSDT"},
+        {"pairId":"ETH_ETC","x":"ETHUSDT","y":"ETCUSDT"},
+        {"pairId":"SOL_AVAX","x":"SOLUSDT","y":"AVAXUSDT"},
+        {"pairId":"ADA_DOT","x":"ADAUSDT","y":"DOTUSDT"}
+      ],
+      "signal": {
+        "interval": "completed UTC 4h",
+        "lookbackBars": 540,
+        "betaModel": "OLS with intercept of y 4h log returns on x returns using only the prior 540 complete 4h bars.",
+        "minimumBeta": 0.25,
+        "maximumBeta": 2.5,
+        "spread": "log(y close) minus frozen beta times log(x close).",
+        "centerScale": "Mean and sample standard deviation of prior spread levels, excluding current signal bar.",
+        "entryAbsoluteZscore": 3,
+        "rearmAbsoluteZscore": 1,
+        "direction": "Rich y: short y and long beta-weighted x; cheap y: long y and short beta-weighted x.",
+        "entry": "5m open exactly 5 minutes after the next 4h boundary, after one full post-signal processing bar.",
+        "exit": "First later complete 4h close whose frozen-beta spread crosses the frozen entry center; otherwise exactly seven calendar days after entry.",
+        "maximumHold4hBars": 42,
+        "overlap": "At most one trade per fixed pair; re-entry requires absolute rolling zscore <= 1."
+      },
+      "allocation": "Each of four pairs receives at most 25% gross; within a pair absolute y:x weights are 1:beta and sum to 25% gross.",
+      "observationUnit": "One pair trade, never individual legs. Trades sharing an entry UTC day are one dependent event cluster."
+    }
+  },
+  "commonAccounting": {
+    "costBasisBps": {"base": 18, "stress": 27, "severe": 36},
+    "costComponents": ["fees", "spread", "slippage", "latency", "impact"],
+    "costRule": "Compute from gross/executable PnL once. Do not double-count any historical cost already embedded in source rows.",
+    "funding": "Include actual realized funding transfers separately, using actual leg direction and mark-price valuation at funding time. Charge every entry and exit leg separately.",
+    "execution": "Use the frozen entry/exit timing and fill convention of each source family; no post-outcome delay or exit selection.",
+    "pnl": "Report gross, net18, net27 and net36 at event and portfolio level; all values are PAPER research evidence only."
+  },
+  "requiredReports": {
+    "perFamily": [
+      "eventCount", "activeDays", "activeMonths", "grossExpectancyBps", "net18ExpectancyBps", "net27ExpectancyBps", "net36ExpectancyBps",
+      "PF18", "PF27", "PF36", "netPnl18", "netPnl27", "netPnl36", "portfolioMtmDrawdownFraction", "maxLossStreak",
+      "netPnlWithoutBestEvent", "netPnlWithoutBest5Events", "netPnlWithoutBestMonth", "positiveMonthShare", "largestSymbolOrPairShare",
+      "fundingPnl", "executionCosts", "directionOrSleeveContribution", "portfolioCvar95", "portfolioCvarStatus"
+    ],
+    "portfolioEquity": "Reconstruct one 5m mark-price equity curve with realized PnL, unrealized PnL, funding, reserved costs and realized costs. Closed-equity DD or single-trade adverse excursion is not a substitute.",
+    "cvar": "Compute daily portfolio-return CVaR95/Expected Shortfall. Fewer than 60 daily observations yields CVAR_NOT_EVALUABLE and the family cannot pass.",
+    "riskFailClosed": "If true portfolio MTM DD or CVaR cannot be reconstructed, set null plus NOT_RECONSTRUCTED/NOT_EVALUABLE and fail the family."
+  },
+  "walkForward": {
+    "method": "Purged expanding walk-forward development evaluation with outcome labels only inside the current training/validation chronology.",
+    "purge": "Remove observations whose holding window overlaps the validation boundary.",
+    "embargo": "One complete maximum-holding horizon after each training/validation boundary.",
+    "randomSplit": false,
+    "postOutcomeFiltering": false,
+    "modelTuning": false,
+    "mlOrMetaFilter": false,
+    "note": "No Ridge, GBT, neural, meta-filter or post-outcome classifier is permitted in HY-EXP-0032. This is a frozen family tournament."
+  },
+  "bootstrap": {
+    "method": "Calendar-time block bootstrap",
+    "blockLengthDays": 7,
+    "iterations": 5000,
+    "seed": 320032,
+    "confidence": 0.95,
+    "reports": ["net27ExpectancyBps", "net36ExpectancyBps", "PF27", "portfolioMtmDrawdownFraction"],
+    "hardGate": "95% lower bound of net27 expectancy must be > 0; otherwise EDGE_UNCERTAIN and family fail."
+  },
+  "familyPassGates": {
+    "eventCountAtLeast": 30,
+    "activeMonthsAtLeast": 12,
+    "net18ExpectancyBpsGreaterThan": 0,
+    "PF18AtLeast": 1.3,
+    "net27ExpectancyBpsGreaterThan": 0,
+    "PF27AtLeast": 1.2,
+    "net36ExpectancyBpsGreaterThan": 0,
+    "PF36AtLeast": 1.05,
+    "portfolioMtmDrawdownFractionAtMost": 0.08,
+    "portfolioCvarRequired": true,
+    "maxLossStreakAtMost": 6,
+    "netPnlWithoutBestEventGreaterThan": 0,
+    "netPnlWithoutBest5EventsGreaterThan": 0,
+    "netPnlWithoutBestMonthGreaterThan": 0,
+    "positiveMonthShareAtLeast": 0.6,
+    "largestSymbolOrPairShareAtMost": 0.3,
+    "bootstrapNet27LowerBoundGreaterThan": 0,
+    "missingRiskStatus": "FAIL"
+  },
+  "winnerRule": {
+    "eligibleSet": "Only families passing every familyPassGate.",
+    "zero": "NO_ROBUST_STRATEGY_FOUND; stop research and do not auto-tune.",
+    "one": "That family is the winner.",
+    "multiple": "Highest bootstrap net27 lower bound; if difference is <2 bps, choose lower portfolio MTM DD. No point-PnL/PF/manual choice.",
+    "negativeControlExcluded": true
+  },
+  "historicalReferences": {
+    "H12": "Prior H12 development result was selected post hoc and had positive aggregate evidence but failed positive-month robustness; it is explanatory only.",
+    "H6": "Prior H6 development result had positive stress PF but long-sleeve/concentration concerns; explanatory only.",
+    "H7": "Prior H7 result had 18 pair trades and positive stress PF but best-five and pair/month concentration concerns; explanatory only.",
+    "rule": "References cannot satisfy any HY-EXP-0032 gate and cannot be used to tune thresholds."
+  },
+  "futureValidation": {
+    "experimentId": "HY-VAL-0033-001",
+    "prepared": false,
+    "activated": false,
+    "preparationRule": "If and only if a family wins, create a prepared-only artifact with no scheduler, workflow dispatch or Gmail activation.",
+    "minimumDays": 90,
+    "minimumEvents": 20,
+    "gates": ["net27>0", "PF27>1.20", "net36>=0", "portfolioMtmDD<=8%", "withoutBestEvent>0", "noMonth>50%", "causalFundingAndCosts"],
+    "freshEvidenceBoundary": "Any future validation must start after HY-EXP-0033 development and cannot include data <=2026-08-26T00:00:00Z."
+  },
+  "reservedIds": {"HY-EXP-0031": "UNUSED_RESERVED_ID"},
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmailSendEnabled": false,
+    "schedulerActivated": false,
+    "realEmailSent": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false,
+    "workflowDispatch": false
+  },
+  "freezeContract": {
+    "candidateRulesFrozenBeforeOutcome": true,
+    "familyDefinitionsFrozenBeforeOutcome": true,
+    "entryExitFrozenBeforeOutcome": true,
+    "costsFrozenBeforeOutcome": true,
+    "winnerAndRiskGatesFrozenBeforeOutcome": true,
+    "developmentDatasetMustBeCommittedBeforeOutcome": true,
+    "anyEconomicRuleChange": "VOID_EXPERIMENT_AND_REQUIRE_NEW_EXPERIMENT_ID",
+    "outcomesRead": false,
+    "pnlComputed": false,
+    "developmentAllowed": true
+  }
+}
