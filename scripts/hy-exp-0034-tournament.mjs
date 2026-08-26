@@ -546,6 +546,18 @@ function withCosts(rows) {
 }
 
 function reconstructPortfolioMtm(rows, series, costBps = 27) {
+  if (!rows.length) {
+    return {
+      status: 'NOT_RECONSTRUCTED',
+      portfolioMtmStatus: 'NOT_RECONSTRUCTED',
+      portfolioMtmDrawdownFraction: null,
+      equityPoints: 0,
+      dailyObservationCount: 0,
+      dailyReturns: [],
+      portfolioCvar95: null,
+      portfolioCvarStatus: 'NOT_EVALUABLE'
+    };
+  }
   const markPnl = new Map();
   const cash = new Map();
   const bySymbol = Object.fromEntries(SYMBOLS.map(symbol => [symbol, []]));
