@@ -645,16 +645,28 @@ test('prepared scheduler is separate, inactive, and has no HY-EXP-0028 migration
   assert.doesNotMatch(dataWorkflow, /hy-exp-0028-scan/);
 });
 
-test('only the HY-EXP-0028 function receives the 120-second budget', () => {
+test('HY-EXP-0028 bundle configuration is explicit and keeps the scheduler inactive', async () => {
+  const vercelIgnore = fs.readFileSync('.vercelignore', 'utf8').split(/\r?\n/);
+  assert.equal(vercelIgnore.includes('config'), false);
+  assert.equal(vercelIgnore.includes('config/**'), true);
+  assert.equal(vercelIgnore.includes('!config/email-signal-cutover.json'), true);
+
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
   assert.deepEqual(vercel.functions['api/hy-exp-0028-scan.js'], {
     regions: ['sin1'],
-    maxDuration: 120
+    maxDuration: 120,
+    includeFiles: '../config/email-signal-cutover.json'
   });
   assert.deepEqual(vercel.functions['api/h12-scan.mjs'], {
     regions: ['sin1'],
     maxDuration: 60
   });
+
+  const workflow = fs.readFileSync('.github/workflows/hy-exp-0028-scan.yml', 'utf8');
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /^\s*schedule:/m);
+  const loadedConfig = await import('../src/model/email-signal-cutover-config.mjs?bundle-regression');
+  assert.equal(loadedConfig.isLightweightEmailSignalCutoverConfigValid(), true);
 });
 
 test('runner is paper-only and never exposes order, account, or automatic trading controls', () => {

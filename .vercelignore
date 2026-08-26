@@ -4,8 +4,8 @@
 .npm-cache/**
 artifacts
 artifacts/**
-config
 config/**
+!config/email-signal-cutover.json
 data
 data/**
 docs
