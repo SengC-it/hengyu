@@ -1,0 +1,184 @@
+{
+  "experiment_id": "HY-EXP-0029",
+  "title": "HY-EXP-0028 frozen candidate generator with a prospective meta edge filter",
+  "declared_date": "2026-08-26",
+  "status": "PREREGISTERED",
+  "evidence_class": "D2_META_FILTER_DEVELOPMENT_ONLY",
+  "authorization": "PAPER_ONLY",
+  "purpose": "Evaluate a small, causal, cost-aware meta filter that may reject low-quality HY-EXP-0028 candidates. HY-EXP-0028 candidate generation, entry, exit, Q75, universe and historical evidence are immutable inputs and are not changed by this experiment.",
+  "selection_disclosure": "HY-EXP-0029 is defined after observing the immutable HY-EXP-0028 holdout failure. The current artifact is diagnostic/development information only; it is not an independent validation or release result.",
+  "source": {
+    "candidate_generator_experiment": "HY-EXP-0028",
+    "candidate_generator_semantics": "Use the frozen Rule A candidate rows exactly as emitted; this experiment may only label a candidate SEND_CANDIDATE or REJECT_CANDIDATE.",
+    "diagnostic_source_artifact": "artifacts/HY-EXP-0028/holdout-result.json",
+    "diagnostic_source_sha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+    "source_artifact_is_immutable": true,
+    "development_outcome_reuse": true,
+    "final_oos_read": false,
+    "historical_backfill": false
+  },
+  "required_features": {
+    "availability": "strictly_at_or_before_decisionTime",
+    "v1": [
+      {
+        "name": "channelDistanceOverFrozenQ75",
+        "formula": "channelDistance / frozenQ75",
+        "transform": "finite positive ratio; standardize with training-fold mean/std and clip to [-3,3]"
+      },
+      {
+        "name": "regimeBull",
+        "formula": "1 when the frozen candidate regime is BULL, otherwise 0",
+        "transform": "binary"
+      },
+      {
+        "name": "sideBuy",
+        "formula": "1 when the frozen candidate side is BUY, otherwise 0",
+        "transform": "binary"
+      },
+      {
+        "name": "decisionHourSinCos",
+        "formula": "sin(2*pi*UTC_hour/24), cos(2*pi*UTC_hour/24)",
+        "transform": "bounded cyclic pair"
+      }
+    ],
+    "not_used_until_captured": [
+      "atrPercent",
+      "trendStrength1h",
+      "trendStrength4h",
+      "btcMarketAlignment",
+      "relativeStrengthVsBtc",
+      "volumeExpansion",
+      "fundingRateAtDecision",
+      "recentFundingChange",
+      "distanceFromRecentHigh",
+      "breakoutPersistence",
+      "shortTermMomentum",
+      "marketBreadth",
+      "crossSymbolMomentumBreadth",
+      "timeOfDayOtherThanUtcHour",
+      "liquidityProxy",
+      "recentVolatilityShock"
+    ],
+    "forbidden": [
+      "exitTime",
+      "exitPrice",
+      "exitReason",
+      "grossPriceReturnBps",
+      "net18Bps",
+      "net27Bps",
+      "netPnl",
+      "stressNetPnl",
+      "fundingPnl",
+      "maeBps",
+      "mfeBps",
+      "markToMarketDrawdownBps",
+      "marks",
+      "postOutcomeFilter"
+    ],
+    "symbol_policy": "Symbol is retained for reporting and concentration gates, never as a model feature in v1."
+  },
+  "label_and_costs": {
+    "training_label": "y=1 when realized net18Bps > 0, else y=0; labels are used only inside the training side of a purged fold.",
+    "base_cost_bps": 18,
+    "stress_cost_bps": 27,
+    "severe_stress_cost_bps": 36,
+    "net_formula": "grossPriceReturnBps + realizedFundingBps - costBps",
+    "funding": "Use realized funding only for labels/evaluation; funding-at-decision is required as a separate captured feature before a future model version may use it.",
+    "promotion_requires_all_costs": true
+  },
+  "model": {
+    "family": "RIDGE_LOGISTIC_CONDITIONAL_RETURN_EDGE",
+    "algorithm": "Standardized v1 features, intercept plus L2-regularized logistic regression trained by deterministic batch gradient descent.",
+    "learning_rate": 0.05,
+    "iterations": 800,
+    "l2_lambda": 1.0,
+    "intercept_regularized": false,
+    "minimum_training_rows": 12,
+    "probability": "sigmoid(intercept + dot(weights, standardizedFeatures))",
+    "conditional_edge": "pPositive*mean(training net18Bps where y=1) + (1-pPositive)*mean(training net18Bps where y=0)",
+    "uncertainty": "training residual standard deviation / sqrt(training row count); conservativeEdgeBps = expectedEdgeBps - 1.96*standardErrorBps",
+    "stress_projection": "predictedNet27Bps = predictedNet18Bps - 9; predictedNet36Bps = predictedNet18Bps - 18",
+    "calibration": "Report Brier score, decile mean predicted probability versus realized positive rate, and Spearman rank correlation on out-of-fold rows. No in-sample calibration is release evidence."
+  },
+  "walk_forward": {
+    "split": "expanding time-series walk-forward",
+    "validation_block_rows": 5,
+    "minimum_training_rows": 12,
+    "purge_hours": 96,
+    "embargo_hours": 24,
+    "ordering": "decisionTime ascending, then symbol, then id",
+    "training_rule": "A row is eligible for a fold's training set only when its exitTime is strictly before validationStart minus purgeHours and it is outside the validation embargo window.",
+    "random_split": false,
+    "threshold_selection": "Fixed before evaluation; no threshold optimization on validation outcomes.",
+    "oof_only_for_filter_metrics": true
+  },
+  "decision_rule": {
+    "grades": {
+      "A+": "trainingRows>=20 AND pPositive>=0.65 AND conservativeNet36Bps>0",
+      "A": "trainingRows>=20 AND pPositive>=0.55 AND conservativeNet27Bps>0",
+      "B": "trainingRows>=20 AND conservativeNet18Bps>0",
+      "REJECT": "otherwise"
+    },
+    "send_candidate": "Only A+ or A; B remains PAPER-only research evidence and is not an email candidate.",
+    "reject_candidate": "REJECT or B, plus any missing/invalid causal feature, unresolved data-quality issue, or failed safety gate.",
+    "no_threshold_lowering": true
+  },
+  "research_gates": {
+    "minimum_validated_signals": 100,
+    "minimum_calendar_days": 120,
+    "net18ExpectancyBpsAtLeast": 8,
+    "net18ProfitFactorAtLeast": 1.25,
+    "net27ExpectancyBpsAtLeast": 2,
+    "net27ProfitFactorAtLeast": 1.1,
+    "net36ExpectancyBpsGreaterThan": 0,
+    "maxMtmDrawdownFraction": 0.08,
+    "maxLossStreak": 6,
+    "netPnlWithoutBestTradeGreaterThan": 0,
+    "netPnlWithoutBestMonthGreaterThan": 0,
+    "distinctSymbolsAtLeast": 6,
+    "largestSymbolShareAtMost": 0.3,
+    "bootstrapLowerCiMustBePositive": true,
+    "edgeUncertainBlocksPromotion": true
+  },
+  "bootstrap": {
+    "method": "chronological block bootstrap",
+    "blockSizeRows": 3,
+    "iterations": 5000,
+    "seed": 290029,
+    "percentiles": [2.5, 50, 97.5],
+    "metrics": ["net18ExpectancyBps", "net27ExpectancyBps", "net36ExpectancyBps", "profitFactor18", "maxMtmDrawdownFraction", "maxLossStreak"]
+  },
+  "fresh_holdout": {
+    "created_only_after_model_freeze": true,
+    "minimum_independent_signals": 45,
+    "must_not_retrain_after_read": true,
+    "must_not_delete_losing_trades": true,
+    "pass_requires": ["net18ExpectancyBps>0", "net27ExpectancyBps>0", "profitFactor>1.10", "maxLossStreak<=6", "netPnlWithoutBestTrade>0"]
+  },
+  "paper_forward": {
+    "mode": "PAPER_FORWARD_ONLY",
+    "minimumSignals": 30,
+    "minimumDays": 30,
+    "requiresRealPublicMarketData": true,
+    "record": ["decisionPrice", "observableEntry", "spreadSlippageProxy", "entryDelay", "stop", "exit", "funding", "netResult"],
+    "gmailEnabled": false
+  },
+  "email_contract": {
+    "not_sent_in_this_experiment": true,
+    "future_fields": ["symbol", "side", "signalTime", "entryPriceOrZone", "entryExpiry", "stopLoss", "takeProfitOrExitRule", "maxChaseDistance", "estimatedHoldingWindow", "edgeScore", "confidenceGrade", "baseCostExpectancy", "stressCostExpectancy", "marketRegime", "reasonSummary"],
+    "entry_tolerance_text": "NO ENTRY IF PRICE OUTSIDE ENTRY TOLERANCE",
+    "future_email_grades": ["A+", "A"]
+  },
+  "safety": {
+    "signal_only": true,
+    "authorization_mode": "PAPER_ONLY",
+    "live_orders_enabled": false,
+    "account_api": false,
+    "order_api": false,
+    "automatic_trading": false,
+    "gmail_send_enabled": false,
+    "scheduler_activated": false,
+    "real_email_sent": false,
+    "final_oos_read": false
+  }
+}
