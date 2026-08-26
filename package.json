@@ -60,6 +60,6 @@
     "worker:h12": "node --use-env-proxy scripts/live-h12-worker.mjs"
   },
   "dependencies": {
-    "nodemailer": "^6.9.16"
+    "nodemailer": "9.0.5"
   }
 }
