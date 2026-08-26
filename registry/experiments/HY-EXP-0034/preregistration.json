@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0034",
+  "title": "Actionable single-symbol directional alpha discovery",
+  "declaredDate": "2026-08-26",
+  "status": "PREREGISTERED",
+  "experimentType": "DEVELOPMENT_ALPHA_DISCOVERY",
+  "authorization": "PAPER_ONLY",
+  "baseMainCommit": "a63502771b4e82ef539da2eecd44d4982e035617",
+  "purpose": "Compare five fully frozen single-symbol directional alpha families with three frozen execution profiles on development data only. This experiment is not independent OOS, cannot authorize Gmail, and cannot authorize trading.",
+  "historicalReferences": {
+    "HY-EXP-0028": "Historical negative/reference evidence only; never an independent validation set.",
+    "HY-EXP-0030": "Historical negative/reference evidence only; never a winner candidate or holdout.",
+    "HY-EXP-0032": "Historical negative/reference evidence only; H12/H6/H7 are not re-optimized.",
+    "HY-EXP-0033": "Historical negative/reference evidence only; its recovered-data tournament is not re-run or used for selection.",
+    "rule": "No prior result may tune, select, remove, or alter any HY-EXP-0034 family, profile, symbol, threshold, exit, or gate. Any economic rule change voids this experiment and requires a new experiment ID."
+  },
+  "dataWindow": {
+    "start": "2024-08-26T00:00:00Z",
+    "endExclusive": "2026-08-26T00:00:00Z",
+    "calendarDays": 730,
+    "minimumCalendarDays": 365,
+    "outcomeReadAllowedOnlyAfter": "PREREGISTRATION_COMMIT",
+    "finalOosRead": false,
+    "freshHoldoutCreated": false
+  },
+  "dataPolicy": {
+    "primarySources": [
+      "Binance official public USD-M historical archive: https://data.binance.vision/data/futures/um",
+      "Existing HY-EXP-0033 hash-locked native public source files for the same window"
+    ],
+    "allowedStreams": [
+      "completed contract-price 5m klines",
+      "completed mark-price 5m klines",
+      "realized funding events"
+    ],
+    "allowedRecovery": "Only the already registered HY-EXP-0033 native Binance USD-M mark-price REST recovery for 2026-06-29 may be reused; no new recovery is permitted in HY-EXP-0034.",
+    "manifestRule": "Create a new HY-EXP-0034 manifest before outcome computation. It must retain source URL, source segment, retrieval/acquisition provenance, raw SHA-256, normalized SHA-256, symbol, stream, window, row count and source manifest hash for every reused file.",
+    "privateApis": false,
+    "accountApis": false,
+    "orderApis": false,
+    "syntheticOhlc": false,
+    "interpolation": false,
+    "forwardFill": false,
+    "currentStateBackfill": false,
+    "qualityFailure": "Any hash mismatch, missing file, duplicate timestamp, non-contiguous 5m grid, incomplete window, non-causal row or unproven provenance fails the affected family before PnL. No silent repair."
+  },
+  "universe": {
+    "fixedSymbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "selection": "Fixed before outcome inspection; no symbol, pair, cohort or direction may be added, removed or selected after outcome inspection.",
+    "pointInTime": true,
+    "survivorshipSelection": false,
+    "eligibility": "USDT perpetual symbols present in the frozen fixed-eight source manifest with complete causal required streams; an integrity failure is reported and cannot be filled from a later symbol list."
+  },
+  "families": {
+    "A_TREND_PULLBACK": {
+      "familyId": "HY-EXP-0034-A",
+      "direction": ["BUY", "SELL"],
+      "hypothesis": "A completed pullback that reclaims the short trend average may avoid buying or selling the most extended breakout bar.",
+      "regime": {
+        "timeframe": "completed UTC 4h",
+        "fastSmaBars": 50,
+        "slowSmaBars": 200,
+        "buyFormula": "close4h > SMA200(close4h) AND SMA50(close4h) > SMA200(close4h)",
+        "sellFormula": "close4h < SMA200(close4h) AND SMA50(close4h) < SMA200(close4h)",
+        "unknownAction": "NO_TRADE"
+      },
+      "signal": {
+        "timeframe": "completed UTC 1h",
+        "emaBars": 20,
+        "buyPullbackFormula": "The immediately prior completed 1h bar has close <= EMA20 and low <= EMA20; the signal bar close is strictly > EMA20 and its close is greater than the prior close.",
+        "sellPullbackFormula": "The immediately prior completed 1h bar has close >= EMA20 and high >= EMA20; the signal bar close is strictly < EMA20 and its close is less than the prior close.",
+        "regimeAlignment": "The signal direction must equal the current completed 4h regime direction known at or before the signal close.",
+        "oneSignalPerSymbolDirectionUntilExit": true
+      }
+    },
+    "B_VOLATILITY_COMPRESSION_EXPANSION": {
+      "familyId": "HY-EXP-0034-B",
+      "direction": ["BUY", "SELL"],
+      "hypothesis": "A low-bandwidth 1h compression followed by a directional expansion aligned with the 4h trend may produce actionable continuation.",
+      "regime": {
+        "timeframe": "completed UTC 4h",
+        "fastSmaBars": 50,
+        "slowSmaBars": 200,
+        "buyFormula": "close4h > SMA200 AND SMA50 > SMA200",
+        "sellFormula": "close4h < SMA200 AND SMA50 < SMA200",
+        "unknownAction": "NO_TRADE"
+      },
+      "signal": {
+        "timeframe": "completed UTC 1h",
+        "bollingerLength": 20,
+        "bollingerStdDev": 2,
+        "bandwidthFormula": "(SMA20 + 2*SD20 - (SMA20 - 2*SD20)) / SMA20",
+        "causalPercentileWindowDays": 30,
+        "compressionPercentileAtMost": 0.20,
+        "compressionValue": "The current completed 1h bandwidth is <= the empirical percentile computed only from the prior 30 calendar days of completed 1h bandwidth observations, excluding the current bar.",
+        "priorBreakoutBars": 24,
+        "buyFormula": "current completed 1h close > maximum high of the prior 24 completed 1h bars",
+        "sellFormula": "current completed 1h close < minimum low of the prior 24 completed 1h bars",
+        "regimeAlignment": "Breakout direction must equal the current completed 4h regime direction.",
+        "oneSignalPerSymbolDirectionUntilExit": true
+      }
+    },
+    "C_FUNDING_BASIS_CROWDING_REVERSAL": {
+      "familyId": "HY-EXP-0034-C",
+      "direction": ["BUY", "SELL"],
+      "hypothesis": "Extreme realized funding and mark-contract basis combined with a causal price extension may precede crowd-unwind reversal.",
+      "inputs": ["realized funding", "mark-price 5m", "contract-price 5m"],
+      "funding": {
+        "lookbackDays": 30,
+        "minimumEvents": 45,
+        "zScoreFormula": "(current funding rate - mean(prior funding rates)) / sampleStdDev(prior funding rates), using only events strictly before decisionTime",
+        "absoluteZScoreAtLeast": 2.5,
+        "crowdLong": "funding z-score >= 2.5",
+        "crowdShort": "funding z-score <= -2.5"
+      },
+      "basis": {
+        "formula": "10000 * (contract close - mark close) / mark close at the completed 1h decision boundary",
+        "absoluteBpsAtLeast": 20,
+        "crowdLong": "basis bps >= 20",
+        "crowdShort": "basis bps <= -20"
+      },
+      "extension": {
+        "emaBars": 50,
+        "atrBars": 30,
+        "absoluteAtrMultipleAtLeast": 2,
+        "formula": "absolute(mark close - EMA50) / ATR30 >= 2, with ATR and EMA using completed 1h bars strictly before the confirmation bar"
+      },
+      "reversal": {
+        "timeframe": "completed UTC 1h",
+        "emaBars": 20,
+        "longFormula": "crowdShort AND mark close was below EMA50 extension AND current completed 1h close crosses strictly above EMA20",
+        "shortFormula": "crowdLong AND mark close was above EMA50 extension AND current completed 1h close crosses strictly below EMA20",
+        "direction": "Opposite the crowd direction",
+        "oneSignalPerSymbolDirectionUntilExit": true
+      }
+    },
+    "D_CROSS_SECTIONAL_RELATIVE_STRENGTH": {
+      "familyId": "HY-EXP-0034-D",
+      "direction": ["BUY", "SELL"],
+      "hypothesis": "Cross-sectional residual strength relative to BTC may identify the strongest or weakest liquid fixed-universe symbols without selecting symbols after outcomes.",
+      "decisionInterval": "completed UTC 4h",
+      "returnLookbackBars": 42,
+      "betaLookbackBars": 42,
+      "betaFormula": "OLS slope of each non-BTC symbol's prior 4h log returns against synchronized BTC prior 4h log returns, all ending before decisionTime",
+      "residualReturnFormula": "symbol 7d log return - beta * BTC 7d log return",
+      "selection": {
+        "bullFormula": "BTC close > SMA200(BTC 4h) AND BTC SMA50 > SMA200",
+        "bearFormula": "BTC close < SMA200(BTC 4h) AND BTC SMA50 < SMA200",
+        "bullRank": "top 2 positive residual returns among the seven non-BTC symbols",
+        "bearRank": "bottom 2 residual returns among the seven non-BTC symbols",
+        "sideways": "NO_TRADE",
+        "rankFreeze": "Ranks and beta are frozen at decisionTime; ties break by lexicographic symbol order and are not outcome-dependent.",
+        "maxConcurrentPerSymbol": 1
+      }
+    },
+    "E_BTC_RESIDUAL_MEAN_REVERSION": {
+      "familyId": "HY-EXP-0034-E",
+      "direction": ["BUY", "SELL"],
+      "hypothesis": "A large causal idiosyncratic residual return in an alt relative to BTC may mean-revert when BTC is not in extreme trend expansion.",
+      "inputs": ["completed mark-price 1h returns"],
+      "beta": {
+        "lookbackDays": 30,
+        "lookbackBars": 720,
+        "formula": "OLS slope of synchronized alt and BTC completed 1h log returns ending strictly before decisionTime",
+        "minimumObservations": 600
+      },
+      "residual": {
+        "formula": "current alt 1h return - beta * current BTC 1h return",
+        "zScoreLookbackBars": 120,
+        "zScoreFormula": "(current residual - mean(prior residuals)) / sampleStdDev(prior residuals), excluding current residual",
+        "absoluteZScoreAtLeast": 3
+      },
+      "btcFilter": {
+        "lookbackBars4h": 20,
+        "formula": "absolute(BTC 4h log return over prior 20 completed bars) < 2 * sampleStdDev(prior 20 completed 4h log returns)",
+        "otherwise": "NO_TRADE"
+      },
+      "direction": "If residual z-score >= 3, SELL; if residual z-score <= -3, BUY.",
+      "oneSignalPerSymbolDirectionUntilExit": true
+    }
+  },
+  "executionProfiles": {
+    "P1": {"stopAtr1h": 1.5, "targetAtr1h": 3, "maxHoldHours": 24},
+    "P2": {"stopAtr1h": 2, "targetAtr1h": 4, "maxHoldHours": 36},
+    "P3": {"stopAtr1h": 1, "targetAtr1h": 2, "maxHoldHours": 12}
+  },
+  "executionContract": {
+    "signalBoundary": "Only a completed 1h or 4h signal bar may emit a candidate.",
+    "entry": "Exact next 5m contract-price OPEN after the completed signal boundary; no later-bar rescue, no historical fill substitution.",
+    "atr": "ATR1h is Wilder ATR30 on completed contract-price 1h bars ending no later than the signal bar.",
+    "stop": "Initial stop is entry +/- stopAtr1h*ATR1h in the adverse direction.",
+    "target": "Target is entry +/- targetAtr1h*ATR1h in the favorable direction.",
+    "barEvaluation": "After entry, evaluate each completed 5m contract-price bar in chronological order; if stop and target are both touched in one bar, stop wins.",
+    "timeExit": "If neither stop nor target has occurred, exit at the exact 5m contract-price OPEN at maxHoldHours after entry; missing boundary is non-final and fails the affected evidence row.",
+    "overlap": "At most one position per symbol and direction; no pyramiding, reversal, or overlapping same-symbol direction.",
+    "funding": "Apply every realized funding event while held using actual position direction and mark price at the event time; funding is separate from execution costs.",
+    "costs": "Charge the frozen cost basis once per entry and exit fill; no double-counting of source-embedded costs."
+  },
+  "walkForward": {
+    "method": "Nested expanding walk-forward with causal labels and no random split.",
+    "outerTrainingMinimumDays": 180,
+    "outerValidationDays": 30,
+    "outerFoldStepDays": 30,
+    "purgeHours": 48,
+    "embargoHours": 36,
+    "profileSelection": "Within each family and outer fold, select P1/P2/P3 using only the training portion's calendar 7-day block-bootstrap net27 lower 95% bound. If all three lower bounds <= 0, emit NO_TRADE for that family/fold.",
+    "tieBreak": "Higher lower bound wins; exact ties choose P1, then P2, then P3 by fixed profile order.",
+    "validationUse": "Validation is used only to form final OOF evidence with the profile selected from training; validation outcomes never select or alter a profile.",
+    "finalOof": "Concatenate non-overlapping outer validation rows chronologically; no post-outcome filtering.",
+    "randomSplit": false,
+    "lookahead": false,
+    "postOutcomeFiltering": false,
+    "outcomeReadBeforePrereg": false
+  },
+  "accounting": {
+    "costBasisBps": {"base": 18, "stress": 27, "severe": 36},
+    "costComponents": ["fees", "spread", "slippage", "latency", "impact"],
+    "costRule": "Compute net economics from the causal gross executable return once; never lower cost or remove a component after seeing outcomes.",
+    "fundingRule": "Realized funding is reported separately and included in gross economics before each net-cost scenario; direction is the actual leg direction.",
+    "pnlUnit": "Single-symbol directional event; no portfolio leverage, compounding, account, or order semantics.",
+    "paperOnly": true
+  },
+  "bootstrap": {
+    "method": "Calendar-time block bootstrap over 7-day blocks",
+    "blockLengthDays": 7,
+    "iterations": 5000,
+    "seed": 340034,
+    "confidence": 0.95,
+    "reports": ["net27ExpectancyBps", "net36ExpectancyBps", "PF27", "portfolioMtmDrawdownFraction"],
+    "hardGate": "The two-sided computed 95% interval is reported; the one-sided 95% lower bound for net27 expectancy must be > 0."
+  },
+  "multipleTesting": {
+    "numberOfFamilies": 5,
+    "numberOfExecutionProfiles": 3,
+    "numberOfSpecificationsTried": 15,
+    "dsr": {
+      "method": "Deflated Sharpe Ratio probability using final OOF daily portfolio returns, observed skewness/kurtosis, effective independent observation count, and expected maximum Sharpe under 15 tried specifications.",
+      "formula": "DSR probability = NormalCDF((observed annualized Sharpe - expectedMaximumSharpe(15, effectiveObservations)) / standardErrorSharpe(observed skewness, excess kurtosis, effectiveObservations)).",
+      "minimumProbability": 0.95,
+      "missingInputAction": "FAIL_CLOSED"
+    },
+    "holm": {
+      "hypothesis": "Each family's one-sided null is net27 expectancy <= 0 on final OOF independent event clusters.",
+      "rawPValue": "One-sided p-value from the frozen 7-day block-bootstrap null distribution centered at zero.",
+      "correction": "Sort the five raw p-values ascending; adjusted p_i = max_{j<=i} min(1, (5-j+1)*p_j), then map back to family.",
+      "minimumAdjustedSignificance": 0.05,
+      "failureRule": "Adjusted p >= 0.05 fails the family. Missing or non-finite p-values fail closed."
+    },
+    "noOutcomeAdaptiveChoice": true
+  },
+  "requiredReports": {
+    "perFamily": [
+      "OOF signal count",
+      "active months",
+      "distinct symbols",
+      "BUY/SELL counts and separate direction statistics",
+      "net18/net27/net36 expectancy",
+      "PF18/PF27/PF36",
+      "netPnl18/netPnl27/netPnl36",
+      "portfolio 5m MTM equity and true portfolioMtmDrawdownFraction",
+      "daily-return CVaR95 and status",
+      "max loss streak",
+      "PnL without best signal, best5 signals and best month",
+      "positive month share",
+      "largest symbol contribution",
+      "funding and execution-cost decomposition",
+      "bootstrap CI",
+      "DSR probability",
+      "raw and Holm-adjusted p-values",
+      "profile choices by training fold"
+    ],
+    "risk": "Closed-equity DD, single-trade adverse excursion, or trade-level CVaR cannot substitute for unified 5m portfolio MTM DD/CVaR. Missing reconstruction is null plus NOT_RECONSTRUCTED/NOT_EVALUABLE and fails.",
+    "practicalityForWinner": ["signalsPer30Days", "medianHoldingHours", "entryExpirySensitivity", "stopHitRate", "targetHitRate", "timeExitRate"]
+  },
+  "familyPassGates": {
+    "oofSignalsAtLeast": 100,
+    "activeMonthsAtLeast": 12,
+    "distinctSymbolsAtLeast": 6,
+    "net18ExpectancyBpsAtLeast": 10,
+    "PF18AtLeast": 1.3,
+    "net27ExpectancyBpsAtLeast": 4,
+    "PF27AtLeast": 1.2,
+    "net36ExpectancyBpsGreaterThan": 0,
+    "PF36AtLeast": 1.1,
+    "portfolioMtmDrawdownFractionAtMost": 0.08,
+    "portfolioCvarRequired": true,
+    "maxLossStreakAtMost": 6,
+    "netPnlWithoutBestSignalGreaterThan": 0,
+    "netPnlWithoutBest5SignalsGreaterThan": 0,
+    "netPnlWithoutBestMonthGreaterThan": 0,
+    "positiveMonthShareAtLeast": 0.6,
+    "largestSymbolContributionAtMost": 0.3,
+    "bootstrapNet27LowerBoundGreaterThan": 0,
+    "dsrProbabilityAtLeast": 0.95,
+    "holmAdjustedPValueLessThan": 0.05,
+    "missingRiskOrMultipleTestingStatus": "FAIL_CLOSED"
+  },
+  "winnerRule": {
+    "eligibleSet": "Only families passing every sample, profitability, risk, robustness, bootstrap and multiple-testing gate.",
+    "zero": "NO_ACTIONABLE_ALPHA_FOUND; stop and do not create HY-EXP-0035 or tune further.",
+    "zeroConclusion": "PUBLIC_OHLCV_MARK_FUNDING_ALPHA_EXHAUSTED",
+    "one": "The single eligible family is the automatic winner.",
+    "multiple": "Highest final OOF bootstrap net27 lower 95% bound; if the difference is <2 bps, choose lower true portfolio MTM DD. No manual point-PnL/PF choice.",
+    "negativeControlExcluded": true
+  },
+  "emailPracticality": {
+    "notAnOptimizationTarget": true,
+    "targetSignalsPer30Days": {"minimum": 5, "maximum": 20},
+    "futureSchema": ["symbol", "BUY/SELL", "signalTime", "entry", "entryExpiry", "stop", "target", "maxChaseBps", "expectedHoldingHours", "strategyFamily", "confidence", "net27ExpectedEdge"],
+    "emailSending": false
+  },
+  "futureValidation": {
+    "experimentId": "HY-VAL-0034-001",
+    "prepared": false,
+    "activated": false,
+    "preparationRule": "Only if and after a family wins all frozen development gates, create a prepared-only artifact; never activate it in this experiment.",
+    "minimumDays": 90,
+    "minimumIndependentSignals": 30,
+    "futureOnly": true,
+    "gates": ["all frozen family gates", "net27>0", "PF27>=1.20", "true portfolio MTM DD<=8%", "no-best-signal>0", "no-best-month>0", "causal funding and costs"],
+    "activation": false
+  },
+  "reservedIds": {"HY-EXP-0035": "DO_NOT_CREATE_UNLESS_SEPARATE_FUTURE_USER_AUTHORIZATION", "HY-EXP-0031": "UNUSED_RESERVED_ID"},
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmailSendEnabled": false,
+    "schedulerActivated": false,
+    "realEmailSent": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false,
+    "workflowDispatch": false
+  },
+  "freezeContract": {
+    "candidateRulesFrozenBeforeOutcome": true,
+    "fiveFamiliesFrozenBeforeOutcome": true,
+    "fifteenSpecificationsFrozenBeforeOutcome": true,
+    "entryExitProfilesFrozenBeforeOutcome": true,
+    "costsFrozenBeforeOutcome": true,
+    "walkForwardFrozenBeforeOutcome": true,
+    "multipleTestingFrozenBeforeOutcome": true,
+    "winnerAndPromotionGatesFrozenBeforeOutcome": true,
+    "manifestRequiredBeforeOutcome": true,
+    "outcomesRead": false,
+    "pnlComputed": false,
+    "developmentAllowed": true,
+    "finalOosRead": false,
+    "economicRuleChange": "VOID_EXPERIMENT_AND_REQUIRE_NEW_EXPERIMENT_ID"
+  }
+}
