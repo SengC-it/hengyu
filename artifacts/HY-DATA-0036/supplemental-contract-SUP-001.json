@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "contractId": "HY-DATA-0036-SUP-001",
+  "parentDatasetId": "HY-DATA-0036",
+  "artifactType": "HY_DATA_0036_SUPPLEMENTAL_CONTRACT",
+  "immutable": true,
+  "status": "FROZEN_BEFORE_COLLECTION",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT"
+  ],
+  "collectionStartAtPolicy": "same-as-parent-future-activation-boundary",
+  "streams": [
+    {
+      "id": "markPrice",
+      "subscription": "<symbol>@markPrice@1s",
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "fields": [
+        "eventTime",
+        "symbol",
+        "markPrice",
+        "indexPrice",
+        "estimatedSettlePrice",
+        "fundingRate",
+        "markPriceMovingAverage",
+        "nextFundingTime",
+        "st",
+        "rawPayload"
+      ]
+    },
+    {
+      "id": "forceOrder",
+      "subscription": "<symbol>@forceOrder",
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "fields": [
+        "eventTime",
+        "symbol",
+        "side",
+        "orderType",
+        "timeInForce",
+        "originalQty",
+        "price",
+        "averagePrice",
+        "status",
+        "lastFilledQty",
+        "accumulatedFilledQty",
+        "tradeTime",
+        "st",
+        "rawPayload"
+      ]
+    }
+  ],
+  "forceOrderSemantics": "Binance 1-second liquidation snapshot; not a complete tick-by-tick liquidation stream.",
+  "privateStreamsAllowed": false,
+  "safety": {
+    "publicMarketDataOnly": true,
+    "apiKeyRequired": false,
+    "privateStream": false,
+    "accountApi": false,
+    "orderApi": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "finalOosRead": false,
+    "pnlComputed": false
+  }
+}
