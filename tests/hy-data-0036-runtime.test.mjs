@@ -42,7 +42,7 @@ function depthUpdate(U, u, pu = null, symbol = 'BTCUSDT') {
 }
 
 function snapshot(lastUpdateId = 100) {
-  return { lastUpdateId, bids: [[99, 2]], asks: [[101, 3]] };
+  return { lastUpdateId, bids: [['99', '2']], asks: [['101', '3']] };
 }
 
 function response(body, { ok = true, status = 200 } = {}) {

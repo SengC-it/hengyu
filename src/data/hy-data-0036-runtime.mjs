@@ -256,7 +256,10 @@ export function parseForceOrder(payload) {
 }
 
 function cloneLevels(levels) {
-  return levels.map(([price, quantity]) => [price, quantity]);
+  return levels.map(([price, quantity], index) => [
+    finite(`snapshot level ${index} price`, price, { minimum: Number.MIN_VALUE }),
+    finite(`snapshot level ${index} quantity`, quantity, { minimum: 0 })
+  ]);
 }
 
 function bestBid(book) {
