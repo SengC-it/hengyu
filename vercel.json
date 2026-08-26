@@ -19,8 +19,7 @@
     },
     "api/hy-exp-0028-scan.js": {
       "regions": ["sin1"],
-      "maxDuration": 120,
-      "includeFiles": "../config/email-signal-cutover.json"
+      "maxDuration": 120
     }
   },
   "crons": [
