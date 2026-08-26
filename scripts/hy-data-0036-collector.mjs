@@ -51,6 +51,9 @@ export async function main(args = process.argv.slice(2)) {
     durationMs,
     maxBufferedEvents: integerOption(args, 'max-buffered-events', 20_000),
     queueLimit: integerOption(args, 'queue-limit', 50_000),
+    maxSnapshotAttempts: integerOption(args, 'max-snapshot-attempts', 5),
+    maxConcurrentSnapshots: integerOption(args, 'max-concurrent-snapshots', 2),
+    snapshotRetryDelayMs: integerOption(args, 'snapshot-retry-delay-ms', 250),
     controlledReconnectAfterMs: controlledReconnectAfterMs == null ? null : integerOption(args, 'controlled-reconnect-after-ms', 1),
     rootDir,
     runId
