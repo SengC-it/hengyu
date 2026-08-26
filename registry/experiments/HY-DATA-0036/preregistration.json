@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-DATA-0036",
+  "title": "Forward microstructure dataset",
+  "declaredAt": "2026-08-27T00:00:00+08:00",
+  "status": "PREREGISTERED_DATA_COLLECTION_PREPARATION",
+  "type": "FORWARD_ONLY_PUBLIC_MARKET_DATA",
+  "purpose": "Collect causal public Binance USD-M microstructure observations for a later, separately authorized research experiment. This registration does not define a strategy, outcome, PnL, email, or trading release.",
+  "collectionBoundary": {
+    "collectionStartAt": null,
+    "collectionStartAtPolicy": "The collector must persist one explicit UTC timestamp before opening its first market-data connection. It is immutable for the run and is the lower bound for every accepted exchangeEventTime and localReceiveTime.",
+    "activationRecordRequiredBeforeFirstEvent": true,
+    "minimumCollectionDays": 30,
+    "recommendedCollectionDays": [60, 90],
+    "historicalBackfill": false,
+    "thirdPartyHistoricalRecovery": false,
+    "engineeringDryRunEligible": false,
+    "futureOutcomeRead": false
+  },
+  "fixedUniverse": {
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "selection": "Fixed before collection; no symbol may be added, removed, or selected from outcomes during this dataset.",
+    "survivorshipSelection": false
+  },
+  "transport": {
+    "websocket": {
+      "combinedPublicEndpoint": "wss://fstream.binance.com/public/stream",
+      "marketEndpoint": "wss://fstream.binance.com/market/stream",
+      "boundedBatching": true,
+      "reconnectOnDisconnect": true,
+      "privateStream": false,
+      "apiKeyRequired": false
+    },
+    "rest": {
+      "depthSnapshotEndpoint": "https://fapi.binance.com/fapi/v1/depth",
+      "depthSnapshotLimit": 1000,
+      "publicOnly": true
+    },
+    "requiredStreams": [
+      {
+        "stream": "aggTrade",
+        "subscription": "<symbol>@aggTrade",
+        "route": "market",
+        "required": true
+      },
+      {
+        "stream": "bookTicker",
+        "subscription": "<symbol>@bookTicker",
+        "route": "public",
+        "required": true
+      },
+      {
+        "stream": "depth20",
+        "subscription": "<symbol>@depth20@100ms",
+        "route": "public",
+        "required": true
+      },
+      {
+        "stream": "depth.diff",
+        "subscription": "<symbol>@depth@100ms",
+        "route": "public",
+        "required": true,
+        "purpose": "Sequence-correct local-book reconstruction"
+      }
+    ],
+    "snapshotSource": "REST depth snapshot paired with depth.diff; depth20 is retained as an independent raw stream and is never used to repair a diff-depth sequence.",
+    "unsupportedStreams": ["userData", "account", "order", "private"]
+  },
+  "rawRecord": {
+    "appendOnly": true,
+    "schemaVersion": 1,
+    "requiredFields": [
+      "source",
+      "stream",
+      "symbol",
+      "exchangeEventTime",
+      "tradeTime",
+      "localReceiveTime",
+      "sequence",
+      "rawPayload",
+      "schemaVersion"
+    ],
+    "source": "binance-public-usdm",
+    "rawPayloadPolicy": "Retain the exact received payload without interpolation, coercion, forward-fill, gap-filling, or post-capture rewriting.",
+    "timestampPolicy": "exchangeEventTime and localReceiveTime are preserved separately; localReceiveTime is recorded only after the complete WebSocket message or REST body is received.",
+    "symbolPolicy": "Only the eight fixed symbols are accepted."
+  },
+  "derivedSnapshots": {
+    "intervals": ["1s", "5s", "1m"],
+    "causalInput": "Only raw events with localReceiveTime at or before snapshotAt may be used.",
+    "fields": [
+      "snapshotAt",
+      "symbol",
+      "interval",
+      "midPrice",
+      "spreadBps",
+      "bidQtyTop1",
+      "askQtyTop1",
+      "bookImbalanceTop1",
+      "bidQtyTop5",
+      "askQtyTop5",
+      "bookImbalanceTop5",
+      "bidQtyTop20",
+      "askQtyTop20",
+      "bookImbalanceTop20",
+      "depthWithin5Bps",
+      "depthWithin10Bps",
+      "depthWithin25Bps",
+      "microPrice",
+      "aggressiveBuyNotional",
+      "aggressiveSellNotional",
+      "tradeImbalance",
+      "tradeCount",
+      "largeTradeBuyNotional",
+      "largeTradeSellNotional",
+      "signedVolume",
+      "cumulativeVolumeDelta",
+      "orderFlowImbalance",
+      "midReturn1s",
+      "midReturn5s",
+      "midReturn30s",
+      "realizedVol30s",
+      "spreadChange",
+      "depthChange",
+      "bookStateValid",
+      "clockStatus",
+      "featureCoverage"
+    ],
+    "invalidBookPolicy": "When the local diff-depth book is invalid, every depth-derived value is null and bookStateValid is false until a fresh valid snapshot and sequence are established.",
+    "missingInputPolicy": "Missing intervals remain missing; no forward-fill or synthetic snapshot is permitted."
+  },
+  "largeTradeDefinition": {
+    "method": "per-symbol rolling empirical 95th percentile",
+    "input": "aggTrade quote notional from the immediately prior 24 hours",
+    "strictlyPrior": true,
+    "futureDistributionForbidden": true,
+    "warmup": "Until a complete prior 24-hour window is available, threshold and large-trade fields are null.",
+    "minimumWindow": "A complete 24-hour causal window must be explicitly evidenced; sparse or future-contaminated input is not accepted."
+  },
+  "depthIntegrity": {
+    "requiredMetadata": [
+      "snapshotLastUpdateId",
+      "firstUpdateId",
+      "finalUpdateId",
+      "previousFinalUpdateId"
+    ],
+    "initialAlignment": "The first applicable update must satisfy U <= snapshotLastUpdateId <= u; updates fully older than the snapshot may be recorded but are stale and not applied.",
+    "continuity": "After alignment, pu must equal the previous final update id and update ranges must not skip ids.",
+    "invalidTriggers": ["sequence gap", "duplicate", "out-of-order", "snapshot mismatch", "crossed book", "disconnect"],
+    "resync": "Mark bookStateValid=false, record the invalid segment, obtain a fresh REST snapshot, and restart alignment. Never silently repair or fill a gap.",
+    "featureSuppression": "Depth-derived fields are null throughout every invalid interval."
+  },
+  "clockAndLatency": {
+    "requiredFields": ["exchangeEventTime", "localReceiveTime", "receiveLatencyMs"],
+    "clockSource": "NTP-synchronized collector host",
+    "maxTrustedDriftMs": 500,
+    "overDriftStatus": "CLOCK_UNTRUSTED",
+    "overDriftPolicy": "Latency-derived features are unusable while CLOCK_UNTRUSTED; raw timestamps remain immutable evidence."
+  },
+  "dailyQuality": {
+    "groupBy": ["symbol", "stream", "utcDay"],
+    "requiredFields": [
+      "receivedEvents",
+      "firstEvent",
+      "lastEvent",
+      "disconnectCount",
+      "reconnectCount",
+      "maxGapMs",
+      "p50ReceiveLatencyMs",
+      "p95ReceiveLatencyMs",
+      "p99ReceiveLatencyMs",
+      "duplicateCount",
+      "outOfOrderCount",
+      "sequenceGapCount",
+      "featureCoverage",
+      "uptime"
+    ],
+    "targets": {
+      "uptime": 0.99,
+      "bookValidCoverage": 0.98,
+      "aggTradeCoverage": 0.99,
+      "bookTickerCoverage": 0.99
+    },
+    "failureStatus": "DATA_QUALITY_FAIL",
+    "promotionRule": "Any daily target failure blocks alpha research; the failed interval remains visible and is not repaired."
+  },
+  "storage": {
+    "collector": "persistent Node.js process with a process supervisor; not a Vercel serverless function",
+    "raw": "Compressed JSONL or Parquet partitioned by UTC hour/day",
+    "features": "Supabase/Postgres 1s/5s/1m snapshots in a dedicated HY-DATA-0036 research schema/table",
+    "manifest": "Immutable SHA-256 manifest with file hash, row count, symbol, stream, UTC coverage, schemaVersion and provenance",
+    "retention": "Retain raw partitions and manifests for the full collection plus later authorized research retention; never overwrite a sealed partition",
+    "capacityPlanning": "Estimate from observed bytes per event for each stream, multiply by eight symbols and planned retention, and require headroom before activation."
+  },
+  "reservedFeatureFamilies": {
+    "status": "FEATURE_FAMILY_RESERVED_ONLY",
+    "families": [
+      "ORDER_FLOW_IMBALANCE",
+      "LIQUIDITY_VACUUM",
+      "AGGRESSIVE_FLOW_EXHAUSTION",
+      "MICROPRICE_PRESSURE",
+      "CROSS_SYMBOL_FLOW_PROPAGATION"
+    ],
+    "thresholds": false,
+    "outcomes": false,
+    "pnl": false,
+    "strategySelection": false
+  },
+  "safety": {
+    "PUBLIC_MARKET_DATA_ONLY": true,
+    "API_KEY_REQUIRED": false,
+    "ACCOUNT_API": false,
+    "ORDER_API": false,
+    "PRIVATE_STREAM": false,
+    "PAPER_ONLY": true,
+    "SIGNAL_ONLY": true,
+    "Gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "FinalOOSRead": false,
+    "pnlComputed": false
+  }
+}
