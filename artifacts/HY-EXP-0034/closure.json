@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0034_CLOSURE",
+  "immutable": true,
+  "experimentId": "HY-EXP-0034",
+  "status": "NO_ACTIONABLE_ALPHA_FOUND",
+  "reason": "PUBLIC_OHLCV_MARK_FUNDING_REGISTERED_SEARCH_SPACE_EXHAUSTED",
+  "scope": {
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "window": {
+      "start": "2024-08-26T00:00:00Z",
+      "endExclusive": "2026-08-26T00:00:00Z",
+      "calendarDays": 730
+    },
+    "preregisteredFamilies": 5,
+    "executionProfiles": 3,
+    "totalSpecifications": 15
+  },
+  "conclusionScope": "This closes the registered public OHLCV/mark/funding search space only; it does not claim that every possible historical strategy family lacks alpha.",
+  "sourceEvidence": {
+    "completionBundle": {
+      "path": "artifacts/HY-EXP-0034/completion-bundle.json",
+      "sha256": "1906e12f8c23efebe216c1754653ead371ed4f149d99021f78277409f89162cd"
+    },
+    "tournamentResult": {
+      "path": "artifacts/HY-EXP-0034/tournament-result.json",
+      "sha256": "e2caf0c486dbfb915a32885b77e5f8f49e6c2bc55c83bce54130b37482f81894"
+    },
+    "terminalRegistryEvent": {
+      "sequence": 80,
+      "eventType": "completed",
+      "hash": "85522438e135666cc3a869f9fe94d1c93879028ae508760e690401ce1a16608c"
+    }
+  },
+  "reservedIds": {
+    "HY-EXP-0035": "DO_NOT_CREATE",
+    "HY-EXP-0031": "UNUSED_RESERVED_ID"
+  },
+  "safety": {
+    "outcomeRead": true,
+    "finalOosRead": false,
+    "productionDeploy": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "accountApi": false,
+    "orderApi": false
+  }
+}
