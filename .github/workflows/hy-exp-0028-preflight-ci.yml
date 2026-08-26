@@ -1,12 +1,19 @@
 name: HY-EXP-0028 Preflight CI
+# CI trigger marker for PR #23
 
 on:
   push:
     branches:
       - codex/hy-exp-0028-release-preflight
+      - codex/hy-exp-0034-actionable-alpha-discovery
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   workflow_dispatch:
 
 permissions:
