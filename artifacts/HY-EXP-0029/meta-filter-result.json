@@ -84,6 +84,8 @@
       "netPnl": 667.3677586643063
     },
     "maxMtmDrawdownFraction": 0.07723556081371896,
+    "maxMtmDrawdownSource": "HY-EXP-0028 frozen portfolio risk evidence",
+    "maxMtmDrawdownStatus": "SOURCE_REPORTED",
     "maxLossStreak": 12,
     "distinctSymbols": 8,
     "largestSymbolShare": 0.20930232558139536,
@@ -103,10 +105,14 @@
     "netPnl18": 671.7784678467983,
     "netPnl27": 323.8261823130159,
     "netPnl36": -24.126103220765856,
-    "maxMtmDrawdownFraction": 0.01289062499999999,
-    "maxMtmDrawdownMethod": "maximum_single_trade_markToMarketDrawdownBps_scaled_by_notional; not portfolio-equity MTM",
-    "cvar95LossBps": 628.6667169247434,
-    "cvar95LossFraction": 0.06286667169247434,
+    "maxSingleTradeAdverseExcursionFraction": 0.01289062499999999,
+    "singleTradeAdverseExcursionMethod": "maximum_single_trade_markToMarketDrawdownBps_scaled_by_notional; not portfolio-equity MTM",
+    "portfolioMtmDrawdownFraction": null,
+    "portfolioMtmStatus": "NOT_RECONSTRUCTED",
+    "tradeLossCvar95Bps": 628.6667169247434,
+    "tradeLossCvar95Fraction": 0.06286667169247434,
+    "portfolioCvar95": null,
+    "portfolioCvarStatus": "NOT_RECONSTRUCTED",
     "maxLossStreak": 12,
     "netPnlWithoutBestTrade": 4.410709182492042,
     "netPnlWithoutBestMonth": -564.8740225660517,
@@ -677,10 +683,14 @@
     "net18ProfitFactor": null,
     "net27ProfitFactor": null,
     "net36ProfitFactor": null,
-    "maxMtmDrawdownFraction": null,
-    "maxMtmDrawdownMethod": "NOT_EVALUABLE_EMPTY_SAMPLE",
-    "cvar95LossBps": null,
-    "cvar95LossFraction": null,
+    "maxSingleTradeAdverseExcursionFraction": null,
+    "singleTradeAdverseExcursionMethod": "NOT_EVALUABLE_EMPTY_SAMPLE",
+    "portfolioMtmDrawdownFraction": null,
+    "portfolioMtmStatus": "NOT_RECONSTRUCTED",
+    "tradeLossCvar95Bps": null,
+    "tradeLossCvar95Fraction": null,
+    "portfolioCvar95": null,
+    "portfolioCvarStatus": "NOT_RECONSTRUCTED",
     "maxLossStreak": null,
     "netPnlWithoutBestTrade": null,
     "netPnlWithoutBestMonth": null,
@@ -729,7 +739,7 @@
           "median": 1.1334153581073072,
           "upper": 2.9904991958588747
         },
-        "maxMtmDrawdownFraction": {
+        "maxSingleTradeAdverseExcursionFraction": {
           "lower": 0.005494860314474601,
           "median": 0.01289062499999999,
           "upper": 0.01289062499999999
@@ -753,9 +763,13 @@
       "current source is a reused HY-EXP-0028 holdout and is not independent evidence",
       "fresh holdout has not been created",
       "paper forward gate has not been run",
-      "current source feature coverage is incomplete for the broader candidate feature catalog"
+      "current source feature coverage is incomplete for the broader candidate feature catalog",
+      "PORTFOLIO_MTM_NOT_RECONSTRUCTED",
+      "PORTFOLIO_CVAR_NOT_RECONSTRUCTED"
     ],
-    "edgeUncertainty": "EDGE_UNCERTAIN"
+    "edgeUncertainty": "EDGE_UNCERTAIN",
+    "portfolioRiskRequired": true,
+    "portfolioRiskStatus": "NOT_RECONSTRUCTED"
   },
   "safety": {
     "signalOnly": true,

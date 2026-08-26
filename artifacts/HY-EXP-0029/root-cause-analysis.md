@@ -19,9 +19,14 @@ This report uses only the immutable HY-EXP-0028 holdout bytes. It does not modif
 | Net expectancy 27 bps | -3.7622188996869474 |
 | Net PF 27 bps | 1.0701186290763716 |
 | Net expectancy 36 bps | -12.762218899686964 |
-| MTM DD (source artifact) | 0.07723556081371896 |
+| Source-reported portfolio MTM DD | 0.07723556081371896 |
+| Source-reported MTM DD source | HY-EXP-0028 frozen portfolio risk evidence |
+| Derived single-trade adverse excursion fraction | 0.01289062499999999 |
+| Derived portfolio MTM DD | null (NOT_RECONSTRUCTED) |
 | Max loss streak | 12 |
 | Funding PnL | -15.491751432713313 |
+| Derived trade-loss CVaR 95 | 628.6667169247434 bps |
+| Derived portfolio CVaR 95 | null (NOT_RECONSTRUCTED) |
 | Net PnL without best trade | 4.410709182492042 |
 | Net PnL without best month | -564.8740225660517 |
 

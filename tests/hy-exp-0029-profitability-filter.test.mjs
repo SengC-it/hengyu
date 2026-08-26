@@ -6,7 +6,8 @@ import {
   SOURCE_ARTIFACT_SHA256,
   analyzeFrozenHoldout,
   extractPreEntryFeatures,
-  loadFrozenHoldout
+  loadFrozenHoldout,
+  validatePortfolioRiskEvidence
 } from '../src/research/hy-exp-0029-profitability-filter.mjs';
 
 test('HY-EXP-0029 binds to the immutable HY-EXP-0028 holdout and never reads Final OOS', () => {
@@ -50,6 +51,48 @@ test('purged walk-forward fails closed when the frozen sample cannot supply caus
   assert.ok(result.oof.folds.every(fold => fold.fit === 'INSUFFICIENT_TRAINING_ROWS'));
   assert.equal(result.filteredMetrics.riskMetricStatus, 'EMPTY_SAMPLE_NOT_EVALUABLE');
   assert.equal(result.researchGate.edgeUncertainty, 'EDGE_UNCERTAIN');
+  assert.equal(result.researchGate.portfolioRiskRequired, true);
+  assert.equal(result.researchGate.portfolioRiskStatus, 'NOT_RECONSTRUCTED');
+  assert.ok(result.researchGate.reasons.includes('PORTFOLIO_MTM_NOT_RECONSTRUCTED'));
+  assert.ok(result.researchGate.reasons.includes('PORTFOLIO_CVAR_NOT_RECONSTRUCTED'));
+  assert.equal(result.promotionEligible, false);
+});
+
+test('HY-EXP-0029 separates source-reported portfolio risk from derived trade-level proxies', () => {
+  const result = analyzeFrozenHoldout();
+  assert.equal(result.baselineMetrics.maxMtmDrawdownFraction, 0.07723556081371896);
+  assert.equal(result.baselineMetrics.maxMtmDrawdownSource, 'HY-EXP-0028 frozen portfolio risk evidence');
+  assert.equal(result.baselineDerivedMetrics.maxSingleTradeAdverseExcursionFraction, 0.01289062499999999);
+  assert.equal(Object.hasOwn(result.baselineDerivedMetrics, 'maxMtmDrawdownFraction'), false);
+  assert.equal(result.baselineDerivedMetrics.portfolioMtmDrawdownFraction, null);
+  assert.equal(result.baselineDerivedMetrics.portfolioMtmStatus, 'NOT_RECONSTRUCTED');
+  assert.equal(result.baselineDerivedMetrics.tradeLossCvar95Bps, 628.6667169247434);
+  assert.equal(result.baselineDerivedMetrics.portfolioCvar95, null);
+  assert.equal(result.baselineDerivedMetrics.portfolioCvarStatus, 'NOT_RECONSTRUCTED');
+  assert.equal(Object.hasOwn(result.baselineDerivedMetrics, 'cvar95LossBps'), false);
+  assert.equal(Object.hasOwn(result.bootstrap.baseline.metrics, 'maxMtmDrawdownFraction'), false);
+  assert.ok(Object.hasOwn(result.bootstrap.baseline.metrics, 'maxSingleTradeAdverseExcursionFraction'));
+});
+
+test('portfolio DD and CVaR absence fails closed instead of accepting single-trade proxies', () => {
+  assert.deepEqual(validatePortfolioRiskEvidence({
+    maxSingleTradeAdverseExcursionFraction: 0.01,
+    tradeLossCvar95Bps: 100
+  }), {
+    eligible: false,
+    status: 'NOT_RECONSTRUCTED',
+    reasons: ['PORTFOLIO_MTM_NOT_RECONSTRUCTED', 'PORTFOLIO_CVAR_NOT_RECONSTRUCTED']
+  });
+  assert.deepEqual(validatePortfolioRiskEvidence({
+    portfolioMtmDrawdownFraction: 0.04,
+    portfolioMtmStatus: 'RECONSTRUCTED',
+    portfolioCvar95: 0.02,
+    portfolioCvarStatus: 'RECONSTRUCTED'
+  }), {
+    eligible: true,
+    status: 'RECONSTRUCTED',
+    reasons: []
+  });
 });
 
 test('base, stress and severe-stress edge projections preserve the preregistered cost deltas', () => {

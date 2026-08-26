@@ -264,6 +264,21 @@ function markToMarketDrawdown(rows, capital = 100000) {
   return losses.length ? Math.max(...losses) / capital : null;
 }
 
+export function validatePortfolioRiskEvidence(metrics, { requirePortfolioCvar = true } = {}) {
+  const reasons = [];
+  if (metrics?.portfolioMtmStatus !== 'RECONSTRUCTED' || !finite(metrics?.portfolioMtmDrawdownFraction)) {
+    reasons.push('PORTFOLIO_MTM_NOT_RECONSTRUCTED');
+  }
+  if (requirePortfolioCvar && (metrics?.portfolioCvarStatus !== 'RECONSTRUCTED' || !finite(metrics?.portfolioCvar95))) {
+    reasons.push('PORTFOLIO_CVAR_NOT_RECONSTRUCTED');
+  }
+  return {
+    eligible: reasons.length === 0,
+    status: reasons.length === 0 ? 'RECONSTRUCTED' : 'NOT_RECONSTRUCTED',
+    reasons
+  };
+}
+
 function rowMetrics(rows) {
   if (!rows.length) {
     return {
@@ -275,10 +290,14 @@ function rowMetrics(rows) {
       net18ProfitFactor: null,
       net27ProfitFactor: null,
       net36ProfitFactor: null,
-      maxMtmDrawdownFraction: null,
-      maxMtmDrawdownMethod: 'NOT_EVALUABLE_EMPTY_SAMPLE',
-      cvar95LossBps: null,
-      cvar95LossFraction: null,
+      maxSingleTradeAdverseExcursionFraction: null,
+      singleTradeAdverseExcursionMethod: 'NOT_EVALUABLE_EMPTY_SAMPLE',
+      portfolioMtmDrawdownFraction: null,
+      portfolioMtmStatus: 'NOT_RECONSTRUCTED',
+      tradeLossCvar95Bps: null,
+      tradeLossCvar95Fraction: null,
+      portfolioCvar95: null,
+      portfolioCvarStatus: 'NOT_RECONSTRUCTED',
       maxLossStreak: null,
       netPnlWithoutBestTrade: null,
       netPnlWithoutBestMonth: null,
@@ -317,10 +336,14 @@ function rowMetrics(rows) {
     netPnl18: enriched.reduce((sum, row) => sum + row.net18Pnl, 0),
     netPnl27: enriched.reduce((sum, row) => sum + row.net27Pnl, 0),
     netPnl36: enriched.reduce((sum, row) => sum + row.net36Pnl, 0),
-    maxMtmDrawdownFraction: markToMarketDrawdown(enriched),
-    maxMtmDrawdownMethod: 'maximum_single_trade_markToMarketDrawdownBps_scaled_by_notional; not portfolio-equity MTM',
-    cvar95LossBps: mean(cvarTail),
-    cvar95LossFraction: mean(cvarTail) == null ? null : mean(cvarTail) / 10000,
+    maxSingleTradeAdverseExcursionFraction: markToMarketDrawdown(enriched),
+    singleTradeAdverseExcursionMethod: 'maximum_single_trade_markToMarketDrawdownBps_scaled_by_notional; not portfolio-equity MTM',
+    portfolioMtmDrawdownFraction: null,
+    portfolioMtmStatus: 'NOT_RECONSTRUCTED',
+    tradeLossCvar95Bps: mean(cvarTail),
+    tradeLossCvar95Fraction: mean(cvarTail) == null ? null : mean(cvarTail) / 10000,
+    portfolioCvar95: null,
+    portfolioCvarStatus: 'NOT_RECONSTRUCTED',
     maxLossStreak: maxLossStreak(enriched),
     netPnlWithoutBestTrade: enriched.reduce((sum, row) => sum + row.net18Pnl, 0) - bestTrade,
     netPnlWithoutBestMonth: enriched.reduce((sum, row) => sum + row.net18Pnl, 0) - bestMonth,
@@ -424,7 +447,7 @@ function bootstrap(rows) {
   const blocks = [];
   const sorted = [...rows].sort(compareRows);
   for (let index = 0; index < sorted.length; index += 3) blocks.push(sorted.slice(index, index + 3));
-  const samples = { net18ExpectancyBps: [], net27ExpectancyBps: [], net36ExpectancyBps: [], profitFactor18: [], maxMtmDrawdownFraction: [], maxLossStreak: [] };
+  const samples = { net18ExpectancyBps: [], net27ExpectancyBps: [], net36ExpectancyBps: [], profitFactor18: [], maxSingleTradeAdverseExcursionFraction: [], maxLossStreak: [] };
   for (let iteration = 0; iteration < 5000; iteration++) {
     const sample = [];
     while (sample.length < sorted.length) sample.push(...blocks[Math.floor(random() * blocks.length)]);
@@ -434,7 +457,7 @@ function bootstrap(rows) {
     samples.net27ExpectancyBps.push(metrics.net27ExpectancyBps);
     samples.net36ExpectancyBps.push(metrics.net36ExpectancyBps);
     samples.profitFactor18.push(metrics.net18ProfitFactor ?? 0);
-    samples.maxMtmDrawdownFraction.push(metrics.maxMtmDrawdownFraction);
+    samples.maxSingleTradeAdverseExcursionFraction.push(metrics.maxSingleTradeAdverseExcursionFraction);
     samples.maxLossStreak.push(metrics.maxLossStreak);
   }
   return {
@@ -525,6 +548,7 @@ export function analyzeFrozenHoldout({ root = MODULE_ROOT } = {}) {
   const baseline = rowMetrics(rows);
   const sourceMetrics = source.artifact.metrics;
   const filtered = rowMetrics(acceptedRows);
+  const portfolioRisk = validatePortfolioRiskEvidence(filtered);
   const result = {
     schemaVersion: 1,
     artifactType: 'HY_EXP_0029_META_FILTER_DEVELOPMENT_DIAGNOSTIC',
@@ -562,6 +586,8 @@ export function analyzeFrozenHoldout({ root = MODULE_ROOT } = {}) {
       activeMonths: baseline.activeMonths,
       bestTrade: sourceMetrics.bestTrade,
       maxMtmDrawdownFraction: sourceMetrics.maxMtmDrawdown,
+      maxMtmDrawdownSource: 'HY-EXP-0028 frozen portfolio risk evidence',
+      maxMtmDrawdownStatus: 'SOURCE_REPORTED',
       maxLossStreak: sourceMetrics.maxLossStreak,
       distinctSymbols: sourceMetrics.distinctSymbols,
       largestSymbolShare: sourceMetrics.largestSingleSymbolShare,
@@ -598,9 +624,12 @@ export function analyzeFrozenHoldout({ root = MODULE_ROOT } = {}) {
         'current source is a reused HY-EXP-0028 holdout and is not independent evidence',
         'fresh holdout has not been created',
         'paper forward gate has not been run',
-        'current source feature coverage is incomplete for the broader candidate feature catalog'
+        'current source feature coverage is incomplete for the broader candidate feature catalog',
+        ...portfolioRisk.reasons
       ],
-      edgeUncertainty: 'EDGE_UNCERTAIN'
+      edgeUncertainty: 'EDGE_UNCERTAIN',
+      portfolioRiskRequired: true,
+      portfolioRiskStatus: portfolioRisk.status
     },
     safety: {
       signalOnly: true,

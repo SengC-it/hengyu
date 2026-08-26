@@ -1,0 +1,219 @@
+{
+  "experiment_id": "HY-EXP-0030",
+  "title": "Large-sample causal profitability/meta-filter development",
+  "declared_date": "2026-08-26",
+  "status": "DRAFT_PENDING_USER_ACCEPTANCE",
+  "registry_event": null,
+  "evidence_class": "D3_DEVELOPMENT_WALK_FORWARD_ONLY",
+  "authorization": "PAPER_ONLY",
+  "purpose": "Build a sufficiently large causal candidate dataset and freeze one profitability/meta-filter specification before any future fresh holdout is created.",
+  "acceptance_boundary": {
+    "user_acceptance_required_before_capture": true,
+    "user_acceptance_required_before_outcome_read": true,
+    "development_allowed": false,
+    "outcomes_read": false,
+    "pnl_computed": false,
+    "backtest_executed": false,
+    "final_oos_read": false,
+    "final_oos_experiment": "HY-EXP-0031",
+    "hy_exp_0028_holdout_is_independent_validation": false,
+    "hy_exp_0028_holdout_policy": "It may be cited as development context only; it cannot be used as an independent validation, holdout, or promotion result for HY-EXP-0030."
+  },
+  "development_window": {
+    "start": "2024-08-26T00:00:00Z",
+    "end_exclusive": "2026-08-26T00:00:00Z",
+    "target_calendar_days": 730,
+    "minimum_calendar_days": 365,
+    "minimum_candidate_rows": 150,
+    "preferred_candidate_rows": 250,
+    "preferred_calendar_days": 180,
+    "candidate_eligibility_after_warmup_only": true,
+    "no_final_oos_overlap": true
+  },
+  "data_sources": {
+    "provider": "Binance public USD-M Futures APIs and append-only public market-data capture",
+    "historical_contract_klines": "https://fapi.binance.com/fapi/v1/klines",
+    "historical_funding": "https://fapi.binance.com/fapi/v1/fundingRate",
+    "historical_open_interest": "https://fapi.binance.com/futures/data/openInterestHist",
+    "exchange_info": "https://fapi.binance.com/fapi/v1/exchangeInfo",
+    "depth": "Prospective REST depth snapshot plus diff reconstruction; historical rows require native depth provenance and are excluded if unavailable.",
+    "availability_status": "PENDING_AUDIT",
+    "availability_rule": "Before outcome reads, audit each required stream for full-window coverage, native timestamps, point-in-time universe membership, PIT instrument rules, funding, and executable-price/depth fields. Missing required coverage fails closed; no current-state backfill, interpolation, OHLCV depth proxy, or survivorship repair."
+  },
+  "universe": {
+    "baseline_symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT"],
+    "point_in_time": true,
+    "contract_type": "PERPETUAL",
+    "quote_assets": ["USDT"],
+    "status": "TRADING",
+    "minimum_listing_age_days": 30,
+    "minimum_eligible_symbols_for_breadth": 6,
+    "expanded_universe": {
+      "enabled_for_screening": true,
+      "selection": "At each decisionTime, rank PIT-eligible USDT perpetuals by prior six completed 4h quote volume, retain the top 50 after the fixed liquidity/depth checks, and always retain the eight baseline symbols when eligible.",
+      "maximum_symbols": 50,
+      "depth_check": "Require native reconstructed L2 best spread <= 15 bps and >= 250000 USDT displayed notional within 10 bps; missing depth fails eligibility."
+    },
+    "survivorship_policy": "Membership is evaluated from PIT listing/status records at decisionTime; current symbol lists cannot add or remove historical membership."
+  },
+  "candidate_generators": {
+    "HY-EXP-0028-BULL-BUY": {
+      "status": "IMMUTABLE_IMPORTED_RULE",
+      "source_commit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+      "semantics": "Use the frozen HY-EXP-0028 Bull/BUY candidate generator exactly; do not alter Q75, universe, entry, exit, or thresholds."
+    },
+    "HY-EXP-0030-BEAR": {
+      "status": "INDEPENDENT_HYPOTHESIS",
+      "side": "SELL",
+      "regime": "BEAR",
+      "regime_formula": "BTCUSDT completed 4h close < its prior 180 completed 4h SMA AND at least 62.5% of the PIT-eligible universe closes below its own prior 180 completed 4h SMA.",
+      "breakdown_formula": "Candidate symbol completed 1h close < the lowest low of its immediately preceding 120 completed 1h bars; the current bar is excluded from the channel.",
+      "persistence": "One completed 1h close below the channel is sufficient; no outcome-dependent persistence change is allowed.",
+      "entry": "First valid executable 5m ask after decisionTime and no later than 5 minutes; otherwise INVALID_CANDIDATE.",
+      "exit": "Fixed 24-hour forward mark using causal executable bid observations; no post-outcome exit selection.",
+      "not_mirror_assumption": true
+    },
+    "SIDEWAYS": {
+      "status": "NO_TRADE_CONTEXT",
+      "rule": "If neither the frozen Bull/BUY rule nor the frozen Bear/SELL rule passes at decisionTime, emit context only and no candidate."
+    }
+  },
+  "warmup": {
+    "required_completed_4h_bars": 180,
+    "required_completed_1h_bars": 120,
+    "required_completed_5m_bars_for_entry": 1,
+    "bars_must_be_prospective_or_native_historical_with_provenance": true,
+    "insufficient_history": "NO_CANDIDATE; do not shorten warmup or backfill missing feature history."
+  },
+  "feature_snapshot": {
+    "availability": "Every feature is captured and frozen at decisionTime or earlier; missing, late, non-finite, or non-PIT input invalidates the row.",
+    "no_post_outcome_backfill": true,
+    "features": {
+      "channelDistance": "Signed distance in bps from the prior 120-bar Donchian boundary, positive in the candidate direction.",
+      "atrPercent": "ATR(30) of completed 1h true ranges divided by decision close, expressed as percent.",
+      "realizedVolatility": "Standard deviation of prior 24 completed 1h log returns multiplied by sqrt(24), expressed as percent.",
+      "trendSlope1h": "OLS slope of prior 24 completed 1h log closes, expressed in bps per hour.",
+      "trendSlope4h": "OLS slope of prior 30 completed 4h log closes, expressed in bps per 4h bar.",
+      "btcAlignment": "Sign agreement between candidate and BTC prior 24h log return; -1, 0, or 1.",
+      "relativeStrengthVsBTC": "Candidate prior 24h log return minus BTC prior 24h log return, in bps.",
+      "volumeExpansion": "Current completed 1h quote volume divided by the mean of the prior 24 completed 1h quote volumes minus 1.",
+      "fundingRateAtDecision": "Latest realized funding rate with fundingTime <= decisionTime; no forward funding value.",
+      "fundingChange": "Latest settled funding rate minus the immediately preceding settled funding rate, both available by decisionTime.",
+      "distanceFromRecentHighLow": "For the candidate direction, signed bps distance from the highest high/lowest low of prior 24 completed 1h bars.",
+      "breakoutPersistence": "Count of the last 3 completed 1h closes beyond the prior 120-bar directional channel boundary.",
+      "shortTermMomentum": "Prior 6 completed 1h log-return in bps, signed in the candidate direction.",
+      "marketBreadth": "(eligible symbols above SMA60 - eligible symbols below SMA60) / eligible symbols at decisionTime.",
+      "crossSymbolBreadth": "Fraction of eligible symbols with the same directional 1h channel state as the candidate.",
+      "liquidityDepthProxy": "Native L2 displayed notional within 10 bps divided by the candidate notional; never OHLCV or bookTicker depth.",
+      "volatilityShock": "Prior 6 completed 1h realized volatility divided by prior 30 completed 1h realized volatility minus 1.",
+      "utcHour": "UTC hour as sin/cos(2*pi*hour/24); minute is included as a fractional hour."
+    },
+    "feature_provenance": ["source_endpoint", "event_timestamp", "request_started_at", "received_at", "point_in_time_universe_id", "raw_sha256"],
+    "required_coverage": 1.0
+  },
+  "labels_and_costs": {
+    "label": "Net executable 24-hour forward return after realized funding and the fixed cost schedule; label is unavailable until after the candidate row is frozen.",
+    "base_cost_bps": 18,
+    "stress_cost_bps": 27,
+    "severe_cost_bps": 36,
+    "cost_components": ["fee", "bid_ask_spread", "slippage", "market_impact", "latency", "realized_funding"],
+    "funding_separate": true,
+    "entry_cost_rule": "Use observed executable bid/ask/depth at entry; no candle open or midpoint substitution.",
+    "missing_cost_input": "INVALID_ROW; never impute."
+  },
+  "model_benchmarks": {
+    "common_validation": "All models are fit only inside each expanding walk-forward training fold and compared only on OOF rows.",
+    "no_meta_filter": "All valid candidates in the fold; fixed equal-risk paper allocation subject to portfolio limits.",
+    "rule_scorecard": "One point for each of the frozen directional feature signs agreeing with the candidate side; accept only score >= 10 of 17, fixed before outcomes.",
+    "ridge_logistic": {
+      "features": "All frozen causal features after training-fold standardization and [-3,3] clipping.",
+      "l2_lambda": 1.0,
+      "learning_rate": 0.05,
+      "iterations": 800,
+      "minimum_training_candidates": 150
+    },
+    "shallow_gradient_boosting": {
+      "estimators": 50,
+      "max_depth": 2,
+      "learning_rate": 0.05,
+      "min_samples_leaf": 20,
+      "subsample": 1.0,
+      "random_seed": 300030,
+      "hyperparameter_search": false
+    },
+    "primary_objective": "Net expectancy after costs and portfolio risk, not accuracy or win rate."
+  },
+  "walk_forward": {
+    "split": "Expanding time-series walk-forward",
+    "validation_block_days": 30,
+    "minimum_training_days": 120,
+    "purge_hours": 48,
+    "embargo_hours": 24,
+    "ordering": "decisionTime ascending, then symbol, then candidateId",
+    "random_split": false,
+    "thresholds_frozen_before_outcome_read": true,
+    "oof_only_metrics": true,
+    "no_retraining_after_final_holdout": true
+  },
+  "portfolio_risk": {
+    "allocation": "Equal risk per accepted candidate, capped at 1% of paper research capital per candidate.",
+    "gross_exposure_cap": 0.25,
+    "symbol_exposure_cap": 0.05,
+    "max_concurrent_candidates": 8,
+    "portfolio_equity_marks": "Use executable bid/ask marks at every 5-minute observation; missing marks invalidate the portfolio segment.",
+    "required_metrics": ["portfolioMtmDrawdownFraction", "portfolioCvar95", "maxLossStreak", "netPnlWithoutBestTrade", "netPnlWithoutBestMonth"],
+    "unreconstructed_portfolio_risk": "FAIL_CLOSED; trade-level adverse excursion/CVaR cannot substitute."
+  },
+  "promotion_gates": {
+    "minimum_candidates": 150,
+    "preferred_candidates": 250,
+    "minimum_calendar_days": 120,
+    "preferred_calendar_days": 180,
+    "both_buy_and_sell_samples_required": true,
+    "net18ExpectancyBpsAtLeast": 8,
+    "net18ProfitFactorAtLeast": 1.25,
+    "net27ExpectancyBpsAtLeast": 2,
+    "net27ProfitFactorAtLeast": 1.1,
+    "net36ExpectancyBpsGreaterThan": 0,
+    "portfolioMtmDrawdownFractionAtMost": 0.08,
+    "portfolioCvarRequired": true,
+    "maxLossStreakAtMost": 6,
+    "netPnlWithoutBestTradeGreaterThan": 0,
+    "netPnlWithoutBestMonthGreaterThan": 0,
+    "distinctSymbolsAtLeast": 6,
+    "largestSymbolShareAtMost": 0.3,
+    "bootstrapLowerBoundMustBePositive": true,
+    "insufficient_data_or_missing_risk": "NOT_READY"
+  },
+  "required_reports": [
+    "trade_count",
+    "net18_net27_net36_expectancy",
+    "profit_factor",
+    "portfolio_mtm_drawdown",
+    "portfolio_cvar",
+    "loss_streak",
+    "pnl_without_best_trade",
+    "pnl_without_best_month",
+    "calibration",
+    "symbol_and_regime_breadth",
+    "candidate_frequency",
+    "BUY_BULL_SELL_BEAR_NO_TRADE_counts"
+  ],
+  "future_holdout": {
+    "experiment_id": "HY-EXP-0031",
+    "created_only_after_development_gates_pass": true,
+    "minimum_independent_signals": 45,
+    "must_not_be_read_or_created_in_this_phase": true
+  },
+  "safety": {
+    "signal_only": true,
+    "paper_only": true,
+    "gmail_send_enabled": false,
+    "scheduler_activated": false,
+    "real_email_sent": false,
+    "automatic_trading": false,
+    "account_api": false,
+    "order_api": false,
+    "final_oos_read": false
+  }
+}

@@ -36,9 +36,14 @@ This report uses only the immutable HY-EXP-0028 holdout bytes. It does not modif
 | Net expectancy 27 bps | ${baseline.net27ExpectancyBps} |
 | Net PF 27 bps | ${baseline.net27ProfitFactor} |
 | Net expectancy 36 bps | ${baseline.net36ExpectancyBps} |
-| MTM DD (source artifact) | ${baseline.maxMtmDrawdownFraction} |
+| Source-reported portfolio MTM DD | ${baseline.maxMtmDrawdownFraction} |
+| Source-reported MTM DD source | ${baseline.maxMtmDrawdownSource} |
+| Derived single-trade adverse excursion fraction | ${result.baselineDerivedMetrics.maxSingleTradeAdverseExcursionFraction} |
+| Derived portfolio MTM DD | ${result.baselineDerivedMetrics.portfolioMtmDrawdownFraction} (${result.baselineDerivedMetrics.portfolioMtmStatus}) |
 | Max loss streak | ${baseline.maxLossStreak} |
 | Funding PnL | ${baseline.fundingPnl} |
+| Derived trade-loss CVaR 95 | ${result.baselineDerivedMetrics.tradeLossCvar95Bps} bps |
+| Derived portfolio CVaR 95 | ${result.baselineDerivedMetrics.portfolioCvar95} (${result.baselineDerivedMetrics.portfolioCvarStatus}) |
 | Net PnL without best trade | ${baseline.netPnlWithoutBestTrade} |
 | Net PnL without best month | ${baseline.netPnlWithoutBestMonth} |
 
