@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0030_DEVELOPMENT_RESULT",
+  "immutable": true,
+  "experimentId": "HY-EXP-0030",
+  "preregistration": {
+    "path": "registry/experiments/HY-EXP-0030/preregistration.json",
+    "status": "PREREGISTERED"
+  },
+  "window": {
+    "start": "2024-08-26T00:00:00.000Z",
+    "endExclusive": "2026-08-26T00:00:00.000Z",
+    "calendarDays": 729
+  },
+  "sourceBoundary": {
+    "outcomeRead": true,
+    "pnlComputed": true,
+    "finalOosRead": false,
+    "finalOosExperimentCreated": false
+  },
+  "counts": {
+    "rawCandidates": 2640,
+    "labeledCandidates": 2640,
+    "invalidCandidates": 0,
+    "oofPredictions": 1836,
+    "accepted": 0,
+    "grades": {
+      "A+": 0,
+      "A": 0,
+      "B": 0,
+      "REJECT": 1836
+    }
+  },
+  "primaryModel": {
+    "name": "RIDGE_LOGISTIC_CONDITIONAL_RETURN_EDGE",
+    "status": "NOT_READY",
+    "metrics": {
+      "18": {
+        "count": 0,
+        "expectancyBps": null,
+        "profitFactor": null,
+        "positiveRate": null
+      },
+      "27": {
+        "count": 0,
+        "expectancyBps": null,
+        "profitFactor": null,
+        "positiveRate": null
+      },
+      "36": {
+        "count": 0,
+        "expectancyBps": null,
+        "profitFactor": null,
+        "positiveRate": null
+      }
+    },
+    "robustness": {
+      "netPnl": 0,
+      "bestTradeNetPnl": null,
+      "netPnlWithoutBestTrade": null,
+      "activeMonths": 0,
+      "bestMonthNetPnl": null,
+      "netPnlWithoutBestMonth": null,
+      "monthlyNetPnl": {}
+    },
+    "lossStreak": 0,
+    "BUY": {
+      "accepted": 0,
+      "net27ExpectancyBps": null
+    },
+    "SELL": {
+      "accepted": 0,
+      "net27ExpectancyBps": null
+    }
+  },
+  "outcomeBreakdown": {
+    "gross": {
+      "count": 1836,
+      "expectancyBps": 5.35456359751688,
+      "profitFactor": 1.069128457703878,
+      "positiveRate": 0.4357298474945534
+    },
+    "net18": {
+      "count": 1836,
+      "expectancyBps": -31.025449403638465,
+      "profitFactor": 0.6879170426326364,
+      "positiveRate": 0.3562091503267974
+    },
+    "net27": {
+      "count": 1836,
+      "expectancyBps": -49.04111608940128,
+      "profitFactor": 0.5593255921114964,
+      "positiveRate": 0.32516339869281047
+    },
+    "net36": {
+      "count": 1836,
+      "expectancyBps": -67.05678277516424,
+      "profitFactor": 0.45809612309549147,
+      "positiveRate": 0.29139433551198257
+    },
+    "fundingPnl": -319.2055906963985,
+    "exitReasons": {
+      "ATR_STOP": 418,
+      "TERMINAL_EXIT": 1418
+    }
+  },
+  "portfolioRisk": {
+    "status": "EMPTY_SAMPLE_NOT_EVALUABLE",
+    "equity": [],
+    "portfolioMtmDrawdownFraction": null,
+    "portfolioMtmStatus": "EMPTY_SAMPLE_NOT_EVALUABLE",
+    "portfolioCvar95": null,
+    "portfolioCvarStatus": "EMPTY_SAMPLE_NOT_EVALUABLE",
+    "maxLossStreak": null
+  },
+  "bootstrap": {
+    "status": "EMPTY_SAMPLE_NOT_EVALUABLE"
+  },
+  "calibration": {
+    "status": "COMPUTED_OOF_ONLY",
+    "brierScore": 0.2304844939706945,
+    "buckets": [
+      {
+        "bucket": 0,
+        "count": 0,
+        "predicted": null,
+        "realized": null
+      },
+      {
+        "bucket": 1,
+        "count": 931,
+        "predicted": 0.3753719855606437,
+        "realized": 0.33404940923737914
+      },
+      {
+        "bucket": 2,
+        "count": 905,
+        "predicted": 0.41689855253483316,
+        "realized": 0.37900552486187844
+      },
+      {
+        "bucket": 3,
+        "count": 0,
+        "predicted": null,
+        "realized": null
+      },
+      {
+        "bucket": 4,
+        "count": 0,
+        "predicted": null,
+        "realized": null
+      }
+    ],
+    "spearman": 0.02360260851574425
+  },
+  "modelComparison": {
+    "NO_FILTER": {
+      "diagnosticOnly": false,
+      "sample": 1836,
+      "net18": {
+        "count": 1836,
+        "expectancyBps": -31.025449403638465,
+        "profitFactor": 0.6879170426326364,
+        "positiveRate": 0.3562091503267974
+      },
+      "net27": {
+        "count": 1836,
+        "expectancyBps": -49.04111608940128,
+        "profitFactor": 0.5593255921114964,
+        "positiveRate": 0.32516339869281047
+      },
+      "net36": {
+        "count": 1836,
+        "expectancyBps": -67.05678277516424,
+        "profitFactor": 0.45809612309549147,
+        "positiveRate": 0.29139433551198257
+      }
+    },
+    "RULE_SCORECARD": {
+      "diagnosticOnly": true,
+      "sample": 1836,
+      "net18": {
+        "count": 1836,
+        "expectancyBps": -31.025449403638465,
+        "profitFactor": 0.6879170426326364,
+        "positiveRate": 0.3562091503267974
+      },
+      "net27": {
+        "count": 1836,
+        "expectancyBps": -49.04111608940128,
+        "profitFactor": 0.5593255921114964,
+        "positiveRate": 0.32516339869281047
+      },
+      "net36": {
+        "count": 1836,
+        "expectancyBps": -67.05678277516424,
+        "profitFactor": 0.45809612309549147,
+        "positiveRate": 0.29139433551198257
+      }
+    },
+    "SHALLOW_GBT": {
+      "diagnosticOnly": true,
+      "sample": 398,
+      "net18": {
+        "count": 398,
+        "expectancyBps": -24.75975455765169,
+        "profitFactor": 0.7413522866306036,
+        "positiveRate": 0.4020100502512563
+      },
+      "net27": {
+        "count": 398,
+        "expectancyBps": -42.782021766135784,
+        "profitFactor": 0.5996447998843002,
+        "positiveRate": 0.35678391959798994
+      },
+      "net36": {
+        "count": 398,
+        "expectancyBps": -60.804288974619894,
+        "profitFactor": 0.4877986018946052,
+        "positiveRate": 0.3241206030150754
+      }
+    }
+  },
+  "symbolBreadth": {
+    "distinctSymbols": 0,
+    "largestSymbolShare": null,
+    "bySymbol": {
+      "BTCUSDT": 0,
+      "ETHUSDT": 0,
+      "BNBUSDT": 0,
+      "SOLUSDT": 0,
+      "XRPUSDT": 0,
+      "DOGEUSDT": 0,
+      "LINKUSDT": 0,
+      "LTCUSDT": 0
+    }
+  },
+  "activeMonths": [],
+  "gates": {
+    "dataset": {
+      "calendarCoverageDays": 729,
+      "calendarCoveragePass": true,
+      "rawCandidates": 2640,
+      "rawCandidatesPass": true,
+      "BUYCandidates": 1472,
+      "BUYCandidatesPass": true,
+      "SELLCandidates": 1168,
+      "SELLCandidatesPass": true,
+      "coreStreamsPass": true,
+      "pass": true
+    },
+    "promotion": {
+      "calendarCoverage": true,
+      "oofPredictions": true,
+      "accepted": false,
+      "net18Expectancy": false,
+      "PF18": false,
+      "net27Expectancy": false,
+      "PF27": false,
+      "net36Expectancy": false,
+      "portfolioMtm": false,
+      "portfolioCvar": false,
+      "lossStreak": true,
+      "withoutBestTrade": false,
+      "withoutBestMonth": false,
+      "symbols": false,
+      "symbolConcentration": false,
+      "buyAccepted": false,
+      "sellAccepted": false,
+      "buyNet27": false,
+      "sellNet27": false,
+      "activeMonths": false,
+      "bootstrapNet27": false
+    }
+  },
+  "status": "NOT_READY",
+  "promotionEligible": false
+}
