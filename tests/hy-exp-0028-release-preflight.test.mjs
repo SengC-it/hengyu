@@ -24,6 +24,14 @@ const schedulerConfig = {
   requiresReleaseState: 'EMAIL_SIGNAL_RELEASED'
 };
 
+function readyConfig() {
+  return {
+    ...EMAIL_SIGNAL_CUTOVER_CONFIG,
+    status: 'DRAFT_CUTOVER_PREPARED',
+    releaseState: 'EMAIL_SIGNAL_RELEASE_READY'
+  };
+}
+
 const vercelConfig = {
   functions: {
     'api/h12-scan.mjs': { regions: ['sin1'], maxDuration: 60 },
@@ -225,7 +233,7 @@ test('main governance fails closed without independently read GitHub ruleset evi
 test('current release state and scheduler remain safe and inactive', () => {
   assert.equal(isEmailSignalCutoverConfigValid(), true);
   const safety = verifySafetyState({
-    config: EMAIL_SIGNAL_CUTOVER_CONFIG,
+    config: readyConfig(),
     schedulerConfig
   });
   assert.equal(safety.pass, true);
@@ -238,6 +246,7 @@ test('READY runner is a no-op before market data, DB, and SMTP', async () => {
   let dbCalls = 0;
   let smtpCalls = 0;
   const result = await runHyExp0028Scan({
+    config: readyConfig(),
     causalInputFetcher: async () => { marketCalls += 1; return {}; },
     ingestImpl: async () => { dbCalls += 1; },
     dispatchImpl: async () => { smtpCalls += 1; }
@@ -270,7 +279,7 @@ test('released-mode fixture is injectable and does not use external SMTP', async
 
 test('preflight report stays blocked when production-only proofs are unavailable', () => {
   const report = buildPreflightReport({
-    config: EMAIL_SIGNAL_CUTOVER_CONFIG,
+    config: readyConfig(),
     schedulerConfig,
     environment: {},
     productionEnvironmentVerified: false,
@@ -296,7 +305,7 @@ test('preflight report stays blocked when production-only proofs are unavailable
       WRONG_PROVENANCE_REJECTED: true,
       ENTRY_DELAY_OVER_90S_REJECTED: true
     },
-    safety: verifySafetyState({ config: EMAIL_SIGNAL_CUTOVER_CONFIG, schedulerConfig })
+    safety: verifySafetyState({ config: readyConfig(), schedulerConfig })
   });
   assert.equal(report.status, 'BLOCKED');
   assert.equal(report.releaseAllowed, false);

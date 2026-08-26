@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "CONTROLLED_EMAIL_RELEASE_AUTHORIZATION",
+  "immutable": true,
+  "experimentId": "HY-EXP-0028",
+  "baseMainCommit": "17a43e5820861055dac3483ff6c7003a407a0db1",
+  "reviewedActivationHead": "44ad24c9841fa574685fe5ce80e407641b48cf28",
+  "executableActivationCommit": "32864d3bc9cb9c7103d24b9e7909367f56973fae",
+  "authorizationStatus": "APPROVED",
+  "humanApprovalRequired": true,
+  "humanApproval": "APPROVED",
+  "authorizedTransition": {
+    "from": "EMAIL_SIGNAL_RELEASE_READY",
+    "to": "EMAIL_SIGNAL_RELEASED"
+  },
+  "authorizationScope": "PAPER_ONLY_RELEASE_ACTIVATION",
+  "deploymentSourcePolicy": "POST_MERGE_MAIN_SHA_ONLY",
+  "directFeatureBranchDeploymentAllowed": false,
+  "deliveryAuthorization": {
+    "gmailSendAuthorized": false,
+    "realEmailAuthorized": false,
+    "schedulerActivationAuthorized": false
+  },
+  "tradingAuthorization": {
+    "automaticTradingAuthorized": false,
+    "liveOrdersAuthorized": false,
+    "accountApiAuthorized": false,
+    "orderApiAuthorized": false
+  },
+  "dataAuthorization": {
+    "finalOosReadAuthorized": false
+  },
+  "requiredRuntimeSafety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmailSendEnabled": false,
+    "schedulerActivated": false,
+    "autoTrading": false,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false
+  },
+  "authorizationSemantics": {
+    "futureAllowedSequence": [
+      "mark_ready",
+      "normal_protected_merge",
+      "verify_post_merge_main_sha",
+      "deploy_exact_post_merge_main_sha",
+      "one_controlled_released_smoke"
+    ],
+    "prohibitedActions": [
+      "enable_HENGYU_GMAIL_SEND_ENABLED",
+      "send_real_email",
+      "activate_scheduler",
+      "enable_automatic_trading",
+      "enable_live_orders",
+      "use_private_binance_api",
+      "use_account_api",
+      "use_order_api",
+      "read_final_oos"
+    ]
+  },
+  "approvalStatement": "Approved HY-EXP-0028 Release Activation for PAPER-only activation only.",
+  "approvedAt": "2026-08-26T01:21:18.611Z"
+}

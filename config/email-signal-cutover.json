@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "configId": "HY-EXP-0028-EMAIL-CUTOVER-001",
   "immutable": true,
-  "status": "DRAFT_CUTOVER_PREPARED",
+  "status": "CUTOVER_RELEASED",
   "strategyId": "HY-EXP-0028",
   "evaluationSource": {
     "policyId": "EMAIL_SIGNAL_RELEASE-001",
@@ -12,7 +12,7 @@
     "artifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
     "sourceCommit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467"
   },
-  "releaseState": "EMAIL_SIGNAL_RELEASE_READY",
+  "releaseState": "EMAIL_SIGNAL_RELEASED",
   "releaseStateRequiredForEmail": "EMAIL_SIGNAL_RELEASED",
   "humanApprovalRequiredForReleased": true,
   "legacyEmailAuthority": {
