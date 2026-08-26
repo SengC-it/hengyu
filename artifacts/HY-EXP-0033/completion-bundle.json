@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0033_DEVELOPMENT_COMPLETION_BUNDLE",
+  "experiment_id": "HY-EXP-0033",
+  "code_commit": "cb61ffc14ba820304cffac096cb58b19346cd87f",
+  "outcomeRead": true,
+  "pnlComputed": true,
+  "finalOosRead": false,
+  "artifacts": [
+    {
+      "path": "registry/experiments/HY-EXP-0033/preregistration.json",
+      "sha256": "295dbeb112f1b46583cbd2ca94e2c7f2d826e82827c16e869b6c96bed327c2fa"
+    },
+    {
+      "path": "artifacts/HY-EXP-0033/data-manifest.json",
+      "sha256": "c5572595820b6d58c8480edd355320bbf28e7a641350d8eeff791afcb6ff9311"
+    },
+    {
+      "path": "artifacts/HY-EXP-0033/data-recovery-audit.json",
+      "sha256": "ed62c8be533f5540ebad5d53b658841743d92340e2fd8f35b75d59a4ba32eb6d"
+    },
+    {
+      "path": "artifacts/HY-EXP-0033/tournament-result.json",
+      "sha256": "5b6b57a6b3726df4b5b461125bc2aed2c1a92332b3ebded5a162c0adc7f931c1"
+    },
+    {
+      "path": "artifacts/HY-EXP-0033/tournament-events.jsonl",
+      "sha256": "64bbbf4b5222b3f685b5f3e5bbf08d955c0abe0e540f377df38e62b965b25b77"
+    },
+    {
+      "path": "artifacts/HY-EXP-0033/tournament-report.md",
+      "sha256": "113dc550738c05e373fa00901d8086679158f4299db8e224267d1b86e3265cd9"
+    }
+  ],
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  }
+}
