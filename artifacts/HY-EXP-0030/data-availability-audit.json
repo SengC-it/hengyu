@@ -1,0 +1,514 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0030_DATA_AVAILABILITY_AUDIT",
+  "immutable": true,
+  "experimentId": "HY-EXP-0030",
+  "preregistrationPath": "registry/experiments/HY-EXP-0030/preregistration.json",
+  "window": {
+    "start": "2024-08-26T00:00:00.000Z",
+    "endExclusive": "2026-08-26T00:00:00.000Z",
+    "calendarDaysTarget": 730
+  },
+  "outcomeRead": false,
+  "pnlComputed": false,
+  "finalOosRead": false,
+  "historicalSources": {
+    "archive": "https://data.binance.vision/data/futures/um",
+    "rest": "https://fapi.binance.com",
+    "privateApiUsed": false,
+    "orderApiUsed": false,
+    "accountApiUsed": false,
+    "openInterestHistoricalUsed": false,
+    "historicalL2Used": false,
+    "ohlcvDepthProxyUsed": false
+  },
+  "cohorts": {
+    "FIXED_8_BASELINE": {
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT",
+        "SOLUSDT",
+        "XRPUSDT",
+        "DOGEUSDT",
+        "LINKUSDT",
+        "LTCUSDT"
+      ],
+      "membershipStatus": "FROZEN_BASELINE_WITH_ARCHIVE_PRESENCE",
+      "survivorshipSelection": false,
+      "coverage": [
+        {
+          "symbol": "BTCUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "ETHUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "BNBUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "SOLUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "XRPUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "LINKUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        },
+        {
+          "symbol": "LTCUSDT",
+          "streams": {
+            "contract1h": {
+              "count": 17520,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:00:00.000Z",
+              "expected": 17520,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract4h": {
+              "count": 4380,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T20:00:00.000Z",
+              "expected": 4380,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "funding": {
+              "count": 2190,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T16:00:00.005Z",
+              "expected": null,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "contract5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            },
+            "mark5m": {
+              "count": 210240,
+              "first": "2024-08-26T00:00:00.000Z",
+              "last": "2026-08-25T23:55:00.000Z",
+              "expected": 210240,
+              "firstCoverage": true,
+              "lastCoverage": true,
+              "missingIntervals": 0,
+              "missingSample": []
+            }
+          }
+        }
+      ]
+    },
+    "PIT_EXPANDED": {
+      "status": "EXPANDED_UNIVERSE_NOT_EVALUABLE",
+      "reason": "No complete historical contract metadata archive was used; current exchangeInfo was not used as a backfill.",
+      "maximumSymbols": 50
+    }
+  },
+  "candidateCounts": {
+    "raw": 2640,
+    "BUY": 1472,
+    "SELL": 1168,
+    "SIDEWAYS_CONTEXT": 16775
+  },
+  "candidateRejections": {
+    "missingRegime": 5792,
+    "insufficientHistory": 0,
+    "featureInvalid": 0
+  },
+  "gate": {
+    "calendarCoverageDays": 729,
+    "calendarCoveragePass": true,
+    "rawCandidates": 2640,
+    "rawCandidatesPass": true,
+    "BUYCandidates": 1472,
+    "BUYCandidatesPass": true,
+    "SELLCandidates": 1168,
+    "SELLCandidatesPass": true,
+    "coreStreamsPass": true,
+    "pass": true
+  },
+  "status": "DATA_AVAILABLE_AUDIT_PASS",
+  "developmentAllowed": true,
+  "reason": null
+}

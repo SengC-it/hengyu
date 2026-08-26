@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const preregistrationPath = path.join(ROOT, 'registry', 'experiments', 'HY-EXP-0030', 'preregistration.json');
 
-test('HY-EXP-0030 is preregistered before outcomes with no result artifacts', () => {
+test('HY-EXP-0030 keeps its preregistration immutable after development evidence', () => {
   const draft = JSON.parse(fs.readFileSync(preregistrationPath, 'utf8'));
   const ledger = fs.readFileSync(path.join(ROOT, 'registry', 'ledger.jsonl'), 'utf8');
   assert.equal(draft.experiment_id, 'HY-EXP-0030');
@@ -17,8 +17,8 @@ test('HY-EXP-0030 is preregistered before outcomes with no result artifacts', ()
   assert.equal(draft.pre_outcome_lock.pnl_computed, false);
   assert.equal(draft.pre_outcome_lock.final_oos_read, false);
   assert.equal(ledger.includes('"experiment_id":"HY-EXP-0030"'), true);
-  assert.equal(fs.existsSync(path.join(ROOT, 'artifacts', 'HY-EXP-0030', 'result.json')), false);
-  assert.equal(fs.existsSync(path.join(ROOT, 'artifacts', 'HY-EXP-0030', 'trades.jsonl')), false);
+  assert.equal(fs.existsSync(path.join(ROOT, 'artifacts', 'HY-EXP-0030', 'development-result.json')), true);
+  assert.equal(fs.existsSync(path.join(ROOT, 'artifacts', 'HY-EXP-0030', 'trades.jsonl')), true);
 });
 
 test('HY-EXP-0030 freezes the large-sample, two-direction, causal design', () => {
