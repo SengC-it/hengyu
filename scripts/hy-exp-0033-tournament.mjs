@@ -103,7 +103,7 @@ function rowsFor(symbol, kind) {
       return values.map(value => ({
         symbol,
         archiveTime: Number(value.fundingTime),
-        eventTime: Number(value.fundingTime),
+        eventTime: Math.floor(Number(value.fundingTime) / FIVE_MINUTES) * FIVE_MINUTES,
         fundingIntervalHours: 8,
         fundingRate: Number(value.fundingRate)
       }));
