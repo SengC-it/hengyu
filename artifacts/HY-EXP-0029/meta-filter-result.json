@@ -1,0 +1,786 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0029_META_FILTER_DEVELOPMENT_DIAGNOSTIC",
+  "experimentId": "HY-EXP-0029",
+  "candidateGenerator": "HY-EXP-0028",
+  "sourceArtifact": "artifacts/HY-EXP-0028/holdout-result.json",
+  "sourceArtifactSha256": "92304ec0252be9ee2bba2e13a9ccc64c923f3b067d91e12513be089d56f3d2e5",
+  "sourceStatus": "HOLDOUT_FAILED",
+  "evidenceStatus": "DEVELOPMENT_DIAGNOSTIC_ONLY",
+  "promotionEligible": false,
+  "freshHoldoutCreated": false,
+  "finalOosRead": false,
+  "pnlComputed": true,
+  "featurePolicy": {
+    "causalAtDecisionTimeOnly": true,
+    "modelFeatures": [
+      "channelDistanceOverFrozenQ75",
+      "regimeBull",
+      "sideBuy",
+      "decisionHourSin",
+      "decisionHourCos"
+    ],
+    "unavailableCurrentHoldoutFeatures": [
+      "atrPercent",
+      "trendStrength1h",
+      "trendStrength4h",
+      "btcMarketAlignment",
+      "relativeStrengthVsBtc",
+      "volumeExpansion",
+      "fundingRateAtDecision",
+      "recentFundingChange",
+      "distanceFromRecentHigh",
+      "breakoutPersistence",
+      "shortTermMomentum",
+      "marketBreadth",
+      "crossSymbolMomentumBreadth",
+      "liquidityProxy",
+      "recentVolatilityShock"
+    ],
+    "forbiddenFutureFields": [
+      "exitTime",
+      "exitPrice",
+      "exitReason",
+      "grossPriceReturnBps",
+      "net18Bps",
+      "net27Bps",
+      "netPnl",
+      "stressNetPnl",
+      "fundingPnl",
+      "maeBps",
+      "mfeBps",
+      "markToMarketDrawdownBps",
+      "marks"
+    ]
+  },
+  "baselineMetrics": {
+    "candidateCount": 43,
+    "advisoryCount": 43,
+    "signalsPer30Days": 24.339622641509433,
+    "grossExpectancyBps": 23.60880158162159,
+    "net18ExpectancyBps": 5.237781100313037,
+    "net18ProfitFactor": 1.1506895886413784,
+    "net27ExpectancyBps": -3.7622188996869474,
+    "net27ProfitFactor": 1.0701186290763716,
+    "net36ExpectancyBps": -12.762218899686964,
+    "net36ProfitFactor": 0.9949511084910075,
+    "netPnl18": 671.778467846798,
+    "netPnl27": 323.82618231301535,
+    "netPnlWithoutBestTrade": 4.410709182492042,
+    "netPnlWithoutBestMonth": -564.8740225660517,
+    "activeMonths": [
+      {
+        "month": "2026-07",
+        "netPnl": -564.8740225660517
+      },
+      {
+        "month": "2026-08",
+        "netPnl": 1236.65249041285
+      }
+    ],
+    "bestTrade": {
+      "id": "XRPUSDT:1787353200000",
+      "symbol": "XRPUSDT",
+      "netPnl": 667.3677586643063
+    },
+    "maxMtmDrawdownFraction": 0.07723556081371896,
+    "maxMtmDrawdownSource": "HY-EXP-0028 frozen portfolio risk evidence",
+    "maxMtmDrawdownStatus": "SOURCE_REPORTED",
+    "maxLossStreak": 12,
+    "distinctSymbols": 8,
+    "largestSymbolShare": 0.20930232558139536,
+    "fundingPnl": -15.491751432713313,
+    "sourceReported": true
+  },
+  "baselineDerivedMetrics": {
+    "count": 43,
+    "riskMetricStatus": "EVALUABLE",
+    "grossExpectancyBps": 23.60880158162158,
+    "net18ExpectancyBps": 5.23778110031304,
+    "net27ExpectancyBps": -3.762218899686958,
+    "net36ExpectancyBps": -12.762218899686959,
+    "net18ProfitFactor": 1.1506895886413786,
+    "net27ProfitFactor": 1.0701186290763713,
+    "net36ProfitFactor": 0.9949511084910075,
+    "netPnl18": 671.7784678467983,
+    "netPnl27": 323.8261823130159,
+    "netPnl36": -24.126103220765856,
+    "maxSingleTradeAdverseExcursionFraction": 0.01289062499999999,
+    "singleTradeAdverseExcursionMethod": "maximum_single_trade_markToMarketDrawdownBps_scaled_by_notional; not portfolio-equity MTM",
+    "portfolioMtmDrawdownFraction": null,
+    "portfolioMtmStatus": "NOT_RECONSTRUCTED",
+    "tradeLossCvar95Bps": 628.6667169247434,
+    "tradeLossCvar95Fraction": 0.06286667169247434,
+    "portfolioCvar95": null,
+    "portfolioCvarStatus": "NOT_RECONSTRUCTED",
+    "maxLossStreak": 12,
+    "netPnlWithoutBestTrade": 4.410709182492042,
+    "netPnlWithoutBestMonth": -564.8740225660517,
+    "activeMonths": [
+      {
+        "month": "2026-07",
+        "netPnl": -564.8740225660517
+      },
+      {
+        "month": "2026-08",
+        "netPnl": 1236.65249041285
+      }
+    ],
+    "positiveMonths": 1,
+    "distinctSymbols": 8,
+    "largestSymbolShare": 0.20930232558139536,
+    "symbolCounts": {
+      "BNBUSDT": 6,
+      "BTCUSDT": 4,
+      "DOGEUSDT": 6,
+      "ETHUSDT": 3,
+      "LINKUSDT": 5,
+      "LTCUSDT": 3,
+      "SOLUSDT": 9,
+      "XRPUSDT": 7
+    }
+  },
+  "rootCauseAnalysis": {
+    "winnerLoser": {
+      "winners": {
+        "count": 22,
+        "meanMaeBps": -131.01715626851407,
+        "meanMfeBps": 477.75291135716776,
+        "meanHoldingHours": 5.916666666666669
+      },
+      "losers": {
+        "count": 21,
+        "meanMaeBps": -503.61834162572825,
+        "meanMfeBps": 243.2384714368747,
+        "meanHoldingHours": 2.5595240079365076
+      }
+    },
+    "exitReason": {
+      "ATR_STOP": {
+        "count": 15,
+        "grossExpectancyBps": -371.8262561565326,
+        "net18ExpectancyBps": -390.0149154499548,
+        "net27ExpectancyBps": -399.0149154499548,
+        "net36ExpectancyBps": -408.0149154499548,
+        "net18Pnl": -3975.7348472628564,
+        "net27Pnl": -4086.7068150716636,
+        "net36Pnl": -4197.678782880471,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "TERMINAL_EXIT": {
+        "count": 28,
+        "grossExpectancyBps": 235.44901108420427,
+        "net18ExpectancyBps": 216.98029710938516,
+        "net27ExpectancyBps": 207.98029710938513,
+        "net36ExpectancyBps": 198.98029710938513,
+        "net18Pnl": 4647.513315109654,
+        "net27Pnl": 4410.53299738468,
+        "net36Pnl": 4173.552679659705,
+        "net18ProfitFactor": 10.636274742827217,
+        "positiveRate": 0.7857142857142857
+      }
+    },
+    "side": {
+      "BUY": {
+        "count": 43,
+        "grossExpectancyBps": 23.60880158162158,
+        "net18ExpectancyBps": 5.23778110031304,
+        "net27ExpectancyBps": -3.762218899686958,
+        "net36ExpectancyBps": -12.762218899686959,
+        "net18Pnl": 671.7784678467983,
+        "net27Pnl": 323.8261823130159,
+        "net36Pnl": -24.126103220766026,
+        "net18ProfitFactor": 1.1506895886413786,
+        "positiveRate": 0.5116279069767442
+      }
+    },
+    "regime": {
+      "BULL": {
+        "count": 43,
+        "grossExpectancyBps": 23.60880158162158,
+        "net18ExpectancyBps": 5.23778110031304,
+        "net27ExpectancyBps": -3.762218899686958,
+        "net36ExpectancyBps": -12.762218899686959,
+        "net18Pnl": 671.7784678467983,
+        "net27Pnl": 323.8261823130159,
+        "net36Pnl": -24.126103220766026,
+        "net18ProfitFactor": 1.1506895886413786,
+        "positiveRate": 0.5116279069767442
+      }
+    },
+    "symbol": {
+      "BNBUSDT": {
+        "count": 6,
+        "grossExpectancyBps": 0.5063816710097578,
+        "net18ExpectancyBps": -17.915830562025707,
+        "net27ExpectancyBps": -26.915830562025707,
+        "net36ExpectancyBps": -35.91583056202571,
+        "net18Pnl": 25.607604250079078,
+        "net27Pnl": -37.640968171246186,
+        "net36Pnl": -100.88954059257111,
+        "net18ProfitFactor": 1.031792581823834,
+        "positiveRate": 0.5
+      },
+      "BTCUSDT": {
+        "count": 4,
+        "grossExpectancyBps": 108.50455880666598,
+        "net18ExpectancyBps": 90.35615199948396,
+        "net27ExpectancyBps": 81.35615199948396,
+        "net36ExpectancyBps": 72.35615199948396,
+        "net18Pnl": 477.7037414838344,
+        "net27Pnl": 433.62804253018675,
+        "net36Pnl": 389.5523435765392,
+        "net18ProfitFactor": 6.602491016481018,
+        "positiveRate": 0.75
+      },
+      "DOGEUSDT": {
+        "count": 6,
+        "grossExpectancyBps": -34.04516969736466,
+        "net18ExpectancyBps": -52.54605492596241,
+        "net27ExpectancyBps": -61.5460549259624,
+        "net36ExpectancyBps": -70.5460549259624,
+        "net18Pnl": -44.630872839699464,
+        "net27Pnl": -77.93610981960194,
+        "net36Pnl": -111.24134679950458,
+        "net18ProfitFactor": 0.9428293604602963,
+        "positiveRate": 0.5
+      },
+      "ETHUSDT": {
+        "count": 3,
+        "grossExpectancyBps": -81.57412348873409,
+        "net18ExpectancyBps": -100.19487398465554,
+        "net27ExpectancyBps": -109.19487398465554,
+        "net36ExpectancyBps": -118.19487398465554,
+        "net18Pnl": -415.25259323032867,
+        "net27Pnl": -448.15237811609836,
+        "net36Pnl": -481.05216300186805,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "LINKUSDT": {
+        "count": 5,
+        "grossExpectancyBps": -49.317814210371395,
+        "net18ExpectancyBps": -67.90812341915988,
+        "net27ExpectancyBps": -76.90812341915988,
+        "net36ExpectancyBps": -85.90812341915988,
+        "net18Pnl": -426.6771107314272,
+        "net27Pnl": -465.9819934799478,
+        "net36Pnl": -505.2868762284683,
+        "net18ProfitFactor": 0.3525859301334008,
+        "positiveRate": 0.4
+      },
+      "LTCUSDT": {
+        "count": 3,
+        "grossExpectancyBps": 201.37533258801213,
+        "net18ExpectancyBps": 183.37533258801213,
+        "net27ExpectancyBps": 174.37533258801213,
+        "net36ExpectancyBps": 165.37533258801213,
+        "net18Pnl": 596.5712839474763,
+        "net27Pnl": 567.4148978578045,
+        "net36Pnl": 538.2585117681326,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "SOLUSDT": {
+        "count": 9,
+        "grossExpectancyBps": 22.442276740718373,
+        "net18ExpectancyBps": 3.996842644823049,
+        "net27ExpectancyBps": -5.003157355176951,
+        "net36ExpectancyBps": -14.00315735517695,
+        "net18Pnl": 210.58780391436073,
+        "net27Pnl": 132.74680231800642,
+        "net36Pnl": 54.90580072165221,
+        "net18ProfitFactor": 1.2361808522819175,
+        "positiveRate": 0.5555555555555556
+      },
+      "XRPUSDT": {
+        "count": 7,
+        "grossExpectancyBps": 66.7997020041074,
+        "net18ExpectancyBps": 48.65699281796794,
+        "net27ExpectancyBps": 39.65699281796794,
+        "net36ExpectancyBps": 30.65699281796794,
+        "net18Pnl": 247.86861105250347,
+        "net27Pnl": 219.74788919391256,
+        "net36Pnl": 191.62716733532164,
+        "net18ProfitFactor": 1.3020194453504452,
+        "positiveRate": 0.42857142857142855
+      }
+    },
+    "calendarMonth": {
+      "2026-07": {
+        "count": 2,
+        "grossExpectancyBps": -146.0200742365139,
+        "net18ExpectancyBps": -164.9494384327639,
+        "net27ExpectancyBps": -173.9494384327639,
+        "net36ExpectancyBps": -182.9494384327639,
+        "net18Pnl": -564.8740225660517,
+        "net27Pnl": -595.7215731981308,
+        "net36Pnl": -626.56912383021,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "2026-08": {
+        "count": 41,
+        "grossExpectancyBps": 31.883380889823325,
+        "net18ExpectancyBps": 13.53959668729241,
+        "net27ExpectancyBps": 4.539596687292388,
+        "net36ExpectancyBps": -4.4604033127076095,
+        "net18Pnl": 1236.65249041285,
+        "net27Pnl": 919.5477555111474,
+        "net36Pnl": 602.4430206094437,
+        "net18ProfitFactor": 1.317647944596249,
+        "positiveRate": 0.5365853658536586
+      }
+    },
+    "decisionHourUtc": {
+      "10": {
+        "count": 1,
+        "grossExpectancyBps": -83.40401470172485,
+        "net18ExpectancyBps": -101.40401470172485,
+        "net27ExpectancyBps": -110.40401470172485,
+        "net36ExpectancyBps": -119.40401470172485,
+        "net18Pnl": -48.39643772770224,
+        "net27Pnl": -52.691809472406064,
+        "net36Pnl": -56.98718121710989,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "13": {
+        "count": 2,
+        "grossExpectancyBps": -146.0200742365139,
+        "net18ExpectancyBps": -164.9494384327639,
+        "net27ExpectancyBps": -173.9494384327639,
+        "net36ExpectancyBps": -182.9494384327639,
+        "net18Pnl": -564.8740225660517,
+        "net27Pnl": -595.7215731981308,
+        "net36Pnl": -626.56912383021,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "16": {
+        "count": 1,
+        "grossExpectancyBps": 199.41916747337874,
+        "net18ExpectancyBps": 181.41916747337874,
+        "net27ExpectancyBps": 172.41916747337874,
+        "net36ExpectancyBps": 163.41916747337874,
+        "net18Pnl": 165.67008486562946,
+        "net27Pnl": 157.45137906647813,
+        "net36Pnl": 149.2326732673268,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "21": {
+        "count": 1,
+        "grossExpectancyBps": 736.2033432562405,
+        "net18ExpectancyBps": 717.1584611861695,
+        "net27ExpectancyBps": 708.1584611861695,
+        "net36ExpectancyBps": 699.1584611861695,
+        "net18Pnl": 484.95370083617314,
+        "net27Pnl": 478.86776091669344,
+        "net36Pnl": 472.7818209972137,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "22": {
+        "count": 4,
+        "grossExpectancyBps": 184.80525465631675,
+        "net18ExpectancyBps": 165.81547338900725,
+        "net27ExpectancyBps": 156.81547338900725,
+        "net36ExpectancyBps": 147.81547338900725,
+        "net18Pnl": 455.80079192535425,
+        "net27Pnl": 428.9754924484752,
+        "net36Pnl": 402.15019297159614,
+        "net18ProfitFactor": 7.812436212825565,
+        "positiveRate": 0.75
+      },
+      "23": {
+        "count": 5,
+        "grossExpectancyBps": 486.38647081324433,
+        "net18ExpectancyBps": 467.1389191445498,
+        "net27ExpectancyBps": 458.1389191445498,
+        "net36ExpectancyBps": 449.1389191445498,
+        "net18Pnl": 1569.759774103261,
+        "net27Pnl": 1536.7037001956542,
+        "net36Pnl": 1503.6476262880471,
+        "net18ProfitFactor": 6.99248023471684,
+        "positiveRate": 0.8
+      },
+      "00": {
+        "count": 1,
+        "grossExpectancyBps": 559.1650539120816,
+        "net18ExpectancyBps": 541.1650539120816,
+        "net27ExpectancyBps": 532.1650539120816,
+        "net36ExpectancyBps": 523.1650539120816,
+        "net18Pnl": 245.68771181122148,
+        "net27Pnl": 241.60173214509874,
+        "net36Pnl": 237.51575247897594,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "01": {
+        "count": 2,
+        "grossExpectancyBps": 228.96122382214378,
+        "net18ExpectancyBps": 210.96122382214378,
+        "net27ExpectancyBps": 201.96122382214378,
+        "net36ExpectancyBps": 192.96122382214378,
+        "net18Pnl": 554.7364286085871,
+        "net27Pnl": 531.1011196383265,
+        "net36Pnl": 507.46581066806607,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "02": {
+        "count": 2,
+        "grossExpectancyBps": 151.7155029984732,
+        "net18ExpectancyBps": 132.91073063508995,
+        "net27ExpectancyBps": 123.91073063508995,
+        "net36ExpectancyBps": 114.91073063508995,
+        "net18Pnl": 321.7156753807708,
+        "net27Pnl": 299.90485083379554,
+        "net36Pnl": 278.0940262868202,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "03": {
+        "count": 3,
+        "grossExpectancyBps": -389.11597019494315,
+        "net18ExpectancyBps": -407.11597019494315,
+        "net27ExpectancyBps": -416.11597019494315,
+        "net36ExpectancyBps": -425.11597019494315,
+        "net18Pnl": -790.0157126732287,
+        "net27Pnl": -810.0235690098432,
+        "net36Pnl": -830.0314253464576,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "04": {
+        "count": 4,
+        "grossExpectancyBps": -416.01770779779173,
+        "net18ExpectancyBps": -434.01770779779173,
+        "net27ExpectancyBps": -443.01770779779173,
+        "net36ExpectancyBps": -452.01770779779173,
+        "net18Pnl": -1048.6758149851353,
+        "net27Pnl": -1073.0137224777027,
+        "net36Pnl": -1097.3516299702703,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "05": {
+        "count": 5,
+        "grossExpectancyBps": -411.4425187799082,
+        "net18ExpectancyBps": -429.4425187799082,
+        "net27ExpectancyBps": -438.4425187799082,
+        "net36ExpectancyBps": -447.4425187799082,
+        "net18Pnl": -1310.2143614161228,
+        "net27Pnl": -1340.3215421241844,
+        "net36Pnl": -1370.4287228322455,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "06": {
+        "count": 1,
+        "grossExpectancyBps": -63.81340081417079,
+        "net18ExpectancyBps": -82.81054021344464,
+        "net27ExpectancyBps": -91.81054021344464,
+        "net36ExpectancyBps": -100.81054021344464,
+        "net18Pnl": -101.05598818474765,
+        "net27Pnl": -112.03893662728258,
+        "net36Pnl": -123.02188506981753,
+        "net18ProfitFactor": 0,
+        "positiveRate": 0
+      },
+      "07": {
+        "count": 1,
+        "grossExpectancyBps": 157.6909854565575,
+        "net18ExpectancyBps": 139.4442827616111,
+        "net27ExpectancyBps": 130.4442827616111,
+        "net36ExpectancyBps": 121.4442827616111,
+        "net18Pnl": 202.7214439287282,
+        "net27Pnl": 189.63741524554695,
+        "net36Pnl": 176.55338656236574,
+        "net18ProfitFactor": null,
+        "positiveRate": 1
+      },
+      "08": {
+        "count": 3,
+        "grossExpectancyBps": 56.97057664199685,
+        "net18ExpectancyBps": 38.97057664199686,
+        "net27ExpectancyBps": 29.970576641996857,
+        "net36ExpectancyBps": 20.970576641996857,
+        "net18Pnl": 209.8315207072161,
+        "net27Pnl": 180.1417850421351,
+        "net36Pnl": 150.45204937705415,
+        "net18ProfitFactor": 2.814137798496314,
+        "positiveRate": 0.6666666666666666
+      },
+      "09": {
+        "count": 7,
+        "grossExpectancyBps": 83.88146590245978,
+        "net18ExpectancyBps": 65.88146590245978,
+        "net27ExpectancyBps": 56.88146590245977,
+        "net36ExpectancyBps": 47.88146590245977,
+        "net18Pnl": 324.1336732328454,
+        "net27Pnl": 263.25209969036194,
+        "net36Pnl": 202.37052614787868,
+        "net18ProfitFactor": 3.1570174796423003,
+        "positiveRate": 0.7142857142857143
+      }
+    },
+    "channelDistanceQuartiles": {
+      "feature": "channelDistanceOverFrozenQ75",
+      "method": "descriptive full-sample quartiles; not used to select a production threshold",
+      "bounds": [
+        1.1065477327448032,
+        1.1791071631506662,
+        1.31604972590518
+      ],
+      "groups": {
+        "Q1": {
+          "count": 11,
+          "grossExpectancyBps": -59.52192783726789,
+          "net18ExpectancyBps": -77.7952288087049,
+          "net27ExpectancyBps": -86.7952288087049,
+          "net36ExpectancyBps": -95.7952288087049,
+          "net18Pnl": -157.77024652206325,
+          "net27Pnl": -227.00275437654017,
+          "net36Pnl": -296.2352622310176,
+          "net18ProfitFactor": 0.8788726420450457,
+          "positiveRate": 0.5454545454545454
+        },
+        "Q2": {
+          "count": 11,
+          "grossExpectancyBps": 169.2290776538366,
+          "net18ExpectancyBps": 150.93439429350317,
+          "net27ExpectancyBps": 141.93439429350312,
+          "net36ExpectancyBps": 132.93439429350312,
+          "net18Pnl": 982.2727157748157,
+          "net27Pnl": 913.8264053467205,
+          "net36Pnl": 845.3800949186252,
+          "net18ProfitFactor": 2.036781481427325,
+          "positiveRate": 0.5454545454545454
+        },
+        "Q3": {
+          "count": 10,
+          "grossExpectancyBps": -94.03953441928545,
+          "net18ExpectancyBps": -112.65010725901365,
+          "net27ExpectancyBps": -121.65010725901365,
+          "net36ExpectancyBps": -130.65010725901365,
+          "net18Pnl": -907.7993010973792,
+          "net27Pnl": -1001.9199612056105,
+          "net36Pnl": -1096.0406213138417,
+          "net18ProfitFactor": 0.5196461802208572,
+          "positiveRate": 0.3
+        },
+        "Q4": {
+          "count": 11,
+          "grossExpectancyBps": 68.0722876563934,
+          "net18ExpectancyBps": 49.744985415528795,
+          "net27ExpectancyBps": 40.74498541552879,
+          "net36ExpectancyBps": 31.74498541552879,
+          "net18Pnl": 755.0752996914254,
+          "net27Pnl": 638.9224925484463,
+          "net36Pnl": 522.7696854054675,
+          "net18ProfitFactor": 3.372715634880383,
+          "positiveRate": 0.6363636363636364
+        }
+      }
+    },
+    "fundingImpact": {
+      "totalFundingBps": -15.953880696268154,
+      "meanFundingBps": -0.37102048130856174,
+      "negativeFundingRows": 16,
+      "note": "realized funding is evaluation data, never a model feature"
+    },
+    "interpretation": {
+      "baseToStress": "The 9 bps cost increase from 18 to 27 exceeds the 5.2378 bps base net expectancy, mechanically moving the point estimate to -3.7622 bps before any model filtering.",
+      "lossStreak": "The chronological holdout contains a 12-loss terminal streak; the streak is descriptive evidence only and is not used to filter rows.",
+      "stopLosses": "Every ATR_STOP row in this holdout is net-negative; this is an exit decomposition, not a causal pre-entry feature.",
+      "featureSignal": "Current immutable rows expose channel distance, but all rows share BUY/BULL. Regime and side cannot discriminate in this sample; the broader feature catalog is unavailable and is not backfilled."
+    }
+  },
+  "oof": {
+    "folds": [
+      {
+        "fold": 1,
+        "trainingRows": 2,
+        "validationRows": 5,
+        "validationStart": "2026-08-21T09:00:00.000Z",
+        "purgeCutoff": "2026-08-17T09:00:00.000Z",
+        "embargoCutoff": "2026-08-20T09:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      },
+      {
+        "fold": 2,
+        "trainingRows": 2,
+        "validationRows": 5,
+        "validationStart": "2026-08-21T09:00:00.000Z",
+        "purgeCutoff": "2026-08-17T09:00:00.000Z",
+        "embargoCutoff": "2026-08-20T09:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      },
+      {
+        "fold": 3,
+        "trainingRows": 2,
+        "validationRows": 5,
+        "validationStart": "2026-08-21T22:00:00.000Z",
+        "purgeCutoff": "2026-08-17T22:00:00.000Z",
+        "embargoCutoff": "2026-08-20T22:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      },
+      {
+        "fold": 4,
+        "trainingRows": 2,
+        "validationRows": 5,
+        "validationStart": "2026-08-21T23:00:00.000Z",
+        "purgeCutoff": "2026-08-17T23:00:00.000Z",
+        "embargoCutoff": "2026-08-20T23:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      },
+      {
+        "fold": 5,
+        "trainingRows": 2,
+        "validationRows": 5,
+        "validationStart": "2026-08-22T03:00:00.000Z",
+        "purgeCutoff": "2026-08-18T03:00:00.000Z",
+        "embargoCutoff": "2026-08-21T03:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      },
+      {
+        "fold": 6,
+        "trainingRows": 2,
+        "validationRows": 5,
+        "validationStart": "2026-08-22T04:00:00.000Z",
+        "purgeCutoff": "2026-08-18T04:00:00.000Z",
+        "embargoCutoff": "2026-08-21T04:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      },
+      {
+        "fold": 7,
+        "trainingRows": 2,
+        "validationRows": 1,
+        "validationStart": "2026-08-22T05:00:00.000Z",
+        "purgeCutoff": "2026-08-18T05:00:00.000Z",
+        "embargoCutoff": "2026-08-21T05:00:00.000Z",
+        "fit": "INSUFFICIENT_TRAINING_ROWS"
+      }
+    ],
+    "predictionCount": 0,
+    "acceptedCount": 0,
+    "rejectedCount": 43,
+    "noOofCount": 43,
+    "calibration": {
+      "status": "EMPTY_SAMPLE_NOT_EVALUABLE"
+    },
+    "predictions": []
+  },
+  "filteredMetrics": {
+    "count": 0,
+    "riskMetricStatus": "EMPTY_SAMPLE_NOT_EVALUABLE",
+    "net18ExpectancyBps": null,
+    "net27ExpectancyBps": null,
+    "net36ExpectancyBps": null,
+    "net18ProfitFactor": null,
+    "net27ProfitFactor": null,
+    "net36ProfitFactor": null,
+    "maxSingleTradeAdverseExcursionFraction": null,
+    "singleTradeAdverseExcursionMethod": "NOT_EVALUABLE_EMPTY_SAMPLE",
+    "portfolioMtmDrawdownFraction": null,
+    "portfolioMtmStatus": "NOT_RECONSTRUCTED",
+    "tradeLossCvar95Bps": null,
+    "tradeLossCvar95Fraction": null,
+    "portfolioCvar95": null,
+    "portfolioCvarStatus": "NOT_RECONSTRUCTED",
+    "maxLossStreak": null,
+    "netPnlWithoutBestTrade": null,
+    "netPnlWithoutBestMonth": null,
+    "positiveMonths": null,
+    "distinctSymbols": 0,
+    "largestSymbolShare": null
+  },
+  "acceptedBreakdown": {
+    "bySymbol": {},
+    "byRegime": {}
+  },
+  "candidateFrequency": {
+    "sourceCandidates": 43,
+    "sourcePer30Days": 24.339622641509436,
+    "acceptedPer30Days": 0,
+    "targetRangePer30Days": [
+      5,
+      15
+    ]
+  },
+  "bootstrap": {
+    "baseline": {
+      "method": "chronological block bootstrap",
+      "blockSizeRows": 3,
+      "iterations": 5000,
+      "seed": 290029,
+      "confidence": 0.95,
+      "metrics": {
+        "net18ExpectancyBps": {
+          "lower": -148.7118773153915,
+          "median": 1.562246519896937,
+          "upper": 167.91534236991743
+        },
+        "net27ExpectancyBps": {
+          "lower": -157.7118773153915,
+          "median": -7.437753480103067,
+          "upper": 158.9153423699174
+        },
+        "net36ExpectancyBps": {
+          "lower": -166.7118773153915,
+          "median": -16.437753480103055,
+          "upper": 149.91534236991743
+        },
+        "profitFactor18": {
+          "lower": 0.4543121151881789,
+          "median": 1.1334153581073072,
+          "upper": 2.9904991958588747
+        },
+        "maxSingleTradeAdverseExcursionFraction": {
+          "lower": 0.005494860314474601,
+          "median": 0.01289062499999999,
+          "upper": 0.01289062499999999
+        },
+        "maxLossStreak": {
+          "lower": 4,
+          "median": 12,
+          "upper": 22
+        }
+      }
+    },
+    "filtered": {
+      "iterations": 0,
+      "status": "EMPTY_SAMPLE_NOT_EVALUABLE"
+    }
+  },
+  "researchGate": {
+    "status": "NOT_READY",
+    "reasons": [
+      "validated signal and calendar-day minimums are not met",
+      "current source is a reused HY-EXP-0028 holdout and is not independent evidence",
+      "fresh holdout has not been created",
+      "paper forward gate has not been run",
+      "current source feature coverage is incomplete for the broader candidate feature catalog",
+      "PORTFOLIO_MTM_NOT_RECONSTRUCTED",
+      "PORTFOLIO_CVAR_NOT_RECONSTRUCTED"
+    ],
+    "edgeUncertainty": "EDGE_UNCERTAIN",
+    "portfolioRiskRequired": true,
+    "portfolioRiskStatus": "NOT_RECONSTRUCTED"
+  },
+  "safety": {
+    "signalOnly": true,
+    "paperOnly": true,
+    "liveOrdersEnabled": false,
+    "accountApi": false,
+    "orderApi": false,
+    "automaticTrading": false,
+    "gmailSendEnabled": false,
+    "schedulerActivated": false,
+    "realEmailSent": false,
+    "finalOosRead": false
+  }
+}

@@ -11,6 +11,7 @@
     "test": "node --test --test-isolation=none tests/*.test.mjs",
     "registry:verify": "node scripts/registry.mjs verify",
     "preflight:hy-exp-0028": "node scripts/hy-exp-0028-release-preflight.mjs",
+    "research:hy-exp-0029": "node scripts/hy-exp-0029-meta-filter.mjs",
     "audit:h8": "node scripts/performance-audit.mjs --write",
     "h9:proxy:download": "node --use-env-proxy scripts/h9-proxy.mjs download",
     "h9:proxy:run": "node scripts/h9-proxy.mjs run",

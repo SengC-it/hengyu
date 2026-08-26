@@ -1,0 +1,290 @@
+{
+  "experiment_id": "HY-EXP-0030",
+  "title": "Large-sample bidirectional profitability development",
+  "declared_date": "2026-08-26",
+  "status": "PREREGISTERED",
+  "evidence_class": "D3_DEVELOPMENT_WALK_FORWARD_ONLY",
+  "authorization": "PAPER_ONLY",
+  "purpose": "Build a large causal development dataset and evaluate one frozen primary Ridge profitability/meta-filter specification without reading a fresh holdout.",
+  "pre_outcome_lock": {
+    "candidate_rules_locked": true,
+    "features_locked": true,
+    "costs_locked": true,
+    "primary_model_locked": true,
+    "thresholds_locked": true,
+    "walk_forward_locked": true,
+    "promotion_gates_locked": true,
+    "outcomes_read": false,
+    "pnl_computed": false,
+    "final_oos_read": false,
+    "development_allowed": true,
+    "reopen_rule": "Any post-outcome specification change voids HY-EXP-0030 and requires a new experiment ID."
+  },
+  "source_boundary": {
+    "hy_exp_0028_candidate_generator": "Immutable historical benchmark only; it is not the 50-symbol generator and its holdout is not independent validation for HY-EXP-0030.",
+    "hy_exp_0028_holdout_as_independent_validation": false,
+    "historical_backfill_to_repair_features": false,
+    "final_oos": "Not read and not created in this phase."
+  },
+  "development_window": {
+    "start": "2024-08-26T00:00:00Z",
+    "end_exclusive": "2026-08-26T00:00:00Z",
+    "target_calendar_days": 730,
+    "hard_minimum_calendar_days": 365,
+    "preferred_calendar_days": 730,
+    "candidate_eligibility_after_warmup_only": true
+  },
+  "historical_required_data": {
+    "status": "DATA_AVAILABILITY_AUDIT_REQUIRED",
+    "core_streams": {
+      "usd_m_contract_klines": ["5m", "1h", "4h"],
+      "usd_m_mark_price_klines": ["5m"],
+      "funding_history": true,
+      "quote_volume_and_trade_count": "Causal completed contract klines only",
+      "pit_archive_membership": true
+    },
+    "not_required_historically": ["openInterestHist", "native L2 depth"],
+    "prospective_only": {
+      "open_interest": true,
+      "native_l2_depth_execution_validation": true
+    },
+    "sources": [
+      "Binance public USD-M historical archives",
+      "https://fapi.binance.com/fapi/v1/klines",
+      "https://fapi.binance.com/fapi/v1/markPriceKlines",
+      "https://fapi.binance.com/fapi/v1/fundingRate",
+      "Archived symbol/contract metadata with provenance"
+    ],
+    "quality_rule": "Missing coverage, non-causal timestamps, unverifiable contract identity, or missing PIT membership is recorded and fails the affected row/cohort; no current exchangeInfo or surviving-symbol list may backfill history."
+  },
+  "universe": {
+    "cohorts": {
+      "FIXED_8_BASELINE": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "LINKUSDT", "LTCUSDT"],
+      "PIT_EXPANDED": {
+        "maximum_symbols": 50,
+        "quote_asset": "USDT",
+        "contract_type": "PERPETUAL",
+        "listing_age_days_at_least": 30,
+        "membership_rule": "Reconstruct decisionTime membership from archive presence, first native historical bars, contract identity/status and continuous coverage; do not use current exchangeInfo alone.",
+        "unknown_identity_action": "EXCLUDE_WITH_REASON",
+        "unreconstructable_cohort_action": "Record EXPANDED_UNIVERSE_NOT_EVALUABLE and continue FIXED_8_BASELINE without claiming PIT success."
+      }
+    },
+    "survivorship_bias_policy": "No symbol is selected because it survives today; membership and exclusion are point-in-time and auditable."
+  },
+  "candidate_generators": {
+    "HY-EXP-0028_BULL_BUY_BENCHMARK": {
+      "status": "IMMUTABLE_BENCHMARK",
+      "source_commit": "a61cb20318af1e0b188c0276a1a3d65e52bc4467",
+      "rule": "Use frozen HY-EXP-0028 semantics without changing its Q75, entry, exit, universe, or historical evidence."
+    },
+    "HY-EXP-0030_BULL": {
+      "side": "BUY",
+      "regime": "BULL",
+      "regime_formula": "BTCUSDT completed 4h close > prior 180 completed 4h SMA AND at least 62.5% of PIT-eligible symbols close above their own prior 180 completed 4h SMA.",
+      "breakout_formula": "Candidate completed 1h close > highest high of its prior 120 completed 1h bars; current bar is excluded from the channel."
+    },
+    "HY-EXP-0030_BEAR": {
+      "side": "SELL",
+      "regime": "BEAR",
+      "regime_formula": "BTCUSDT completed 4h close < prior 180 completed 4h SMA AND at least 62.5% of PIT-eligible symbols close below their own prior 180 completed 4h SMA.",
+      "breakdown_formula": "Candidate completed 1h close < lowest low of its prior 120 completed 1h bars; current bar is excluded from the channel."
+    },
+    "SIDEWAYS": {
+      "status": "NO_TRADE_CONTEXT",
+      "rule": "If neither frozen Bull nor frozen Bear regime/breakout rule passes, emit context only and no candidate."
+    },
+    "threshold_policy": "All formulas and thresholds are fixed before outcome reads; no threshold lowering or post-outcome rule selection."
+  },
+  "entry_exit": {
+    "entry": "Exact contract-price 5m OPEN at decisionTime + 5 minutes; the target bar must match exactly.",
+    "missing_target_bar": "INVALID_CANDIDATE",
+    "later_bar_rescue": false,
+    "future_interpolation": false,
+    "atr_definition": "ATR20 from completed 1h true ranges available at decisionTime.",
+    "BUY": {
+      "initialStop": "entry - 2 * ATR20",
+      "dynamicExit": "First completed 1h close <= prior 60 completed 1h low"
+    },
+    "SELL": {
+      "initialStop": "entry + 2 * ATR20",
+      "dynamicExit": "First completed 1h close >= prior 60 completed 1h high"
+    },
+    "terminalExit": "After 6 completed evaluation 1h bars",
+    "event_order": "Use the first valid stop, dynamic exit, or terminal exit event; no outcome-selected exit."
+  },
+  "costs": {
+    "base_bps": 18,
+    "stress_bps": 27,
+    "severe_bps": 36,
+    "all_in_execution_budget_components": ["fees", "spread", "slippage", "latency", "market_impact"],
+    "realized_funding_separate": true,
+    "funding_rule": "Add true directional realized funding to PnL separately; do not replace it with predicted funding.",
+    "historical_l2_absence": "Must not lower any cost budget; native L2 is reserved for prospective execution validation."
+  },
+  "feature_snapshot": {
+    "availability": "Every feature is frozen at decisionTime or earlier; missing, late, non-finite, or non-PIT input invalidates the candidate.",
+    "directional_normalization": "Directional features are positive when supportive of the candidate; SELL multiplies the signed raw feature by sideSign=-1 and BUY uses sideSign=+1.",
+    "features": {
+      "channelDistance": "Signed bps distance from the prior 120-bar directional Donchian boundary.",
+      "atrPercent": "ATR20 divided by decision close, percent.",
+      "realizedVolatility": "Standard deviation of prior 24 completed 1h log returns multiplied by sqrt(24), percent.",
+      "trendSlope1h": "OLS slope of prior 24 completed 1h log closes, bps per hour.",
+      "trendSlope4h": "OLS slope of prior 30 completed 4h log closes, bps per 4h bar.",
+      "btcAlignment": "Directional sign agreement between candidate and BTC prior 24h returns.",
+      "relativeStrengthVsBTC": "Candidate minus BTC prior 24h return, bps, directionally signed.",
+      "volumeExpansion": "Current completed 1h quoteVolume / prior 24 completed 1h quoteVolume mean - 1.",
+      "fundingRateAtDecision": "Latest settled funding rate with fundingTime <= decisionTime.",
+      "fundingChange": "Latest settled funding rate minus the immediately previous settled rate, both known at decisionTime.",
+      "distanceFromRecentHighLow": "Directional bps distance from the relevant high/low over the prior 24 completed 1h bars.",
+      "breakoutPersistence": "Count of the last 3 completed 1h closes beyond the prior 120-bar directional boundary.",
+      "shortTermMomentum": "Prior 6 completed 1h return, directionally signed.",
+      "marketBreadth": "Directional fraction of PIT-eligible symbols above/below SMA60.",
+      "crossSymbolBreadth": "Fraction of PIT-eligible symbols in the same directional channel state.",
+      "turnoverLiquidity": "log1p(sum of prior 24 completed 1h quoteVolume).",
+      "tradeActivity": "log1p(sum of prior 24 completed 1h tradeCount).",
+      "volatilityShock": "Prior 6 completed 1h volatility / prior 30 completed 1h volatility - 1.",
+      "utcHourSin": "sin(2*pi*fractionalUTC hour/24).",
+      "utcHourCos": "cos(2*pi*fractionalUTC hour/24).",
+      "sideSign": "+1 for BUY and -1 for SELL."
+    },
+    "forbidden": ["exit", "future funding", "future price", "MAE", "MFE", "realized PnL", "post-outcome feature", "liquidityDepthProxy"],
+    "historical_prospective_separation": {
+      "openInterest": "PROSPECTIVE_ONLY_FEATURE",
+      "nativeDepthWithin10Bps": "PROSPECTIVE_ONLY_EXECUTION_VALIDATION",
+      "spreadBps": "PAPER_FORWARD_ONLY",
+      "observedSlippageBps": "PAPER_FORWARD_ONLY"
+    },
+    "required_coverage": 1.0
+  },
+  "pre_outcome_dataset_gate": {
+    "calendar_coverage_days_at_least": 365,
+    "raw_candidates_at_least": 300,
+    "BUY_candidates_at_least": 100,
+    "SELL_candidates_at_least": 100,
+    "failure_status": "DATASET_INSUFFICIENT",
+    "allowed_before_outcome_read": "Candidate timestamps and counts only.",
+    "threshold_change_on_failure": false
+  },
+  "primary_model": {
+    "name": "RIDGE_LOGISTIC_CONDITIONAL_RETURN_EDGE",
+    "promotion_authorized": true,
+    "l2_lambda": 1,
+    "learning_rate": 0.05,
+    "iterations": 800,
+    "minimum_training_candidates": 150,
+    "target": "P(net18 > 0)",
+    "conditional_edges": "Estimate conditional positive and negative net18 returns inside the training fold, then combine by pPositive.",
+    "conservative_edge": "expectedNet - 1.96 * training residual standard error",
+    "grades": {
+      "A+": "pPositive >= 0.65 AND conservativeNet36 > 0",
+      "A": "pPositive >= 0.55 AND conservativeNet27 > 0",
+      "B": "conservativeNet18 > 0",
+      "REJECT": "otherwise"
+    },
+    "accepted_sample": "Only A+ and A; B is PAPER observation only.",
+    "post_outcome_optimization": false
+  },
+  "secondary_benchmarks": {
+    "NO_FILTER": {"diagnostic_only": true},
+    "RULE_SCORECARD": {
+      "diagnostic_only": true,
+      "directional_feature_count": 18,
+      "accept_score_at_least": 10
+    },
+    "SHALLOW_GBT": {
+      "diagnostic_only": true,
+      "estimators": 50,
+      "max_depth": 2,
+      "learning_rate": 0.05,
+      "min_samples_leaf": 20,
+      "random_seed": 300030
+    },
+    "winner_selection": "A profitable diagnostic GBT cannot replace a failed primary Ridge; a future GBT promotion requires a new preregistered experiment."
+  },
+  "walk_forward": {
+    "split": "Expanding time-series walk-forward",
+    "first_validation_requires_days": 180,
+    "first_validation_requires_candidates": 150,
+    "validation_block_calendar_days": 30,
+    "purge_hours": 48,
+    "embargo_hours": 24,
+    "oof_only": true,
+    "random_split": false,
+    "minimum_oof_predictions": 150,
+    "minimum_accepted_oof_signals": 60,
+    "no_retraining_after_holdout": true
+  },
+  "portfolio_risk": {
+    "research_capital_usdt": 100000,
+    "loss_at_stop_risk_per_position_fraction": 0.0025,
+    "loss_at_stop_risk_per_position_usdt": 250,
+    "gross_exposure_cap_fraction": 0.25,
+    "symbol_exposure_cap_fraction": 0.05,
+    "max_concurrent_positions": 8,
+    "position_size_timing": "Determine size at decision/entry from stop distance and frozen caps; never use outcome information.",
+    "mark_series": "Use completed 5m markPriceKlines for all open positions on one unified timestamp equity curve.",
+    "equity_components": ["realizedPnL", "unrealizedMarkPnL", "funding", "reservedCosts", "realizedCosts"],
+    "required_portfolio_mtm": true,
+    "portfolio_cvar": "Compute 95% Expected Shortfall from daily portfolio equity returns.",
+    "cvar_minimum_daily_observations": 60,
+    "cvar_insufficient_status": "INSUFFICIENT_OBSERVATIONS",
+    "single_trade_proxy_substitution": false
+  },
+  "promotion_gates": {
+    "calendar_coverage_days_at_least": 365,
+    "oof_predictions_at_least": 150,
+    "accepted_oof_signals_at_least": 60,
+    "net18_expectancy_bps_at_least": 8,
+    "net18_pf_at_least": 1.25,
+    "net27_expectancy_bps_at_least": 2,
+    "net27_pf_at_least": 1.1,
+    "net36_expectancy_bps_greater_than": 0,
+    "portfolio_mtm_drawdown_fraction_at_most": 0.08,
+    "portfolio_cvar_required": true,
+    "max_loss_streak_at_most": 6,
+    "net_pnl_without_best_trade_greater_than": 0,
+    "net_pnl_without_best_month_greater_than": 0,
+    "distinct_symbols_at_least": 6,
+    "largest_symbol_share_at_most": 0.3,
+    "BUY_accepted_at_least": 20,
+    "SELL_accepted_at_least": 20,
+    "BUY_net27_expectancy_greater_than": 0,
+    "SELL_net27_expectancy_greater_than": 0,
+    "active_calendar_months_at_least": 6,
+    "missing_required_risk_status": "NOT_READY"
+  },
+  "bootstrap": {
+    "method": "calendar-time block bootstrap",
+    "block_length_calendar_days": 7,
+    "iterations": 5000,
+    "seed": 300030,
+    "confidence": 0.95,
+    "metrics": ["net18ExpectancyBps", "net27ExpectancyBps", "net36ExpectancyBps", "PF18", "portfolioMtmDrawdownFraction", "maxLossStreak"],
+    "hard_gate": "95% lower bound of net27 expectancy > 0; otherwise EDGE_UNCERTAIN and NOT_READY."
+  },
+  "calibration": {
+    "source": "OOF only",
+    "metrics": ["Brier score", "probability calibration buckets", "Spearman rank correlation"],
+    "report_by_grade": ["A+", "A", "B", "REJECT"],
+    "in_sample_calibration_as_promotion_evidence": false
+  },
+  "future_holdout": {
+    "experiment_id": null,
+    "status": "NOT_CREATED",
+    "rule": "Only after all HY-EXP-0030 development gates pass may a new preregistered future fresh-holdout experiment be proposed."
+  },
+  "safety": {
+    "signal_only": true,
+    "paper_only": true,
+    "gmail_send_enabled": false,
+    "scheduler_activated": false,
+    "real_email_sent": false,
+    "automatic_trading": false,
+    "account_api": false,
+    "order_api": false,
+    "final_oos_read": false,
+    "production_deploy": false,
+    "workflow_dispatch": false
+  }
+}
