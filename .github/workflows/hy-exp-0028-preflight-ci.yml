@@ -1,4 +1,5 @@
 name: HY-EXP-0028 Preflight CI
+# CI trigger marker for PR #23
 
 on:
   push:
