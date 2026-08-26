@@ -7,6 +7,7 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT = path.resolve(SCRIPT_DIR, '..');
 const ZERO_HASH = '0'.repeat(64);
 const FINAL_EVENTS = new Set(['completed', 'failed']);
+const REGISTERABLE_ID = /^HY-(?:EXP|DATA)-\d{4}$/;
 
 export function canonicalJson(value) {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
@@ -97,7 +98,7 @@ function validateTransition(entries, experimentId, eventType) {
     }
     return;
   }
-  if (!/^HY-EXP-\d{4}$/.test(experimentId)) {
+  if (!REGISTERABLE_ID.test(experimentId)) {
     throw new Error(`invalid experiment id: ${experimentId}`);
   }
   const events = entries

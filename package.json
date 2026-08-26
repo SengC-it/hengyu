@@ -57,6 +57,7 @@
     "forward:ledger": "node scripts/forward-ledger.mjs",
     "forward:validate": "node scripts/forward-validate.mjs",
     "forward:quality": "node scripts/forward-quality.mjs",
+    "data:hy-0036:plan": "node scripts/hy-data-0036-collector.mjs --plan",
     "h9:replay": "node scripts/h9-replay.mjs",
     "worker:live": "node --use-env-proxy scripts/live-worker.mjs",
     "worker:h12": "node --use-env-proxy scripts/live-h12-worker.mjs"

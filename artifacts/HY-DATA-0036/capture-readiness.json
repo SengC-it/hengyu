@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_DATA_0036_CAPTURE_READINESS",
+  "immutable": true,
+  "datasetId": "HY-DATA-0036",
+  "status": "PREPARATION_ONLY_NOT_COLLECTED",
+  "preregistration": {
+    "path": "registry/experiments/HY-DATA-0036/preregistration.json",
+    "sha256": "783bb91592e0ed091fb7084069ae7952d771d40177925fd3f8fd0c17ce62b0a3"
+  },
+  "collectionStartAt": null,
+  "collectionStartAtMustBePersistedBeforeFirstConnection": true,
+  "dataCollected": false,
+  "engineeringDryRun": false,
+  "developmentEligible": false,
+  "outcomesRead": false,
+  "pnlComputed": false,
+  "futureFeatureFamilies": "FEATURE_FAMILY_RESERVED_ONLY",
+  "qualityGateStatus": "NOT_EVALUABLE_BEFORE_COLLECTION",
+  "qualityTargets": {
+    "uptime": 0.99,
+    "bookValidCoverage": 0.98,
+    "aggTradeCoverage": 0.99,
+    "bookTickerCoverage": 0.99
+  },
+  "proposedDeployment": {
+    "target": "long-running-node-container",
+    "processSupervisor": "systemd-or-equivalent-restart-supervisor",
+    "vercelServerless": false,
+    "githubActionsAsCollector": false,
+    "durableStorage": "object-storage-for-sealed-raw-partitions-plus-supabase-postgres-feature-table",
+    "productionDeploymentExecuted": false
+  },
+  "safety": {
+    "PUBLIC_MARKET_DATA_ONLY": true,
+    "API_KEY_REQUIRED": false,
+    "ACCOUNT_API": false,
+    "ORDER_API": false,
+    "PRIVATE_STREAM": false,
+    "PAPER_ONLY": true,
+    "SIGNAL_ONLY": true,
+    "Gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "FinalOOSRead": false
+  }
+}
