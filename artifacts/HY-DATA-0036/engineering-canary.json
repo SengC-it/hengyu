@@ -1,0 +1,1708 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_DATA_0036_ENGINEERING_CANARY",
+  "datasetId": "HY-DATA-0036",
+  "mode": "ENGINEERING_DRY_RUN",
+  "runId": "canary-20260827-0036",
+  "runWindow": {
+    "start": "2026-08-26T23:44:40.811Z",
+    "end": "2026-08-26T23:45:25.841Z",
+    "durationMs": 45030
+  },
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT"
+  ],
+  "streams": [
+    {
+      "id": "aggTrade",
+      "endpoint": "market"
+    },
+    {
+      "id": "bookTicker",
+      "endpoint": "public"
+    },
+    {
+      "id": "depth20",
+      "endpoint": "public"
+    },
+    {
+      "id": "depth.diff",
+      "endpoint": "public"
+    },
+    {
+      "id": "markPrice",
+      "endpoint": "market"
+    },
+    {
+      "id": "forceOrder",
+      "endpoint": "market"
+    },
+    {
+      "id": "depth.snapshot",
+      "endpoint": "https://fapi.binance.com/fapi/v1/depth"
+    }
+  ],
+  "endpoints": {
+    "publicWebSocket": "wss://fstream.binance.com/public/stream",
+    "marketWebSocket": "wss://fstream.binance.com/market/stream",
+    "depthSnapshot": "https://fapi.binance.com/fapi/v1/depth"
+  },
+  "connections": [
+    {
+      "kind": "public",
+      "endpoint": "wss://fstream.binance.com/public/stream",
+      "connectionId": "canary-20260827-0036-public-1",
+      "connectedAt": 1787787882535,
+      "rotatedAt": null,
+      "disconnectedAt": 1787787919402,
+      "disconnectReason": "FAIL_CLOSED",
+      "reconnectCount": 0,
+      "controlMessages": 2,
+      "subscriptionConfirmed": true,
+      "subscriptionConfirmedAt": 1787787885430,
+      "socketHealthy": false,
+      "healthIntervals": [
+        {
+          "start": 1787787885430,
+          "end": 1787787919402
+        }
+      ],
+      "pingSent": 0,
+      "pongObserved": 0
+    },
+    {
+      "kind": "market",
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "connectionId": "canary-20260827-0036-market-2",
+      "connectedAt": 1787787882536,
+      "rotatedAt": null,
+      "disconnectedAt": 1787787919183,
+      "disconnectReason": "FAIL_CLOSED",
+      "reconnectCount": 0,
+      "controlMessages": 2,
+      "subscriptionConfirmed": true,
+      "subscriptionConfirmedAt": 1787787885129,
+      "socketHealthy": false,
+      "healthIntervals": [
+        {
+          "start": 1787787885129,
+          "end": 1787787919183
+        }
+      ],
+      "pingSent": 0,
+      "pongObserved": 0
+    }
+  ],
+  "perSymbol": {
+    "BTCUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 471,
+          "rawBytes": 14253,
+          "firstEventTime": 1787787885017,
+          "lastEventTime": 1787787911269,
+          "firstReceiveTime": 1787787885253,
+          "lastReceiveTime": 1787787911509,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 242,
+            "p95": 306,
+            "p99": 336,
+            "sampleSize": 471
+          }
+        },
+        "bookTicker": {
+          "eventCount": 8705,
+          "rawBytes": 177336,
+          "firstEventTime": 1787787885207,
+          "lastEventTime": 1787787911399,
+          "firstReceiveTime": 1787787885446,
+          "lastReceiveTime": 1787787911775,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 293,
+            "p95": 460,
+            "p99": 494,
+            "sampleSize": 8705
+          }
+        },
+        "depth20": {
+          "eventCount": 249,
+          "rawBytes": 21163,
+          "firstEventTime": 1787787885211,
+          "lastEventTime": 1787787911361,
+          "firstReceiveTime": 1787787885661,
+          "lastReceiveTime": 1787787911597,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 404,
+            "p99": 472,
+            "sampleSize": 249
+          }
+        },
+        "depth.diff": {
+          "eventCount": 257,
+          "rawBytes": 144830,
+          "firstEventTime": 1787787885209,
+          "lastEventTime": 1787787911321,
+          "firstReceiveTime": 1787787885657,
+          "lastReceiveTime": 1787787911564,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 406,
+            "p99": 467,
+            "sampleSize": 257
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1216,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885289,
+          "lastReceiveTime": 1787787911299,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 297,
+            "p95": 351,
+            "p99": 354,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 3,
+          "rawBytes": 25764,
+          "firstEventTime": 1787787899807,
+          "lastEventTime": 1787787909544,
+          "firstReceiveTime": 1787787899807,
+          "lastReceiveTime": 1787787909544,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 3
+          }
+        }
+      },
+      "depth": {
+        "symbol": "BTCUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 3,
+        "staleBufferedDropped": 236,
+        "alignmentFailures": 2,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 1,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": 1787787911564,
+        "validDurationMs": 9858,
+        "validSince": null,
+        "segmentId": 1,
+        "staleRanges": [
+          [
+            11398794951739,
+            11398796298468
+          ],
+          [
+            11398796298550,
+            11398797531445
+          ],
+          [
+            11398797531476,
+            11398797865842
+          ]
+        ],
+        "bufferedEventsPeak": 141,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 5,
+      "snapshotTooOldRetries": 2,
+      "featureCoverage": {
+        "secondsWithEvents": 28,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 17012
+    },
+    "ETHUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 487,
+          "rawBytes": 16006,
+          "firstEventTime": 1787787885033,
+          "lastEventTime": 1787787911400,
+          "firstReceiveTime": 1787787885267,
+          "lastReceiveTime": 1787787911645,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 241,
+            "p95": 317,
+            "p99": 337,
+            "sampleSize": 487
+          }
+        },
+        "bookTicker": {
+          "eventCount": 12848,
+          "rawBytes": 257150,
+          "firstEventTime": 1787787885198,
+          "lastEventTime": 1787787911400,
+          "firstReceiveTime": 1787787885435,
+          "lastReceiveTime": 1787787911780,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 291,
+            "p95": 453,
+            "p99": 537,
+            "sampleSize": 10000
+          }
+        },
+        "depth20": {
+          "eventCount": 253,
+          "rawBytes": 24871,
+          "firstEventTime": 1787787885223,
+          "lastEventTime": 1787787911301,
+          "firstReceiveTime": 1787787885696,
+          "lastReceiveTime": 1787787911541,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 410,
+            "p99": 481,
+            "sampleSize": 253
+          }
+        },
+        "depth.diff": {
+          "eventCount": 256,
+          "rawBytes": 158627,
+          "firstEventTime": 1787787885255,
+          "lastEventTime": 1787787911367,
+          "firstReceiveTime": 1787787885698,
+          "lastReceiveTime": 1787787911608,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 424,
+            "p99": 490,
+            "sampleSize": 256
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1176,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885289,
+          "lastReceiveTime": 1787787911299,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 297,
+            "p95": 351,
+            "p99": 354,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 1,
+          "rawBytes": 10827,
+          "firstEventTime": 1787787907443,
+          "lastEventTime": 1787787907443,
+          "firstReceiveTime": 1787787907443,
+          "lastReceiveTime": 1787787907443,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 1
+          }
+        }
+      },
+      "depth": {
+        "symbol": "ETHUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 1,
+        "staleBufferedDropped": 214,
+        "alignmentFailures": 2,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 2,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": null,
+        "validDurationMs": 0,
+        "validSince": null,
+        "segmentId": 2,
+        "staleRanges": [
+          [
+            11398794957663,
+            11398797607106
+          ]
+        ],
+        "bufferedEventsPeak": 214,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 5,
+      "snapshotTooOldRetries": 1,
+      "featureCoverage": {
+        "secondsWithEvents": 28,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 18503
+    },
+    "BNBUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 135,
+          "rawBytes": 5230,
+          "firstEventTime": 1787787887411,
+          "lastEventTime": 1787787911388,
+          "firstReceiveTime": 1787787887648,
+          "lastReceiveTime": 1787787911629,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 239,
+            "p95": 350,
+            "p99": 360,
+            "sampleSize": 135
+          }
+        },
+        "bookTicker": {
+          "eventCount": 2136,
+          "rawBytes": 49068,
+          "firstEventTime": 1787787885424,
+          "lastEventTime": 1787787911385,
+          "firstReceiveTime": 1787787885738,
+          "lastReceiveTime": 1787787911678,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 283,
+            "p95": 431,
+            "p99": 466,
+            "sampleSize": 2136
+          }
+        },
+        "depth20": {
+          "eventCount": 208,
+          "rawBytes": 17743,
+          "firstEventTime": 1787787885217,
+          "lastEventTime": 1787787911305,
+          "firstReceiveTime": 1787787885663,
+          "lastReceiveTime": 1787787911542,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 446,
+            "p99": 493,
+            "sampleSize": 208
+          }
+        },
+        "depth.diff": {
+          "eventCount": 237,
+          "rawBytes": 34637,
+          "firstEventTime": 1787787885209,
+          "lastEventTime": 1787787911371,
+          "firstReceiveTime": 1787787885657,
+          "lastReceiveTime": 1787787911609,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 417,
+            "p99": 488,
+            "sampleSize": 237
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1135,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885297,
+          "lastReceiveTime": 1787787911303,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 298,
+            "p95": 351,
+            "p99": 359,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 1,
+          "rawBytes": 9472,
+          "firstEventTime": 1787787901097,
+          "lastEventTime": 1787787901097,
+          "firstReceiveTime": 1787787901097,
+          "lastReceiveTime": 1787787901097,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 1
+          }
+        }
+      },
+      "depth": {
+        "symbol": "BNBUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 1,
+        "staleBufferedDropped": 137,
+        "alignmentFailures": 0,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 1,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": 1787787911609,
+        "validDurationMs": 18305,
+        "validSince": null,
+        "segmentId": 1,
+        "staleRanges": [
+          [
+            11398794951758,
+            11398796444887
+          ]
+        ],
+        "bufferedEventsPeak": 140,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 2,
+      "snapshotTooOldRetries": 0,
+      "featureCoverage": {
+        "secondsWithEvents": 27,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 8563
+    },
+    "SOLUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 243,
+          "rawBytes": 10846,
+          "firstEventTime": 1787787884927,
+          "lastEventTime": 1787787911409,
+          "firstReceiveTime": 1787787885165,
+          "lastReceiveTime": 1787787911645,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 236,
+            "p95": 253,
+            "p99": 309,
+            "sampleSize": 243
+          }
+        },
+        "bookTicker": {
+          "eventCount": 7054,
+          "rawBytes": 155764,
+          "firstEventTime": 1787787885183,
+          "lastEventTime": 1787787911400,
+          "firstReceiveTime": 1787787885431,
+          "lastReceiveTime": 1787787911780,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 274,
+            "p95": 427,
+            "p99": 472,
+            "sampleSize": 7054
+          }
+        },
+        "depth20": {
+          "eventCount": 248,
+          "rawBytes": 35923,
+          "firstEventTime": 1787787885243,
+          "lastEventTime": 1787787911301,
+          "firstReceiveTime": 1787787885698,
+          "lastReceiveTime": 1787787911541,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 404,
+            "p99": 483,
+            "sampleSize": 248
+          }
+        },
+        "depth.diff": {
+          "eventCount": 252,
+          "rawBytes": 74335,
+          "firstEventTime": 1787787885241,
+          "lastEventTime": 1787787911353,
+          "firstReceiveTime": 1787787885697,
+          "lastReceiveTime": 1787787911593,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 407,
+            "p99": 538,
+            "sampleSize": 252
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1158,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885431,
+          "lastReceiveTime": 1787787911304,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 301,
+            "p95": 360,
+            "p99": 431,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 1,
+          "rawBytes": 11989,
+          "firstEventTime": 1787787897383,
+          "lastEventTime": 1787787897383,
+          "firstReceiveTime": 1787787897383,
+          "lastReceiveTime": 1787787897383,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 1
+          }
+        }
+      },
+      "depth": {
+        "symbol": "SOLUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 1,
+        "staleBufferedDropped": 111,
+        "alignmentFailures": 0,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 1,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": 1787787911593,
+        "validDurationMs": 22019,
+        "validSince": null,
+        "segmentId": 1,
+        "staleRanges": [
+          [
+            11398794956441,
+            11398796080571
+          ]
+        ],
+        "bufferedEventsPeak": 115,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 1,
+      "snapshotTooOldRetries": 0,
+      "featureCoverage": {
+        "secondsWithEvents": 28,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 4854
+    },
+    "XRPUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 151,
+          "rawBytes": 6942,
+          "firstEventTime": 1787787884966,
+          "lastEventTime": 1787787911455,
+          "firstReceiveTime": 1787787885202,
+          "lastReceiveTime": 1787787911698,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 236,
+            "p95": 274,
+            "p99": 420,
+            "sampleSize": 151
+          }
+        },
+        "bookTicker": {
+          "eventCount": 4090,
+          "rawBytes": 98423,
+          "firstEventTime": 1787787885196,
+          "lastEventTime": 1787787911395,
+          "firstReceiveTime": 1787787885435,
+          "lastReceiveTime": 1787787911760,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 270,
+            "p95": 451,
+            "p99": 542,
+            "sampleSize": 4090
+          }
+        },
+        "depth20": {
+          "eventCount": 250,
+          "rawBytes": 31167,
+          "firstEventTime": 1787787885271,
+          "lastEventTime": 1787787911335,
+          "firstReceiveTime": 1787787885699,
+          "lastReceiveTime": 1787787911577,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 239,
+            "p95": 404,
+            "p99": 487,
+            "sampleSize": 250
+          }
+        },
+        "depth.diff": {
+          "eventCount": 255,
+          "rawBytes": 63047,
+          "firstEventTime": 1787787885267,
+          "lastEventTime": 1787787911397,
+          "firstReceiveTime": 1787787885699,
+          "lastReceiveTime": 1787787911763,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 402,
+            "p99": 484,
+            "sampleSize": 255
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1084,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885296,
+          "lastReceiveTime": 1787787911300,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 298,
+            "p95": 351,
+            "p99": 359,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 3,
+          "rawBytes": 35833,
+          "firstEventTime": 1787787905448,
+          "lastEventTime": 1787787911259,
+          "firstReceiveTime": 1787787905448,
+          "lastReceiveTime": 1787787911259,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 3
+          }
+        }
+      },
+      "depth": {
+        "symbol": "XRPUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 3,
+        "staleBufferedDropped": 250,
+        "alignmentFailures": 4,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 2,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": null,
+        "validDurationMs": 0,
+        "validSince": null,
+        "segmentId": 2,
+        "staleRanges": [
+          [
+            11398794958530,
+            11398797308683
+          ],
+          [
+            11398797309041,
+            11398797647623
+          ],
+          [
+            11398797649038,
+            11398798070334
+          ]
+        ],
+        "bufferedEventsPeak": 194,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 5,
+      "snapshotTooOldRetries": 3,
+      "featureCoverage": {
+        "secondsWithEvents": 28,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 18726
+    },
+    "DOGEUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 71,
+          "rawBytes": 3434,
+          "firstEventTime": 1787787886325,
+          "lastEventTime": 1787787911305,
+          "firstReceiveTime": 1787787886562,
+          "lastReceiveTime": 1787787911541,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 235,
+            "p95": 267,
+            "p99": 285,
+            "sampleSize": 71
+          }
+        },
+        "bookTicker": {
+          "eventCount": 2994,
+          "rawBytes": 77330,
+          "firstEventTime": 1787787885184,
+          "lastEventTime": 1787787911398,
+          "firstReceiveTime": 1787787885432,
+          "lastReceiveTime": 1787787911764,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 266,
+            "p95": 424,
+            "p99": 492,
+            "sampleSize": 2994
+          }
+        },
+        "depth20": {
+          "eventCount": 232,
+          "rawBytes": 26180,
+          "firstEventTime": 1787787885285,
+          "lastEventTime": 1787787911331,
+          "firstReceiveTime": 1787787885711,
+          "lastReceiveTime": 1787787911577,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 407,
+            "p99": 491,
+            "sampleSize": 232
+          }
+        },
+        "depth.diff": {
+          "eventCount": 234,
+          "rawBytes": 40929,
+          "firstEventTime": 1787787885285,
+          "lastEventTime": 1787787911327,
+          "firstReceiveTime": 1787787885710,
+          "lastReceiveTime": 1787787911564,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 239,
+            "p95": 421,
+            "p99": 461,
+            "sampleSize": 234
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1008,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885297,
+          "lastReceiveTime": 1787787911304,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 301,
+            "p95": 351,
+            "p99": 359,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 1,
+          "rawBytes": 11770,
+          "firstEventTime": 1787787902200,
+          "lastEventTime": 1787787902200,
+          "firstReceiveTime": 1787787902200,
+          "lastReceiveTime": 1787787902200,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 1
+          }
+        }
+      },
+      "depth": {
+        "symbol": "DOGEUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 1,
+        "staleBufferedDropped": 146,
+        "alignmentFailures": 0,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 1,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": 1787787911564,
+        "validDurationMs": 17202,
+        "validSince": null,
+        "segmentId": 1,
+        "staleRanges": [
+          [
+            11398794960523,
+            11398796713111
+          ]
+        ],
+        "bufferedEventsPeak": 147,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 2,
+      "snapshotTooOldRetries": 0,
+      "featureCoverage": {
+        "secondsWithEvents": 27,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 9666
+    },
+    "LINKUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 38,
+          "rawBytes": 2002,
+          "firstEventTime": 1787787886142,
+          "lastEventTime": 1787787911293,
+          "firstReceiveTime": 1787787886382,
+          "lastReceiveTime": 1787787911529,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 237,
+            "p95": 303,
+            "p99": 344,
+            "sampleSize": 38
+          }
+        },
+        "bookTicker": {
+          "eventCount": 770,
+          "rawBytes": 22006,
+          "firstEventTime": 1787787885990,
+          "lastEventTime": 1787787911400,
+          "firstReceiveTime": 1787787886228,
+          "lastReceiveTime": 1787787911780,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 265,
+            "p95": 400,
+            "p99": 516,
+            "sampleSize": 770
+          }
+        },
+        "depth20": {
+          "eventCount": 208,
+          "rawBytes": 18602,
+          "firstEventTime": 1787787885217,
+          "lastEventTime": 1787787911389,
+          "firstReceiveTime": 1787787885664,
+          "lastReceiveTime": 1787787911691,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 422,
+            "p99": 481,
+            "sampleSize": 208
+          }
+        },
+        "depth.diff": {
+          "eventCount": 215,
+          "rawBytes": 25244,
+          "firstEventTime": 1787787885212,
+          "lastEventTime": 1787787911386,
+          "firstReceiveTime": 1787787885661,
+          "lastReceiveTime": 1787787911680,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 238,
+            "p95": 421,
+            "p99": 490,
+            "sampleSize": 215
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1106,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885296,
+          "lastReceiveTime": 1787787911303,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 298,
+            "p95": 351,
+            "p99": 359,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 0,
+          "rawBytes": 0,
+          "firstEventTime": null,
+          "lastEventTime": null,
+          "firstReceiveTime": null,
+          "lastReceiveTime": null,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "sampleSize": 0
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 2,
+          "rawBytes": 23011,
+          "firstEventTime": 1787787905938,
+          "lastEventTime": 1787787911776,
+          "firstReceiveTime": 1787787905938,
+          "lastReceiveTime": 1787787911776,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 2
+          }
+        }
+      },
+      "depth": {
+        "symbol": "LINKUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 2,
+        "staleBufferedDropped": 215,
+        "alignmentFailures": 3,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 2,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": null,
+        "validDurationMs": 0,
+        "validSince": null,
+        "segmentId": 2,
+        "staleRanges": [
+          [
+            11398794952320,
+            11398797384383
+          ],
+          [
+            11398797390854,
+            11398798133159
+          ]
+        ],
+        "bufferedEventsPeak": 169,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 5,
+      "snapshotTooOldRetries": 2,
+      "featureCoverage": {
+        "secondsWithEvents": 27,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 19243
+    },
+    "LTCUSDT": {
+      "streams": {
+        "aggTrade": {
+          "eventCount": 20,
+          "rawBytes": 1232,
+          "firstEventTime": 1787787885414,
+          "lastEventTime": 1787787911025,
+          "firstReceiveTime": 1787787885651,
+          "lastReceiveTime": 1787787911265,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 236,
+            "p95": 306,
+            "p99": 358,
+            "sampleSize": 20
+          }
+        },
+        "bookTicker": {
+          "eventCount": 634,
+          "rawBytes": 16939,
+          "firstEventTime": 1787787885260,
+          "lastEventTime": 1787787911061,
+          "firstReceiveTime": 1787787885698,
+          "lastReceiveTime": 1787787911300,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 241,
+            "p95": 417,
+            "p99": 464,
+            "sampleSize": 634
+          }
+        },
+        "depth20": {
+          "eventCount": 171,
+          "rawBytes": 14433,
+          "firstEventTime": 1787787885361,
+          "lastEventTime": 1787787911331,
+          "firstReceiveTime": 1787787885733,
+          "lastReceiveTime": 1787787911576,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 239,
+            "p95": 418,
+            "p99": 480,
+            "sampleSize": 171
+          }
+        },
+        "depth.diff": {
+          "eventCount": 193,
+          "rawBytes": 18699,
+          "firstEventTime": 1787787885243,
+          "lastEventTime": 1787787911327,
+          "firstReceiveTime": 1787787885698,
+          "lastReceiveTime": 1787787911565,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 237,
+            "p95": 418,
+            "p99": 479,
+            "sampleSize": 193
+          }
+        },
+        "markPrice": {
+          "eventCount": 27,
+          "rawBytes": 1045,
+          "firstEventTime": 1787787885000,
+          "lastEventTime": 1787787911000,
+          "firstReceiveTime": 1787787885296,
+          "lastReceiveTime": 1787787911300,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 298,
+            "p95": 351,
+            "p99": 359,
+            "sampleSize": 27
+          }
+        },
+        "forceOrder": {
+          "eventCount": 1,
+          "rawBytes": 325,
+          "firstEventTime": 1787787886589,
+          "lastEventTime": 1787787886589,
+          "firstReceiveTime": 1787787886823,
+          "lastReceiveTime": 1787787886823,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 234,
+            "p95": 234,
+            "p99": 234,
+            "sampleSize": 1
+          }
+        },
+        "depth.snapshot": {
+          "eventCount": 1,
+          "rawBytes": 11956,
+          "firstEventTime": 1787787909003,
+          "lastEventTime": 1787787909003,
+          "firstReceiveTime": 1787787909003,
+          "lastReceiveTime": 1787787909003,
+          "rejectedNonUm": 0,
+          "sequenceGaps": 0,
+          "duplicates": 0,
+          "outOfOrder": 0,
+          "invalidSegments": 0,
+          "receiveLatencyMs": {
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "sampleSize": 1
+          }
+        }
+      },
+      "depth": {
+        "symbol": "LTCUSDT",
+        "status": "WAITING_SNAPSHOT",
+        "lastUpdateId": null,
+        "snapshotAttempts": 1,
+        "staleBufferedDropped": 172,
+        "alignmentFailures": 0,
+        "sequenceGaps": 0,
+        "duplicates": 0,
+        "outOfOrder": 0,
+        "crossedBooks": 0,
+        "bufferLimitFailures": 0,
+        "resyncs": 1,
+        "invalidSegments": 1,
+        "firstAppliedUpdateId": null,
+        "finalAppliedUpdateId": null,
+        "lastValidAt": 1787787911565,
+        "validDurationMs": 10399,
+        "validSince": null,
+        "segmentId": 1,
+        "staleRanges": [
+          [
+            11398794956711,
+            11398797812918
+          ]
+        ],
+        "bufferedEventsPeak": 173,
+        "bufferedEvents": 0
+      },
+      "snapshotAttempts": 4,
+      "snapshotTooOldRetries": 0,
+      "featureCoverage": {
+        "secondsWithEvents": 27,
+        "researchEligible": false,
+        "featureSinkWrites": 0
+      },
+      "alignmentLatencyMs": 16470
+    }
+  },
+  "diagnostics": {
+    "queueLimitFailures": 0,
+    "rawDurabilityFailures": 0,
+    "bufferLimitFailures": 0,
+    "snapshotAlignmentFailures": 11,
+    "snapshotAttempts": 29,
+    "resyncs": 8,
+    "controlledReconnects": 0,
+    "failures": [
+      "SNAPSHOT_ALIGNMENT_FAILED:ETHUSDT",
+      "SNAPSHOT_ALIGNMENT_FAILED:XRPUSDT",
+      "SNAPSHOT_ALIGNMENT_FAILED:LINKUSDT"
+    ],
+    "runtimeErrors": [
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "BTCUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "ETHUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "BNBUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "XRPUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "DOGEUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "LINKUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "LTCUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "ETHUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "XRPUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "LINKUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "LTCUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "BTCUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "ETHUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "LTCUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "LINKUSDT",
+        "error": "HTTP_418"
+      },
+      {
+        "stage": "DEPTH_SNAPSHOT",
+        "symbol": "ETHUSDT",
+        "error": "HTTP_418"
+      }
+    ],
+    "eventCount": 44782,
+    "rejectedNonUm": 0,
+    "featureTicks": 0,
+    "featureSinkWrites": 0,
+    "bufferedEventsPeak": 20,
+    "staleBufferedDropped": 1481,
+    "sequenceGaps": 0,
+    "crossedBooks": 0,
+    "invalidSegments": 11
+  },
+  "latency": {
+    "p50": 276,
+    "p95": 435,
+    "p99": 494
+  },
+  "clock": {
+    "status": "CLOCK_UNTRUSTED",
+    "source": "binance-time-endpoint-error",
+    "offsetMs": null,
+    "requestStartedAt": 1787787880813,
+    "receivedAt": 1787787882535
+  },
+  "quality": {
+    "socketHealthyCoverage": 0.7544303797468355,
+    "aggTradeCoverage": 0.7562513879635798,
+    "bookTickerCoverage": 0.7544303797468355,
+    "bookValidCoverage": 0,
+    "rawDurabilityCoverage": 1,
+    "thresholds": {
+      "socketHealthyCoverage": 0.99,
+      "aggTradeCoverage": 0.99,
+      "bookTickerCoverage": 0.99,
+      "bookValidCoverage": 0.98,
+      "rawDurabilityCoverage": 0.999
+    },
+    "gates": {
+      "socketHealthyCoverage": false,
+      "aggTradeCoverage": false,
+      "bookTickerCoverage": false,
+      "bookValidCoverage": false,
+      "rawDurabilityCoverage": true
+    },
+    "qualityGatePassed": false
+  },
+  "raw": {
+    "rootType": "ENGINEERING_DRY_RUN_ONLY",
+    "root": "C:\\Users\\CHI-HE\\AppData\\Local\\Temp\\engineering\\hy-data-0036\\canary-20260827-0036",
+    "manifestSha256": "3b504dc6d030a0d79dbd7cba16c91204c9a432535bc3f920505c22db69cf7ffb",
+    "manifestVerified": true,
+    "partitionCount": 49,
+    "allSealedManifestsVerify": true
+  },
+  "storage": {
+    "rawBytes": 1814266,
+    "bytesPerHour": 108855960,
+    "projectedRawBytes": {
+      "24d": 62701032960,
+      "30d": 78376291200,
+      "60d": 156752582400,
+      "90d": 235128873600
+    },
+    "availableBytes": 11882414080,
+    "requiredHeadroomBytes": 470257747200,
+    "twoX90DayHeadroom": false,
+    "status": "STORAGE_CAPACITY_BLOCKED"
+  },
+  "featureCoverage": {
+    "derivedIntervals": [
+      "1s",
+      "5s",
+      "1m"
+    ],
+    "persistedToPostgres": false,
+    "featureSinkWrites": 0,
+    "researchEligible": false
+  },
+  "collectionStartAt": null,
+  "formalCollectionActivated": false,
+  "status": "ENGINEERING_CANARY_FAIL",
+  "researchEligible": false,
+  "safety": {
+    "publicMarketDataOnly": true,
+    "apiKeyRequired": false,
+    "privateStream": false,
+    "accountApi": false,
+    "orderApi": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "finalOosRead": false,
+    "pnlComputed": false,
+    "researchEligible": false
+  }
+}

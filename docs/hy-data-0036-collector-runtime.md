@@ -94,6 +94,27 @@ capacity. Feature snapshots are deliberately not written to Supabase during
 the dry-run; only derived 1s/5s/1m snapshots are in scope for any future
 authorized feature store.
 
+## Canary result
+
+The first real eight-symbol run is preserved in
+`artifacts/HY-DATA-0036/engineering-canary.json` as
+`ENGINEERING_CANARY_FAIL`. It ran from `2026-08-26T23:44:40.811Z` to
+`2026-08-26T23:45:25.841Z` for `45,030` ms and stopped fail-closed after the
+Binance depth endpoint returned HTTP 418 during bounded snapshot attempts.
+The report's raw manifest and sealed partitions verify, with zero reported
+sequence gaps, crossed books, and buffer-limit failures; this does not make
+the canary ready because the 60-minute duration, depth alignment, quality,
+clock, and storage gates were not met. The observed storage forecast also
+reports `STORAGE_CAPACITY_BLOCKED`, and the Binance clock evidence is
+`CLOCK_UNTRUSTED`. Controlled reconnect was not reached before fail-closed.
+
+`HY-DATA-0036-ACT-001` is recorded in
+`artifacts/HY-DATA-0036/activation-preparation.json` only as a prepared,
+blocked, unactivated record. `collectionStartAt` remains `null`; no
+engineering raw data is research eligible, and no formal collection,
+feature-store write, PnL, or outcome read is permitted until a later approved
+run clears every gate.
+
 ## Operational deployment proposal
 
 Formal collection is not deployed by this change. Before a separate

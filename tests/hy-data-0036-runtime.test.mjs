@@ -293,3 +293,20 @@ test('controlled reconnect and fresh snapshot are part of runtime lifecycle, wit
   assert.equal(report.researchEligible, false);
   assert.equal(report.collectionStartAt, null);
 });
+
+test('activation preparation remains explicit, blocked, and never activates formal collection', async () => {
+  const preparation = JSON.parse(await fs.readFile(path.join(process.cwd(), 'artifacts/HY-DATA-0036/activation-preparation.json'), 'utf8'));
+  assert.equal(preparation.activationId, 'HY-DATA-0036-ACT-001');
+  assert.equal(preparation.prepared, true);
+  assert.equal(preparation.activated, false);
+  assert.equal(preparation.collectionStartAt, null);
+  assert.equal(preparation.formalCollectionActivated, false);
+  assert.equal(preparation.researchEligible, false);
+  assert.equal(preparation.engineeringCanary.status, 'ENGINEERING_CANARY_FAIL');
+  assert.equal(preparation.engineeringCanary.raw.manifestVerified, true);
+  assert.equal(preparation.safety.paperOnly, true);
+  assert.equal(preparation.safety.signalOnly, true);
+  assert.equal(preparation.safety.accountApi, false);
+  assert.equal(preparation.safety.orderApi, false);
+  assert.equal(preparation.safety.pnlComputed, false);
+});
