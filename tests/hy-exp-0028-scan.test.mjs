@@ -654,8 +654,7 @@ test('HY-EXP-0028 bundle configuration is explicit and keeps the scheduler inact
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
   assert.deepEqual(vercel.functions['api/hy-exp-0028-scan.js'], {
     regions: ['sin1'],
-    maxDuration: 120,
-    includeFiles: '../config/email-signal-cutover.json'
+    maxDuration: 120
   });
   assert.deepEqual(vercel.functions['api/h12-scan.mjs'], {
     regions: ['sin1'],
