@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0040",
+  "title": "Historical aggTrade order-flow email signal engine",
+  "declaredDate": "2026-08-27",
+  "status": "PREREGISTERED",
+  "experimentType": "DEVELOPMENT_AND_HISTORICAL_VALIDATION",
+  "authorization": "PAPER_ONLY",
+  "baseMainCommit": "ed182cd97111625d21c8d90cf3af7b7e6ef59091",
+  "purpose": "Test whether causal Binance USD-M public historical aggTrades add enough actionable order-flow information to produce a cost-adjusted email signal engine. This experiment does not alter HY-EXP-0039 or reuse its result for tuning.",
+  "priorExperiments": {
+    "HY-EXP-0037": {
+      "status": "INVALID_IMPLEMENTATION_RESULT_NOT_ACCEPTED",
+      "negativeResultMayNotBeReused": true
+    },
+    "HY-EXP-0038": {
+      "status": "INVALID_IMPLEMENTATION_RESULT_NOT_ACCEPTED",
+      "negativeResultMayNotBeReused": true
+    },
+    "HY-EXP-0039": {
+      "status": "NO_PROFITABLE_EMAIL_STRATEGY_FOUND",
+      "role": "Historical/reference evidence only; no parameter, feature, threshold, or outcome tuning.",
+      "specificationUnchanged": true
+    }
+  },
+  "conformanceRule": "HY-EXP-0040 may add only the preregistered causal public aggTrade order-flow data and the single preregistered logistic model. All candidate, reference-trade, cost, walk-forward, frequency, and promotion semantics are frozen before outcome read.",
+  "dataWindow": {
+    "full": {
+      "start": "2024-08-26T00:00:00Z",
+      "endExclusive": "2026-08-26T00:00:00Z",
+      "calendarDays": 730
+    },
+    "development": {
+      "start": "2024-08-26T00:00:00Z",
+      "endExclusive": "2025-08-26T00:00:00Z",
+      "minimumTrainingDays": 180
+    },
+    "historicalValidation": {
+      "start": "2025-08-26T00:00:00Z",
+      "endExclusive": "2026-08-26T00:00:00Z",
+      "validationType": "REGISTERED_HISTORICAL_VALIDATION_NOT_FINAL_OOS",
+      "previouslyObservedDisclosure": true,
+      "finalOosRead": false
+    },
+    "outcomeReadAllowedOnlyAfter": "PREREGISTRATION_COMMIT",
+    "freshHoldoutCreated": false,
+    "finalOosRead": false
+  },
+  "dataPolicy": {
+    "primarySource": "Binance official public USD-M Futures aggTrades archive",
+    "archiveBaseUrl": "https://data.binance.vision/data/futures/um",
+    "archivePatterns": [
+      "monthly/aggTrades/<SYMBOL>/<SYMBOL>-aggTrades-YYYY-MM.zip",
+      "daily/aggTrades/<SYMBOL>/<SYMBOL>-aggTrades-YYYY-MM-DD.zip only for a proven monthly gap"
+    ],
+    "requiredExistingSources": [
+      "Hash-locked contract-price 5m bars",
+      "Hash-locked mark-price 5m bars",
+      "Hash-locked realized funding events"
+    ],
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "historicalBackfill": true,
+    "backfillMeaning": "Registered historical archive acquisition is permitted only for the preregistered 2024-08-26 through 2026-08-26 window; no current or future data may fill a gap.",
+    "noSyntheticData": true,
+    "noInterpolation": true,
+    "noForwardFill": true,
+    "noPrivateApis": true,
+    "noApiKey": true,
+    "noOutcomeData": true,
+    "noFutureData": true,
+    "storage": {
+      "preference": "monthly first, daily only for a verified monthly gap",
+      "rawRetention": "Do not permanently retain the full decompressed raw archive; stream parse after checksum verification and remove only temporary raw ZIP/CSV after all derived evidence is written and hashed.",
+      "retainedEvidence": ["source manifest", "checksum evidence", "compact derived 1m features", "derived-feature manifest", "coverage and continuity evidence"]
+    },
+    "qualityFailure": "Any missing, unavailable, checksum-mismatched, malformed, duplicate, out-of-order, non-contiguous, out-of-window, or causally unproven source rejects the affected source and prevents a PASS. No silent repair."
+  },
+  "aggTradeSchema": {
+    "requiredFields": ["price", "quantity", "timestamp", "isBuyerMaker"],
+    "nativeFieldAliases": {
+      "price": "p",
+      "quantity": "q",
+      "timestamp": "T",
+      "isBuyerMaker": "m"
+    },
+    "optionalAuditFields": ["aggregateTradeId", "firstTradeId", "lastTradeId", "eventTime"],
+    "quoteNotional": "price * quantity",
+    "aggressorSide": {
+      "isBuyerMaker=true": "SELL",
+      "isBuyerMaker=false": "BUY"
+    },
+    "rawPreservation": true,
+    "ordering": "Strict timestamp ordering within each symbol and source partition; duplicate aggregate trade identity or timestamp ambiguity is invalid.",
+    "gapPolicy": "Known archive partition boundaries are checked against the official coverage calendar; an unexplained missing interval is DATA_FAIL and is never filled."
+  },
+  "causalAggregation": {
+    "baseInterval": "completed UTC 1 minute",
+    "availability": "Only trades with trade timestamp strictly before the completed 1m bucket close may enter that bucket; a feature at decisionTime may use only completed buckets with bucket closeTime less than or equal to decisionTime.",
+    "fields": [
+      "buyNotional",
+      "sellNotional",
+      "buyQty",
+      "sellQty",
+      "buyTradeCount",
+      "sellTradeCount",
+      "totalNotional",
+      "totalTrades",
+      "signedNotional",
+      "CVD"
+    ],
+    "signedNotional": "BUY quoteNotional minus SELL quoteNotional",
+    "CVD": "Cumulative signedNotional from the first valid source observation, never using future trades.",
+    "completedWindowOnly": true,
+    "missingWindowHandling": "Missing 1m buckets remain missing and invalidate any dependent candidate; no forward-fill, interpolation, zero-fill, or synthetic trade."
+  },
+  "largeTrade": {
+    "threshold": "Per-symbol P95 quoteNotional of the immediately prior completed 24h aggTrade distribution.",
+    "first24h": "large-trade features unavailable until a complete prior 24h distribution exists.",
+    "availability": "The threshold at decisionTime is calculated only from trades in completed buckets ending no later than decisionTime and strictly within the prior 24h window.",
+    "futureDistributionForbidden": true,
+    "fields": ["largeBuyNotional", "largeSellNotional", "largeTradeImbalance"]
+  },
+  "features": {
+    "frozenBeforeOutcome": true,
+    "orderFlowPrimary": {
+      "buySellNotionalImbalance": ["1m", "5m", "15m", "1h"],
+      "tradeCountImbalance": ["1m", "5m", "15m", "1h"],
+      "signedNotional": ["5m", "15m", "1h"],
+      "CVDChange": ["5m", "15m", "1h"],
+      "tradeIntensity": ["1m", "5m", "15m"],
+      "notionalIntensity": ["1m", "5m", "15m"],
+      "relativeTradeIntensity": "Against prior completed 24h baseline",
+      "relativeNotionalIntensity": "Against prior completed 24h baseline",
+      "largeTradeImbalance": ["5m", "15m", "1h"],
+      "flowAcceleration": ["1m_vs_prior5m", "5m_vs_prior1h"],
+      "priceImpactProxy": "Causal return divided by signedNotional with deterministic zero handling.",
+      "CVDPriceDivergence": true,
+      "aggressiveBuyExhaustionProxy": true,
+      "aggressiveSellExhaustionProxy": true,
+      "absorptionBuyProxy": true,
+      "absorptionSellProxy": true
+    },
+    "contextOnly": [
+      "ATR",
+      "realizedVolatility",
+      "fundingRate",
+      "markContractBasis",
+      "BTC return/regime"
+    ],
+    "forbidden": [
+      "future price",
+      "future trade",
+      "future threshold",
+      "future funding",
+      "outcome",
+      "MFE",
+      "MAE",
+      "synthetic value"
+    ],
+    "invalidHandling": "Missing, late, non-finite, non-PIT, or incomplete dependency invalidates the candidate; no feature imputation."
+  },
+  "universe": {
+    "fixedSymbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "pointInTime": true,
+    "survivorshipSelection": false,
+    "selectionFrozenBeforeOutcome": true,
+    "symbolChangePolicy": "No symbol may be added, removed, or rescued after outcome read."
+  },
+  "candidateGenerator": {
+    "name": "BROAD_BIDIRECTIONAL_15M_CAUSAL_AGGTRADE_CANDIDATES",
+    "decisionInterval": "Every eligible completed UTC 15m boundary",
+    "decisionBar": "Completed 15m contract-price bar",
+    "decisionTime": "Completed 15m close boundary",
+    "emission": "For every complete fixed symbol and eligible completed 15m decision emit exactly one independent BUY and one independent SELL raw candidate.",
+    "regime": "BULL, BEAR, and SIDEWAYS are context/features only; regime never suppresses a candidate.",
+    "sidewaysAction": "Retain SIDEWAYS context and emit both sides.",
+    "expectedCadenceMs": 900000,
+    "requiredInvariant": "BUY count equals SELL count for every symbol and eligible decision; coverageRatio must equal 1.0, medianDecisionGapMs must equal 900000, and unexpectedGap must equal 0.",
+    "noRegimeGate": true,
+    "noOutcomeFiltering": true
+  },
+  "referenceTrade": {
+    "signalTime": "Exactly decisionTime",
+    "entry": "First exact contract-price 5m OPEN at or after decisionTime; no later rescue and no historical fill substitution.",
+    "atr": "ATR20 from completed 1h contract-price bars available no later than decisionTime",
+    "BUY": {
+      "stop": "entry - 1.5 * ATR20",
+      "target": "entry + 2.5 * ATR20"
+    },
+    "SELL": {
+      "stop": "entry + 1.5 * ATR20",
+      "target": "entry - 2.5 * ATR20"
+    },
+    "maxHoldHours": 12,
+    "terminalRule": "At the bar whose openTime equals entryTime plus 12 hours, execute MAX_HOLD at bar open before reading high or low.",
+    "sameBarStopTarget": "STOP_FIRST",
+    "overlap": "Same-symbol active reference trade suppresses a new candidate; early exit releases the symbol for a later decision.",
+    "funding": "Apply realized funding events strictly inside entryTime < fundingTime < exitTime using actual side and mark price.",
+    "costs": {
+      "baseBps": 18,
+      "stressBps": 27,
+      "severeBps": 36,
+      "charge": "One frozen all-in execution cost budget per entry and exit fill; source-embedded costs are not charged twice."
+    },
+    "orders": false
+  },
+  "model": {
+    "name": "REGULARIZED_LOGISTIC_EDGE_MODEL",
+    "target": "reference trade net27Bps > 0",
+    "labels": {
+      "win": 1,
+      "loss": 0
+    },
+    "prediction": "probabilityOfPositiveNet27",
+    "payoffStatistics": "Training-fold only meanPositiveNet27 and meanNegativeNet27",
+    "predictedEdgeBps": "p * meanPositiveNet27 + (1 - p) * meanNegativeNet27",
+    "scaling": "Training-fold only mean/std; no validation or OOF scaling and no feature clipping.",
+    "lambdaGrid": [0.01, 0.1, 1, 10],
+    "onlyModel": true,
+    "forbiddenModels": ["GBT", "neural net", "random forest"],
+    "noRandomSplit": true,
+    "noPostValidationSelection": true
+  },
+  "walkForward": {
+    "method": "Expanding purged walk-forward with independent complete OOF by lambda",
+    "minimumTrainingDays": 180,
+    "validationBlockDays": 30,
+    "purgeHours": 24,
+    "embargoHours": 12,
+    "independentLambdaOof": true,
+    "mixedLambdaOof": false,
+    "selectionInput": "Development OOF only",
+    "randomSplit": false,
+    "inSamplePnl": false
+  },
+  "frequency": {
+    "targetSignalsPer30Days": 30,
+    "minimumSignalsPer30Days": 20,
+    "maximumSignalsPer30Days": 40,
+    "maximumSignalsPerDay": 2,
+    "sameSymbolCooldownHours": 12,
+    "sameDecisionConflict": "If BUY and SELL for the same symbol and decision both qualify, retain only the higher predicted edge with a deterministic tie-break.",
+    "crossSymbolRanking": "Rank eligible candidates by predicted edge at the decision boundary.",
+    "earlyExitReleasesSymbol": true
+  },
+  "developmentSelection": {
+    "grid": "For each lambda, empirical predicted-edge percentiles 90.0 through 99.9 inclusive at step 0.1.",
+    "percentileStart": 90.0,
+    "percentileEnd": 99.9,
+    "percentileStep": 0.1,
+    "eligibleIf": ["20-40 signals per 30 days", "net27 expectancy > 0", "PF27 >= 1.10"],
+    "requiredDiagnosticFields": [
+      "lambda",
+      "thresholdPercentile",
+      "thresholdBps",
+      "acceptedSignals",
+      "signalsPer30Days",
+      "BUY",
+      "SELL",
+      "net18ExpectancyBps",
+      "PF18",
+      "net27ExpectancyBps",
+      "PF27",
+      "net27Pnl",
+      "net36ExpectancyBps",
+      "PF36",
+      "portfolioMtmDrawdownFraction",
+      "ratePass",
+      "edgePass",
+      "pfPass",
+      "eligible"
+    ],
+    "selectionAfterOutcome": false,
+    "noGateLowering": true
+  },
+  "promotionGates": {
+    "development": {
+      "signalsPer30Days": [20, 40],
+      "net27ExpectancyBps": { "greaterThan": 0 },
+      "PF27": { "minimum": 1.1 }
+    },
+    "historical": {
+      "signals": [240, 480],
+      "signalsPer30Days": [20, 40],
+      "activeMonths": { "minimum": 10 },
+      "symbolBreadth": { "minimum": 6, "denominator": 8 },
+      "net27ExpectancyBps": { "minimum": 5 },
+      "PF27": { "minimum": 1.2 },
+      "net27Pnl": { "greaterThan": 0 },
+      "net36ExpectancyBps": { "greaterThan": 0 },
+      "portfolioMtmDrawdownFraction": { "maximum": 0.1 },
+      "portfolioMtmRequired": true,
+      "portfolioCvarRequired": true,
+      "maxLossStreak": { "maximum": 8 },
+      "positiveMonths": { "minimum": 7, "denominator": 12 },
+      "netPnlWithoutBest1": { "greaterThan": 0 },
+      "netPnlWithoutBest5": { "greaterThan": 0 },
+      "netPnlWithoutBestMonth": { "greaterThan": 0 },
+      "largestSymbolProfitContribution": { "maximum": 0.4 },
+      "largestMonthProfitContribution": { "maximum": 0.4 }
+    },
+    "bootstrapIsNotAGate": true,
+    "missingRiskStatus": "FAIL_CLOSED"
+  },
+  "bootstrap": {
+    "method": "Calendar-time block bootstrap",
+    "blockLengthDays": 7,
+    "iterations": 5000,
+    "seed": 400040,
+    "confidence": 0.95,
+    "diagnosticOnly": true,
+    "notUsedInHardGate": true
+  },
+  "historicalValidation": {
+    "onlyIfDevelopmentConfigFound": true,
+    "statusIfNoDevelopmentConfig": "NOT_RUN_NO_DEVELOPMENT_CONFIG",
+    "previouslyObservedDisclosure": true,
+    "finalOos": false,
+    "monthlyCausalRetraining": true,
+    "noHistoricalRetuning": true,
+    "fixedInputs": ["feature set", "lambda", "edge threshold", "frequency", "reference trade"]
+  },
+  "emailPreparation": {
+    "onlyIfHistoricalValidationPass": true,
+    "futureValidationExperimentId": "HY-FWD-0040-001",
+    "activated": false,
+    "emailPrepared": false,
+    "emailActivated": false,
+    "fields": ["symbol", "BUY/SELL", "signalTime", "signalGrade", "predictedEdge", "referencePrice", "referenceStop", "referenceTarget", "validUntil", "maxChase"],
+    "forbiddenFields": ["quantity", "leverage", "orderId", "automatic trading wording"],
+    "requiredDisclosures": ["SIGNAL ONLY", "NO ORDER PLACED", "POSITION SIZE IS MANUAL", "ENTRY DECISION IS MANUAL", "EXIT DECISION IS MANUAL"]
+  },
+  "safety": {
+    "PAPER_ONLY": true,
+    "SIGNAL_ONLY": true,
+    "AUTO_TRADING": false,
+    "ORDER_API": false,
+    "ACCOUNT_API": false,
+    "PRIVATE_STREAM": false,
+    "POSITION_MANAGER": false,
+    "balancesRead": false,
+    "positionsRead": false,
+    "gmailSendEnabled": false,
+    "schedulerActivated": false,
+    "realEmailSent": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  },
+  "freezeContract": {
+    "preregistrationBeforeOutcomeRead": true,
+    "candidateRulesFrozenBeforeOutcome": true,
+    "aggTradeSemanticsFrozenBeforeOutcome": true,
+    "featureSetFrozenBeforeOutcome": true,
+    "modelFrozenBeforeOutcome": true,
+    "costsFrozenBeforeOutcome": true,
+    "walkForwardFrozenBeforeOutcome": true,
+    "frequencyFrozenBeforeOutcome": true,
+    "promotionGatesFrozenBeforeOutcome": true,
+    "bootstrapDiagnosticOnly": true,
+    "noHistoricalTuning": true,
+    "noFinalOos": true,
+    "economicRuleChange": "VOID_EXPERIMENT_AND_REQUIRE_NEW_EXPERIMENT_ID"
+  }
+}

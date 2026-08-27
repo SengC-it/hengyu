@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0040_DATA_TRANSPORT_EVIDENCE",
+  "immutable": true,
+  "experimentId": "HY-EXP-0040",
+  "canonicalSource": "https://data.binance.vision/data/futures/um/<same-object-key>",
+  "transportOptions": [
+    "canonical",
+    "direct-s3"
+  ],
+  "benchmark": {
+    "sampleBytes": 8000000,
+    "minimumReasonableThroughputBytesPerSecond": 256000,
+    "totalCompressedBytes": 54941884652,
+    "samples": [
+      {
+        "symbol": "BTCUSDT",
+        "period": "2026-02",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "transportUrl": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "objectKey": "data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "expectedBytes": 1006713302,
+        "officialSha256": "7e7b0eb57ae1844421a6ff5f480c0173efd8a68736990d41c33afa34176ab3ca"
+      },
+      {
+        "symbol": "ETHUSDT",
+        "period": "2025-11",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "transportUrl": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "objectKey": "data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "expectedBytes": 1110070854,
+        "officialSha256": "c51b2fbafa8b69cd40136f67d37caad2736286f241cdff4d87c0118cbad85272"
+      },
+      {
+        "symbol": "LTCUSDT",
+        "period": "2026-08-09",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "transportUrl": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "objectKey": "data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "expectedBytes": 408107,
+        "officialSha256": "6742420c48e3bf9d90fdd30e443c05a9ff4a54f718c47e14ac8ce92fb706e5b3"
+      }
+    ],
+    "measurements": [
+      {
+        "endpoint": "canonical",
+        "symbol": "BTCUSDT",
+        "period": "2026-02",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "transportUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "objectKey": "data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "expectedBytes": 1006713302,
+        "officialSha256": "7e7b0eb57ae1844421a6ff5f480c0173efd8a68736990d41c33afa34176ab3ca",
+        "bytes": 8000000,
+        "elapsedMs": 19392,
+        "throughputBytesPerSecond": 412541.25412541255,
+        "status": 206,
+        "contentRange": "bytes 0-7999999/1006713302",
+        "rangeSupport": true,
+        "valid": true
+      },
+      {
+        "endpoint": "canonical",
+        "symbol": "ETHUSDT",
+        "period": "2025-11",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "transportUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "objectKey": "data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "expectedBytes": 1110070854,
+        "officialSha256": "c51b2fbafa8b69cd40136f67d37caad2736286f241cdff4d87c0118cbad85272",
+        "bytes": 8000000,
+        "elapsedMs": 59534,
+        "throughputBytesPerSecond": 134376.99465851445,
+        "status": 206,
+        "contentRange": "bytes 0-7999999/1110070854",
+        "rangeSupport": true,
+        "valid": true
+      },
+      {
+        "endpoint": "canonical",
+        "symbol": "LTCUSDT",
+        "period": "2026-08-09",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "transportUrl": "https://data.binance.vision/data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "objectKey": "data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "expectedBytes": 408107,
+        "officialSha256": "6742420c48e3bf9d90fdd30e443c05a9ff4a54f718c47e14ac8ce92fb706e5b3",
+        "bytes": 408107,
+        "elapsedMs": 10803,
+        "throughputBytesPerSecond": 37777.19152087383,
+        "status": 206,
+        "contentRange": "bytes 0-408106/408107",
+        "rangeSupport": true,
+        "valid": true
+      },
+      {
+        "endpoint": "direct-s3",
+        "symbol": "BTCUSDT",
+        "period": "2026-02",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "transportUrl": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "objectKey": "data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-02.zip",
+        "expectedBytes": 1006713302,
+        "officialSha256": "7e7b0eb57ae1844421a6ff5f480c0173efd8a68736990d41c33afa34176ab3ca",
+        "bytes": 8000000,
+        "elapsedMs": 39088,
+        "throughputBytesPerSecond": 204666.39377814162,
+        "status": 206,
+        "contentRange": "bytes 0-7999999/1006713302",
+        "rangeSupport": true,
+        "valid": true
+      },
+      {
+        "endpoint": "direct-s3",
+        "symbol": "ETHUSDT",
+        "period": "2025-11",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "transportUrl": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "objectKey": "data/futures/um/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+        "expectedBytes": 1110070854,
+        "officialSha256": "c51b2fbafa8b69cd40136f67d37caad2736286f241cdff4d87c0118cbad85272",
+        "bytes": 8000000,
+        "elapsedMs": 61691,
+        "throughputBytesPerSecond": 129678.5592712065,
+        "status": 206,
+        "contentRange": "bytes 0-7999999/1110070854",
+        "rangeSupport": true,
+        "valid": true
+      },
+      {
+        "endpoint": "direct-s3",
+        "symbol": "LTCUSDT",
+        "period": "2026-08-09",
+        "canonicalUrl": "https://data.binance.vision/data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "transportUrl": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "objectKey": "data/futures/um/daily/aggTrades/LTCUSDT/LTCUSDT-aggTrades-2026-08-09.zip",
+        "expectedBytes": 408107,
+        "officialSha256": "6742420c48e3bf9d90fdd30e443c05a9ff4a54f718c47e14ac8ce92fb706e5b3",
+        "bytes": 408107,
+        "elapsedMs": 7182,
+        "throughputBytesPerSecond": 56823.586744639375,
+        "status": 206,
+        "contentRange": "bytes 0-408106/408107",
+        "rangeSupport": true,
+        "valid": true
+      }
+    ],
+    "summaries": [
+      {
+        "endpoint": "canonical",
+        "sampleCount": 3,
+        "validSampleCount": 3,
+        "allSamplesValid": true,
+        "medianThroughputBytesPerSecond": 134376.99465851445,
+        "reasonableThroughput": false,
+        "estimatedAcquisitionHoursAtDefaultConcurrency": 14.196659
+      },
+      {
+        "endpoint": "direct-s3",
+        "sampleCount": 3,
+        "validSampleCount": 3,
+        "allSamplesValid": true,
+        "medianThroughputBytesPerSecond": 129678.5592712065,
+        "reasonableThroughput": false,
+        "estimatedAcquisitionHoursAtDefaultConcurrency": 14.711023
+      }
+    ],
+    "selectedEndpoint": null,
+    "selection": "HOST_NETWORK_THROUGHPUT_BLOCKER",
+    "selectedConcurrency": null
+  },
+  "selectedTransport": null,
+  "selectedConcurrency": null,
+  "outcomeRead": false,
+  "pnlComputed": false,
+  "finalOosRead": false,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "privateApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  }
+}

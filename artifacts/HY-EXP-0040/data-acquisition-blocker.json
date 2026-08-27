@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0040_DATA_ACQUISITION_BLOCKER",
+  "immutable": true,
+  "experimentId": "HY-EXP-0040",
+  "preregistrationSha256": "3997120af818fc63c88bd01bec6a6ca1acd0086733be92a94ad77083fe704f1b",
+  "sourceManifestSha256": "0981fe60e1213309da6bf7023ef491a6708c2609ef04bdd1d5c47e8b10605066",
+  "transportEvidenceSha256": "e0aee6f560ccbc5f3f289fc7bca6e4b063a90513e7a341cf498b5adbd2a599fc",
+  "progressSha256": "d42c886df673299d26039e45b02907d4c1ae4734343f5eb8fff3da719bbade8e",
+  "status": "BLOCKED_SOURCE_TRANSFER",
+  "reason": "HOST_NETWORK_THROUGHPUT_BLOCKER",
+  "benchmark": {
+    "sampleBytes": 8000000,
+    "minimumReasonableThroughputBytesPerSecond": 256000,
+    "totalCompressedBytes": 54941884652,
+    "canonical": {
+      "sampleCount": 3,
+      "validSampleCount": 3,
+      "allSamplesValid": true,
+      "medianThroughputBytesPerSecond": 134376.99465851445,
+      "reasonableThroughput": false,
+      "estimatedAcquisitionHoursAtDefaultConcurrency": 14.196659
+    },
+    "directS3": {
+      "sampleCount": 3,
+      "validSampleCount": 3,
+      "allSamplesValid": true,
+      "medianThroughputBytesPerSecond": 129678.5592712065,
+      "reasonableThroughput": false,
+      "estimatedAcquisitionHoursAtDefaultConcurrency": 14.711023
+    },
+    "selectedEndpoint": null,
+    "selection": "HOST_NETWORK_THROUGHPUT_BLOCKER",
+    "selectedConcurrency": null,
+    "rangeValidation": "all six measured samples returned HTTP 206 with exact Content-Range"
+  },
+  "acquisition": {
+    "totalPartitions": 392,
+    "verifiedPartitions": 0,
+    "derivedPartitions": 0,
+    "verifiedBytes": 0,
+    "totalCompressedBytes": 54941884652,
+    "sourceChecksumPass": false,
+    "dataLocked": false,
+    "resumeReady": true,
+    "resumeCommand": "npm run research:hy-exp-0040:lock"
+  },
+  "outcomeRead": false,
+  "pnlComputed": false,
+  "finalOosRead": false,
+  "noSyntheticData": true,
+  "noInterpolation": true,
+  "noForwardFill": true,
+  "noPrivateApi": true,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "privateApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  }
+}

@@ -190,13 +190,14 @@ test('REST receipt is taken after the complete body and snapshot calls are indep
     return response('{}');
   };
   const runtime = createHyData0036Runtime({ dryRun: true, symbols: ['BTCUSDT', 'ETHUSDT'], fetchImpl, rawStore, maxSnapshotAttempts: 1, snapshotRetryDelayMs: 1 });
-  const started = Date.now();
   await runtime.alignAllSnapshots();
   const snapshots = records.filter(record => record.stream === 'depth.snapshot');
   assert.equal(snapshots.length, 2);
   assert.ok(snapshots.every(record => record.receivedAt > record.requestStartedAt));
-  assert.ok(snapshots[0].receivedAt - started < 30);
-  assert.notEqual(snapshots[0].symbol, snapshots[1].symbol);
+  const btc = snapshots.find(record => record.symbol === 'BTCUSDT');
+  const eth = snapshots.find(record => record.symbol === 'ETHUSDT');
+  assert.ok(btc.receivedAt < eth.receivedAt);
+  assert.ok(eth.requestStartedAt < btc.receivedAt);
 });
 
 test('runtime message raw record preserves st=2 rejection and raw payload before normalization', async () => {
