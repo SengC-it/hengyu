@@ -283,8 +283,10 @@ test('0036 registration is present before any data lock or outcome artifact', ()
   assert.equal(prereg.collectionBoundary.futureOutcomeRead, false);
   assert.equal(contract.datasetId, HY_DATA_0036_ID);
   assert.equal(contract.contractStatus, 'FROZEN_BEFORE_COLLECTION');
-  assert.equal(ledger.at(-1).experiment_id, HY_DATA_0036_ID);
-  assert.equal(ledger.at(-1).event_type, 'preregistered');
+  const dataRegistration = ledger.find(entry => entry.sequence === 81);
+  assert.equal(dataRegistration.experiment_id, HY_DATA_0036_ID);
+  assert.equal(dataRegistration.event_type, 'preregistered');
+  assert.equal(ledger.some(entry => entry.experiment_id === 'HY-EXP-0037' && entry.event_type === 'preregistered'), true);
   assert.equal(fs.existsSync(path.join(ROOT, 'artifacts/HY-DATA-0036/result.json')), false);
   assert.equal(fs.existsSync(path.join(ROOT, 'artifacts/HY-DATA-0036/trades.jsonl')), false);
 });
