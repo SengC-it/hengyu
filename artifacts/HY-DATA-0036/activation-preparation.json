@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_DATA_0036_ACTIVATION_PREPARATION",
+  "immutable": true,
+  "activationId": "HY-DATA-0036-ACT-001",
+  "datasetId": "HY-DATA-0036",
+  "prepared": true,
+  "activated": false,
+  "activationStatus": "PREPARED_BLOCKED_ENGINEERING_CANARY_FAIL",
+  "collectionStartAt": null,
+  "formalCollectionActivated": false,
+  "researchEligible": false,
+  "developmentEligible": false,
+  "runtimeCommit": "af1bd200058fa3f7f8219f640025dcff8219a533",
+  "coreContractPath": "artifacts/HY-DATA-0036/data-contract.json",
+  "coreContractSha256": "3f53b383e70a9adaf241214c5fd5ffe181a60407d9ab2d3932609fe0fa0fa282",
+  "supplementalContractPath": "artifacts/HY-DATA-0036/supplemental-contract-SUP-001.json",
+  "supplementalContractSha256": "06e5d67b02fe829a2a2450fb588ed1d731285f84ecd98e38a61f262fa1304b37",
+  "fixedSymbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "LTCUSDT"
+  ],
+  "coreStreams": [
+    "aggTrade",
+    "bookTicker",
+    "depth20@100ms",
+    "depth.diff@100ms",
+    "depth.snapshot"
+  ],
+  "supplementalStreams": [
+    "markPrice@1s",
+    "forceOrder"
+  ],
+  "storageTarget": {
+    "raw": "durable-object-storage-hourly-sealed-partitions",
+    "features": "private-supabase-postgres-1s-5s-1m-only",
+    "rawInOrdinaryPostgres": false,
+    "requiredHeadroom": "at-least-2x-90-day-projection"
+  },
+  "qualityGates": {
+    "socketHealthyCoverage": 0.99,
+    "aggTradeCoverage": 0.99,
+    "bookTickerCoverage": 0.99,
+    "bookValidCoverage": 0.98,
+    "rawDurabilityCoverage": 0.999,
+    "depthSequenceGaps": 0,
+    "crossedBooks": 0,
+    "bufferLimitFailures": 0,
+    "controlledReconnectAndFreshSnapshotRequired": true,
+    "storageTwoX90DayHeadroomRequired": true
+  },
+  "engineeringCanary": {
+    "reportPath": "artifacts/HY-DATA-0036/engineering-canary.json",
+    "reportSha256": "ec51c228016f9ab686b124a3b6bf0fc87416205fa30073e682727b82bc94bd5c",
+    "runId": "canary-20260827-0036",
+    "status": "ENGINEERING_CANARY_FAIL",
+    "runWindow": {
+      "start": "2026-08-26T23:44:40.811Z",
+      "end": "2026-08-26T23:45:25.841Z",
+      "durationMs": 45030,
+      "requiredDurationMs": 3600000,
+      "requiredDurationMet": false
+    },
+    "raw": {
+      "rootType": "ENGINEERING_DRY_RUN_ONLY",
+      "manifestSha256": "3b504dc6d030a0d79dbd7cba16c91204c9a432535bc3f920505c22db69cf7ffb",
+      "manifestVerified": true,
+      "allSealedManifestsVerify": true
+    },
+    "diagnostics": {
+      "snapshotAttempts": 29,
+      "snapshotAlignmentFailures": 11,
+      "snapshotTooOldRetries": 8,
+      "sequenceGaps": 0,
+      "crossedBooks": 0,
+      "bufferLimitFailures": 0,
+      "rawDurabilityFailures": 0,
+      "controlledReconnects": 0,
+      "invalidSegments": 11,
+      "staleBufferedDropped": 1481,
+      "bufferedEventsPeak": 20
+    },
+    "quality": {
+      "socketHealthyCoverage": 0.7544303797468355,
+      "aggTradeCoverage": 0.7562513879635798,
+      "bookTickerCoverage": 0.7544303797468355,
+      "bookValidCoverage": 0,
+      "rawDurabilityCoverage": 1,
+      "qualityGatePassed": false
+    },
+    "storage": {
+      "status": "STORAGE_CAPACITY_BLOCKED",
+      "availableBytes": 11882414080,
+      "requiredHeadroomBytes": 470257747200,
+      "twoX90DayHeadroom": false
+    },
+    "clock": {
+      "status": "CLOCK_UNTRUSTED",
+      "source": "binance-time-endpoint-error",
+      "offsetMs": null
+    },
+    "activationEvidence": {
+      "status": "NOT_SUFFICIENT",
+      "controlledReconnectVerified": false,
+      "freshSnapshotResyncVerified": false
+    }
+  },
+  "blockers": [
+    "BINANCE_DEPTH_SNAPSHOT_HTTP_418",
+    "ENGINEERING_CANARY_DID_NOT_REACH_60_MINUTES",
+    "DEPTH_SNAPSHOT_ALIGNMENT_FAILURES",
+    "STORAGE_CAPACITY_BLOCKED",
+    "CLOCK_UNTRUSTED"
+  ],
+  "safety": {
+    "publicMarketDataOnly": true,
+    "apiKeyRequired": false,
+    "privateStream": false,
+    "accountApi": false,
+    "orderApi": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "finalOosRead": false,
+    "pnlComputed": false
+  }
+}
