@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0037_FROZEN_MODEL_SPEC",
+  "immutable": true,
+  "experimentId": "HY-EXP-0037",
+  "preregistrationSha256": "ff1bdabda6ecfe1f260c0d6d2abe8ac34059c90306731f323db89c6ac1527e40",
+  "model": "RIDGE_EXPECTED_RETURN_MODEL",
+  "featureNames": [
+    "sideAlignedReturn15m",
+    "sideAlignedReturn1h",
+    "sideAlignedReturn4h",
+    "sideAlignedReturn24h",
+    "trendStrength1h",
+    "trendStrength4h",
+    "emaDistance",
+    "emaSlope",
+    "atrPercent",
+    "realizedVolatility1h",
+    "realizedVolatility4h",
+    "volumeTurnoverZScore",
+    "channelPosition",
+    "currentFundingRate",
+    "fundingZScore",
+    "markContractBasisBps",
+    "crossSectional4hMomentumRank",
+    "crossSectional24hMomentumRank",
+    "btcRegimeReturn",
+    "btcRegimeVolatility",
+    "sideSign"
+  ],
+  "lambdaGrid": [
+    0.1,
+    1,
+    10
+  ],
+  "selectedLambda": 0.1,
+  "selectedEdgeThresholdBps": -3.1582762136308467,
+  "status": "DEVELOPMENT_CONFIG_FOUND",
+  "noPostOutcomeTuning": true,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false
+  }
+}

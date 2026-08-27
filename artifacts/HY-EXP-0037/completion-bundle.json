@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0037_COMPLETION_BUNDLE",
+  "immutable": true,
+  "experiment_id": "HY-EXP-0037",
+  "code_commit": "7fc97112551cf62a7e13f3564d7cfed83739fbd7",
+  "preregistration_sha256": "ff1bdabda6ecfe1f260c0d6d2abe8ac34059c90306731f323db89c6ac1527e40",
+  "data_manifest_sha256": "011824f5b6c77d5670f093a4fd3e7cff5aea8c5a64b5f4912193510781cd2bc0",
+  "outcomeRead": true,
+  "pnlComputed": true,
+  "finalOosRead": false,
+  "finalResult": "NO_PROFITABLE_EMAIL_STRATEGY_FOUND",
+  "artifacts": [
+    {
+      "path": "registry/experiments/HY-EXP-0037/preregistration.json",
+      "sha256": "ff1bdabda6ecfe1f260c0d6d2abe8ac34059c90306731f323db89c6ac1527e40"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/data-manifest.json",
+      "sha256": "011824f5b6c77d5670f093a4fd3e7cff5aea8c5a64b5f4912193510781cd2bc0"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/development-report.json",
+      "sha256": "41e5eb8d868aa2d9c73d6042eccd71700ebf2da88ba7a955a597a1148bb8237d"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/frozen-model-spec.json",
+      "sha256": "02d6d7d9ff2488f74042287ffa1f65fb0ee527748f8604d67b5b10bf3b26d5f3"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/historical-validation.json",
+      "sha256": "5c59b90ce9cb06be50197a416b3dfb460087e4e3f8eb83216462d81f49afb68d"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/historical-validation.md",
+      "sha256": "e863ea4524fd72ccad61819cd9ae5f342c66fdbaef3b8e1c2763cd599dd042b6"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/development-oof-summary.json",
+      "sha256": "7d5cab06a838be086abafeece28bdace7f215ebe72b73b538759671c38bd85c3"
+    },
+    {
+      "path": "artifacts/HY-EXP-0037/historical-trades.jsonl",
+      "sha256": "c2f7b7ec0ff03f4ab9bd263ad6c81fc32071b8ab703e375d81c85950afd8586c"
+    }
+  ],
+  "emailPreparation": null,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  }
+}
