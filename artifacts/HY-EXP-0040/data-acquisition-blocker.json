@@ -4,30 +4,47 @@
   "immutable": true,
   "experimentId": "HY-EXP-0040",
   "preregistrationSha256": "3997120af818fc63c88bd01bec6a6ca1acd0086733be92a94ad77083fe704f1b",
-  "sourceManifestSha256": "9b32341420111d21a65acd8c15ab3dbd6db245461f436a0f9414bfd56e3debf7",
+  "sourceManifestSha256": "0981fe60e1213309da6bf7023ef491a6708c2609ef04bdd1d5c47e8b10605066",
+  "transportEvidenceSha256": "e0aee6f560ccbc5f3f289fc7bca6e4b063a90513e7a341cf498b5adbd2a599fc",
+  "progressSha256": "d42c886df673299d26039e45b02907d4c1ae4734343f5eb8fff3da719bbade8e",
   "status": "BLOCKED_SOURCE_TRANSFER",
-  "reason": "OFFICIAL_BINANCE_ARCHIVE_TRANSFER_TIMEOUT",
-  "officialArchiveMetadata": {
-    "source": "Binance official public USD-M Futures S3 object listing",
-    "windowStart": "2024-08-26T00:00:00.000Z",
-    "windowEndExclusive": "2026-08-26T00:00:00.000Z",
-    "fixedSymbols": 8,
-    "partitions": 392,
-    "compressedBytes": 54941884652,
-    "monthlyPreferred": true,
-    "dailyFallbackUsedForPartial2026-08": true
+  "reason": "HOST_NETWORK_THROUGHPUT_BLOCKER",
+  "benchmark": {
+    "sampleBytes": 8000000,
+    "minimumReasonableThroughputBytesPerSecond": 256000,
+    "totalCompressedBytes": 54941884652,
+    "canonical": {
+      "sampleCount": 3,
+      "validSampleCount": 3,
+      "allSamplesValid": true,
+      "medianThroughputBytesPerSecond": 134376.99465851445,
+      "reasonableThroughput": false,
+      "estimatedAcquisitionHoursAtDefaultConcurrency": 14.196659
+    },
+    "directS3": {
+      "sampleCount": 3,
+      "validSampleCount": 3,
+      "allSamplesValid": true,
+      "medianThroughputBytesPerSecond": 129678.5592712065,
+      "reasonableThroughput": false,
+      "estimatedAcquisitionHoursAtDefaultConcurrency": 14.711023
+    },
+    "selectedEndpoint": null,
+    "selection": "HOST_NETWORK_THROUGHPUT_BLOCKER",
+    "selectedConcurrency": null,
+    "rangeValidation": "all six measured samples returned HTTP 206 with exact Content-Range"
   },
-  "transferProbe": {
-    "url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2024-08.zip",
-    "range": "bytes=0-49999999",
-    "timeoutMs": 180000,
-    "receivedBytes": 29542410,
-    "elapsedMs": 180010,
-    "throughputBytesPerSecond": 164063,
-    "completeArchiveSha256Verified": false,
-    "temporaryProbeDeleted": true
+  "acquisition": {
+    "totalPartitions": 392,
+    "verifiedPartitions": 0,
+    "derivedPartitions": 0,
+    "verifiedBytes": 0,
+    "totalCompressedBytes": 54941884652,
+    "sourceChecksumPass": false,
+    "dataLocked": false,
+    "resumeReady": true,
+    "resumeCommand": "npm run research:hy-exp-0040:lock"
   },
-  "dataLocked": false,
   "outcomeRead": false,
   "pnlComputed": false,
   "finalOosRead": false,
@@ -44,6 +61,7 @@
     "automaticTrading": false,
     "accountApi": false,
     "orderApi": false,
+    "privateApi": false,
     "finalOosRead": false,
     "productionDeploy": false
   }

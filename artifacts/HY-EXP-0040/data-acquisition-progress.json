@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0040_DATA_ACQUISITION_PROGRESS",
+  "immutable": false,
+  "experimentId": "HY-EXP-0040",
+  "generatedAt": "2026-08-27T14:13:10.864Z",
+  "totalPartitions": 392,
+  "totalCompressedBytes": 54941884652,
+  "verifiedPartitions": 0,
+  "verifiedBytes": 0,
+  "derivedPartitions": 0,
+  "pendingPartitions": 392,
+  "retryingPartitions": 0,
+  "failedPartitions": 0,
+  "perSymbol": {
+    "BTCUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "ETHUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "BNBUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "SOLUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "XRPUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "DOGEUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "LINKUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    },
+    "LTCUSDT": {
+      "discovered": 49,
+      "downloaded": 0,
+      "verified": 0,
+      "derived": 0
+    }
+  },
+  "selectedTransport": null,
+  "minimumReasonableThroughputBytesPerSecond": 256000,
+  "measuredThroughput": [
+    {
+      "endpoint": "canonical",
+      "sampleCount": 3,
+      "validSampleCount": 3,
+      "allSamplesValid": true,
+      "medianThroughputBytesPerSecond": 134376.99465851445,
+      "reasonableThroughput": false,
+      "estimatedAcquisitionHoursAtDefaultConcurrency": 14.196659
+    },
+    {
+      "endpoint": "direct-s3",
+      "sampleCount": 3,
+      "validSampleCount": 3,
+      "allSamplesValid": true,
+      "medianThroughputBytesPerSecond": 129678.5592712065,
+      "reasonableThroughput": false,
+      "estimatedAcquisitionHoursAtDefaultConcurrency": 14.711023
+    }
+  ],
+  "outcomeRead": false,
+  "pnlComputed": false,
+  "finalOosRead": false
+}

@@ -15,6 +15,15 @@ import {
   sha256File
 } from '../src/research/hy-exp-0040-aggtrade.mjs';
 import {
+  benchmarkOfficialTransports,
+  buildAcquisitionProgress,
+  createDownloadCoordinator,
+  createSpoolController,
+  directS3UrlFor,
+  loadPartitionState,
+  setPartitionState
+} from '../src/research/hy-exp-0040-transport.mjs';
+import {
   buildCompletionBundle,
   buildDevelopmentReport,
   buildFrozenModelSpec,
@@ -33,6 +42,9 @@ const SOURCE_MANIFEST_PATH = path.join(ARTIFACT_DIR, 'source-manifest.json');
 const DERIVED_MANIFEST_PATH = path.join(ARTIFACT_DIR, 'derived-feature-manifest.json');
 const COVERAGE_PATH = path.join(ARTIFACT_DIR, 'aggtrade-coverage.json');
 const CACHE_ROOT = path.resolve(ROOT, '..', 'data', 'cache', HY_EXP_0040);
+const DOWNLOAD_ROOT = path.join(CACHE_ROOT, 'download');
+const TRANSPORT_EVIDENCE_PATH = path.join(ARTIFACT_DIR, 'data-transport-evidence.json');
+const PROGRESS_PATH = path.join(ARTIFACT_DIR, 'data-acquisition-progress.json');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -79,18 +91,135 @@ async function lockData() {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
   writeJson(SOURCE_MANIFEST_PATH, sourceManifest);
   fs.mkdirSync(CACHE_ROOT, { recursive: true });
+  fs.mkdirSync(DOWNLOAD_ROOT, { recursive: true });
+  const requestedConcurrency = Math.min(12, Math.max(1, Number(argument('http-concurrency', 8)) || 8));
+  const maxSpoolBytes = Math.max(1, Number(argument('spool-bytes', 8 * 1024 ** 3)) || 8 * 1024 ** 3);
+  const benchmark = await benchmarkOfficialTransports(files, {
+    sampleBytes: Math.max(8_000_000, Number(argument('benchmark-bytes', 8_000_000)) || 8_000_000)
+  });
+  writeJson(TRANSPORT_EVIDENCE_PATH, {
+    schemaVersion: 1,
+    artifactType: 'HY_EXP_0040_DATA_TRANSPORT_EVIDENCE',
+    immutable: true,
+    experimentId: HY_EXP_0040,
+    canonicalSource: 'https://data.binance.vision/data/futures/um/<same-object-key>',
+    transportOptions: ['canonical', 'direct-s3'],
+    benchmark,
+    selectedTransport: benchmark.selectedEndpoint,
+    selectedConcurrency: benchmark.selectedConcurrency,
+    outcomeRead: false,
+    pnlComputed: false,
+    finalOosRead: false,
+    safety: safety()
+  });
+  const coordinator = createDownloadCoordinator({ maxConcurrency: benchmark.selectedConcurrency ?? requestedConcurrency, maxAllowedConcurrency: 12 });
+  const spoolController = createSpoolController(maxSpoolBytes);
+  for (const file of files) {
+    if (!loadPartitionState(file, DOWNLOAD_ROOT)) await setPartitionState(file, DOWNLOAD_ROOT, 'DISCOVERED');
+  }
+  const refreshArtifacts = () => {
+    for (const manifestFile of sourceManifest.files) {
+      const state = loadPartitionState(manifestFile, DOWNLOAD_ROOT);
+      manifestFile.checksumVerified = state?.checksumVerified === true;
+      manifestFile.rawRetained = state?.rawDeleted !== true;
+      manifestFile.partitionState = state?.state ?? 'DISCOVERED';
+    }
+    writeJson(SOURCE_MANIFEST_PATH, sourceManifest);
+    writeJson(PROGRESS_PATH, buildAcquisitionProgress(files, {
+      root: DOWNLOAD_ROOT,
+      benchmark,
+      now: Date.now()
+    }));
+  };
+  refreshArtifacts();
+  if (!benchmark.selectedEndpoint) {
+    const blocker = {
+      schemaVersion: 1,
+      artifactType: 'HY_EXP_0040_DATA_ACQUISITION_BLOCKER',
+      immutable: true,
+      experimentId: HY_EXP_0040,
+      preregistrationSha256,
+      sourceManifestSha256: sha256File(SOURCE_MANIFEST_PATH),
+      status: 'BLOCKED_SOURCE_TRANSFER',
+      reason: 'HOST_NETWORK_THROUGHPUT_BLOCKER',
+      transportEvidenceSha256: sha256File(TRANSPORT_EVIDENCE_PATH),
+      benchmark,
+      dataLocked: false,
+      outcomeRead: false,
+      pnlComputed: false,
+      finalOosRead: false,
+      noSyntheticData: true,
+      noInterpolation: true,
+      noForwardFill: true,
+      noPrivateApi: true,
+      windowsResumeReady: true,
+      resumeCommand: 'npm run research:hy-exp-0040:lock',
+      safety: safety()
+    };
+    writeJson(path.join(ARTIFACT_DIR, 'data-acquisition-blocker.json'), blocker);
+    console.log(JSON.stringify({ mode: 'DATA_LOCK_BLOCKED', experimentId: HY_EXP_0040, blocker: 'HOST_NETWORK_THROUGHPUT_BLOCKER', progress: readJson(PROGRESS_PATH), safety: safety() }, null, 2));
+    return;
+  }
+  const selectedTransport = benchmark.selectedEndpoint;
+  for (const file of sourceManifest.files) {
+    file.transportUrl = selectedTransport === 'direct-s3' ? directS3UrlFor(file.url) : file.url;
+  }
+  writeJson(SOURCE_MANIFEST_PATH, sourceManifest);
   const coverage = [];
   const derivedFiles = [];
   for (const symbol of FIXED_SYMBOLS) {
     const outputPath = path.join(CACHE_ROOT, symbol + '-1m.ndjson.gz');
     console.log('processing ' + symbol + ' archives=' + files.filter(file => file.symbol === symbol).length);
-    const result = await processAggTradeArchives({
-      symbol,
-      archives: files.filter(file => file.symbol === symbol),
-      outputPath,
-      start: WINDOW_START,
-      end: WINDOW_END
-    });
+    const symbolFiles = files.filter(file => file.symbol === symbol).map(file => ({
+      ...file,
+      transportUrl: selectedTransport === 'direct-s3' ? directS3UrlFor(file.url) : file.url
+    }));
+    let result;
+    try {
+      result = await processAggTradeArchives({
+        symbol,
+        archives: symbolFiles,
+        outputPath,
+        start: WINDOW_START,
+        end: WINDOW_END,
+        checkpointRoot: DOWNLOAD_ROOT,
+        downloadOptions: {
+          root: DOWNLOAD_ROOT,
+          concurrency: benchmark.selectedConcurrency ?? requestedConcurrency,
+          coordinator,
+          spoolController
+        },
+        onPartitionState: async () => refreshArtifacts()
+      });
+    } catch (error) {
+      refreshArtifacts();
+      const blocker = {
+        schemaVersion: 1,
+        artifactType: 'HY_EXP_0040_DATA_ACQUISITION_BLOCKER',
+        immutable: true,
+        experimentId: HY_EXP_0040,
+        preregistrationSha256,
+        sourceManifestSha256: sha256File(SOURCE_MANIFEST_PATH),
+        status: 'BLOCKED_SOURCE_TRANSFER',
+        reason: error.message === 'DATA_FAIL_SOURCE_INTEGRITY' ? 'DATA_FAIL_SOURCE_INTEGRITY' : 'HOST_NETWORK_THROUGHPUT_BLOCKER',
+        errorCode: error.code ?? error.message,
+        transportEvidenceSha256: sha256File(TRANSPORT_EVIDENCE_PATH),
+        dataLocked: false,
+        outcomeRead: false,
+        pnlComputed: false,
+        finalOosRead: false,
+        noSyntheticData: true,
+        noInterpolation: true,
+        noForwardFill: true,
+        noPrivateApi: true,
+        windowsResumeReady: true,
+        resumeCommand: 'npm run research:hy-exp-0040:lock',
+        safety: safety()
+      };
+      writeJson(path.join(ARTIFACT_DIR, 'data-acquisition-blocker.json'), blocker);
+      console.log(JSON.stringify({ mode: 'DATA_LOCK_BLOCKED', experimentId: HY_EXP_0040, blocker: blocker.reason, progress: readJson(PROGRESS_PATH), safety: safety() }, null, 2));
+      return;
+    }
     coverage.push({
       symbol,
       sourcePartitions: files.filter(file => file.symbol === symbol).map(file => ({
@@ -120,12 +249,11 @@ async function lockData() {
       compressed: true,
       rawArchiveRetained: false
     });
-    for (const file of sourceManifest.files) {
-      if (file.symbol === symbol) file.checksumVerified = true;
-    }
-    writeJson(SOURCE_MANIFEST_PATH, sourceManifest);
+    refreshArtifacts();
   }
   const allCoveragePass = coverage.every(row => row.continuityPass && row.missingIntervals === 0);
+  refreshArtifacts();
+  const sourceChecksumPass = sourceManifest.files.every(file => file.checksumVerified === true);
   const derivedManifest = {
     schemaVersion: 1,
     artifactType: 'HY_EXP_0040_DERIVED_FEATURE_MANIFEST',
@@ -163,7 +291,7 @@ async function lockData() {
     symbolCoverage: coverage,
     continuityPass: allCoveragePass,
     missingIntervals: coverage.reduce((sum, row) => sum + row.missingIntervals, 0),
-    sourceChecksumPass: sourceManifest.files.every(file => file.checksumVerified === true),
+    sourceChecksumPass,
     nativeOrderingChecked: true,
     duplicateAggregateIds: 0,
     outOfOrderRows: 0,
@@ -176,7 +304,9 @@ async function lockData() {
   writeJson(DERIVED_MANIFEST_PATH, derivedManifest);
   coverageArtifact.derivedFeatureManifestSha256 = sha256File(DERIVED_MANIFEST_PATH);
   writeJson(COVERAGE_PATH, coverageArtifact);
-  if (!allCoveragePass) throw new Error('AGGTRADE_COVERAGE_FAILED');
+  if (!allCoveragePass || !sourceChecksumPass || coverage.length !== FIXED_SYMBOLS.length) {
+    throw new Error('AGGTRADE_COVERAGE_OR_SOURCE_CHECKSUM_FAILED');
+  }
   const event = appendRegistryEvent({
     experimentId: HY_EXP_0040,
     eventType: 'data_locked',
@@ -358,6 +488,8 @@ async function runResearch() {
   const required = [
     'registry/experiments/HY-EXP-0040/preregistration.json',
     'artifacts/HY-EXP-0040/source-manifest.json',
+    'artifacts/HY-EXP-0040/data-transport-evidence.json',
+    'artifacts/HY-EXP-0040/data-acquisition-progress.json',
     'artifacts/HY-EXP-0040/aggtrade-coverage.json',
     'artifacts/HY-EXP-0040/derived-feature-manifest.json',
     'artifacts/HY-EXP-0040/development-oof-summary.json',

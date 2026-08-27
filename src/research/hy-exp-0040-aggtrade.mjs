@@ -1,11 +1,20 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createInflateRaw, createGunzip, createGzip } from 'node:zlib';
 import { finished } from 'node:stream/promises';
 import { buildSeries } from './hy-exp-0039-email-signal.mjs';
+import {
+  DEFAULT_CHUNK_BYTES,
+  DEFAULT_HTTP_CONCURRENCY,
+  downloadArchiveWithResume,
+  markPartitionParsed,
+  commitDerivedPartition,
+  isPartitionSkipEligible,
+  loadPartitionState,
+  objectKeyFromCanonicalUrl
+} from './hy-exp-0040-transport.mjs';
 
 export const HY_EXP_0040 = 'HY-EXP-0040';
 export const WINDOW_START = Date.parse('2024-08-26T00:00:00Z');
@@ -306,66 +315,16 @@ export async function discoverArchives({
   return perPartition.flat();
 }
 
-async function readResponseBuffer(response) {
-  return Buffer.from(await response.arrayBuffer());
-}
-
-export async function downloadAndVerifyArchive(file, { chunkBytes = 8_000_000, concurrency = 4 } = {}) {
-  const target = path.join(os.tmpdir(), 'hy-exp-0040-' + file.symbol + '-' + file.period + '-' + Math.random().toString(16).slice(2) + '.zip');
-  const descriptor = await fsp.open(target, 'w');
-  const hash = createHash('sha256');
-  async function fetchRange(start, end) {
-    const expected = end - start + 1;
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const response = await fetchWithTimeout(file.url, {
-        headers: { Range: 'bytes=' + start + '-' + end }
-      }, 120_000);
-      const payload = await readResponseBuffer(response);
-      const contentRange = response.headers.get('content-range') || '';
-      if (response.status === 206 && payload.length === expected
-        && contentRange.startsWith('bytes ' + start + '-' + end + '/')) {
-        return payload;
-      }
-      if (start === 0 && expected === file.bytes && response.status === 200 && payload.length === file.bytes) {
-        return payload;
-      }
-      if (attempt === 4) {
-        throw new Error('BINANCE_RANGE_DOWNLOAD_INVALID:' + file.url + ':' + start + ':' + response.status + ':' + payload.length);
-      }
-    }
-    throw new Error('BINANCE_RANGE_DOWNLOAD_RETRY_EXHAUSTED:' + file.url + ':' + start);
-  }
-  try {
-    let offset = 0;
-    while (offset < file.bytes) {
-      const requests = [];
-      let batchOffset = offset;
-      while (requests.length < concurrency && batchOffset < file.bytes) {
-        const end = Math.min(file.bytes - 1, batchOffset + chunkBytes - 1);
-        requests.push({ start: batchOffset, end });
-        batchOffset = end + 1;
-      }
-      const payloads = await Promise.all(requests.map(request => fetchRange(request.start, request.end)));
-      for (let index = 0; index < requests.length; index += 1) {
-        const request = requests[index];
-        const payload = payloads[index];
-        await descriptor.write(payload, 0, payload.length, request.start);
-        hash.update(payload);
-      }
-      offset = batchOffset;
-    }
-    const actualSha256 = hash.digest('hex');
-    if (actualSha256 !== file.sha256) {
-      throw new Error('BINANCE_ARCHIVE_CHECKSUM_MISMATCH:' + file.url + ':' + actualSha256 + ':' + file.sha256);
-    }
-    return { path: target, bytes: file.bytes, sha256: actualSha256 };
-  } catch (error) {
-    await descriptor.close();
-    await fsp.rm(target, { force: true });
-    throw error;
-  } finally {
-    try { await descriptor.close(); } catch {}
-  }
+export async function downloadAndVerifyArchive(file, {
+  root = path.resolve(process.cwd(), '..', 'data', 'cache', HY_EXP_0040, 'download'),
+  ...options
+} = {}) {
+  return downloadArchiveWithResume(file, {
+    root,
+    chunkBytes: DEFAULT_CHUNK_BYTES,
+    concurrency: DEFAULT_HTTP_CONCURRENCY,
+    ...options
+  });
 }
 
 async function readAt(handle, position, length) {
@@ -701,6 +660,59 @@ class RollingP95 {
     this.clean(this.lower, 'lower');
     return this.count > 0 ? this.lower.peek()?.value ?? null : null;
   }
+  snapshot() {
+    return {
+      rows: this.queue.slice(this.queueHead).map(row => ({ time: row.time, value: row.value }))
+    };
+  }
+}
+
+export function serializeAggTradeRollingCheckpoint({
+  symbol,
+  lastTrade,
+  CVD,
+  rolling,
+  lastCompletedMinute,
+  derivedFileOffset,
+  derivedFileSha256,
+  bucketCount,
+  validBucketCount,
+  missingBucketCount,
+  archiveKey,
+  archiveRows,
+  archiveRowsInWindow
+} = {}) {
+  return {
+    schemaVersion: 1,
+    symbol,
+    lastAggregateTradeId: lastTrade?.aggregateTradeId ?? null,
+    lastTimestamp: lastTrade?.timestamp ?? null,
+    lastTrade: lastTrade ?? null,
+    CVD,
+    prior24hTradeDistribution: rolling?.snapshot?.() ?? { rows: [] },
+    lastCompletedMinute: lastCompletedMinute ?? null,
+    derivedFileOffset,
+    derivedFileSha256,
+    bucketCount,
+    validBucketCount,
+    missingBucketCount,
+    archiveRows,
+    archiveRowsInWindow,
+    archiveKey: archiveKey ?? null
+  };
+}
+
+export function restoreAggTradeRollingCheckpoint(checkpoint = {}) {
+  const rolling = new RollingP95();
+  for (const row of checkpoint.prior24hTradeDistribution?.rows ?? []) {
+    if (finite(row.time) && finite(row.value) && row.value >= 0) rolling.add(row.time, row.value);
+  }
+  return {
+    rolling,
+    lastTrade: checkpoint.lastTrade ?? null,
+    CVD: finite(checkpoint.CVD) ? checkpoint.CVD : 0,
+    lastCompletedMinute: checkpoint.lastCompletedMinute ?? null
+  };
 }
 
 function emptyBucket(openTime) {
@@ -776,9 +788,9 @@ async function createGzipWriter(file) {
   };
 }
 
-async function createGzipWriterCorrect(file) {
+async function createGzipWriterCorrect(file, { append = false } = {}) {
   await fsp.mkdir(path.dirname(file), { recursive: true });
-  const output = fs.createWriteStream(file, { flags: 'w' });
+  const output = fs.createWriteStream(file, { flags: append ? 'a' : 'w' });
   const gzip = createGzip({ level: 6 });
   gzip.pipe(output);
   return {
@@ -790,6 +802,10 @@ async function createGzipWriterCorrect(file) {
     async close() {
       gzip.end();
       await finished(output);
+    },
+    async checkpoint() {
+      await new Promise((resolve, reject) => gzip.flush(error => error ? reject(error) : resolve()));
+      return { bytes: fs.statSync(file).size, sha256: sha256File(file) };
     }
   };
 }
@@ -799,19 +815,37 @@ export async function processAggTradeArchives({
   archives,
   outputPath,
   start = WINDOW_START,
-  end = WINDOW_END
+  end = WINDOW_END,
+  checkpointRoot = null,
+  downloadOptions = {},
+  onPartitionState = async () => {}
 } = {}) {
-  const writer = await createGzipWriterCorrect(outputPath);
-  const rolling = new RollingP95();
+  const sortedArchives = archives.slice().sort((left, right) => left.period.localeCompare(right.period));
+  const downloadRoot = checkpointRoot ?? downloadOptions.root ?? path.resolve(process.cwd(), '..', 'data', 'cache', HY_EXP_0040, 'download');
+  const checkpointPath = path.join(downloadRoot, symbol + '.rolling-state.json');
+  const committed = sortedArchives.filter(archive => isPartitionSkipEligible(archive, downloadRoot));
+  const latestCommitted = committed.at(-1) ? loadPartitionState(committed.at(-1), downloadRoot) : null;
+  const savedCheckpoint = latestCommitted?.checkpoint ?? (() => {
+    try { return JSON.parse(fs.readFileSync(checkpointPath, 'utf8')); } catch { return null; }
+  })();
+  if (savedCheckpoint?.derivedFileOffset != null && fs.existsSync(outputPath)) {
+    const currentSize = fs.statSync(outputPath).size;
+    if (currentSize < savedCheckpoint.derivedFileOffset) throw new Error('DERIVED_CHECKPOINT_OUTPUT_TRUNCATED');
+    fs.truncateSync(outputPath, savedCheckpoint.derivedFileOffset);
+  }
+  const writer = await createGzipWriterCorrect(outputPath, { append: Boolean(savedCheckpoint && fs.existsSync(outputPath)) });
+  const restored = restoreAggTradeRollingCheckpoint(savedCheckpoint ?? {});
+  const rolling = restored.rolling;
   const firstOpen = Math.floor(start / MINUTE) * MINUTE;
   let current = null;
-  let previous = null;
-  let cvd = 0;
-  let bucketCount = 0;
-  let validBucketCount = 0;
-  let missingBucketCount = 0;
-  let archiveRows = 0;
-  let archiveRowsInWindow = 0;
+  let previous = restored.lastTrade;
+  let cvd = restored.CVD;
+  let lastCompletedMinute = restored.lastCompletedMinute;
+  let bucketCount = savedCheckpoint?.bucketCount ?? 0;
+  let validBucketCount = savedCheckpoint?.validBucketCount ?? 0;
+  let missingBucketCount = savedCheckpoint?.missingBucketCount ?? 0;
+  let archiveRows = savedCheckpoint?.archiveRows ?? 0;
+  let archiveRowsInWindow = savedCheckpoint?.archiveRowsInWindow ?? 0;
   async function writeMissing(openTime) {
     await writer.write(emptyBucket(openTime));
     bucketCount += 1;
@@ -824,6 +858,7 @@ export async function processAggTradeArchives({
   }
   async function flushCurrent() {
     if (!current) return;
+    lastCompletedMinute = current.openTime;
     cvd += current.signedNotional;
     current.CVD = cvd;
     await finalizeBucket(current, rolling, writer);
@@ -863,22 +898,54 @@ export async function processAggTradeArchives({
     }
   }
   try {
-    for (const archive of archives.slice().sort((left, right) => left.period.localeCompare(right.period))) {
-      const downloaded = await downloadAndVerifyArchive(archive);
-      try {
-        const parsed = await parseAggTradeArchive(downloaded.path, {
-          symbol,
-          start,
-          end,
-          previous,
-          onTrade: consumeTrade
-        });
-        archiveRows += parsed.rows;
-        archiveRowsInWindow += parsed.inWindow;
-        previous = parsed.last;
-      } finally {
-        await fsp.rm(downloaded.path, { force: true });
-      }
+    for (const archive of sortedArchives) {
+      const archiveKey = archive.cadence + ':' + archive.period;
+      if (committed.some(row => row.cadence + ':' + row.period === archiveKey)) continue;
+      const downloaded = await downloadAndVerifyArchive(archive, downloadOptions);
+      const parsed = await parseAggTradeArchive(downloaded.path, {
+        symbol,
+        start,
+        end,
+        previous,
+        onTrade: consumeTrade
+      });
+      archiveRows += parsed.rows;
+      archiveRowsInWindow += parsed.inWindow;
+      previous = parsed.last;
+      await flushCurrent();
+      const checkpoint = await writer.checkpoint();
+      const rollingCheckpoint = serializeAggTradeRollingCheckpoint({
+        symbol,
+        lastTrade: previous,
+        CVD: cvd,
+        rolling,
+        lastCompletedMinute,
+        derivedFileOffset: checkpoint.bytes,
+        derivedFileSha256: checkpoint.sha256,
+        bucketCount,
+        validBucketCount,
+        missingBucketCount,
+        archiveRows,
+        archiveRowsInWindow,
+        archiveKey
+      });
+      await markPartitionParsed(archive, {
+        root: downloadRoot,
+        derivedFileOffset: checkpoint.bytes,
+        derivedFileSha256: checkpoint.sha256,
+        now: Date.now()
+      });
+      await commitDerivedPartition(archive, {
+        root: downloadRoot,
+        derivedFileOffset: checkpoint.bytes,
+        derivedFileSha256: checkpoint.sha256,
+        spoolController: downloadOptions.spoolController,
+        now: Date.now(),
+        checkpoint: rollingCheckpoint
+      });
+      fs.mkdirSync(path.dirname(checkpointPath), { recursive: true });
+      fs.writeFileSync(checkpointPath, JSON.stringify(rollingCheckpoint, null, 2) + '\n');
+      await onPartitionState(archive, loadPartitionState(archive, downloadRoot));
     }
     await flushCurrent();
     const lastOpen = Math.ceil(end / MINUTE) * MINUTE - MINUTE;
@@ -887,7 +954,6 @@ export async function processAggTradeArchives({
     await writer.close();
   } catch (error) {
     try { await writer.close(); } catch {}
-    await fsp.rm(outputPath, { force: true });
     throw error;
   }
   return {
@@ -1209,6 +1275,10 @@ export function buildSourceManifest({ files, preregistrationSha256, generatedAt 
     partitionPolicy: 'monthly preferred; daily only for a missing monthly partition',
     files: files.map(file => ({
       ...file,
+      canonicalUrl: file.url,
+      transportUrl: file.transportUrl ?? file.url,
+      objectKey: file.objectKey ?? objectKeyFromCanonicalUrl(file.url),
+      officialSha256: file.sha256,
       checksumAvailable: Boolean(file.sha256),
       checksumVerified: false,
       rawRetained: false
