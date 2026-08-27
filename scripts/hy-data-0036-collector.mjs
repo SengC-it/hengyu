@@ -44,7 +44,21 @@ export async function main(args = process.argv.slice(2)) {
   if (!/^[A-Za-z0-9_.-]+$/.test(runId)) throw new Error('invalid --run-id');
   const rootDir = assertEngineeringRoot(option(args, 'raw-root', path.join(os.tmpdir(), 'engineering', 'hy-data-0036', runId)));
   const reportPath = option(args, 'report-path', null);
-  const controlledReconnectAfterMs = option(args, 'controlled-reconnect-after-ms', null);
+  const preflightReportPath = option(args, 'preflight-report', null);
+  const controlledReconnectAfterMs = integerOption(args, 'controlled-reconnect-after-ms', 25 * 60 * 1000);
+  const preflight = await import('../src/data/hy-data-0036-preflight.mjs');
+  const preflightResult = await preflight.runEngineeringPreflight({ rootDir });
+  if (preflightReportPath) {
+    const resolvedPreflightPath = path.resolve(preflightReportPath);
+    await fs.mkdir(path.dirname(resolvedPreflightPath), { recursive: true });
+    await fs.writeFile(resolvedPreflightPath, `${JSON.stringify(preflightResult, null, 2)}\n`, { flag: 'wx' });
+  }
+  console.log(JSON.stringify({ type: 'ENGINEERING_PREFLIGHT', ...preflightResult }, null, 2));
+  if (!preflightResult.canaryAllowed) {
+    process.exitCode = 2;
+    return Object.freeze({ preflight: preflightResult, canary: null });
+  }
+  if (durationMs < 60 * 60 * 1000) throw new Error('HY-DATA-0036 canary requires at least 60 minutes');
   const { createHyData0036Runtime } = await import('../src/data/hy-data-0036-runtime.mjs');
   const runtime = createHyData0036Runtime({
     dryRun: true,
@@ -54,7 +68,7 @@ export async function main(args = process.argv.slice(2)) {
     maxSnapshotAttempts: integerOption(args, 'max-snapshot-attempts', 5),
     maxConcurrentSnapshots: integerOption(args, 'max-concurrent-snapshots', 2),
     snapshotRetryDelayMs: integerOption(args, 'snapshot-retry-delay-ms', 250),
-    controlledReconnectAfterMs: controlledReconnectAfterMs == null ? null : integerOption(args, 'controlled-reconnect-after-ms', 1),
+    controlledReconnectAfterMs,
     rootDir,
     runId
   });

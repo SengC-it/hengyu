@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_DATA_0036_ENGINEERING_PREFLIGHT",
+  "datasetId": "HY-DATA-0036",
+  "mode": "ENGINEERING_DRY_RUN",
+  "checkedAt": "2026-08-27T01:49:29.090Z",
+  "status": "PREFLIGHT_FAIL",
+  "failures": [
+    "CLOCK_UNTRUSTED",
+    "LOCAL_SPOOL_CAPACITY_NOT_CONFIGURED_OR_INSUFFICIENT",
+    "STORAGE_BACKEND_NOT_CONFIGURED"
+  ],
+  "checks": {
+    "binanceRest": {
+      "ok": true,
+      "status": 200,
+      "reason": null
+    },
+    "hostClock": {
+      "status": "CLOCK_UNTRUSTED",
+      "clockSource": "HOST_NTP_EVIDENCE",
+      "checkedAt": "2026-08-27T01:49:23.978Z",
+      "synchronized": false,
+      "offsetMs": null,
+      "evidenceMethod": "w32tm /query /status",
+      "error": "w32tm /query /status:EPERM"
+    },
+    "localSpool": {
+      "rootDir": "C:\\Users\\CHI-HE\\AppData\\Local\\Temp\\engineering\\hy-data-0036\\preflight-20260827-v2",
+      "availableBytes": 14247809024,
+      "requiredBytes": null,
+      "sufficient": false
+    },
+    "remoteStorage": {
+      "configured": false,
+      "verified": false,
+      "providerNeutral": true,
+      "reason": "STORAGE_BACKEND_NOT_CONFIGURED"
+    },
+    "publicWebSocket": {
+      "endpoint": "wss://fstream.binance.com/public/stream",
+      "ok": true,
+      "subscriptionConfirmed": true,
+      "elapsedMs": 2566
+    },
+    "marketWebSocket": {
+      "endpoint": "wss://fstream.binance.com/market/stream",
+      "ok": true,
+      "subscriptionConfirmed": true,
+      "elapsedMs": 2540
+    }
+  },
+  "rest": {
+    "requestCount": 1,
+    "http429Count": 0,
+    "http418Count": 0,
+    "rateGovernorCooldownCount": 0,
+    "blockedRequestCount": 0,
+    "networkErrorCount": 0,
+    "retryCount": 0,
+    "retryAfterObserved": [],
+    "maxUsedWeight": 291,
+    "depthSnapshotRequestCount": 0,
+    "responseLog": [
+      {
+        "url": "https://fapi.binance.com/fapi/v1/time",
+        "status": 200,
+        "retryAfter": null,
+        "retryAfterMs": null,
+        "usedWeight1m": "291",
+        "usedWeight": null,
+        "date": "Thu, 27 Aug 2026 01:49:23 GMT",
+        "requestStartedAt": 1787795362352,
+        "receivedAt": 1787795363977,
+        "errorCode": null
+      }
+    ]
+  },
+  "safety": {
+    "publicMarketDataOnly": true,
+    "privateStream": false,
+    "accountApi": false,
+    "orderApi": false,
+    "scheduler": false,
+    "gmail": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "pnlComputed": false,
+    "researchEligible": false,
+    "formalCollectionActivated": false
+  },
+  "canaryAllowed": false
+}

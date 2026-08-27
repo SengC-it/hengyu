@@ -38,6 +38,14 @@ depth snapshot/alignment. Ping/pong is recorded when the runtime exposes a
 `ping` method; WebSocket protocol implementations remain responsible for
 their own control frames.
 
+Before a canary is allowed, `scripts/hy-data-0036-collector.mjs` runs an
+engineering preflight. It checks the shared REST governor, host NTP, local
+spool capacity, configured remote storage, and a subscription handshake on
+both documented WebSocket endpoints. A rate-limit ban, missing `Retry-After`,
+untrusted clock, missing storage configuration, insufficient local spool, or
+failed public handshake blocks the canary. The preflight report is written
+with exclusive creation and contains only safe rate-limit metadata.
+
 ## Raw durability and local books
 
 Every accepted or rejected market message is written before normalization. The
@@ -51,13 +59,21 @@ renamed, and then included in an immutable SHA-256 manifest. A second
 
 Depth updates are kept in a per-symbol bounded buffer. The first applied
 update must satisfy `U <= snapshot.lastUpdateId <= u`; after alignment every
-update must satisfy `pu === previous.u`. Quantities are absolute and zero
-quantities delete levels. Stale updates are retained in raw evidence but not
-applied. Gaps, duplicates, out-of-order updates, crossed books, disconnects,
-snapshot failures, storage failures, and queue limits produce explicit invalid
-segments or a fail-closed run. No synthetic update, interpolation, silent
-repair, or gap filling is permitted. A live sequence failure schedules a
-fresh snapshot for that symbol; the prior invalid segment is not rewritten.
+update must satisfy `pu === previous.u`. A snapshot older than the first
+buffered update causes bounded refetch; a snapshot ahead of the buffered
+range is retained while the bridge is awaited, with a five-second timeout.
+The runtime never refetches merely because a snapshot is ahead. Quantities
+are absolute and zero quantities delete levels. Stale updates are retained in
+raw evidence but not applied, and the consumed per-symbol buffer is released
+after alignment. Gaps, duplicates, out-of-order updates, crossed books,
+disconnects, snapshot failures, storage failures, and queue limits produce
+explicit invalid segments or a fail-closed run. No synthetic update,
+interpolation, silent repair, or gap filling is permitted. A live sequence
+failure schedules a fresh snapshot for that symbol; the prior invalid segment
+is not rewritten. All depth REST requests pass through one shared governor:
+429 responses honor a parsed global cooldown, 418 responses become an
+`IP_RATE_LIMIT_BANNED` hard stop for REST without IP rotation, and missing
+`Retry-After` is a failure.
 
 `st=1` is the USD-M/UM transport identity. A present value other than `1` is
 recorded as rejected raw evidence and never enters normalized feature state.
@@ -87,12 +103,35 @@ offset over 500 ms is `CLOCK_UNTRUSTED` and does not rewrite raw timestamps.
 
 The sealed report includes per-symbol/per-stream counts, bytes, event and
 receipt bounds, sequence/duplicate/out-of-order counts, invalid segments,
-depth diagnostics, reconnects and resyncs, manifest and per-file hash
-verification, feature coverage placeholders, and projected raw storage for
+depth diagnostics, reconnects and resyncs, REST rate-limit metadata, manifest
+and per-file hash verification, and projected raw storage for
 24d/30d/60d/90d. Activation requires at least twice the 90-day projected raw
-capacity. Feature snapshots are deliberately not written to Supabase during
-the dry-run; only derived 1s/5s/1m snapshots are in scope for any future
-authorized feature store.
+capacity and at least 72 hours of local spool capacity. Capacity sizing is
+not eligible from a run shorter than 60 minutes; the prior 45-second run is
+diagnostic only.
+
+The causal feature builder materializes immutable 1s, 5s, and 1m rows using
+only `localReceiveTime <= snapshotAt`. Its exact runtime schema includes
+mid/spread, top-1/5/20 quantities and imbalances, depth within 5/10/25 bps,
+micro-price, total and visible aggressive flow, signed volume, trade count,
+large-trade notional, `CVD`, returns, realized volatility, spread/depth
+changes, book validity, clock status, and feature coverage. Visible fields
+are null when any contributing aggregate trade lacks `nq`; `q` is never used
+as a substitute. Empty intervals are not synthesized or forward-filled, and
+late events remain raw audit evidence without rewriting a sealed row.
+
+Feature rows are written only to the engineering feature sink at
+`<run-root>/features/`. Each interval/symbol partition is atomically sealed
+and bound to a SHA-256 manifest. The sink is not Supabase and no formal
+research write is performed by this runtime.
+
+Remote persistence is provider-neutral. A caller may supply an AWS S3,
+Cloudflare R2, Backblaze B2, or compatible client to the adapter. The upload
+sequence is local seal, immutable object upload, remote HEAD/read hash
+verification, manifest append, and local deletion only after verification.
+No provider, endpoint, credential, or secret is hardcoded. Without a
+configured client/bucket, the runtime reports
+`STORAGE_BACKEND_NOT_CONFIGURED` and cannot become activation-ready.
 
 ## Canary result
 
@@ -106,7 +145,11 @@ sequence gaps, crossed books, and buffer-limit failures; this does not make
 the canary ready because the 60-minute duration, depth alignment, quality,
 clock, and storage gates were not met. The observed storage forecast also
 reports `STORAGE_CAPACITY_BLOCKED`, and the Binance clock evidence is
-`CLOCK_UNTRUSTED`. Controlled reconnect was not reached before fail-closed.
+`CLOCK_UNTRUSTED`. Clock trust in the new runtime is based on host NTP
+(`chronyc tracking`, `timedatectl`, or `w32tm`) with a 500 ms bound; the
+Binance time endpoint is a secondary public reachability/rate-limit check and
+an HTTP 418 does not by itself imply a bad host clock. Controlled reconnect
+was not reached before fail-closed.
 
 `HY-DATA-0036-ACT-001` is recorded in
 `artifacts/HY-DATA-0036/activation-preparation.json` only as a prepared,
@@ -128,8 +171,12 @@ socket disconnects, reconnect storms, depth invalid segments, queue/backlog
 limits, raw write failures, manifest failures, clock drift, and storage below
 the twice-90-day requirement.
 
-The exact activation sequence is: review the canary report, provision and
-verify durable storage, verify supervisor and clock monitoring, approve
+The exact activation sequence is: review a preflight report, provision and
+verify durable storage, verify supervisor and clock monitoring, run a new
+60-minute-or-longer all-eight-symbol canary, approve
 `HY-DATA-0036-ACT-001`, persist one UTC `collectionStartAt`, and only then
-open formal connections. No engineering report or raw path is promoted into
-the formal prospective root.
+open formal connections. No engineering report, feature partition, or raw
+path is promoted into the formal prospective root. If any preflight or
+canary gate fails, the result remains `ENGINEERING_CANARY_FAIL` and
+`activated=false`; there is no automatic retry that changes the registered
+boundary.

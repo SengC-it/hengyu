@@ -12,11 +12,23 @@ import {
   getHyData0036Sup001Subscription,
   HY_DATA_0036_SUP_001_STREAMS
 } from './hy-data-0036-supplement.mjs';
+import { createBinancePublicRestGovernor } from './hy-data-0036-rest.mjs';
+import { createCausalFeatureBuilder } from './hy-data-0036-features.mjs';
+import { createEngineeringFeatureStore, verifyFeatureManifestFiles } from './hy-data-0036-feature-store.mjs';
+import { createS3CompatibleSealedPartitionAdapter, evaluateStorageCapacity } from './hy-data-0036-storage.mjs';
+import { readHostNtpEvidence } from './hy-data-0036-clock.mjs';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_ROTATION_MS = 23 * HOUR_MS + 45 * MINUTE_MS;
+const BRIDGE_WAIT_TIMEOUT_MS = 5_000;
+const MAX_SNAPSHOT_RECOVERY_MS = 10_000;
+const MAX_SNAPSHOT_RETRY_DELAY_MS = 5_000;
+const MIN_CANARY_DURATION_MS = 60 * MINUTE_MS;
+const MIN_CONTROLLED_RECONNECT_MS = 20 * MINUTE_MS;
+const MAX_CONTROLLED_RECONNECT_MS = 30 * MINUTE_MS;
+const DEFAULT_CONTROLLED_RECONNECT_MS = 25 * MINUTE_MS;
 const STREAMS = Object.freeze([
   { id: 'aggTrade', endpoint: 'market', subscription: '<symbol>@aggTrade' },
   { id: 'bookTicker', endpoint: 'public', subscription: '<symbol>@bookTicker' },
@@ -49,6 +61,16 @@ export const HY_DATA_0036_RUNTIME_SAFETY = Object.freeze({
   pnlComputed: false,
   researchEligible: false
 });
+
+function boundedSnapshotBackoff(attempt, baseDelayMs, random = Math.random) {
+  const exponential = Math.min(MAX_SNAPSHOT_RETRY_DELAY_MS, baseDelayMs * (2 ** Math.max(0, attempt - 1)));
+  const jitter = 0.75 + random() * 0.5;
+  return Math.min(MAX_SNAPSHOT_RETRY_DELAY_MS, Math.max(1, Math.ceil(exponential * jitter)));
+}
+
+function defaultSleep(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
 
 function fail(message) {
   throw new Error(message);
@@ -307,6 +329,9 @@ export function createPerSymbolDepthBook({ symbol: inputSymbol, maxBufferedEvent
     book: null,
     lastUpdateId: null,
     snapshotAttempts: 0,
+    snapshotRequests: 0,
+    successfulSnapshots: 0,
+    rateLimitedSnapshots: 0,
     staleBufferedDropped: 0,
     alignmentFailures: 0,
     sequenceGaps: 0,
@@ -315,6 +340,7 @@ export function createPerSymbolDepthBook({ symbol: inputSymbol, maxBufferedEvent
     crossedBooks: 0,
     bufferLimitFailures: 0,
     resyncs: 0,
+    resyncCount: 0,
     invalidSegments: 0,
     firstAppliedUpdateId: null,
     finalAppliedUpdateId: null,
@@ -323,7 +349,13 @@ export function createPerSymbolDepthBook({ symbol: inputSymbol, maxBufferedEvent
     validSince: null,
     segmentId: 0,
     staleRanges: [],
-    bufferedEventsPeak: 0
+    bufferedEventsPeak: 0,
+    pendingSnapshot: null,
+    bridgeWaitSince: null,
+    retainedSnapshotWaits: 0,
+    bridgeWaitSuccess: 0,
+    bridgeTimeout: 0,
+    snapshotTooOld: 0
   };
 
   function invalidate(reason, now = null) {
@@ -343,16 +375,75 @@ export function createPerSymbolDepthBook({ symbol: inputSymbol, maxBufferedEvent
     state.firstAppliedUpdateId = null;
     state.finalAppliedUpdateId = null;
     state.validSince = null;
+    state.pendingSnapshot = null;
+    state.bridgeWaitSince = null;
     state.segmentId += 1;
     return Object.freeze({ ok: false, reason, resyncRequired: true, segmentId: state.segmentId });
+  }
+
+  function recordStale(stale) {
+    if (!stale.length) return;
+    state.staleBufferedDropped += stale.length;
+    state.staleRanges.push([stale[0].U, stale.at(-1).u]);
+  }
+
+  function waitForBridge(snapshot, now) {
+    state.pendingSnapshot = Object.freeze({
+      lastUpdateId: snapshot.lastUpdateId,
+      bids: cloneLevels(snapshot.bids ?? []),
+      asks: cloneLevels(snapshot.asks ?? [])
+    });
+    state.status = 'WAITING_FOR_BRIDGE';
+    state.bridgeWaitSince ??= now;
+    state.retainedSnapshotWaits += 1;
+    return Object.freeze({ ok: false, reason: 'SNAPSHOT_AHEAD_WAITING_BRIDGE', waitingForBridge: true, snapshotTooOld: false });
+  }
+
+  function replaySnapshot(snapshot, now) {
+    const snapshotLastUpdateId = integer('snapshotLastUpdateId', snapshot.lastUpdateId);
+    const stale = state.buffer.filter(update => update.u < snapshotLastUpdateId);
+    const applicable = state.buffer.filter(update => update.u >= snapshotLastUpdateId);
+    const firstIndex = applicable.findIndex(update => update.U <= snapshotLastUpdateId && snapshotLastUpdateId <= update.u);
+    if (firstIndex < 0) return waitForBridge(snapshot, now);
+    let book;
+    try {
+      book = createEmptyBook(snapshot);
+      const first = applicable[firstIndex];
+      applyUpdate(book, first);
+      let previous = first;
+      for (const current of applicable.slice(firstIndex + 1)) {
+        if (current.u === previous.u) return invalidate('DUPLICATE_DEPTH_UPDATE', now);
+        if (current.u < previous.u) return invalidate('OUT_OF_ORDER_DEPTH_UPDATE', now);
+        if (current.pu !== previous.u) return invalidate('SEQUENCE_GAP', now);
+        applyUpdate(book, current);
+        previous = current;
+      }
+      const bridgeWaited = state.bridgeWaitSince !== null;
+      state.book = book;
+      state.lastUpdateId = previous.u;
+      state.firstAppliedUpdateId = first.U;
+      state.finalAppliedUpdateId = previous.u;
+      recordStale(stale);
+      state.buffer = [];
+      state.pendingSnapshot = null;
+      if (bridgeWaited) state.bridgeWaitSuccess += 1;
+      state.bridgeWaitSince = null;
+      state.status = 'ALIGNED';
+      state.validSince = now;
+      state.lastValidAt = now;
+      return Object.freeze({ ok: true, aligned: true, bridgeWaitSuccess: bridgeWaited, staleDropped: stale.length, firstAppliedUpdateId: first.U, finalAppliedUpdateId: previous.u });
+    } catch (error) {
+      return invalidate(error.message === 'CROSSED_BOOK' ? 'CROSSED_BOOK' : 'INVALID_DEPTH_REPLAY', now);
+    }
   }
 
   function buffer(update) {
     if (state.status === 'ALIGNED') return applyLive(update);
     if (state.buffer.length >= maxBufferedEvents) return invalidate('BUFFER_LIMIT_FAILURE');
-    state.status = 'ALIGNING';
     state.buffer.push(update);
     state.bufferedEventsPeak = Math.max(state.bufferedEventsPeak, state.buffer.length);
+    if (state.pendingSnapshot) return replaySnapshot(state.pendingSnapshot, update.eventTime ?? null);
+    if (state.status !== 'WAITING_FOR_BRIDGE') state.status = 'ALIGNING';
     return Object.freeze({ ok: true, buffered: true, bufferLength: state.buffer.length });
   }
 
@@ -375,62 +466,39 @@ export function createPerSymbolDepthBook({ symbol: inputSymbol, maxBufferedEvent
   function align(snapshot, now = null) {
     state.snapshotAttempts += 1;
     const snapshotLastUpdateId = integer('snapshotLastUpdateId', snapshot.lastUpdateId);
-    const stale = state.buffer.filter(update => update.u < snapshotLastUpdateId);
-    const applicable = state.buffer.filter(update => update.u >= snapshotLastUpdateId);
-    if (!applicable.length) {
-      state.staleBufferedDropped += stale.length;
-      if (stale.length) state.staleRanges.push([stale[0].U, stale.at(-1).u]);
-      state.buffer = applicable;
+    state.pendingSnapshot = null;
+    state.bridgeWaitSince = null;
+    if (!state.buffer.length) return waitForBridge(snapshot, now);
+    const firstBufferedU = Math.min(...state.buffer.map(update => update.U));
+    const lastBufferedU = Math.max(...state.buffer.map(update => update.u));
+    if (snapshotLastUpdateId < firstBufferedU) {
       state.status = 'ALIGNING';
-      state.alignmentFailures += 1;
-      return Object.freeze({ ok: false, reason: 'SNAPSHOT_ALIGNMENT_FAILED', snapshotTooOld: true, staleDropped: stale.length });
+      state.snapshotTooOld += 1;
+      return Object.freeze({ ok: false, reason: 'SNAPSHOT_TOO_OLD', snapshotTooOld: true, staleDropped: 0 });
     }
-    const firstIndex = applicable.findIndex(update => update.U <= snapshotLastUpdateId && snapshotLastUpdateId <= update.u);
-    if (firstIndex < 0) {
-      state.staleBufferedDropped += stale.length;
-      if (stale.length) state.staleRanges.push([stale[0].U, stale.at(-1).u]);
-      state.buffer = applicable;
-      state.status = 'ALIGNING';
-      state.alignmentFailures += 1;
-      return Object.freeze({ ok: false, reason: 'SNAPSHOT_ALIGNMENT_FAILED', snapshotTooOld: true, staleDropped: stale.length });
-    }
-    let book;
-    try {
-      book = createEmptyBook(snapshot);
-      const first = applicable[firstIndex];
-      applyUpdate(book, first);
-      let previous = first;
-      for (const current of applicable.slice(firstIndex + 1)) {
-        if (current.u === previous.u) return invalidate('DUPLICATE_DEPTH_UPDATE', now);
-        if (current.u < previous.u) return invalidate('OUT_OF_ORDER_DEPTH_UPDATE', now);
-        if (current.pu !== previous.u) return invalidate('SEQUENCE_GAP', now);
-        applyUpdate(book, current);
-        previous = current;
-      }
-      state.book = book;
-      state.lastUpdateId = previous.u;
-      state.firstAppliedUpdateId = first.U;
-      state.finalAppliedUpdateId = previous.u;
-      state.staleBufferedDropped += stale.length;
-      if (stale.length) state.staleRanges.push([stale[0].U, stale.at(-1).u]);
-      state.buffer = [];
-      state.status = 'ALIGNED';
-      state.validSince = now;
-      state.lastValidAt = now;
-      return Object.freeze({ ok: true, aligned: true, staleDropped: stale.length, firstAppliedUpdateId: first.U, finalAppliedUpdateId: previous.u });
-    } catch (error) {
-      return invalidate(error.message === 'CROSSED_BOOK' ? 'CROSSED_BOOK' : 'INVALID_DEPTH_REPLAY', now);
-    }
+    if (snapshotLastUpdateId > lastBufferedU) return waitForBridge(snapshot, now);
+    return replaySnapshot(snapshot, now);
+  }
+
+  function checkBridgeTimeout(now, maxWaitMs) {
+    if (state.status !== 'WAITING_FOR_BRIDGE' || state.bridgeWaitSince === null) return Object.freeze({ timedOut: false });
+    if (now - state.bridgeWaitSince < maxWaitMs) return Object.freeze({ timedOut: false });
+    state.bridgeTimeout += 1;
+    state.pendingSnapshot = null;
+    state.bridgeWaitSince = null;
+    state.status = 'ALIGNING';
+    return Object.freeze({ timedOut: true, reason: 'BRIDGE_TIMEOUT' });
   }
 
   function resetForResync(reason, now = null) {
     state.resyncs += 1;
+    state.resyncCount += 1;
     state.buffer = [];
     return invalidate(reason, now);
   }
 
   function diagnostics(now = null) {
-    const { buffer: _buffer, book: _book, ...diagnosticState } = state;
+    const { buffer: _buffer, book: _book, pendingSnapshot: _pendingSnapshot, ...diagnosticState } = state;
     if (state.status === 'ALIGNED' && state.validSince !== null && now !== null) {
       return Object.freeze({
         ...diagnosticState,
@@ -450,6 +518,7 @@ export function createPerSymbolDepthBook({ symbol: inputSymbol, maxBufferedEvent
     align,
     invalidate,
     resetForResync,
+    checkBridgeTimeout,
     diagnostics,
     snapshot() {
       return Object.freeze({
@@ -496,7 +565,7 @@ export function createDurableRawPartitionStore({ rootDir, runId, schemaVersion =
     if (partitions.has(key)) return partitions.get(key);
     const relative = path.join(hour, safeFilePart(record.symbol), safeFilePart(record.stream), `${safeFilePart(record.connectionId ?? 'no-connection')}.jsonl.gz`);
     const finalPath = path.join(rootDir, relative);
-    const tempPath = `${finalPath}.${runId}.part`;
+    const tempPath = `${finalPath}.${safeFilePart(runId)}.part`;
     await fs.mkdir(path.dirname(finalPath), { recursive: true });
     const gzip = (await import('node:zlib')).createGzip({ level: 6 });
     const output = createWriteStream(tempPath, { flags: 'wx' });
@@ -556,6 +625,12 @@ export function createDurableRawPartitionStore({ rootDir, runId, schemaVersion =
       if (partition.error) throw new Error(`RAW_DURABILITY_FAILURE: ${partition.error.message}`);
       const handle = await fs.open(partition.tempPath, 'r+');
       try { await handle.sync(); } finally { await handle.close(); }
+      try {
+        await fs.stat(partition.finalPath);
+        throw new Error('RAW_PARTITION_ALREADY_SEALED');
+      } catch (error) {
+        if (error?.code !== 'ENOENT') throw error;
+      }
       await fs.rename(partition.tempPath, partition.finalPath);
       const stat = await fs.stat(partition.finalPath);
       sealedPartitions.push(Object.freeze({
@@ -712,38 +787,6 @@ function sendSocket(socket, value) {
   socket.send(body);
 }
 
-async function fetchText(fetchImpl, url) {
-  const requestStartedAt = Date.now();
-  const response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
-  const body = await response.text();
-  const receivedAt = Date.now();
-  return { response, body, requestStartedAt, receivedAt };
-}
-
-async function readClockEvidence(fetchImpl, now = () => Date.now()) {
-  try {
-    const requestStartedAt = now();
-    const response = await fetchImpl('https://fapi.binance.com/fapi/v1/time', { method: 'GET', headers: { accept: 'application/json' } });
-    const body = await response.text();
-    const receivedAt = now();
-    if (!response.ok) return Object.freeze({ status: 'CLOCK_UNTRUSTED', source: 'binance-time-endpoint-error', offsetMs: null, requestStartedAt, receivedAt });
-    const parsed = JSON.parse(body);
-    const serverTime = integer('serverTime', parsed.serverTime);
-    const midpoint = Math.floor((requestStartedAt + receivedAt) / 2);
-    const offsetMs = serverTime - midpoint;
-    return Object.freeze({
-      status: Math.abs(offsetMs) > 500 ? 'CLOCK_UNTRUSTED' : 'CLOCK_TRUSTED',
-      source: 'binance-time-endpoint-midpoint-estimate',
-      offsetMs,
-      serverTime,
-      requestStartedAt,
-      receivedAt
-    });
-  } catch (error) {
-    return Object.freeze({ status: 'CLOCK_UNTRUSTED', source: 'clock-check-failed', offsetMs: null, error: error.message });
-  }
-}
-
 function createConnectionStats(kind, endpoint, connectionId, connectedAt) {
   return {
     kind,
@@ -774,7 +817,7 @@ export function createHyData0036Runtime(options = {}) {
     runId = `engineering-${Date.now()}`,
     dryRun = false,
     durationMs = 60 * MINUTE_MS,
-    controlledReconnectAfterMs = null,
+    controlledReconnectAfterMs = DEFAULT_CONTROLLED_RECONNECT_MS,
     now = () => Date.now(),
     logger = () => {},
     queueLimit = 50_000,
@@ -782,7 +825,17 @@ export function createHyData0036Runtime(options = {}) {
     maxSnapshotAttempts = 5,
     maxConcurrentSnapshots = 2,
     snapshotRetryDelayMs = 250,
+    maxSnapshotRecoveryMs = MAX_SNAPSHOT_RECOVERY_MS,
+    snapshotRetryRandom = Math.random,
+    snapshotSleep = defaultSleep,
     snapshotTimeoutMs = 10_000,
+    bridgeWaitTimeoutMs = BRIDGE_WAIT_TIMEOUT_MS,
+    restGovernor = null,
+    hostNtpEvidenceImpl = readHostNtpEvidence,
+    featureSink = null,
+    remoteStorage = null,
+    remoteStorageCapacityBytes = null,
+    localSpoolHours = 72,
     noNetwork = false
   } = options;
   if (!dryRun) fail('formal HY-DATA-0036 collection is not enabled; use --dry-run');
@@ -790,11 +843,31 @@ export function createHyData0036Runtime(options = {}) {
   if (typeof fetchImpl !== 'function' && !noNetwork) fail('public fetch implementation is required');
   integer('durationMs', durationMs, { minimum: 1 });
   if (controlledReconnectAfterMs !== null) integer('controlledReconnectAfterMs', controlledReconnectAfterMs, { minimum: 1 });
+  integer('maxSnapshotAttempts', maxSnapshotAttempts, { minimum: 1 });
+  if (maxSnapshotAttempts > 5) fail('maxSnapshotAttempts exceeds frozen bound of 5');
   integer('maxConcurrentSnapshots', maxConcurrentSnapshots, { minimum: 1 });
+  if (maxConcurrentSnapshots > 2) fail('maxConcurrentSnapshots exceeds frozen bound of 2');
+  integer('snapshotRetryDelayMs', snapshotRetryDelayMs, { minimum: 1 });
+  integer('maxSnapshotRecoveryMs', maxSnapshotRecoveryMs, { minimum: 1 });
+  if (maxSnapshotRecoveryMs > MAX_SNAPSHOT_RECOVERY_MS) fail('maxSnapshotRecoveryMs exceeds frozen bound of 10 seconds');
+  integer('maxBufferedEvents', maxBufferedEvents, { minimum: 1 });
+  if (maxBufferedEvents > 20_000) fail('maxBufferedEvents exceeds frozen bound of 20000');
+  integer('bridgeWaitTimeoutMs', bridgeWaitTimeoutMs, { minimum: 1 });
+  if (durationMs >= MIN_CANARY_DURATION_MS) {
+    if (controlledReconnectAfterMs === null) fail('controlled reconnect is required for a 60-minute canary');
+    if (controlledReconnectAfterMs < MIN_CONTROLLED_RECONNECT_MS || controlledReconnectAfterMs > MAX_CONTROLLED_RECONNECT_MS) {
+      fail('controlled reconnect must occur between 20 and 30 minutes for a 60-minute canary');
+    }
+  }
+  if (typeof snapshotRetryRandom !== 'function') fail('snapshotRetryRandom must be a function');
+  if (typeof snapshotSleep !== 'function') fail('snapshotSleep must be a function');
 
   const selectedSymbols = Object.freeze(symbols.map(value => String(value).toUpperCase()));
   const startedAt = now();
   const store = rawStore ?? createDurableRawPartitionStore({ rootDir, runId });
+  const governor = restGovernor ?? (noNetwork ? null : createBinancePublicRestGovernor({ fetchImpl, now }));
+  const featureStore = featureSink ?? createEngineeringFeatureStore({ rootDir: path.join(rootDir, 'features'), runId });
+  const storageBackend = remoteStorage ?? createS3CompatibleSealedPartitionAdapter();
   const perSymbol = new Map(selectedSymbols.map(value => [value, {
     depth: createPerSymbolDepthBook({ symbol: value, maxBufferedEvents }),
     streams: makeStreamStats(),
@@ -802,7 +875,9 @@ export function createHyData0036Runtime(options = {}) {
     aggTradeIntegrityFailure: false,
     snapshotAttempts: 0,
     snapshotTooOldRetries: 0,
-    featureSeconds: new Set()
+    featureSeconds: new Set(),
+    featureBuilder: createCausalFeatureBuilder({ symbol: value }),
+    featureRows: 0
   }]));
   const connections = [];
   const sockets = new Map();
@@ -821,24 +896,49 @@ export function createHyData0036Runtime(options = {}) {
     bufferLimitFailures: 0,
     snapshotAlignmentFailures: 0,
     snapshotAttempts: 0,
+    snapshotRequests: 0,
+    successfulSnapshots: 0,
+    rateLimitedSnapshots: 0,
     resyncs: 0,
+    resyncCount: 0,
     controlledReconnects: 0,
     failures: [],
     runtimeErrors: [],
     eventCount: 0,
     rejectedNonUm: 0,
     featureTicks: 0,
-    featureSinkWrites: 0
+    featureSinkWrites: 0,
+    retainedSnapshotWaits: 0,
+    bridgeWaitSuccess: 0,
+    bridgeTimeout: 0,
+    rateGovernorCooldownCount: 0,
+    http429Count: 0,
+    http418Count: 0,
+    restRequestCount: 0,
+    depthSnapshotRequestCount: 0,
+    lateEventCount: 0,
+    restRetryCount: 0,
+    maxUsedWeight: null,
+    retryAfterObserved: [],
+    snapshotTooOld: 0,
+    snapshotRecoveryTimeouts: 0,
+    featureDurabilityFailures: 0,
+    controlledReconnectVerified: false,
+    freshSnapshotResyncVerified: false
   };
   let stopRequested = false;
   let stopped = false;
   let controlledReconnectDone = false;
   let clockEvidence = null;
+  let rawManifest = null;
+  let featureManifest = null;
+  let remoteEvidence = null;
   let connectionSequence = 0;
   let alignmentPromise = null;
   const resyncPromises = new Map();
   let activeSnapshotRequests = 0;
   const waitingSnapshotRequests = [];
+  const bridgeTimers = new Map();
 
   async function withSnapshotSlot(task) {
     if (activeSnapshotRequests >= maxConcurrentSnapshots) {
@@ -855,6 +955,72 @@ export function createHyData0036Runtime(options = {}) {
 
   function log(event, details = {}) {
     try { logger({ event, ...details }); } catch { /* diagnostics must not stop capture */ }
+  }
+
+  function syncRestDiagnostics() {
+    if (!governor) return;
+    const rest = governor.diagnostics;
+    diagnostics.rateGovernorCooldownCount = rest.rateGovernorCooldownCount;
+    diagnostics.http429Count = rest.http429Count;
+    diagnostics.http418Count = rest.http418Count;
+    diagnostics.restRequestCount = rest.requestCount;
+    diagnostics.depthSnapshotRequestCount = rest.depthSnapshotRequestCount;
+    diagnostics.restRetryCount = rest.retryCount;
+    diagnostics.maxUsedWeight = rest.maxUsedWeight;
+    diagnostics.retryAfterObserved = rest.retryAfterObserved;
+  }
+
+  function clearBridgeTimer(inputSymbol) {
+    const timer = bridgeTimers.get(inputSymbol);
+    if (timer) clearTimeout(timer);
+    bridgeTimers.delete(inputSymbol);
+  }
+
+  function scheduleBridgeTimeout(inputSymbol) {
+    if (bridgeTimers.has(inputSymbol)) return;
+    const timer = setTimeout(() => {
+      bridgeTimers.delete(inputSymbol);
+      const state = perSymbol.get(inputSymbol);
+      if (!state) return;
+      const timeout = state.depth.checkBridgeTimeout(now(), bridgeWaitTimeoutMs);
+      if (!timeout.timedOut) return;
+      diagnostics.bridgeTimeout += 1;
+      scheduleSnapshotResync(inputSymbol, 'BRIDGE_TIMEOUT');
+    }, bridgeWaitTimeoutMs);
+    timer.unref?.();
+    bridgeTimers.set(inputSymbol, timer);
+    timers.add(timer);
+  }
+
+  async function materializeFeatures(state, at) {
+    const rows = state.featureBuilder.materializeAt(at);
+    for (const row of rows) {
+      await featureStore.append(row);
+      state.featureRows += 1;
+      diagnostics.featureSinkWrites += 1;
+      diagnostics.featureTicks += 1;
+    }
+    diagnostics.lateEventCount = [...perSymbol.values()].reduce((sum, candidate) => sum + candidate.featureBuilder.diagnostics().lateEventCount, 0);
+    return rows;
+  }
+
+  function updateFeatureBook(state, receivedAt) {
+    const depth = state.depth.snapshot();
+    state.featureBuilder.setDepthBook(depth.book, receivedAt, depth.status === 'ALIGNED');
+  }
+
+  function recordDepthResult(inputSymbol, result, receivedAt) {
+    const state = perSymbol.get(inputSymbol);
+    if (!state) return;
+    if (result?.waitingForBridge) {
+      diagnostics.retainedSnapshotWaits += 1;
+      scheduleBridgeTimeout(inputSymbol);
+    }
+    if (result?.bridgeWaitSuccess) diagnostics.bridgeWaitSuccess += 1;
+    if (result?.aligned) {
+      clearBridgeTimer(inputSymbol);
+      updateFeatureBook(state, receivedAt);
+    } else if (state.depth.status !== 'ALIGNED') updateFeatureBook(state, receivedAt);
   }
 
   function streamStats(symbolValue, streamId) {
@@ -960,7 +1126,10 @@ export function createHyData0036Runtime(options = {}) {
       }
       state.lastAggTradeId = normalized.aggregateTradeId;
     }
-    perSymbol.get(candidateSymbol).featureSeconds.add(Math.floor(normalized.eventTime / 1000) * 1000);
+    const state = perSymbol.get(candidateSymbol);
+    state.featureBuilder.ingest(streamId, normalized, receivedAt);
+    state.featureSeconds.add(Math.floor(normalized.eventTime / 1000) * 1000);
+    await materializeFeatures(state, receivedAt);
   }
 
   async function processPublicEvent(streamId, payload, receivedAt, connection) {
@@ -991,8 +1160,11 @@ export function createHyData0036Runtime(options = {}) {
         stats.invalidSegments += 1;
         if (result.reason !== 'BUFFER_LIMIT_FAILURE') scheduleSnapshotResync(candidateSymbol, result.reason);
       }
+      recordDepthResult(candidateSymbol, result, receivedAt);
     }
+    state.featureBuilder.ingest(streamId, normalized, receivedAt);
     state.featureSeconds.add(Math.floor(normalized.eventTime / 1000) * 1000);
+    await materializeFeatures(state, receivedAt);
   }
 
   async function processMessage(message, connection, receivedAt = now()) {
@@ -1022,6 +1194,11 @@ export function createHyData0036Runtime(options = {}) {
       if (stats) stats.invalidSegments += 1;
       diagnostics.runtimeErrors.push({ stream: streamId, error: error.message });
       log('PARSE_OR_SEQUENCE_FAILURE', { stream: streamId, error: error.message });
+      if (error.message.includes('FEATURE_')) {
+        diagnostics.featureDurabilityFailures += 1;
+        diagnostics.failures.push('FEATURE_DURABILITY_FAILURE');
+        stopRequested = true;
+      }
       if (streamId === 'depth.diff' && perSymbol.has(candidateSymbol)) {
         perSymbol.get(candidateSymbol).depth.invalidate(error.message, receivedAt);
         scheduleSnapshotResync(candidateSymbol, error.message);
@@ -1045,6 +1222,7 @@ export function createHyData0036Runtime(options = {}) {
     for (const state of perSymbol.values()) {
       state.depth.resetForResync(reason, at);
       diagnostics.resyncs += 1;
+      diagnostics.resyncCount += 1;
     }
   }
 
@@ -1054,6 +1232,7 @@ export function createHyData0036Runtime(options = {}) {
     const connectionId = `${runId}-${kind}-${++connectionSequence}`;
     const connection = createConnectionStats(kind, endpoint, connectionId, connectedAt);
     connection.reconnectCount = reconnectCount;
+    if (controlledReconnectDone && reconnectCount > 0) diagnostics.controlledReconnectVerified = true;
     connections.push(connection);
     let socket;
     try {
@@ -1110,35 +1289,59 @@ export function createHyData0036Runtime(options = {}) {
 
   async function fetchAndAlignSnapshot(inputSymbol) {
     const state = perSymbol.get(inputSymbol);
+    if (!governor) fail('public REST governor is unavailable');
     const url = new URL('https://fapi.binance.com/fapi/v1/depth');
     url.searchParams.set('symbol', inputSymbol);
     url.searchParams.set('limit', '1000');
-    for (let attempt = 1; attempt <= maxSnapshotAttempts && !stopRequested; attempt += 1) {
+    const recoveryStartedAt = now();
+    const recoveryDeadline = recoveryStartedAt + maxSnapshotRecoveryMs;
+    let recoveryTimedOut = false;
+    const waitForRetry = async attempt => {
+      const remaining = recoveryDeadline - now();
+      if (remaining <= 0) return false;
+      const delay = boundedSnapshotBackoff(attempt, snapshotRetryDelayMs, snapshotRetryRandom);
+      await snapshotSleep(Math.min(delay, remaining));
+      return now() < recoveryDeadline;
+    };
+    for (let attempt = 1; attempt <= maxSnapshotAttempts && !stopRequested && now() <= recoveryDeadline; attempt += 1) {
       state.snapshotAttempts += 1;
       diagnostics.snapshotAttempts += 1;
+      state.snapshotRequests += 1;
+      diagnostics.snapshotRequests += 1;
       let responseData;
       try {
-        responseData = await withSnapshotSlot(() => fetchText(fetchImpl, url));
+        responseData = await withSnapshotSlot(() => governor.request(url, { method: 'GET', headers: { accept: 'application/json' } }));
+        syncRestDiagnostics();
+        if (now() > recoveryDeadline) {
+          recoveryTimedOut = true;
+          break;
+        }
       } catch (error) {
         diagnostics.runtimeErrors.push({ stage: 'DEPTH_SNAPSHOT', symbol: inputSymbol, error: error.message });
-        if (attempt < maxSnapshotAttempts) {
-          await new Promise(resolve => setTimeout(resolve, snapshotRetryDelayMs));
-          continue;
+        syncRestDiagnostics();
+        if (error.code === 'IP_RATE_LIMIT_BANNED' || error.code === 'RATE_LIMIT_RETRY_AFTER_MISSING' || error.code === 'RATE_LIMIT_COOLDOWN_EXHAUSTED') {
+          state.rateLimitedSnapshots += 1;
+          diagnostics.rateLimitedSnapshots += 1;
         }
+        if (error.code === 'IP_RATE_LIMIT_BANNED' || error.code === 'RATE_LIMIT_RETRY_AFTER_MISSING' || error.code === 'RATE_LIMIT_COOLDOWN_EXHAUSTED') break;
+        if (attempt < maxSnapshotAttempts && await waitForRetry(attempt)) continue;
+        recoveryTimedOut = now() >= recoveryDeadline;
         break;
       }
       if (!responseData.response.ok) {
         diagnostics.runtimeErrors.push({ stage: 'DEPTH_SNAPSHOT', symbol: inputSymbol, error: `HTTP_${responseData.response.status}` });
-        await new Promise(resolve => setTimeout(resolve, snapshotRetryDelayMs));
-        continue;
+        break;
       }
       let snapshot;
       try { snapshot = JSON.parse(responseData.body); } catch { snapshot = null; }
       if (!snapshot || !Number.isSafeInteger(snapshot.lastUpdateId) || !Array.isArray(snapshot.bids) || !Array.isArray(snapshot.asks)) {
         diagnostics.runtimeErrors.push({ stage: 'DEPTH_SNAPSHOT', symbol: inputSymbol, error: 'INVALID_SNAPSHOT_SCHEMA' });
-        await new Promise(resolve => setTimeout(resolve, snapshotRetryDelayMs));
+        if (attempt < maxSnapshotAttempts && await waitForRetry(attempt)) continue;
+        recoveryTimedOut = now() >= recoveryDeadline;
         continue;
       }
+      state.successfulSnapshots += 1;
+      diagnostics.successfulSnapshots += 1;
       const connectionId = sockets.get('public')?.connection?.connectionId ?? null;
       await appendRaw({
         source: 'binance-public-usdm',
@@ -1153,20 +1356,34 @@ export function createHyData0036Runtime(options = {}) {
         st: null,
         ps: null,
         rawPayload: { ...snapshot, requestStartedAt: responseData.requestStartedAt, receivedAt: responseData.receivedAt, limit: 1000 },
+        responseMeta: responseData.responseMeta,
         schemaVersion: 1,
         connectionId
       });
       updateCommonStats('depth.snapshot', inputSymbol, { E: responseData.receivedAt }, responseData.receivedAt);
       const depthResult = state.depth.align({ lastUpdateId: snapshot.lastUpdateId, bids: cloneLevels(snapshot.bids), asks: cloneLevels(snapshot.asks) }, responseData.receivedAt);
-      if (depthResult.ok) return depthResult;
-      if (depthResult.snapshotTooOld) state.snapshotTooOldRetries += 1;
-      diagnostics.snapshotAlignmentFailures += 1;
-      if (attempt < maxSnapshotAttempts) await new Promise(resolve => setTimeout(resolve, snapshotRetryDelayMs));
+      recordDepthResult(inputSymbol, depthResult, responseData.receivedAt);
+      if (depthResult.ok) {
+        updateFeatureBook(state, responseData.receivedAt);
+        await materializeFeatures(state, responseData.receivedAt);
+        if (controlledReconnectDone && diagnostics.controlledReconnectVerified) diagnostics.freshSnapshotResyncVerified = true;
+        return depthResult;
+      }
+      if (depthResult.snapshotTooOld) {
+        state.snapshotTooOldRetries += 1;
+        diagnostics.snapshotTooOld += 1;
+        if (attempt < maxSnapshotAttempts && await waitForRetry(attempt)) continue;
+        recoveryTimedOut = now() >= recoveryDeadline;
+        continue;
+      }
+      if (depthResult.waitingForBridge) return depthResult;
+      break;
     }
+    if (recoveryTimedOut || now() >= recoveryDeadline) diagnostics.snapshotRecoveryTimeouts += 1;
     state.depth.invalidate('SNAPSHOT_ALIGNMENT_FAILED', now());
     diagnostics.snapshotAlignmentFailures += 1;
     diagnostics.failures.push(`SNAPSHOT_ALIGNMENT_FAILED:${inputSymbol}`);
-    stopRequested = true;
+    updateFeatureBook(state, now());
     return Object.freeze({ ok: false, reason: 'SNAPSHOT_ALIGNMENT_FAILED' });
   }
 
@@ -1174,6 +1391,7 @@ export function createHyData0036Runtime(options = {}) {
     if (stopRequested || !perSymbol.has(inputSymbol) || resyncPromises.has(inputSymbol)) return;
     const promise = (async () => {
       diagnostics.resyncs += 1;
+      diagnostics.resyncCount += 1;
       log('DEPTH_RESYNC_REQUESTED', { symbol: inputSymbol, reason });
       try {
         return await fetchAndAlignSnapshot(inputSymbol);
@@ -1237,6 +1455,7 @@ export function createHyData0036Runtime(options = {}) {
     stopRequested = true;
     for (const timer of timers) clearTimeout(timer);
     timers.clear();
+    bridgeTimers.clear();
     for (const { socket, connection } of sockets.values()) {
       connection.disconnectReason ??= reason;
       try { socket.close(1000, reason); } catch { /* close is best effort after stop */ }
@@ -1247,11 +1466,48 @@ export function createHyData0036Runtime(options = {}) {
     await queue.drain().catch(error => diagnostics.runtimeErrors.push({ stage: 'QUEUE_DRAIN', error: error.message }));
     queue.stop();
     if (!store.sealed) {
-      try { await store.seal(); } catch (error) {
+      try { rawManifest = await store.seal(); } catch (error) {
         diagnostics.rawDurabilityFailures += 1;
         diagnostics.failures.push('RAW_DURABILITY_FAILURE');
         diagnostics.runtimeErrors.push({ stage: 'RAW_SEAL', error: error.message });
       }
+    }
+    if (rawManifest === null) {
+      try {
+        const manifestPath = path.join(rootDir, 'manifest.json');
+        rawManifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+      } catch { rawManifest = null; }
+    }
+    if (!featureStore.sealed) {
+      try { featureManifest = await featureStore.seal(); } catch (error) {
+        diagnostics.featureDurabilityFailures += 1;
+        diagnostics.failures.push('FEATURE_DURABILITY_FAILURE');
+        diagnostics.runtimeErrors.push({ stage: 'FEATURE_SEAL', error: error.message });
+      }
+    }
+    if (storageBackend?.configured && rawManifest) {
+      try {
+        const uploaded = [];
+        for (const file of rawManifest.files ?? []) {
+          uploaded.push(await storageBackend.uploadSealedPartition({
+            filePath: path.join(rootDir, file.path),
+            objectKey: `${runId}/${file.path}`,
+            sha256: file.sha256
+          }));
+        }
+        const manifestPath = path.join(rootDir, 'manifest.json');
+        uploaded.push(await storageBackend.uploadManifest({
+          filePath: manifestPath,
+          objectKey: `${runId}/manifest.json`,
+          sha256: await sha256File(manifestPath)
+        }));
+        remoteEvidence = Object.freeze({ configured: true, verified: true, uploadedObjects: uploaded.length });
+      } catch (error) {
+        remoteEvidence = Object.freeze({ configured: true, verified: false, errorCode: error.code ?? 'REMOTE_STORAGE_FAILURE' });
+        diagnostics.failures.push(error.code ?? 'REMOTE_STORAGE_FAILURE');
+      }
+    } else {
+      remoteEvidence = Object.freeze({ configured: false, verified: false, status: 'STORAGE_BACKEND_NOT_CONFIGURED' });
     }
     return buildReport(reason);
   }
@@ -1296,26 +1552,37 @@ export function createHyData0036Runtime(options = {}) {
     const elapsedHours = Math.max((endAt - startedAt) / HOUR_MS, 1 / 60);
     const rawBytes = (manifest?.files ?? []).reduce((sum, file) => sum + file.bytes, 0);
     const bytesPerHour = rawBytes / elapsedHours;
-    const projected = Object.fromEntries([24, 30, 60, 90].map(days => [
-      `${days}d`, Math.ceil(bytesPerHour * 24 * days)
-    ]));
-    const requiredHeadroomBytes = projected['90d'] * 2;
+    const capacity = elapsedHours >= 1 ? evaluateStorageCapacity({
+      bytesPerHour,
+      remoteCapacityBytes: remoteStorageCapacityBytes,
+      localAvailableBytes: availableBytes,
+      localSpoolHours
+    }) : { status: 'CANARY_DURATION_INSUFFICIENT', twoX90DayHeadroom: false, localSpool72h: false };
     return Object.freeze({
       rawBytes,
       bytesPerHour: Math.ceil(bytesPerHour),
-      projectedRawBytes: projected,
+      projectedRawBytes: capacity.projectedRawBytes ?? null,
       availableBytes,
-      requiredHeadroomBytes,
-      twoX90DayHeadroom: availableBytes === null ? false : availableBytes >= requiredHeadroomBytes,
-      status: availableBytes !== null && availableBytes >= requiredHeadroomBytes ? 'CAPACITY_PASS' : 'STORAGE_CAPACITY_BLOCKED'
+      remoteBackendConfigured: Boolean(storageBackend?.configured),
+      remoteVerified: remoteEvidence?.verified ?? false,
+      remoteCapacityBytes: capacity.remoteCapacityBytes ?? remoteStorageCapacityBytes,
+      remoteRequiredBytes: capacity.remoteRequiredBytes ?? null,
+      requiredHeadroomBytes: capacity.remoteRequiredBytes ?? null,
+      twoX90DayHeadroom: capacity.twoX90DayHeadroom ?? false,
+      localSpoolRequiredBytes: capacity.localRequiredSpoolBytes ?? null,
+      localSpool72h: capacity.localSpool72h ?? false,
+      sizingEvidenceEligible: elapsedHours >= 1,
+      status: !storageBackend?.configured ? 'STORAGE_BACKEND_NOT_CONFIGURED' : capacity.status
     });
   }
 
   async function buildReport(reason = 'DURATION_COMPLETE') {
     const endedAt = now();
     const manifestPath = path.join(rootDir, 'manifest.json');
-    let manifest = null;
-    try { manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')); } catch { /* report remains fail-closed */ }
+    let manifest = rawManifest;
+    if (manifest === null) {
+      try { manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')); } catch { /* report remains fail-closed */ }
+    }
     const publicCoverage = coverageForConnection('public', endedAt);
     const marketCoverage = coverageForConnection('market', endedAt);
     const depthCoverage = [...perSymbol.values()].map(state => {
@@ -1349,16 +1616,26 @@ export function createHyData0036Runtime(options = {}) {
       streams: Object.fromEntries([...ALL_STREAM_IDS].map(stream => [stream, streamReport(state.streams[stream])])),
       depth: state.depth.diagnostics(endedAt),
       snapshotAttempts: state.snapshotAttempts,
+      snapshotRequests: state.snapshotRequests,
+      successfulSnapshots: state.successfulSnapshots,
+      rateLimitedSnapshots: state.rateLimitedSnapshots,
+      resyncCount: state.depth.diagnostics(endedAt).resyncCount,
       snapshotTooOldRetries: state.snapshotTooOldRetries,
       featureCoverage: {
         secondsWithEvents: state.featureSeconds.size,
         researchEligible: false,
-        featureSinkWrites: 0
+        featureSinkWrites: state.featureRows,
+        ...state.featureBuilder.diagnostics()
       },
       alignmentLatencyMs: state.alignmentLatencyMs ?? null
     }]));
     const storage = await storageEvidence(endedAt, manifest);
-    const manifestVerified = manifest ? await verifyRawPartitionFiles(manifest, { rootDir }) : false;
+    const manifestVerified = manifest ? ((await verifyRawPartitionFiles(manifest, { rootDir })) || remoteEvidence?.verified === true) : false;
+    let verifiedFeatureManifest = featureManifest;
+    if (verifiedFeatureManifest === null) {
+      try { verifiedFeatureManifest = JSON.parse(await fs.readFile(path.join(rootDir, 'features', 'feature-manifest.json'), 'utf8')); } catch { /* report remains fail-closed */ }
+    }
+    const featureManifestVerified = verifiedFeatureManifest ? await verifyFeatureManifestFiles(verifiedFeatureManifest, { rootDir: path.join(rootDir, 'features') }) : false;
     const report = {
       schemaVersion: 1,
       artifactType: 'HY_DATA_0036_ENGINEERING_CANARY',
@@ -1376,11 +1653,31 @@ export function createHyData0036Runtime(options = {}) {
         bufferedEventsPeak: queue.peak,
         staleBufferedDropped: [...perSymbol.values()].reduce((sum, state) => sum + state.depth.diagnostics(endedAt).staleBufferedDropped, 0),
         snapshotAttempts: diagnostics.snapshotAttempts,
+        snapshotRequests: diagnostics.snapshotRequests,
+        successfulSnapshots: diagnostics.successfulSnapshots,
+        rateLimitedSnapshots: diagnostics.rateLimitedSnapshots,
+        resyncCount: diagnostics.resyncCount,
         snapshotAlignmentFailures: diagnostics.snapshotAlignmentFailures,
         sequenceGaps: [...perSymbol.values()].reduce((sum, state) => sum + state.depth.diagnostics(endedAt).sequenceGaps + Object.entries(state.streams).filter(([stream]) => stream !== 'depth.diff' && stream !== 'depth.snapshot').reduce((inner, [, stream]) => inner + stream.sequenceGaps, 0), 0),
         crossedBooks: [...perSymbol.values()].reduce((sum, state) => sum + state.depth.diagnostics(endedAt).crossedBooks, 0),
         bufferLimitFailures: diagnostics.bufferLimitFailures,
-        invalidSegments: [...perSymbol.values()].reduce((sum, state) => sum + state.depth.diagnostics(endedAt).invalidSegments, 0)
+        invalidSegments: [...perSymbol.values()].reduce((sum, state) => sum + state.depth.diagnostics(endedAt).invalidSegments, 0),
+        retainedSnapshotWaits: diagnostics.retainedSnapshotWaits,
+        bridgeWaitSuccess: diagnostics.bridgeWaitSuccess,
+        bridgeTimeout: diagnostics.bridgeTimeout,
+        snapshotTooOld: diagnostics.snapshotTooOld,
+        http429Count: diagnostics.http429Count,
+        http418Count: diagnostics.http418Count,
+        restRequestCount: diagnostics.restRequestCount,
+        depthSnapshotRequestCount: diagnostics.depthSnapshotRequestCount,
+        retryAfterObserved: diagnostics.retryAfterObserved,
+        maxUsedWeight: diagnostics.maxUsedWeight,
+        restRetryCount: diagnostics.restRetryCount,
+        snapshotRecoveryTimeouts: diagnostics.snapshotRecoveryTimeouts,
+        lateEventCount: diagnostics.lateEventCount,
+        featureDurabilityFailures: diagnostics.featureDurabilityFailures,
+        controlledReconnectVerified: diagnostics.controlledReconnectVerified,
+        freshSnapshotResyncVerified: diagnostics.freshSnapshotResyncVerified
       },
       latency: {
         p50: quantile([...perSymbol.values()].flatMap(state => Object.values(state.streams).flatMap(stream => stream.latencySamples)), 0.50),
@@ -1397,6 +1694,13 @@ export function createHyData0036Runtime(options = {}) {
         partitionCount: manifest?.files?.length ?? 0,
         allSealedManifestsVerify: manifestVerified
       },
+      featureManifest: {
+        path: verifiedFeatureManifest ? path.join(rootDir, 'features', 'feature-manifest.json') : null,
+        manifestSha256: verifiedFeatureManifest?.manifestSha256 ?? null,
+        manifestVerified: featureManifestVerified,
+        rowCount: verifiedFeatureManifest?.files?.reduce((sum, file) => sum + file.rows, 0) ?? 0,
+        files: verifiedFeatureManifest?.files?.length ?? 0
+      },
       storage,
       featureCoverage: {
         derivedIntervals: ['1s', '5s', '1m'],
@@ -1404,9 +1708,10 @@ export function createHyData0036Runtime(options = {}) {
         featureSinkWrites: diagnostics.featureSinkWrites,
         researchEligible: false
       },
+      rest: governor ? Object.freeze({ ...governor.diagnostics, responseLog: governor.responseLog() }) : null,
       collectionStartAt: null,
       formalCollectionActivated: false,
-      status: qualityPass && manifestVerified && storage.status === 'CAPACITY_PASS' && diagnostics.failures.length === 0 ? 'ENGINEERING_CANARY_PASS' : 'ENGINEERING_CANARY_FAIL',
+      status: qualityPass && manifestVerified && featureManifestVerified && diagnostics.featureSinkWrites > 0 && clockEvidence?.status === 'CLOCK_TRUSTED' && storage.status === 'CAPACITY_PASS' && diagnostics.failures.length === 0 && diagnostics.http429Count === 0 && diagnostics.http418Count === 0 && diagnostics.controlledReconnectVerified && diagnostics.freshSnapshotResyncVerified ? 'ENGINEERING_CANARY_PASS' : 'ENGINEERING_CANARY_FAIL',
       researchEligible: false,
       safety: HY_DATA_0036_RUNTIME_SAFETY
     };
@@ -1415,7 +1720,20 @@ export function createHyData0036Runtime(options = {}) {
 
   async function run() {
     if (noNetwork) return buildReport('NO_NETWORK_TEST_MODE');
-    clockEvidence = await readClockEvidence(fetchImpl, now);
+    try {
+      clockEvidence = await hostNtpEvidenceImpl({ now });
+    } catch (error) {
+      clockEvidence = Object.freeze({
+        status: 'CLOCK_UNTRUSTED',
+        clockSource: 'HOST_NTP_EVIDENCE',
+        checkedAt: new Date(now()).toISOString(),
+        synchronized: false,
+        offsetMs: null,
+        evidenceMethod: 'host-ntp-check-failed',
+        error: error.code ?? error.name ?? 'NTP_CHECK_FAILED'
+      });
+    }
+    for (const state of perSymbol.values()) state.featureBuilder.setClockStatus(clockEvidence.status);
     openConnection('public');
     openConnection('market');
     if (stopRequested) return stop('FAIL_CLOSED');
