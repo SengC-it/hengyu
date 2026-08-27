@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0039_COMPLETION_BUNDLE",
+  "immutable": true,
+  "experiment_id": "HY-EXP-0039",
+  "code_commit": "29516f4eeec1ad9bec531e269b2ed851cf0492dc",
+  "preregistration_sha256": "4c32dc6133d4dbc00a0b76c2cd3ad134c5f9f906dc35a1cded33f95f56169033",
+  "data_manifest_sha256": "d5d124f01f8c4cdc47fb6219767356abc390d3258e4c3f631542dc33eb6c4621",
+  "outcomeRead": true,
+  "pnlComputed": true,
+  "finalOosRead": false,
+  "finalResult": "NO_PROFITABLE_EMAIL_STRATEGY_FOUND",
+  "artifacts": [
+    {
+      "path": "registry/experiments/HY-EXP-0039/preregistration.json",
+      "sha256": "4c32dc6133d4dbc00a0b76c2cd3ad134c5f9f906dc35a1cded33f95f56169033"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/data-manifest.json",
+      "sha256": "d5d124f01f8c4cdc47fb6219767356abc390d3258e4c3f631542dc33eb6c4621"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/development-report.json",
+      "sha256": "9cc54e81000b8972ef225d5076ce6fdd069f7cc0ab09cd5cca7456d8c4563ff0"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/frozen-model-spec.json",
+      "sha256": "ce5c05fa275aa6c5555c969168d7012c30f0a50aa69fb87989dc82c371f63eee"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/historical-validation.json",
+      "sha256": "4cc32a3cf5839ebe81d91aa4c6e0961f27746945b3cab2ca987eb7ee46df1a9c"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/historical-validation.md",
+      "sha256": "55e3dfca0db3628a14a48210c01c85aec9c2ce00e6bcb7aec7c7003ab97d4fa3"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/development-oof-summary.json",
+      "sha256": "0ab66938ffb0c2722c9fe2b96370b81500f285507c024bf161334613fd6231be"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/historical-trades.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/candidate-coverage.json",
+      "sha256": "0b4f33d5943786f84ba0ed19969a10745df5c8ca060fc27d09df0d64cece74ab"
+    },
+    {
+      "path": "artifacts/HY-EXP-0039/development-selection-grid.json",
+      "sha256": "43860959c696a1b00ca911e2e7bc20e9189194cc6eff534443c235c9ef14d7bf"
+    }
+  ],
+  "emailPreparation": null,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  }
+}
