@@ -815,8 +815,7 @@ function winsorizeTrainingTargets(training) {
   };
 }
 
-export function fitRidge(training, lambda) {
-  if (training.length < 150) return null;
+function prepareRidgeTraining(training) {
   const scaler = prepareScaler(training);
   const target = winsorizeTrainingTargets(training);
   const dimension = FEATURE_NAMES.length + 1;
@@ -827,22 +826,42 @@ export function fitRidge(training, lambda) {
     const y = target.values[rowIndex];
     for (let left = 0; left < dimension; left += 1) {
       vector[left] += x[left] * y;
-      for (let right = 0; right < dimension; right += 1) matrix[left][right] += x[left] * x[right];
+      for (let right = left; right < dimension; right += 1) {
+        const value = x[left] * x[right];
+        matrix[left][right] += value;
+        if (right !== left) matrix[right][left] += value;
+      }
     }
   }
-  for (let index = 1; index < dimension; index += 1) matrix[index][index] += lambda * training.length;
-  const coefficients = solveLinearSystem(matrix, vector);
+  return { scaler, target, dimension, matrix, vector };
+}
+
+function fitPreparedRidge(training, prepared, lambda) {
+  const matrix = prepared.matrix.map(row => row.slice());
+  for (let index = 1; index < prepared.dimension; index += 1) matrix[index][index] += lambda * training.length;
+  const coefficients = solveLinearSystem(matrix, prepared.vector);
   return {
     lambda,
     trainingCount: training.length,
-    scaler,
-    targetWinsorization: { lowerP01: target.lower, upperP99: target.upper },
+    scaler: prepared.scaler,
+    targetWinsorization: { lowerP01: prepared.target.lower, upperP99: prepared.target.upper },
     coefficients,
     predict(features) {
-      const x = [1, ...scaler.transform(features)];
+      const x = [1, ...prepared.scaler.transform(features)];
       return coefficients.reduce((sum, coefficient, index) => sum + coefficient * x[index], 0);
     }
   };
+}
+
+function fitRidgeMany(training, lambdas) {
+  if (training.length < 150) return new Map(lambdas.map(lambda => [lambda, null]));
+  const prepared = prepareRidgeTraining(training);
+  return new Map(lambdas.map(lambda => [lambda, fitPreparedRidge(training, prepared, lambda)]));
+}
+
+export function fitRidge(training, lambda) {
+  if (training.length < 150) return null;
+  return fitRidgeMany(training, [lambda]).get(lambda);
 }
 
 function compactPrediction(row, prediction, fold, lambda) {
@@ -886,8 +905,9 @@ export function runDevelopmentWalkForward(rows) {
     const validation = resolved.filter(row => row.decisionTime >= validationStart && row.decisionTime < validationEnd);
     if (training.length < 180 || !validation.length) continue;
     const lambdaFolds = [];
+    const models = fitRidgeMany(training, MODEL_LAMBDAS);
     for (const lambda of MODEL_LAMBDAS) {
-      const model = fitRidge(training, lambda);
+      const model = models.get(lambda);
       if (!model) throw new Error(`DEVELOPMENT_MODEL_FIT_FAILED:${lambda}`);
       for (const row of validation) {
         predictionsByLambda[String(lambda)].push(compactPrediction(row, model.predict(row.features), fold + 1, lambda));
