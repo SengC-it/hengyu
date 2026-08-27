@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0039_CANDIDATE_COVERAGE",
+  "immutable": true,
+  "experimentId": "HY-EXP-0039",
+  "preregistrationSha256": "4c32dc6133d4dbc00a0b76c2cd3ad134c5f9f906dc35a1cded33f95f56169033",
+  "dataManifestSha256": "d5d124f01f8c4cdc47fb6219767356abc390d3258e4c3f631542dc33eb6c4621",
+  "coverage": {
+    "earliestEligibleDecision": "2024-09-25T00:00:00.000Z",
+    "latestEligibleDecision": "2026-08-25T23:45:00.000Z",
+    "eligibleDecisionCountPerSymbol": {
+      "BTCUSDT": 67200,
+      "ETHUSDT": 67200,
+      "BNBUSDT": 67200,
+      "SOLUSDT": 67200,
+      "XRPUSDT": 67200,
+      "DOGEUSDT": 67200,
+      "LINKUSDT": 67200,
+      "LTCUSDT": 67200
+    },
+    "eligibleDecisionCount": 537600,
+    "expectedRawCandidates": 1075200,
+    "actualRawCandidates": 1075200,
+    "coverageRatio": 1,
+    "BUY": 537600,
+    "SELL": 537600,
+    "sideCounts": {
+      "BUY": 537600,
+      "SELL": 537600
+    },
+    "candidateCountsByRegime": {
+      "BULL": {
+        "BUY": 219776,
+        "SELL": 219776,
+        "total": 439552
+      },
+      "BEAR": {
+        "BUY": 242048,
+        "SELL": 242048,
+        "total": 484096
+      },
+      "SIDEWAYS": {
+        "BUY": 75776,
+        "SELL": 75776,
+        "total": 151552
+      }
+    },
+    "medianDecisionGapMs": {
+      "BTCUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "ETHUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "BNBUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "SOLUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "XRPUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "DOGEUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "LINKUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      },
+      "LTCUSDT": {
+        "BUY": 900000,
+        "SELL": 900000
+      }
+    },
+    "maxUnexpectedGapMs": 0,
+    "maxUnexpectedGap": 0,
+    "expectedDecisionGapMs": 900000,
+    "gapSeriesCount": 16
+  },
+  "counts": {
+    "rawCandidates": 1075200,
+    "BUY": 537600,
+    "SELL": 537600,
+    "broadRegimeRows": 537600,
+    "eligibleDecisionRows": 537600,
+    "featureInvalid": 0,
+    "sidewaysContext": 75776
+  },
+  "requiredCoverageRatio": 1,
+  "coveragePass": true,
+  "safety": {
+    "outcomeRead": true,
+    "finalOosRead": false,
+    "paperOnly": true,
+    "signalOnly": true
+  }
+}

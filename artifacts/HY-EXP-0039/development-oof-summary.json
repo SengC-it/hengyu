@@ -1,0 +1,844 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0039_DEVELOPMENT_OOF_SUMMARY",
+  "immutable": true,
+  "experimentId": "HY-EXP-0039",
+  "count": 845568,
+  "countsByLambda": {
+    "1": 281856,
+    "10": 281856,
+    "0.1": 281856
+  },
+  "expectedOofCountPerLambda": 281856,
+  "oofCoverageRatioByLambda": {
+    "1": 1,
+    "10": 1,
+    "0.1": 1
+  },
+  "oofCandidateIdsEqual": true,
+  "sample": [
+    {
+      "candidateId": "HY-EXP-0039:BNBUSDT:BUY:1740312000000",
+      "symbol": "BNBUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740324600000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 658.81,
+      "exitPrice": 650.82175,
+      "grossPriceBps": -121.2527132253608,
+      "fundingBps": 0,
+      "grossReturnBps": -121.2527132253608,
+      "net18Bps": -139.2527132253608,
+      "net27Bps": -148.2527132253608,
+      "net36Bps": -157.2527132253608,
+      "predictedEdgeBps": -12.919319261084015,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BNBUSDT:SELL:1740312000000",
+      "symbol": "BNBUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740355200000,
+      "exitReason": "MAX_HOLD",
+      "entryPrice": 658.81,
+      "exitPrice": 657.65,
+      "grossPriceBps": 17.607504439822836,
+      "fundingBps": -0.8408533769418043,
+      "grossReturnBps": 16.76665106288103,
+      "net18Bps": -1.2333489371189685,
+      "net27Bps": -10.233348937118969,
+      "net36Bps": -19.23334893711897,
+      "predictedEdgeBps": -38.28464169806143,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BTCUSDT:BUY:1740312000000",
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740313800000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 96064.2,
+      "exitPrice": 95744.4825,
+      "grossPriceBps": -33.28164914713274,
+      "fundingBps": 0,
+      "grossReturnBps": -33.28164914713274,
+      "net18Bps": -51.28164914713274,
+      "net27Bps": -60.28164914713274,
+      "net36Bps": -69.28164914713274,
+      "predictedEdgeBps": -26.305272369416134,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BTCUSDT:SELL:1740312000000",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740322500000,
+      "exitReason": "TARGET",
+      "entryPrice": 96064.2,
+      "exitPrice": 95531.3375,
+      "grossPriceBps": 55.469415245221725,
+      "fundingBps": 0,
+      "grossReturnBps": 55.469415245221725,
+      "net18Bps": 37.469415245221725,
+      "net27Bps": 28.469415245221725,
+      "net36Bps": 19.469415245221725,
+      "predictedEdgeBps": -29.386592077446974,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:DOGEUSDT:BUY:1740312000000",
+      "symbol": "DOGEUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740324600000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 0.24447,
+      "exitPrice": 0.24213225,
+      "grossPriceBps": -95.62523008958154,
+      "fundingBps": 0,
+      "grossReturnBps": -95.62523008958154,
+      "net18Bps": -113.62523008958154,
+      "net27Bps": -122.62523008958154,
+      "net36Bps": -131.62523008958152,
+      "predictedEdgeBps": -21.753231496436605,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:DOGEUSDT:SELL:1740312000000",
+      "symbol": "DOGEUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740325800000,
+      "exitReason": "TARGET",
+      "entryPrice": 0.24447,
+      "exitPrice": 0.24057374999999998,
+      "grossPriceBps": 159.3753834826366,
+      "fundingBps": 0,
+      "grossReturnBps": 159.3753834826366,
+      "net18Bps": 141.3753834826366,
+      "net27Bps": 132.3753834826366,
+      "net36Bps": 123.37538348263661,
+      "predictedEdgeBps": -38.04659496501897,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:ETHUSDT:BUY:1740312000000",
+      "symbol": "ETHUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740352500000,
+      "exitReason": "TARGET",
+      "entryPrice": 2796.42,
+      "exitPrice": 2849.6,
+      "grossPriceBps": 190.1717195557171,
+      "fundingBps": -0.02118814808879567,
+      "grossReturnBps": 190.1505314076283,
+      "net18Bps": 172.1505314076283,
+      "net27Bps": 163.1505314076283,
+      "net36Bps": 154.1505314076283,
+      "predictedEdgeBps": -5.715785825030894,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:ETHUSDT:SELL:1740312000000",
+      "symbol": "ETHUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740352200000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 2796.42,
+      "exitPrice": 2828.328,
+      "grossPriceBps": -114.10303173343024,
+      "fundingBps": 0.02118814808879567,
+      "grossReturnBps": -114.08184358534145,
+      "net18Bps": -132.08184358534146,
+      "net27Bps": -141.08184358534146,
+      "net36Bps": -150.08184358534146,
+      "predictedEdgeBps": -51.5170905713416,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:LINKUSDT:BUY:1740312000000",
+      "symbol": "LINKUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740324600000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 17.759,
+      "exitPrice": 17.54585,
+      "grossPriceBps": -120.02364998029104,
+      "fundingBps": 0,
+      "grossReturnBps": -120.02364998029104,
+      "net18Bps": -138.02364998029105,
+      "net27Bps": -147.02364998029105,
+      "net36Bps": -156.02364998029105,
+      "predictedEdgeBps": -19.85670216725666,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:LINKUSDT:SELL:1740312000000",
+      "symbol": "LINKUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740355200000,
+      "exitReason": "MAX_HOLD",
+      "entryPrice": 17.759,
+      "exitPrice": 17.603,
+      "grossPriceBps": 87.84278394053652,
+      "fundingBps": 0.008750370076806126,
+      "grossReturnBps": 87.85153431061333,
+      "net18Bps": 69.85153431061333,
+      "net27Bps": 60.85153431061333,
+      "net36Bps": 51.85153431061333,
+      "predictedEdgeBps": -44.66821308958126,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:LTCUSDT:BUY:1740312000000",
+      "symbol": "LTCUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740355200000,
+      "exitReason": "MAX_HOLD",
+      "entryPrice": 127.8,
+      "exitPrice": 129.8,
+      "grossPriceBps": 156.4945226917069,
+      "fundingBps": -0.7037586957661972,
+      "grossReturnBps": 155.7907639959407,
+      "net18Bps": 137.7907639959407,
+      "net27Bps": 128.7907639959407,
+      "net36Bps": 119.7907639959407,
+      "predictedEdgeBps": -29.121196315671167,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:LTCUSDT:SELL:1740312000000",
+      "symbol": "LTCUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740352200000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 127.8,
+      "exitPrice": 129.5895,
+      "grossPriceBps": -140.02347417840295,
+      "fundingBps": 0.7037586957661972,
+      "grossReturnBps": -139.31971548263675,
+      "net18Bps": -157.31971548263675,
+      "net27Bps": -166.31971548263675,
+      "net36Bps": -175.31971548263675,
+      "predictedEdgeBps": -33.598725761351076,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:SOLUSDT:BUY:1740312000000",
+      "symbol": "SOLUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740324600000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 169.51,
+      "exitPrice": 167.7205,
+      "grossPriceBps": -105.56899297976544,
+      "fundingBps": 0,
+      "grossReturnBps": -105.56899297976544,
+      "net18Bps": -123.56899297976544,
+      "net27Bps": -132.56899297976543,
+      "net36Bps": -141.56899297976543,
+      "predictedEdgeBps": -29.234716148520658,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:SOLUSDT:SELL:1740312000000",
+      "symbol": "SOLUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740325500000,
+      "exitReason": "TARGET",
+      "entryPrice": 169.51,
+      "exitPrice": 166.5275,
+      "grossPriceBps": 175.9483216329413,
+      "fundingBps": 0,
+      "grossReturnBps": 175.9483216329413,
+      "net18Bps": 157.9483216329413,
+      "net27Bps": 148.9483216329413,
+      "net36Bps": 139.9483216329413,
+      "predictedEdgeBps": -31.67937421802972,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:XRPUSDT:BUY:1740312000000",
+      "symbol": "XRPUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740324900000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 2.5682,
+      "exitPrice": 2.5420625,
+      "grossPriceBps": -101.77361576201201,
+      "fundingBps": 0,
+      "grossReturnBps": -101.77361576201201,
+      "net18Bps": -119.77361576201201,
+      "net27Bps": -128.773615762012,
+      "net36Bps": -137.773615762012,
+      "predictedEdgeBps": -29.485856223701777,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:XRPUSDT:SELL:1740312000000",
+      "symbol": "XRPUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312000000,
+      "entryTime": 1740312000000,
+      "exitTime": 1740325500000,
+      "exitReason": "TARGET",
+      "entryPrice": 2.5682,
+      "exitPrice": 2.5246375,
+      "grossPriceBps": 169.62269293668783,
+      "fundingBps": 0,
+      "grossReturnBps": 169.62269293668783,
+      "net18Bps": 151.62269293668783,
+      "net27Bps": 142.62269293668783,
+      "net36Bps": 133.62269293668783,
+      "predictedEdgeBps": -25.630059504847292,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BNBUSDT:BUY:1740312900000",
+      "symbol": "BNBUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740325500000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 656.65,
+      "exitPrice": 648.66175,
+      "grossPriceBps": -121.65156476052684,
+      "fundingBps": 0,
+      "grossReturnBps": -121.65156476052684,
+      "net18Bps": -139.65156476052684,
+      "net27Bps": -148.65156476052684,
+      "net36Bps": -157.65156476052684,
+      "predictedEdgeBps": -12.316172267800853,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BNBUSDT:SELL:1740312900000",
+      "symbol": "BNBUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740356100000,
+      "exitReason": "MAX_HOLD",
+      "entryPrice": 656.65,
+      "exitPrice": 658.56,
+      "grossPriceBps": -29.087032665803214,
+      "fundingBps": -6.089876228223604,
+      "grossReturnBps": -35.176908894026816,
+      "net18Bps": -53.176908894026816,
+      "net27Bps": -62.176908894026816,
+      "net36Bps": -71.17690889402681,
+      "predictedEdgeBps": -38.88778869134459,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BTCUSDT:BUY:1740312900000",
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740315000000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 95961.3,
+      "exitPrice": 95641.5825,
+      "grossPriceBps": -33.317337301599586,
+      "fundingBps": 0,
+      "grossReturnBps": -33.317337301599586,
+      "net18Bps": -51.317337301599586,
+      "net27Bps": -60.317337301599586,
+      "net36Bps": -69.3173373015996,
+      "predictedEdgeBps": -25.95791642764924,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:BTCUSDT:SELL:1740312900000",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740325500000,
+      "exitReason": "TARGET",
+      "entryPrice": 95961.3,
+      "exitPrice": 95428.4375,
+      "grossPriceBps": 55.52889550266649,
+      "fundingBps": 0,
+      "grossReturnBps": 55.52889550266649,
+      "net18Bps": 37.52889550266649,
+      "net27Bps": 28.528895502666487,
+      "net36Bps": 19.528895502666487,
+      "predictedEdgeBps": -29.733948019213866,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:DOGEUSDT:BUY:1740312900000",
+      "symbol": "DOGEUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740324900000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 0.24393,
+      "exitPrice": 0.24159225,
+      "grossPriceBps": -95.83692042799161,
+      "fundingBps": 0,
+      "grossReturnBps": -95.83692042799161,
+      "net18Bps": -113.83692042799161,
+      "net27Bps": -122.83692042799161,
+      "net36Bps": -131.83692042799163,
+      "predictedEdgeBps": -21.608937925366543,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:DOGEUSDT:SELL:1740312900000",
+      "symbol": "DOGEUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740356100000,
+      "exitReason": "MAX_HOLD",
+      "entryPrice": 0.24393,
+      "exitPrice": 0.24373,
+      "grossPriceBps": 8.199073504694205,
+      "fundingBps": 0.1111939980814168,
+      "grossReturnBps": 8.310267502775622,
+      "net18Bps": -9.689732497224378,
+      "net27Bps": -18.689732497224377,
+      "net36Bps": -27.689732497224377,
+      "predictedEdgeBps": -38.190888536089034,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:ETHUSDT:BUY:1740312900000",
+      "symbol": "ETHUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740352500000,
+      "exitReason": "TARGET",
+      "entryPrice": 2793.66,
+      "exitPrice": 2846.8399999999997,
+      "grossPriceBps": 190.35959995131776,
+      "fundingBps": -0.02120908094702648,
+      "grossReturnBps": 190.33839087037074,
+      "net18Bps": 172.33839087037074,
+      "net27Bps": 163.33839087037074,
+      "net36Bps": 154.33839087037074,
+      "predictedEdgeBps": -4.57263497486065,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:ETHUSDT:SELL:1740312900000",
+      "symbol": "ETHUSDT",
+      "side": "SELL",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740316500000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 2793.66,
+      "exitPrice": 2825.5679999999998,
+      "grossPriceBps": -114.21575997079067,
+      "fundingBps": 0,
+      "grossReturnBps": -114.21575997079067,
+      "net18Bps": -132.21575997079066,
+      "net27Bps": -141.21575997079066,
+      "net36Bps": -150.21575997079066,
+      "predictedEdgeBps": -52.66024142151183,
+      "fold": 1,
+      "lambda": 0.1
+    },
+    {
+      "candidateId": "HY-EXP-0039:LINKUSDT:BUY:1740312900000",
+      "symbol": "LINKUSDT",
+      "side": "BUY",
+      "regime": "BEAR",
+      "decisionTime": 1740312900000,
+      "entryTime": 1740312900000,
+      "exitTime": 1740324900000,
+      "exitReason": "ATR_STOP",
+      "entryPrice": 17.714,
+      "exitPrice": 17.50085,
+      "grossPriceBps": -120.32855368634912,
+      "fundingBps": 0,
+      "grossReturnBps": -120.32855368634912,
+      "net18Bps": -138.32855368634912,
+      "net27Bps": -147.32855368634912,
+      "net36Bps": -156.32855368634912,
+      "predictedEdgeBps": -19.137591632648434,
+      "fold": 1,
+      "lambda": 0.1
+    }
+  ],
+  "folds": [
+    {
+      "fold": 1,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-02-22T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-02-23T12:00:00.000Z",
+      "validationEnd": "2025-03-25T12:00:00.000Z",
+      "trainingRows": 230400,
+      "validationRows": 46080,
+      "expectedValidationRowsByCadence": 46080,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 230400,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -554.237392411835,
+            "upperP99": 704.2600852916456
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 230400,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -554.237392411835,
+            "upperP99": 704.2600852916456
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 230400,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -554.237392411835,
+            "upperP99": 704.2600852916456
+          }
+        }
+      ]
+    },
+    {
+      "fold": 2,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-03-24T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-03-25T12:00:00.000Z",
+      "validationEnd": "2025-04-24T12:00:00.000Z",
+      "trainingRows": 276480,
+      "validationRows": 46080,
+      "expectedValidationRowsByCadence": 46080,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 276480,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -542.0627750523432,
+            "upperP99": 693.1058649016557
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 276480,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -542.0627750523432,
+            "upperP99": 693.1058649016557
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 276480,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -542.0627750523432,
+            "upperP99": 693.1058649016557
+          }
+        }
+      ]
+    },
+    {
+      "fold": 3,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-04-23T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-04-24T12:00:00.000Z",
+      "validationEnd": "2025-05-24T12:00:00.000Z",
+      "trainingRows": 322560,
+      "validationRows": 46080,
+      "expectedValidationRowsByCadence": 46080,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 322560,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -526.9527781623212,
+            "upperP99": 676.1096482621768
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 322560,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -526.9527781623212,
+            "upperP99": 676.1096482621768
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 322560,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -526.9527781623212,
+            "upperP99": 676.1096482621768
+          }
+        }
+      ]
+    },
+    {
+      "fold": 4,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-05-23T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-05-24T12:00:00.000Z",
+      "validationEnd": "2025-06-23T12:00:00.000Z",
+      "trainingRows": 368640,
+      "validationRows": 46080,
+      "expectedValidationRowsByCadence": 46080,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 368640,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -513.5413931741143,
+            "upperP99": 653.4643817713956
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 368640,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -513.5413931741143,
+            "upperP99": 653.4643817713956
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 368640,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -513.5413931741143,
+            "upperP99": 653.4643817713956
+          }
+        }
+      ]
+    },
+    {
+      "fold": 5,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-06-22T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-06-23T12:00:00.000Z",
+      "validationEnd": "2025-07-23T12:00:00.000Z",
+      "trainingRows": 414720,
+      "validationRows": 46080,
+      "expectedValidationRowsByCadence": 46080,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 414720,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -501.05195705971323,
+            "upperP99": 630.3649225746681
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 414720,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -501.05195705971323,
+            "upperP99": 630.3649225746681
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 414720,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -501.05195705971323,
+            "upperP99": 630.3649225746681
+          }
+        }
+      ]
+    },
+    {
+      "fold": 6,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-07-22T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-07-23T12:00:00.000Z",
+      "validationEnd": "2025-08-22T12:00:00.000Z",
+      "trainingRows": 460800,
+      "validationRows": 46080,
+      "expectedValidationRowsByCadence": 46080,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 460800,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -489.81492661870914,
+            "upperP99": 610.1466795744972
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 460800,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -489.81492661870914,
+            "upperP99": 610.1466795744972
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 460800,
+          "validationRows": 46080,
+          "targetWinsorization": {
+            "lowerP01": -489.81492661870914,
+            "upperP99": 610.1466795744972
+          }
+        }
+      ]
+    },
+    {
+      "fold": 7,
+      "trainStart": "2024-08-26T00:00:00.000Z",
+      "trainEnd": "2025-08-21T00:00:00.000Z",
+      "purgeHours": 24,
+      "embargoHours": 12,
+      "validationStart": "2025-08-22T12:00:00.000Z",
+      "validationEnd": "2025-08-26T00:00:00.000Z",
+      "trainingRows": 506880,
+      "validationRows": 5376,
+      "expectedValidationRowsByCadence": 5376,
+      "validationCoverageRatio": 1,
+      "lambdaFolds": [
+        {
+          "lambda": 0.1,
+          "trainingRows": 506880,
+          "validationRows": 5376,
+          "targetWinsorization": {
+            "lowerP01": -480.0679613305839,
+            "upperP99": 594.871098925789
+          }
+        },
+        {
+          "lambda": 1,
+          "trainingRows": 506880,
+          "validationRows": 5376,
+          "targetWinsorization": {
+            "lowerP01": -480.0679613305839,
+            "upperP99": 594.871098925789
+          }
+        },
+        {
+          "lambda": 10,
+          "trainingRows": 506880,
+          "validationRows": 5376,
+          "targetWinsorization": {
+            "lowerP01": -480.0679613305839,
+            "upperP99": 594.871098925789
+          }
+        }
+      ]
+    }
+  ],
+  "fullOofPersisted": false,
+  "reason": "Compact evidence only; reproducible from preregistration, data manifest and code."
+}
