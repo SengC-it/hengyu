@@ -599,15 +599,17 @@ function buildCandidateCoverage(candidates, eligibleDecisionRows) {
       const times = (bySymbolSide.get(`${symbol}:${side}`) ?? []).sort((left, right) => left - right);
       const sideGaps = times.slice(1).map((time, index) => time - times[index]);
       const unexpected = sideGaps.filter(gap => gap !== FIFTEEN_MINUTES);
-      maxUnexpectedGapMs = Math.max(maxUnexpectedGapMs, ...unexpected, 0);
+      for (const gap of unexpected) maxUnexpectedGapMs = Math.max(maxUnexpectedGapMs, gap);
       medianDecisionGapMs[symbol][side] = median(sideGaps);
       gaps.set(`${symbol}:${side}`, sideGaps);
     }
   }
   const decisionTimes = eligibleDecisionRows.map(row => row.decisionTime);
+  const earliest = decisionTimes.reduce((value, time) => Math.min(value, time), Infinity);
+  const latest = decisionTimes.reduce((value, time) => Math.max(value, time), -Infinity);
   return {
-    earliestEligibleDecision: decisionTimes.length ? iso(Math.min(...decisionTimes)) : null,
-    latestEligibleDecision: decisionTimes.length ? iso(Math.max(...decisionTimes)) : null,
+    earliestEligibleDecision: decisionTimes.length ? iso(earliest) : null,
+    latestEligibleDecision: decisionTimes.length ? iso(latest) : null,
     eligibleDecisionCountPerSymbol: eligibleBySymbol,
     eligibleDecisionCount: eligibleDecisionRows.length,
     expectedRawCandidates,
