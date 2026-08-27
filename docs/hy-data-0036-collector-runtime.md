@@ -156,7 +156,9 @@ was not reached before fail-closed.
 blocked, unactivated record. `collectionStartAt` remains `null`; no
 engineering raw data is research eligible, and no formal collection,
 feature-store write, PnL, or outcome read is permitted until a later approved
-run clears every gate.
+run clears every gate. The current blocked preflight and its source binding are
+also recorded in `artifacts/HY-DATA-0036/activation-preparation-v2.json`; it
+does not create a collection boundary or unlock a canary.
 
 ## Operational deployment proposal
 

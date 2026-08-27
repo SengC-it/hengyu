@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_DATA_0036_ACTIVATION_PREPARATION",
+  "immutable": true,
+  "activationId": "HY-DATA-0036-ACT-001",
+  "datasetId": "HY-DATA-0036",
+  "prepared": true,
+  "activated": false,
+  "activationStatus": "PREPARED_BLOCKED_PREFLIGHT_FAIL",
+  "collectionStartAt": null,
+  "formalCollectionActivated": false,
+  "researchEligible": false,
+  "developmentEligible": false,
+  "runtimeCommit": "4faeb201e4509501a1b0e88e826f14ed84f42670",
+  "previousEngineeringCanary": {
+    "runId": "canary-20260827-0036",
+    "path": "artifacts/HY-DATA-0036/engineering-canary.json",
+    "status": "ENGINEERING_CANARY_FAIL",
+    "preserved": true
+  },
+  "latestEngineeringPreflight": {
+    "path": "artifacts/HY-DATA-0036/engineering-preflight-20260827-v3.json",
+    "sha256": "40f36025cdde96c4399ea44b1d69a1a10543c336b0be71ea4a485a2db0ee56bc",
+    "status": "PREFLIGHT_FAIL",
+    "canaryAllowed": false,
+    "failures": [
+      "CLOCK_UNTRUSTED",
+      "LOCAL_SPOOL_CAPACITY_NOT_CONFIGURED_OR_INSUFFICIENT",
+      "STORAGE_BACKEND_NOT_CONFIGURED"
+    ]
+  },
+  "nextEngineeringCanary": {
+    "path": "artifacts/HY-DATA-0036/engineering-canary-v2.json",
+    "status": "NOT_RUN_PREFLIGHT_BLOCKED",
+    "runId": null,
+    "requiredDurationMs": 3600000,
+    "requiredSymbols": 8
+  },
+  "blockers": [
+    "CLOCK_UNTRUSTED",
+    "LOCAL_SPOOL_CAPACITY_NOT_CONFIGURED_OR_INSUFFICIENT",
+    "STORAGE_BACKEND_NOT_CONFIGURED"
+  ],
+  "safety": {
+    "publicMarketDataOnly": true,
+    "apiKeyRequired": false,
+    "privateStream": false,
+    "accountApi": false,
+    "orderApi": false,
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "autoTrading": false,
+    "finalOosRead": false,
+    "pnlComputed": false
+  }
+}
