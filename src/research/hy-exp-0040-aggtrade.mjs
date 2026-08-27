@@ -554,6 +554,18 @@ export async function parseAggTradeArchive(file, {
 class MaxHeap {
   constructor() { this.rows = []; }
   compare(left, right) { return left.value > right.value; }
+  siftDown(index) {
+    while (true) {
+      const left = index * 2 + 1;
+      const right = left + 1;
+      let best = index;
+      if (left < this.rows.length && !this.compare(this.rows[best], this.rows[left])) best = left;
+      if (right < this.rows.length && !this.compare(this.rows[best], this.rows[right])) best = right;
+      if (best === index) return;
+      [this.rows[best], this.rows[index]] = [this.rows[index], this.rows[best]];
+      index = best;
+    }
+  }
   push(row) {
     this.rows.push(row);
     let index = this.rows.length - 1;
@@ -569,19 +581,17 @@ class MaxHeap {
     const last = this.rows.pop();
     if (last && this.rows.length) {
       this.rows[0] = last;
-      let index = 0;
-      while (true) {
-        const left = index * 2 + 1;
-        const right = left + 1;
-        let best = index;
-        if (left < this.rows.length && !this.compare(this.rows[best], this.rows[left])) best = left;
-        if (right < this.rows.length && !this.compare(this.rows[best], this.rows[right])) best = right;
-        if (best === index) break;
-        [this.rows[best], this.rows[index]] = [this.rows[index], this.rows[best]];
-        index = best;
-      }
+      this.siftDown(0);
     }
     return result;
+  }
+  compact(keep) {
+    let length = 0;
+    for (const row of this.rows) {
+      if (keep(row)) this.rows[length++] = row;
+    }
+    this.rows.length = length;
+    for (let index = Math.floor(length / 2) - 1; index >= 0; index -= 1) this.siftDown(index);
   }
   peek() { return this.rows[0] ?? null; }
 }
@@ -655,6 +665,11 @@ class RollingP95 {
       this.queueHead = 0;
     }
     this.rebalance();
+    const heapEntries = this.lower.rows.length + this.upper.rows.length;
+    if (heapEntries > Math.max(4096, Math.ceil(this.count * 1.5))) {
+      this.lower.compact(row => this.where.get(row.id) === 'lower');
+      this.upper.compact(row => this.where.get(row.id) === 'upper');
+    }
   }
   value() {
     this.clean(this.lower, 'lower');

@@ -218,14 +218,19 @@ test('serialized resume checkpoints survive 32 out-of-order ranges and restart',
   const data = Buffer.from(Array.from({ length: 128 }, (_, index) => index));
   const file = fileSpec('BTCUSDT', '2024-08', data.length, data);
   const firstCalls = [];
+  const successfulRanges = new Set();
+  let releaseFailure;
+  const allSuccessful = new Promise(resolve => { releaseFailure = resolve; });
   const fetchImpl = async (url, init) => {
     const range = rangeFrom(init);
     firstCalls.push(range.start);
     if (range.start === 124) {
-      await new Promise(resolve => setTimeout(resolve, 2_000));
+      await allSuccessful;
       throw new Error('simulated interruption');
     }
     await new Promise(resolve => setTimeout(resolve, 1 + ((range.start / 4) % 3)));
+    successfulRanges.add(range.start);
+    if (successfulRanges.size === 31) releaseFailure();
     return partialResponse(file, data, init);
   };
   await assert.rejects(() => downloadArchiveWithResume(file, {
@@ -428,6 +433,18 @@ test('rolling CVD and prior-24h P95 state round-trips across restart', () => {
   assert.deepEqual(roundTrip.prior24hTradeDistribution, checkpoint.prior24hTradeDistribution);
   assert.equal(restored.CVD, 123);
   assert.equal(restored.lastTrade.aggregateTradeId, 22);
+});
+
+test('rolling P95 compacts stale heap entries without changing the active percentile', () => {
+  const rolling = restoreAggTradeRollingCheckpoint({}).rolling;
+  for (let index = 0; index < 12_000; index += 1) {
+    rolling.add(index, index);
+    rolling.removeBefore(index - 99);
+  }
+  assert.equal(rolling.count, 100);
+  assert.equal(rolling.value(), 11_994);
+  assert.equal(rolling.snapshot().rows.length, 100);
+  assert.ok(rolling.lower.rows.length + rolling.upper.rows.length <= 4_096);
 });
 
 test('aggregateTradeId continuity is enforced across archive partitions', async () => {

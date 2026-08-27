@@ -261,14 +261,20 @@ async function sha256FileStream(file) {
 async function mapConcurrent(items, limit, worker) {
   const results = new Array(items.length);
   let next = 0;
+  let firstError = null;
   async function consume() {
-    while (true) {
+    while (!firstError) {
       const index = next++;
       if (index >= items.length) return;
-      results[index] = await worker(items[index], index);
+      try {
+        results[index] = await worker(items[index], index);
+      } catch (error) {
+        firstError ??= error;
+      }
     }
   }
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, consume));
+  if (firstError) throw firstError;
   return results;
 }
 
