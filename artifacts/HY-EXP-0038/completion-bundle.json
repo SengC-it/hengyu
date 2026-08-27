@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0038_COMPLETION_BUNDLE",
+  "immutable": true,
+  "experiment_id": "HY-EXP-0038",
+  "code_commit": "e78c1e9a206d6d3d7c5d14cc987e4c4a225162e3",
+  "preregistration_sha256": "3f811704ebdd1cfefbf68201064da075791430fd85e34b599fa2fb85dcfdeb84",
+  "data_manifest_sha256": "ecfcf309223a9418cd4fa4911195c08abb1d0c1bb1ed2b52277b6035991d2a4d",
+  "outcomeRead": true,
+  "pnlComputed": true,
+  "finalOosRead": false,
+  "finalResult": "NO_DEVELOPMENT_CONFIG",
+  "artifacts": [
+    {
+      "path": "registry/experiments/HY-EXP-0038/preregistration.json",
+      "sha256": "3f811704ebdd1cfefbf68201064da075791430fd85e34b599fa2fb85dcfdeb84"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/data-manifest.json",
+      "sha256": "ecfcf309223a9418cd4fa4911195c08abb1d0c1bb1ed2b52277b6035991d2a4d"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/development-report.json",
+      "sha256": "8c789ff5dc07be9c495a9bb0ad1e24575da2e89535a8e355c7fbf12dc8978062"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/frozen-model-spec.json",
+      "sha256": "3ea0b699f5578f1c9ef65d165f7276196d76eb0f905fb7bb51d0f2ed356d4329"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/historical-validation.json",
+      "sha256": "6761e1c79108b8f22d9b7bc1f295f2f65f6df0c8fc6f4d30c48aa9bdedaedc37"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/historical-validation.md",
+      "sha256": "9252bf312e40ebb3fe4f7aa0675ae49f6b96a13196a7bd87b10a1f7b1e7c6c3e"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/development-oof-summary.json",
+      "sha256": "b2e94314a09f932893decd4d95665a7a345b0ff488ac40243ae6990d9cdc413e"
+    },
+    {
+      "path": "artifacts/HY-EXP-0038/historical-trades.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "emailPreparation": null,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  }
+}
