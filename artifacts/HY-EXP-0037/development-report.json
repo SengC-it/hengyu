@@ -1,0 +1,473 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0037_DEVELOPMENT_REPORT",
+  "immutable": true,
+  "experimentId": "HY-EXP-0037",
+  "window": {
+    "start": "2024-08-26T00:00:00.000Z",
+    "endExclusive": "2025-08-26T00:00:00.000Z",
+    "calendarDays": 365
+  },
+  "sourceBoundary": {
+    "outcomeRead": true,
+    "pnlComputed": true,
+    "finalOosRead": false
+  },
+  "counts": {
+    "rawCandidates": 28864,
+    "BUY": 13736,
+    "SELL": 15128,
+    "labeledCandidates": 13328,
+    "invalidCandidates": 0,
+    "oofPredictions": 6832,
+    "acceptedOofSignals": 131
+  },
+  "model": {
+    "name": "RIDGE_EXPECTED_RETURN_MODEL",
+    "lambdaGrid": [
+      0.1,
+      1,
+      10
+    ],
+    "selectedLambda": 0.1,
+    "selectedEdgeThresholdBps": -3.1582762136308467,
+    "selectedEdgePercentile": 93.7
+  },
+  "walkForward": {
+    "method": "EXPANDING_PURGED_WALK_FORWARD",
+    "folds": [
+      {
+        "fold": 1,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-02-22T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-02-23T12:00:00.000Z",
+        "validationEnd": "2025-03-25T12:00:00.000Z",
+        "trainingRows": 6424,
+        "validationRows": 1432,
+        "lambda": 10
+      },
+      {
+        "fold": 2,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-03-24T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-03-25T12:00:00.000Z",
+        "validationEnd": "2025-04-24T12:00:00.000Z",
+        "trainingRows": 7864,
+        "validationRows": 880,
+        "lambda": 10
+      },
+      {
+        "fold": 3,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-04-23T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-04-24T12:00:00.000Z",
+        "validationEnd": "2025-05-24T12:00:00.000Z",
+        "trainingRows": 8736,
+        "validationRows": 1440,
+        "lambda": 0.1
+      },
+      {
+        "fold": 4,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-05-23T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-05-24T12:00:00.000Z",
+        "validationEnd": "2025-06-23T12:00:00.000Z",
+        "trainingRows": 10176,
+        "validationRows": 912,
+        "lambda": 0.1
+      },
+      {
+        "fold": 5,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-06-22T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-06-23T12:00:00.000Z",
+        "validationEnd": "2025-07-23T12:00:00.000Z",
+        "trainingRows": 11088,
+        "validationRows": 1128,
+        "lambda": 0.1
+      },
+      {
+        "fold": 6,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-07-22T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-07-23T12:00:00.000Z",
+        "validationEnd": "2025-08-22T12:00:00.000Z",
+        "trainingRows": 12216,
+        "validationRows": 1024,
+        "lambda": 1
+      },
+      {
+        "fold": 7,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-08-21T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-08-22T12:00:00.000Z",
+        "validationEnd": "2025-08-26T00:00:00.000Z",
+        "trainingRows": 13296,
+        "validationRows": 16,
+        "lambda": 1
+      }
+    ],
+    "randomSplit": false,
+    "oofOnly": true
+  },
+  "selection": {
+    "status": "DEVELOPMENT_CONFIG_FOUND",
+    "reason": null,
+    "ratePer30Days": 21.243243243243242,
+    "net27ExpectancyBps": 25.449447599053553,
+    "PF27": 1.3479203676459697,
+    "configurations": [
+      {
+        "percentile": 93.7,
+        "threshold": -3.1582762136308467,
+        "ratePer30Days": 21.243243243243242,
+        "net27ExpectancyBps": 25.449447599053553,
+        "PF27": 1.3479203676459697,
+        "accepted": 131
+      },
+      {
+        "percentile": 93.5,
+        "threshold": -3.566442646821227,
+        "ratePer30Days": 21.243243243243242,
+        "net27ExpectancyBps": 23.930920593739863,
+        "PF27": 1.3296408815867498,
+        "accepted": 131
+      },
+      {
+        "percentile": 93.6,
+        "threshold": -3.4073936798022313,
+        "ratePer30Days": 21.243243243243242,
+        "net27ExpectancyBps": 23.187238208576655,
+        "PF27": 1.3169936168878844,
+        "accepted": 131
+      },
+      {
+        "percentile": 93.9,
+        "threshold": -2.967351933550801,
+        "ratePer30Days": 20.756756756756758,
+        "net27ExpectancyBps": 22.149759730035715,
+        "PF27": 1.2911646009290683,
+        "accepted": 128
+      },
+      {
+        "percentile": 93.8,
+        "threshold": -3.0415345942732572,
+        "ratePer30Days": 20.91891891891892,
+        "net27ExpectancyBps": 21.6925985195072,
+        "PF27": 1.2863001559224574,
+        "accepted": 129
+      },
+      {
+        "percentile": 94,
+        "threshold": -2.8738078224716057,
+        "ratePer30Days": 20.27027027027027,
+        "net27ExpectancyBps": 18.7795028434818,
+        "PF27": 1.236540534213348,
+        "accepted": 125
+      },
+      {
+        "percentile": 94.1,
+        "threshold": -2.745781372126351,
+        "ratePer30Days": 20.27027027027027,
+        "net27ExpectancyBps": 18.526462395156116,
+        "PF27": 1.2333533186984647,
+        "accepted": 125
+      },
+      {
+        "percentile": 93.4,
+        "threshold": -3.7232251615301886,
+        "ratePer30Days": 21.405405405405407,
+        "net27ExpectancyBps": 14.708093086347008,
+        "PF27": 1.1942685434215319,
+        "accepted": 132
+      },
+      {
+        "percentile": 93.3,
+        "threshold": -3.88339866137379,
+        "ratePer30Days": 21.405405405405407,
+        "net27ExpectancyBps": 14.668152701033536,
+        "PF27": 1.1937409998145534,
+        "accepted": 132
+      },
+      {
+        "percentile": 93.2,
+        "threshold": -3.99064096018395,
+        "ratePer30Days": 21.72972972972973,
+        "net27ExpectancyBps": 13.623863318565915,
+        "PF27": 1.1815299063432714,
+        "accepted": 134
+      },
+      {
+        "percentile": 92.9,
+        "threshold": -4.377866317772244,
+        "ratePer30Days": 21.89189189189189,
+        "net27ExpectancyBps": 13.152656955236804,
+        "PF27": 1.171697502638177,
+        "accepted": 135
+      },
+      {
+        "percentile": 92.7,
+        "threshold": -4.797150877281472,
+        "ratePer30Days": 22.054054054054056,
+        "net27ExpectancyBps": 12.004523296928651,
+        "PF27": 1.157077253039673,
+        "accepted": 136
+      },
+      {
+        "percentile": 93,
+        "threshold": -4.254069325322763,
+        "ratePer30Days": 21.72972972972973,
+        "net27ExpectancyBps": 11.977961088340969,
+        "PF27": 1.1572038504383677,
+        "accepted": 134
+      },
+      {
+        "percentile": 93.1,
+        "threshold": -4.087857157950787,
+        "ratePer30Days": 21.72972972972973,
+        "net27ExpectancyBps": 11.977961088340969,
+        "PF27": 1.1572038504383677,
+        "accepted": 134
+      },
+      {
+        "percentile": 92.8,
+        "threshold": -4.619261535457564,
+        "ratePer30Days": 22.054054054054056,
+        "net27ExpectancyBps": 10.875082432632304,
+        "PF27": 1.1390297514770802,
+        "accepted": 136
+      },
+      {
+        "percentile": 92.6,
+        "threshold": -5.038276453429032,
+        "ratePer30Days": 22.37837837837838,
+        "net27ExpectancyBps": 10.868874407016298,
+        "PF27": 1.140533129440043,
+        "accepted": 138
+      },
+      {
+        "percentile": 92.4,
+        "threshold": -5.293967235100234,
+        "ratePer30Days": 22.54054054054054,
+        "net27ExpectancyBps": 9.886549176055917,
+        "PF27": 1.127259624962468,
+        "accepted": 139
+      },
+      {
+        "percentile": 92.5,
+        "threshold": -5.120403253376814,
+        "ratePer30Days": 22.54054054054054,
+        "net27ExpectancyBps": 9.886549176055917,
+        "PF27": 1.127259624962468,
+        "accepted": 139
+      },
+      {
+        "percentile": 92.3,
+        "threshold": -5.46471698784054,
+        "ratePer30Days": 22.702702702702705,
+        "net27ExpectancyBps": 9.063103362120946,
+        "PF27": 1.1163637923739904,
+        "accepted": 140
+      },
+      {
+        "percentile": 92.2,
+        "threshold": -5.662859395497289,
+        "ratePer30Days": 22.864864864864863,
+        "net27ExpectancyBps": 7.859938902463837,
+        "PF27": 1.1001617693353773,
+        "accepted": 141
+      }
+    ]
+  },
+  "outcomeBreakdown": {
+    "net18": {
+      "count": 131,
+      "netPnlBps": 4512.877635476012,
+      "netExpectancyBps": 34.44944759905353,
+      "profitFactor": 1.5004323972700924,
+      "positiveRate": 0.5267175572519084,
+      "activeMonths": 5,
+      "activeMonthKeys": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08"
+      ],
+      "positiveMonths": 3,
+      "positiveMonthShare": 0.6,
+      "monthlyNetPnlBps": {
+        "2025-04": -692.4584842576367,
+        "2025-05": 4874.2530947975565,
+        "2025-06": -1054.6104364683754,
+        "2025-07": 1229.8887230415753,
+        "2025-08": 155.80473836289264
+      },
+      "bestMonth": "2025-05",
+      "bestMonthNetPnlBps": 4874.2530947975565,
+      "netPnlWithoutBestMonthBps": -361.37545932154444,
+      "bestEventNetPnlBps": 49.26901308064825,
+      "netPnlWithoutBestEventBps": 4463.608622395363,
+      "netPnlWithoutBest5EventsBps": 2078.738832553671,
+      "maxLossStreak": 7,
+      "symbolNetPnlBps": {
+        "LINKUSDT": 1157.111598859906,
+        "DOGEUSDT": 1104.6959338355641,
+        "SOLUSDT": 500.4358440520501,
+        "LTCUSDT": -226.65986229990153,
+        "XRPUSDT": -980.6699580047291,
+        "BNBUSDT": 721.9338206249954,
+        "BTCUSDT": 202.07999185600508,
+        "ETHUSDT": 2033.9502665521215
+      },
+      "largestSymbol": "ETHUSDT",
+      "largestSymbolContributionShare": 0.29360365530959653,
+      "fundingBps": -92.59235561836321,
+      "executionCostBps": 2358,
+      "exitReasons": {
+        "ATR_STOP": 43,
+        "MAX_HOLD": 39,
+        "TARGET": 49
+      },
+      "directionCounts": {
+        "BUY": 111,
+        "SELL": 20
+      }
+    },
+    "net27": {
+      "count": 131,
+      "netPnlBps": 3333.8776354760153,
+      "netExpectancyBps": 25.449447599053553,
+      "profitFactor": 1.3479203676459697,
+      "positiveRate": 0.5190839694656488,
+      "activeMonths": 5,
+      "activeMonthKeys": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08"
+      ],
+      "positiveMonths": 3,
+      "positiveMonthShare": 0.6,
+      "monthlyNetPnlBps": {
+        "2025-04": -791.4584842576367,
+        "2025-05": 4442.2530947975565,
+        "2025-06": -1270.6104364683756,
+        "2025-07": 860.8887230415753,
+        "2025-08": 92.8047383628926
+      },
+      "bestMonth": "2025-05",
+      "bestMonthNetPnlBps": 4442.2530947975565,
+      "netPnlWithoutBestMonthBps": -1108.3754593215413,
+      "bestEventNetPnlBps": 40.26901308064825,
+      "netPnlWithoutBestEventBps": 3293.608622395367,
+      "netPnlWithoutBest5EventsBps": 944.738832553674,
+      "maxLossStreak": 7,
+      "symbolNetPnlBps": {
+        "LINKUSDT": 995.111598859906,
+        "DOGEUSDT": 933.6959338355641,
+        "SOLUSDT": 383.4358440520501,
+        "LTCUSDT": -352.6598622999015,
+        "XRPUSDT": -1097.669958004729,
+        "BNBUSDT": 550.9338206249953,
+        "BTCUSDT": 40.07999185600511,
+        "ETHUSDT": 1880.950266552122
+      },
+      "largestSymbol": "ETHUSDT",
+      "largestSymbolContributionShare": 0.30169845543584417,
+      "fundingBps": -92.59235561836321,
+      "executionCostBps": 3537,
+      "exitReasons": {
+        "ATR_STOP": 43,
+        "MAX_HOLD": 39,
+        "TARGET": 49
+      },
+      "directionCounts": {
+        "BUY": 111,
+        "SELL": 20
+      }
+    },
+    "net36": {
+      "count": 131,
+      "netPnlBps": 2154.8776354760125,
+      "netExpectancyBps": 16.44944759905353,
+      "profitFactor": 1.212058094386564,
+      "positiveRate": 0.4961832061068702,
+      "activeMonths": 5,
+      "activeMonthKeys": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08"
+      ],
+      "positiveMonths": 3,
+      "positiveMonthShare": 0.6,
+      "monthlyNetPnlBps": {
+        "2025-04": -890.4584842576367,
+        "2025-05": 4010.2530947975565,
+        "2025-06": -1486.6104364683754,
+        "2025-07": 491.8887230415747,
+        "2025-08": 29.804738362892607
+      },
+      "bestMonth": "2025-05",
+      "bestMonthNetPnlBps": 4010.2530947975565,
+      "netPnlWithoutBestMonthBps": -1855.375459321544,
+      "bestEventNetPnlBps": 31.26901308064825,
+      "netPnlWithoutBestEventBps": 2123.6086223953644,
+      "netPnlWithoutBest5EventsBps": -189.26116744632873,
+      "maxLossStreak": 8,
+      "symbolNetPnlBps": {
+        "LINKUSDT": 833.111598859906,
+        "DOGEUSDT": 762.6959338355642,
+        "SOLUSDT": 266.4358440520501,
+        "LTCUSDT": -478.6598622999015,
+        "XRPUSDT": -1214.669958004729,
+        "BNBUSDT": 379.9338206249954,
+        "BTCUSDT": -121.92000814399489,
+        "ETHUSDT": 1727.950266552122
+      },
+      "largestSymbol": "ETHUSDT",
+      "largestSymbolContributionShare": 0.29867546734247413,
+      "fundingBps": -92.59235561836321,
+      "executionCostBps": 4716,
+      "exitReasons": {
+        "ATR_STOP": 43,
+        "MAX_HOLD": 39,
+        "TARGET": 49
+      },
+      "directionCounts": {
+        "BUY": 111,
+        "SELL": 20
+      }
+    }
+  },
+  "status": "DEVELOPMENT_CONFIG_FOUND",
+  "promotionEligible": false,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false
+  }
+}
