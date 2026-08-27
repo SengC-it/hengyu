@@ -22,6 +22,7 @@ import {
   verifyFeatureManifestFiles
 } from '../src/data/hy-data-0036-feature-store.mjs';
 import {
+  createHyData0036StorageFromEnv,
   createS3CompatibleSealedPartitionAdapter,
   evaluateStorageCapacity
 } from '../src/data/hy-data-0036-storage.mjs';
@@ -317,6 +318,52 @@ test('S3-compatible storage deletes local files only after remote hash verificat
   assert.equal(evaluateStorageCapacity({ bytesPerHour: 100 }).status, 'STORAGE_CAPACITY_BLOCKED');
 });
 
+test('S3 environment adapter exposes presence only and verifies a real probe before preflight can pass', async () => {
+  const objects = new Map();
+  const calls = [];
+  const client = {
+    async putObject({ key, body, metadata }) {
+      calls.push('put');
+      objects.set(key, { body, metadata });
+    },
+    async headObject({ key }) {
+      calls.push('head');
+      return { Metadata: objects.get(key)?.metadata ?? {} };
+    },
+    async getObject({ key }) {
+      calls.push('get');
+      return { body: objects.get(key)?.body };
+    },
+    async deleteObject({ key }) {
+      calls.push('delete');
+      objects.delete(key);
+    }
+  };
+  const env = {
+    HY_DATA_0036_S3_ENDPOINT: 'https://example.invalid',
+    HY_DATA_0036_S3_REGION: 'auto',
+    HY_DATA_0036_S3_ACCESS_KEY_ID: 'test-access-key',
+    HY_DATA_0036_S3_SECRET_ACCESS_KEY: 'test-secret-key',
+    HY_DATA_0036_S3_BUCKET: 'private-bucket',
+    HY_DATA_0036_S3_PREFIX: 'hy-data-0036/'
+  };
+  const adapter = createHyData0036StorageFromEnv({ env, client });
+  assert.equal(adapter.configured, true);
+  assert.deepEqual(adapter.configuration.missing, []);
+  assert.equal(Object.hasOwn(adapter.configuration, 'secretAccessKey'), false);
+  const verification = await adapter.verifyBackend({ runId: 'storage-test', now: () => NOW });
+  assert.equal(verification.status, 'STORAGE_BACKEND_VERIFIED');
+  assert.equal(verification.verified, true);
+  assert.deepEqual(calls, ['put', 'head', 'get', 'delete']);
+  assert.equal(objects.size, 0);
+
+  const incomplete = createHyData0036StorageFromEnv({ env: { ...env, HY_DATA_0036_S3_SECRET_ACCESS_KEY: '' } });
+  assert.equal(incomplete.configured, false);
+  assert.equal(incomplete.verification.status, 'STORAGE_BACKEND_NOT_CONFIGURED');
+  assert.equal(incomplete.configuration.secretKeyPresent, false);
+  assert.equal(JSON.stringify(incomplete.configuration).includes('test-secret-key'), false);
+});
+
 test('preflight requires REST/host/storage/WS evidence and blocks before the canary when any hard gate is absent', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'hy-data-0036-preflight-'));
   const trustedHost = async () => ({ status: 'CLOCK_TRUSTED', clockSource: 'HOST_NTP_EVIDENCE', synchronized: true, offsetMs: 1, evidenceMethod: 'test' });
@@ -357,6 +404,48 @@ test('preflight requires REST/host/storage/WS evidence and blocks before the can
   });
   assert.equal(rateBlocked.status, 'PREFLIGHT_RATE_LIMIT_BLOCKED');
   assert.equal(rateBlocked.canaryAllowed, false);
+});
+
+test('preflight invokes the supplied storage verification probe and fails closed on probe failure', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'hy-data-0036-storage-preflight-'));
+  const trustedHost = async () => ({ status: 'CLOCK_TRUSTED', clockSource: 'HOST_NTP_EVIDENCE', synchronized: true, offsetMs: 1, evidenceMethod: 'test' });
+  let probes = 0;
+  const verified = await runEngineeringPreflight({
+    restGovernor: fakeGovernor(),
+    hostNtpEvidenceImpl: trustedHost,
+    webSocketFactory: () => new PreflightSocket(),
+    rootDir: root,
+    remoteStorage: {
+      configured: true,
+      verified: false,
+      verifyBackend: async () => { probes += 1; return { configured: true, verified: true, status: 'STORAGE_BACKEND_VERIFIED', probe: { headHashMatch: true, readHashMatch: true, deleteVerified: true } }; }
+    },
+    minimumLocalSpoolBytes: 1,
+    runId: 'probe-test',
+    now: () => NOW,
+    wsTimeoutMs: 100
+  });
+  assert.equal(probes, 1);
+  assert.equal(verified.checks.remoteStorage.verified, true);
+  assert.equal(verified.status, 'PREFLIGHT_PASS');
+
+  const blocked = await runEngineeringPreflight({
+    restGovernor: fakeGovernor(),
+    hostNtpEvidenceImpl: trustedHost,
+    webSocketFactory: () => new PreflightSocket(),
+    rootDir: root,
+    remoteStorage: {
+      configured: true,
+      verifyBackend: async () => ({ configured: true, verified: false, status: 'STORAGE_BACKEND_VERIFY_FAILED', errorCode: 'REMOTE_PROBE_HEAD_HASH_MISMATCH' })
+    },
+    minimumLocalSpoolBytes: 1,
+    runId: 'probe-fail-test',
+    now: () => NOW,
+    wsTimeoutMs: 100
+  });
+  assert.equal(blocked.status, 'PREFLIGHT_FAIL');
+  assert.ok(blocked.failures.includes('STORAGE_BACKEND_VERIFY_FAILED'));
+  assert.equal(blocked.checks.remoteStorage.errorCode, 'REMOTE_PROBE_HEAD_HASH_MISMATCH');
 });
 
 test('HY-DATA-0036 runtime safety remains public, paper-only, and non-research', () => {

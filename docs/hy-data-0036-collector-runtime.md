@@ -46,6 +46,19 @@ untrusted clock, missing storage configuration, insufficient local spool, or
 failed public handshake blocks the canary. The preflight report is written
 with exclusive creation and contains only safe rate-limit metadata.
 
+The CLI wires one shared provider-neutral storage adapter into both preflight
+and runtime. Its S3-compatible client is created from the six required
+`HY_DATA_0036_S3_ENDPOINT`, `HY_DATA_0036_S3_REGION`,
+`HY_DATA_0036_S3_ACCESS_KEY_ID`, `HY_DATA_0036_S3_SECRET_ACCESS_KEY`,
+`HY_DATA_0036_S3_BUCKET`, and `HY_DATA_0036_S3_PREFIX` environment variables.
+The credentials never enter logs or artifacts. Preflight proves the backend
+with a tiny engineering probe, HEAD metadata hash, optional GET hash, and
+delete-after-verification. `HY_DATA_0036_LOCAL_SPOOL_ROOT` selects the
+persistent engineering spool and `HY_DATA_0036_CANARY_MIN_SPOOL_BYTES` is the
+minimum one-hour-canary space gate. `HY_DATA_0036_REMOTE_CAPACITY_BYTES` is a
+non-secret planned-capacity input used only for the post-canary twice-90-day
+capacity calculation. Missing or unverified storage remains fail-closed.
+
 ## Raw durability and local books
 
 Every accepted or rejected market message is written before normalization. The
@@ -125,13 +138,15 @@ Feature rows are written only to the engineering feature sink at
 and bound to a SHA-256 manifest. The sink is not Supabase and no formal
 research write is performed by this runtime.
 
-Remote persistence is provider-neutral. A caller may supply an AWS S3,
-Cloudflare R2, Backblaze B2, or compatible client to the adapter. The upload
-sequence is local seal, immutable object upload, remote HEAD/read hash
-verification, manifest append, and local deletion only after verification.
-No provider, endpoint, credential, or secret is hardcoded. Without a
-configured client/bucket, the runtime reports
-`STORAGE_BACKEND_NOT_CONFIGURED` and cannot become activation-ready.
+Remote persistence is provider-neutral. The runtime accepts an AWS S3,
+Cloudflare R2, Backblaze B2, or compatible client, and the production CLI
+constructs it through `createHyData0036StorageFromEnv()`. The upload sequence
+is local seal, immutable object upload, remote HEAD/read hash verification,
+manifest append, and local deletion only after verification. No provider,
+endpoint, credential, or secret is hardcoded. Without a configured client or
+bucket, the runtime reports `STORAGE_BACKEND_NOT_CONFIGURED`; a configured but
+unverifiable backend reports `STORAGE_BACKEND_VERIFY_FAILED`; neither can
+become activation-ready.
 
 ## Canary result
 

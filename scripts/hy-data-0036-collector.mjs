@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHyData0036StorageFromEnv } from '../src/data/hy-data-0036-storage.mjs';
 
 function option(args, name, fallback = null) {
   const index = args.indexOf(`--${name}`);
@@ -15,6 +16,24 @@ function integerOption(args, name, fallback, minimum = 1) {
   const value = option(args, name, fallback == null ? null : String(fallback));
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < minimum) throw new Error(`invalid --${name}`);
+  return parsed;
+}
+
+function optionalIntegerOption(args, name, fallback, minimum = 1) {
+  const index = args.indexOf(`--${name}`);
+  if (index < 0) return fallback;
+  const value = args[index + 1];
+  if (value == null || value.startsWith('--')) throw new Error(`missing value for --${name}`);
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < minimum) throw new Error(`invalid --${name}`);
+  return parsed;
+}
+
+function optionalIntegerEnvironment(name) {
+  const value = process.env[name];
+  if (value == null || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 1) throw new Error(`invalid ${name}`);
   return parsed;
 }
 
@@ -42,12 +61,16 @@ export async function main(args = process.argv.slice(2)) {
   if (maxSymbols !== 8) throw new Error('HY-DATA-0036 engineering dry-run requires all eight frozen symbols');
   const runId = option(args, 'run-id', `engineering-${Date.now()}`);
   if (!/^[A-Za-z0-9_.-]+$/.test(runId)) throw new Error('invalid --run-id');
-  const rootDir = assertEngineeringRoot(option(args, 'raw-root', path.join(os.tmpdir(), 'engineering', 'hy-data-0036', runId)));
+  const configuredRoot = process.env.HY_DATA_0036_LOCAL_SPOOL_ROOT ?? path.join(os.tmpdir(), 'engineering', 'hy-data-0036', runId);
+  const rootDir = assertEngineeringRoot(option(args, 'raw-root', configuredRoot));
   const reportPath = option(args, 'report-path', null);
   const preflightReportPath = option(args, 'preflight-report', null);
   const controlledReconnectAfterMs = integerOption(args, 'controlled-reconnect-after-ms', 25 * 60 * 1000);
+  const minimumLocalSpoolBytes = optionalIntegerOption(args, 'minimum-local-spool-bytes', optionalIntegerEnvironment('HY_DATA_0036_CANARY_MIN_SPOOL_BYTES'));
+  const remoteStorageCapacityBytes = optionalIntegerOption(args, 'remote-capacity-bytes', optionalIntegerEnvironment('HY_DATA_0036_REMOTE_CAPACITY_BYTES'));
+  const remoteStorage = createHyData0036StorageFromEnv();
   const preflight = await import('../src/data/hy-data-0036-preflight.mjs');
-  const preflightResult = await preflight.runEngineeringPreflight({ rootDir });
+  const preflightResult = await preflight.runEngineeringPreflight({ rootDir, remoteStorage, minimumLocalSpoolBytes, runId });
   if (preflightReportPath) {
     const resolvedPreflightPath = path.resolve(preflightReportPath);
     await fs.mkdir(path.dirname(resolvedPreflightPath), { recursive: true });
@@ -70,7 +93,10 @@ export async function main(args = process.argv.slice(2)) {
     snapshotRetryDelayMs: integerOption(args, 'snapshot-retry-delay-ms', 250),
     controlledReconnectAfterMs,
     rootDir,
-    runId
+    runId,
+    remoteStorage,
+    remoteStorageCapacityBytes,
+    localSpoolHours: 72
   });
   const report = await runtime.run();
   if (reportPath) {

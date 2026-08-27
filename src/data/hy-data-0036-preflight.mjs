@@ -81,6 +81,7 @@ export async function runEngineeringPreflight({
   rootDir = path.join(os.tmpdir(), 'engineering', 'hy-data-0036', 'preflight'),
   remoteStorage = null,
   minimumLocalSpoolBytes = null,
+  runId = `preflight-${Date.now()}`,
   now = () => Date.now(),
   wsTimeoutMs = 10_000
 } = {}) {
@@ -112,13 +113,27 @@ export async function runEngineeringPreflight({
   checks.localSpool = await localSpoolEvidence(rootDir, minimumLocalSpoolBytes);
   if (!checks.localSpool.sufficient) failures.push('LOCAL_SPOOL_CAPACITY_NOT_CONFIGURED_OR_INSUFFICIENT');
 
+  let remoteVerification = null;
+  if (remoteStorage?.configured === true && typeof remoteStorage.verifyBackend === 'function') {
+    try {
+      remoteVerification = await remoteStorage.verifyBackend({ runId, now });
+    } catch (error) {
+      remoteVerification = { configured: true, verified: false, status: 'STORAGE_BACKEND_VERIFY_FAILED', errorCode: error.code ?? error.name ?? 'REMOTE_PROBE_FAILED' };
+    }
+  }
+  const remoteConfigured = remoteStorage?.configured === true;
+  const remoteVerified = remoteVerification?.verified === true || (remoteVerification === null && remoteStorage?.verified === true);
   checks.remoteStorage = Object.freeze({
-    configured: remoteStorage?.configured === true,
-    verified: remoteStorage?.verified === true,
+    configured: remoteConfigured,
+    verified: remoteVerified,
     providerNeutral: true,
-    reason: remoteStorage?.configured === true ? null : 'STORAGE_BACKEND_NOT_CONFIGURED'
+    configuration: remoteStorage?.configuration ?? null,
+    status: remoteConfigured ? (remoteVerification?.status ?? (remoteVerified ? 'STORAGE_BACKEND_VERIFIED' : 'STORAGE_BACKEND_VERIFY_FAILED')) : 'STORAGE_BACKEND_NOT_CONFIGURED',
+    errorCode: remoteVerification?.errorCode ?? null,
+    probe: remoteVerification?.probe ?? null
   });
-  if (!checks.remoteStorage.configured) failures.push('STORAGE_BACKEND_NOT_CONFIGURED');
+  if (!remoteConfigured) failures.push('STORAGE_BACKEND_NOT_CONFIGURED');
+  else if (!remoteVerified) failures.push('STORAGE_BACKEND_VERIFY_FAILED');
 
   const publicWs = await websocketPreflight({
     endpoint: PUBLIC_ENDPOINT,
