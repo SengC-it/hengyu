@@ -11,6 +11,7 @@ import {
   FIXED_SYMBOLS,
   MODEL_LAMBDAS,
   buildFlowFeatures,
+  buildSourceManifest,
   generateAggTradeCandidates,
   parseAggTradeCsvLine,
   readDerivedBuckets,
@@ -177,4 +178,22 @@ test('metrics expose all three explicitly charged cost bases', () => {
   assert.equal(summarizeMetrics(rows, 27).netPnlBps, -24);
   assert.equal(summarizeMetrics(rows, 36).netPnlBps, -42);
   assert.equal(profitFactor(rows, 'net27Bps'), 13 / 37);
+});
+
+test('source metadata does not claim archive checksum verification before bytes are acquired', () => {
+  const manifest = buildSourceManifest({
+    preregistrationSha256: 'a'.repeat(64),
+    files: [{
+      symbol: 'BTCUSDT',
+      cadence: 'monthly',
+      period: '2024-08',
+      url: 'https://data.binance.vision/example.zip',
+      bytes: 10,
+      sha256: 'b'.repeat(64)
+    }]
+  });
+  assert.equal(manifest.files[0].checksumAvailable, true);
+  assert.equal(manifest.files[0].checksumVerified, false);
+  assert.equal(manifest.outcomeRead, false);
+  assert.equal(manifest.pnlComputed, false);
 });

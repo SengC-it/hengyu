@@ -159,6 +159,52 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = 30_000) {
   throw lastError;
 }
 
+function decodeXml(value) {
+  return String(value)
+    .replaceAll('&amp;', '&')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>');
+}
+
+function parseObjectListing(xml) {
+  const objects = [];
+  for (const match of String(xml).matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+    const content = match[1];
+    const key = content.match(/<Key>([\s\S]*?)<\/Key>/)?.[1];
+    const size = content.match(/<Size>([\s\S]*?)<\/Size>/)?.[1];
+    if (!key || !size) continue;
+    objects.push({
+      key: decodeXml(key),
+      bytes: Number(size),
+      lastModified: decodeXml(content.match(/<LastModified>([\s\S]*?)<\/LastModified>/)?.[1] ?? ''),
+      etag: decodeXml(content.match(/<ETag>([\s\S]*?)<\/ETag>/)?.[1] ?? '')
+    });
+  }
+  return objects;
+}
+
+async function listOfficialObjects(prefix) {
+  const objects = [];
+  let continuationToken = null;
+  do {
+    let url = 'https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/?list-type=2&prefix='
+      + encodeURIComponent(prefix);
+    if (continuationToken) url += '&continuation-token=' + encodeURIComponent(continuationToken);
+    const response = await fetchWithTimeout(url);
+    if (!response.ok) throw new Error('BINANCE_OBJECT_LIST_FAILED:' + response.status + ':' + prefix);
+    const xml = await response.text();
+    objects.push(...parseObjectListing(xml));
+    const truncated = /<IsTruncated>true<\/IsTruncated>/.test(xml);
+    continuationToken = truncated
+      ? decodeXml(xml.match(/<NextContinuationToken>([\s\S]*?)<\/NextContinuationToken>/)?.[1] ?? '')
+      : null;
+    if (truncated && !continuationToken) throw new Error('BINANCE_OBJECT_LIST_TOKEN_MISSING:' + prefix);
+  } while (continuationToken);
+  return objects;
+}
+
 export function parseChecksumText(value) {
   const match = String(value).match(/[a-f0-9]{64}/i);
   if (!match) throw new Error('BINANCE_CHECKSUM_FORMAT_INVALID');
@@ -190,11 +236,31 @@ export async function discoverArchives({
   headImpl = headArchive,
   checksumImpl = fetchChecksum
 } = {}) {
+  const useOfficialListing = headImpl === headArchive && checksumImpl === fetchChecksum;
+  const monthlyListings = useOfficialListing
+    ? new Map((await Promise.all(symbols.map(async symbol => [
+      symbol,
+      await listOfficialObjects('data/futures/um/monthly/aggTrades/' + symbol + '/')
+    ]))).map(([symbol, objects]) => [
+      symbol,
+      new Map(objects
+        .filter(object => object.key.endsWith('.zip') && !object.key.includes('part-'))
+        .map(object => [object.key.slice(-11, -4), object]))
+    ]))
+    : null;
   const jobs = symbols.flatMap(symbol => monthKeys(start, end).map(month => ({ symbol, month })));
   const perPartition = await mapConcurrent(jobs, 4, async ({ symbol, month }) => {
     const monthlyUrl = 'https://data.binance.vision/data/futures/um/monthly/aggTrades/'
       + symbol + '/' + symbol + '-aggTrades-' + month.key + '.zip';
-    const monthly = await headImpl(monthlyUrl);
+    const listedMonthly = monthlyListings?.get(symbol)?.get(month.key) ?? null;
+    const monthly = listedMonthly
+      ? {
+        status: 200,
+        bytes: listedMonthly.bytes,
+        lastModified: listedMonthly.lastModified,
+        etag: listedMonthly.etag
+      }
+      : await headImpl(monthlyUrl);
     if (monthly.status === 200 && monthly.bytes > 0) {
       const checksum = await checksumImpl(monthlyUrl);
       return [{
@@ -244,36 +310,49 @@ async function readResponseBuffer(response) {
   return Buffer.from(await response.arrayBuffer());
 }
 
-export async function downloadAndVerifyArchive(file, { chunkBytes = 8_000_000 } = {}) {
+export async function downloadAndVerifyArchive(file, { chunkBytes = 8_000_000, concurrency = 4 } = {}) {
   const target = path.join(os.tmpdir(), 'hy-exp-0040-' + file.symbol + '-' + file.period + '-' + Math.random().toString(16).slice(2) + '.zip');
   const descriptor = await fsp.open(target, 'w');
   const hash = createHash('sha256');
+  async function fetchRange(start, end) {
+    const expected = end - start + 1;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const response = await fetchWithTimeout(file.url, {
+        headers: { Range: 'bytes=' + start + '-' + end }
+      }, 120_000);
+      const payload = await readResponseBuffer(response);
+      const contentRange = response.headers.get('content-range') || '';
+      if (response.status === 206 && payload.length === expected
+        && contentRange.startsWith('bytes ' + start + '-' + end + '/')) {
+        return payload;
+      }
+      if (start === 0 && expected === file.bytes && response.status === 200 && payload.length === file.bytes) {
+        return payload;
+      }
+      if (attempt === 4) {
+        throw new Error('BINANCE_RANGE_DOWNLOAD_INVALID:' + file.url + ':' + start + ':' + response.status + ':' + payload.length);
+      }
+    }
+    throw new Error('BINANCE_RANGE_DOWNLOAD_RETRY_EXHAUSTED:' + file.url + ':' + start);
+  }
   try {
     let offset = 0;
     while (offset < file.bytes) {
-      const end = Math.min(file.bytes - 1, offset + chunkBytes - 1);
-      let payload = null;
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const response = await fetchWithTimeout(file.url, {
-          headers: { Range: 'bytes=' + offset + '-' + end }
-        }, 120_000);
-        const candidate = await readResponseBuffer(response);
-        const contentRange = response.headers.get('content-range') || '';
-        const expected = end - offset + 1;
-        if (response.status === 206 && candidate.length === expected
-          && contentRange.startsWith('bytes ' + offset + '-' + end + '/')) {
-          payload = candidate;
-          break;
-        }
-        if (offset === 0 && response.status === 200 && candidate.length === file.bytes) {
-          payload = candidate;
-          break;
-        }
-        if (attempt === 4) throw new Error('BINANCE_RANGE_DOWNLOAD_INVALID:' + file.url + ':' + offset + ':' + response.status + ':' + candidate.length);
+      const requests = [];
+      let batchOffset = offset;
+      while (requests.length < concurrency && batchOffset < file.bytes) {
+        const end = Math.min(file.bytes - 1, batchOffset + chunkBytes - 1);
+        requests.push({ start: batchOffset, end });
+        batchOffset = end + 1;
       }
-      await descriptor.write(payload, 0, payload.length, offset);
-      hash.update(payload);
-      offset += payload.length;
+      const payloads = await Promise.all(requests.map(request => fetchRange(request.start, request.end)));
+      for (let index = 0; index < requests.length; index += 1) {
+        const request = requests[index];
+        const payload = payloads[index];
+        await descriptor.write(payload, 0, payload.length, request.start);
+        hash.update(payload);
+      }
+      offset = batchOffset;
     }
     const actualSha256 = hash.digest('hex');
     if (actualSha256 !== file.sha256) {
@@ -1128,7 +1207,12 @@ export function buildSourceManifest({ files, preregistrationSha256, generatedAt 
     window: { start: iso(WINDOW_START), endExclusive: iso(WINDOW_END), calendarDays: 730 },
     symbols: FIXED_SYMBOLS,
     partitionPolicy: 'monthly preferred; daily only for a missing monthly partition',
-    files: files.map(file => ({ ...file, checksumVerified: true, rawRetained: false })),
+    files: files.map(file => ({
+      ...file,
+      checksumAvailable: Boolean(file.sha256),
+      checksumVerified: false,
+      rawRetained: false
+    })),
     filesBySymbol: Object.fromEntries(Object.entries(bySymbol).map(([symbol, rows]) => [symbol, rows.length])),
     sourceContinuity: 'native aggregateTradeId strictly increasing and timestamp nondecreasing within each symbol',
     noSyntheticData: true,

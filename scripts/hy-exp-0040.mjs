@@ -120,6 +120,10 @@ async function lockData() {
       compressed: true,
       rawArchiveRetained: false
     });
+    for (const file of sourceManifest.files) {
+      if (file.symbol === symbol) file.checksumVerified = true;
+    }
+    writeJson(SOURCE_MANIFEST_PATH, sourceManifest);
   }
   const allCoveragePass = coverage.every(row => row.continuityPass && row.missingIntervals === 0);
   const derivedManifest = {
@@ -409,4 +413,3 @@ try {
   console.error(error.stack || error.message);
   process.exitCode = 1;
 }
-
