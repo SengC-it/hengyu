@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "HY-EXP-0039",
+  "title": "Profitable email signal engine final conformance correction",
+  "declaredDate": "2026-08-27",
+  "status": "PREREGISTERED",
+  "experimentType": "DEVELOPMENT_AND_HISTORICAL_VALIDATION",
+  "authorization": "PAPER_ONLY",
+  "baseMainCommit": "2deca14b0a2a5a503183a86d14975fea7ebf8c93",
+  "purpose": "Re-run the frozen HY-EXP-0037 signal-engine specification after correcting the completed-index and 15-minute cadence implementation defects. This is an implementation conformance correction, not outcome-driven economic tuning.",
+  "priorExperiments": {
+    "HY-EXP-0037": {
+      "status": "INVALID_IMPLEMENTATION_RESULT_NOT_ACCEPTED",
+      "invalidReason": "IMPLEMENTATION_CONFORMANCE_FAILURE",
+      "candidateCadenceObserved": "4h instead of preregistered 15m",
+      "negativeResultMayNotBeReused": true
+    },
+    "HY-EXP-0038": {
+      "status": "INVALID_IMPLEMENTATION_RESULT_NOT_ACCEPTED",
+      "invalidReason": "HIGHER_TIMEFRAME_LAST_COMPLETED_INDEX_CAUSED_4H_CANDIDATE_CADENCE",
+      "negativeResultMayNotBeReused": true
+    }
+  },
+  "conformanceRule": "HY-EXP-0039 may correct only implementation deviations from the original HY-EXP-0037 frozen specification. It must not tune or change universe, features, Ridge model family, lambda grid, threshold grid, stop, target, holding horizon, costs, frequency target, max-per-day rule, entry/exit rules, or promotion gates based on HY-EXP-0037 or HY-EXP-0038 outcomes.",
+  "historicalReferences": {
+    "HY-EXP-0028": "Historical negative/reference evidence only; never an independent validation set.",
+    "HY-EXP-0030": "Historical negative/reference evidence only; no strategy or outcome tuning.",
+    "HY-EXP-0032": "Historical negative/reference evidence only; no family, parameter, symbol, or outcome selection.",
+    "HY-EXP-0033": "Historical negative/reference evidence only; no recovered-data tournament result is reused for selection.",
+    "HY-EXP-0034": "Only its hash-locked public source manifest and raw files are reused as a provenance reference; its outcome is not reused.",
+    "HY-EXP-0037": "Invalid implementation result; no outcome is used to tune this correction.",
+    "HY-EXP-0038": "Invalid implementation result; no outcome is used to tune this correction."
+  },
+  "dataWindow": {
+    "development": {
+      "start": "2024-08-26T00:00:00Z",
+      "endExclusive": "2025-08-26T00:00:00Z",
+      "minimumCalendarDays": 365
+    },
+    "historicalValidation": {
+      "start": "2025-08-26T00:00:00Z",
+      "endExclusive": "2026-08-26T00:00:00Z",
+      "minimumCalendarDays": 365,
+      "validationType": "REGISTERED_HISTORICAL_VALIDATION_NOT_FINAL_OOS",
+      "previouslyObservedDisclosure": true,
+      "finalOosRead": false
+    },
+    "outcomeReadAllowedOnlyAfter": "PREREGISTRATION_COMMIT",
+    "finalOosRead": false,
+    "freshHoldoutCreated": false
+  },
+  "dataPolicy": {
+    "sourceManifestPath": "artifacts/HY-EXP-0034/data-manifest.json",
+    "sourceManifestSha256": "f4e3ebfeb147b051f600e2f7edad8624a45b55322e7dda5a0de7f3c180a7c212",
+    "primarySources": [
+      "Binance official public USD-M historical archive: https://data.binance.vision/data/futures/um",
+      "Existing HY-EXP-0034 hash-locked native public source files for the same window"
+    ],
+    "requiredStreams": [
+      "completed contract-price 5m klines",
+      "completed mark-price 5m klines",
+      "realized funding events"
+    ],
+    "derivedStreams": [
+      "completed causal 15m contract bars",
+      "completed causal 1h contract bars",
+      "completed causal 4h contract bars"
+    ],
+    "noHistoricalBackfill": true,
+    "noInterpolation": true,
+    "noForwardFill": true,
+    "noSyntheticData": true,
+    "noPrivateApis": true,
+    "noFutureData": true,
+    "qualityFailure": "Any missing, duplicate, non-contiguous, non-finite, out-of-window, hash-mismatched, non-causal, or unproven row rejects the affected source and prevents a PASS. No silent repair."
+  },
+  "universe": {
+    "fixedSymbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "LTCUSDT"
+    ],
+    "pointInTime": true,
+    "survivorshipSelection": false,
+    "selectionFrozenBeforeOutcome": true,
+    "eligibility": "Only the fixed eight symbols with complete causal required streams in the hash-locked source manifest. No later symbol list may add, remove, or rescue a symbol."
+  },
+  "candidateGenerator": {
+    "name": "BROAD_BIDIRECTIONAL_15M_CAUSAL_CANDIDATES",
+    "decisionInterval": "Every eligible completed UTC 15m boundary",
+    "decisionBar": "completed 15m contract-price bar",
+    "decisionTime": "completed 15m close boundary",
+    "emission": "For each complete fixed symbol and each eligible completed 15m decision, emit exactly one independent BUY and one independent SELL raw candidate.",
+    "regime": "BULL, BEAR, or SIDEWAYS is causal context/feature only and never suppresses a raw candidate.",
+    "sidewaysAction": "Retain SIDEWAYS context and emit both sides; regime may affect prediction features only.",
+    "requiredInvariant": "For every complete symbol plus decisionTime, raw BUY count equals one and raw SELL count equals one in every BULL, BEAR, and SIDEWAYS context.",
+    "expectedCadenceMs": 900000,
+    "noRegimeCandidateGate": true,
+    "noOutcomeFiltering": true
+  },
+  "referenceTrade": {
+    "signalTime": "Exactly decisionTime",
+    "entry": "First exact contract-price 5m OPEN at or after decisionTime; no later rescue entry and no historical fill substitution.",
+    "atr": "ATR20 from completed 1h contract-price bars available no later than decisionTime",
+    "BUY": {
+      "stop": "entry - 1.5 * ATR20",
+      "target": "entry + 2.5 * ATR20"
+    },
+    "SELL": {
+      "stop": "entry + 1.5 * ATR20",
+      "target": "entry - 2.5 * ATR20"
+    },
+    "maxHoldHours": 12,
+    "terminalRule": "When bar.openTime equals entryTime plus 12 hours, execute MAX_HOLD at that bar open before reading that bar high or low; then terminate.",
+    "sameBarStopTarget": "STOP_FIRST",
+    "overlap": "Same-symbol cooldown equals the active reference trade interval; no pyramiding or reversal. Early stop/target exit releases the symbol for a later decision.",
+    "funding": "Use the latest realized funding event with eventTime less than or equal to decisionTime for the feature. Apply every realized funding event strictly inside entryTime < fundingTime < exitTime using actual side and mark price.",
+    "costs": {
+      "baseBps": 18,
+      "stressBps": 27,
+      "severeBps": 36,
+      "charge": "One frozen all-in execution cost budget per entry and exit fill; source-embedded costs are not charged twice."
+    },
+    "orders": false
+  },
+  "features": {
+    "availability": "Every feature is frozen at decisionTime or earlier; missing, late, non-finite, or non-PIT input invalidates the candidate.",
+    "names": [
+      "sideAlignedReturn15m",
+      "sideAlignedReturn1h",
+      "sideAlignedReturn4h",
+      "sideAlignedReturn24h",
+      "trendStrength1h",
+      "trendStrength4h",
+      "emaDistance",
+      "emaSlope",
+      "atrPercent",
+      "realizedVolatility1h",
+      "realizedVolatility4h",
+      "volumeTurnoverZScore",
+      "channelPosition",
+      "currentFundingRate",
+      "fundingZScore",
+      "markContractBasisBps",
+      "crossSectional4hMomentumRank",
+      "crossSectional24hMomentumRank",
+      "btcRegimeReturn",
+      "btcRegimeVolatility",
+      "sideSign"
+    ],
+    "fundingRule": "Use the last realized funding event whose eventTime is less than or equal to decisionTime; an event at decisionTime is eligible and a future event is forbidden.",
+    "forbidden": ["future price", "future funding", "exit result", "realized PnL", "MAE", "MFE", "post-outcome feature", "synthetic value"]
+  },
+  "model": {
+    "name": "RIDGE_EXPECTED_RETURN_MODEL",
+    "target": "reference trade net27Bps",
+    "targetWinsorization": "Within every training fold only, clip raw training net27Bps at the training-only P01 and P99. Validation, OOF, and historical metrics always use raw unwinsorized outcomes.",
+    "trainingOnlyScaling": "Fit feature mean/std on the training fold only; no additional feature clipping or validation-data scaling.",
+    "lambdaGrid": [0.1, 1, 10],
+    "oofProtocol": "For every lambda independently, run every Development walk-forward fold over the same candidate validation universe and retain a complete independent OOF prediction set. The three lambda OOF counts must be identical.",
+    "selection": "Select jointly over lambda and deterministic predicted-edge threshold configurations from the corresponding independent OOF set only; Historical Validation cannot select lambda or threshold.",
+    "predictedEdgeMeaning": "predictedEdgeBps is predicted reference-trade net27Bps.",
+    "negativeThresholdDiagnostic": "If selectedMinimumEdgeBps is less than or equal to zero, report NEGATIVE_MODEL_EDGE_THRESHOLD=true as a diagnostic only; it is not a new promotion gate.",
+    "noRandomSplit": true,
+    "noOutcomeTuning": true
+  },
+  "walkForward": {
+    "method": "Expanding purged walk-forward with OOF-only selection",
+    "minimumTrainingDays": 180,
+    "validationBlockDays": 30,
+    "purgeHours": 24,
+    "embargoHours": 12,
+    "expectedFullFoldRowsPerLambda": 46080,
+    "expectedFullFoldFormula": "30 calendar days * 96 completed 15m decisions/day * 8 symbols * 2 sides",
+    "partialFoldCounting": "Count actual eligible completed 15m decisions in a partial final fold; never substitute a full-fold constant.",
+    "lambdaCoverage": "OOF candidate IDs for lambda 0.1, 1, and 10 must be identical and complete over the same validation candidate universe.",
+    "randomSplit": false,
+    "inSamplePnl": false,
+    "historicalValidationRetrain": "Rolling monthly causal retrain using only the trailing prior 365 days; no validation outcome selects or changes a model setting."
+  },
+  "frequency": {
+    "targetSignalsPer30Days": 30,
+    "acceptableSignalsPer30Days": {
+      "minimum": 20,
+      "maximum": 40
+    },
+    "maximumSignalsPerDay": 2,
+    "sameSymbolCooldownHours": 12,
+    "sameDecisionSymbolSide": "Predict BUY and SELL separately. If both meet the threshold, retain only the higher predicted edge with an exact deterministic tie-break.",
+    "crossSymbolRanking": "Rank eligible candidates by predicted edge at the decision boundary.",
+    "earlyExitReleasesSymbol": true,
+    "independentSignals": true
+  },
+  "developmentSelection": {
+    "search": "lambda x deterministic predicted-edge threshold grid only",
+    "thresholdGrid": "OOF predicted-edge empirical percentiles 90.0 through 99.9 inclusive on a fixed deterministic grid, computed within Development separately for each lambda-specific OOF set.",
+    "gridPercentiles": {
+      "start": 90.0,
+      "end": 99.9,
+      "step": 0.1
+    },
+    "eligibleIf": ["20-40 signals per 30 days", "net27 expectancy > 0", "PF27 >= 1.10"],
+    "tieBreak": ["higher net27 expectancy", "higher PF27", "lower true portfolio MTM drawdown", "lower deterministic complexity"],
+    "requiredDiagnosticFields": ["lambda", "percentile", "thresholdBps", "acceptedSignals", "signalsPer30Days", "net27ExpectancyBps", "PF27", "rateGatePass", "expectancyGatePass", "pfGatePass", "eligible"],
+    "freezeAfterDevelopment": ["lambda", "minimum predicted edge", "feature list", "target winsorization", "feature scaling", "frequency", "reference trade"]
+  },
+  "concentration": {
+    "groups": ["symbol", "calendarMonth"],
+    "positiveContributionDenominator": "sum(max(groupNetPnl, 0))",
+    "largestContribution": "max(max(groupNetPnl, 0)) / positiveContributionDenominator",
+    "nonPositivePoolStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+    "maxAllowed": 0.4,
+    "reportNetPnlWithoutBestMonth": true,
+    "bestEvent": "The event with maximum net27Bps; best5 is the stable descending net27Bps ordering with deterministic ID tie-break."
+  },
+  "promotionGates": {
+    "validationSignals": {
+      "minimum": 240,
+      "maximum": 480
+    },
+    "averageSignalsPer30Days": {
+      "minimum": 20,
+      "maximum": 40
+    },
+    "activeMonths": {
+      "minimum": 10
+    },
+    "symbolBreadth": {
+      "minimum": 6,
+      "denominator": 8
+    },
+    "net27ExpectancyBps": {
+      "minimum": 5
+    },
+    "PF27": {
+      "minimum": 1.2
+    },
+    "totalNet27Pnl": {
+      "greaterThan": 0
+    },
+    "net36ExpectancyBps": {
+      "greaterThan": 0
+    },
+    "portfolioMtmDrawdownFraction": {
+      "maximum": 0.1
+    },
+    "portfolioMtmRequired": true,
+    "portfolioCvarRequired": true,
+    "maxLossStreak": {
+      "maximum": 8
+    },
+    "positiveMonths": {
+      "minimum": 7,
+      "denominator": 12
+    },
+    "netPnlWithoutBest1": {
+      "greaterThan": 0
+    },
+    "netPnlWithoutBest5": {
+      "greaterThan": 0
+    },
+    "netPnlWithoutBestMonth": {
+      "greaterThan": 0
+    },
+    "largestSymbolProfitContribution": {
+      "maximum": 0.4
+    },
+    "largestMonthProfitContribution": {
+      "maximum": 0.4
+    },
+    "bootstrapIsNotAGate": true,
+    "noGateLowering": true,
+    "missingRiskStatus": "FAIL_CLOSED"
+  },
+  "bootstrap": {
+    "method": "Calendar-time block bootstrap",
+    "blockLengthDays": 7,
+    "iterations": 5000,
+    "seed": 370038,
+    "confidence": 0.95,
+    "diagnosticOnly": true,
+    "notUsedInHardGate": true
+  },
+  "emailPreparation": {
+    "onlyIfHistoricalValidationPass": true,
+    "fields": ["symbol", "BUY/SELL", "signalTime", "decisionTime", "referencePriceAtDecision", "entryExpiry", "stop", "target", "validUntil", "strategyFamily", "confidence", "net27ExpectedEdge"],
+    "noQuantity": true,
+    "noLeverage": true,
+    "noOrderInstruction": true,
+    "gating": "EMAIL_PREPARED=true and EMAIL_ACTIVATED=false only after all historical hard gates pass"
+  },
+  "futureValidation": {
+    "experimentId": "HY-FWD-0037-001",
+    "preparedOnlyIfHistoricalPass": true,
+    "activated": false,
+    "minimumDays": 30,
+    "minimumSignals": 20,
+    "futureOnly": true,
+    "noForwardExecutionInThisPreregistration": true
+  },
+  "safety": {
+    "SIGNAL_ONLY": true,
+    "PAPER_ONLY": true,
+    "AUTO_TRADING": false,
+    "automaticTrading": false,
+    "ACCOUNT_API": false,
+    "ORDER_API": false,
+    "accountApi": false,
+    "orderApi": false,
+    "privateStream": false,
+    "positionManager": false,
+    "balancesRead": false,
+    "positionsRead": false,
+    "liveOrdersEnabled": false,
+    "gmailSendEnabled": false,
+    "schedulerActivated": false,
+    "realEmailSent": false,
+    "finalOosRead": false,
+    "productionDeploy": false
+  },
+  "freezeContract": {
+    "preregistrationBefore0037And0038OutcomeRead": true,
+    "candidateRulesFrozenBeforeOutcome": true,
+    "featuresFrozenBeforeOutcome": true,
+    "modelFrozenBeforeOutcome": true,
+    "costsFrozenBeforeOutcome": true,
+    "walkForwardFrozenBeforeOutcome": true,
+    "frequencyFrozenBeforeOutcome": true,
+    "promotionGatesFrozenBeforeOutcome": true,
+    "bootstrapDiagnosticOnly": true,
+    "finalOosRead": false,
+    "pnlComputed": false,
+    "developmentAllowed": true,
+    "economicRuleChange": "VOID_EXPERIMENT_AND_REQUIRE_NEW_EXPERIMENT_ID"
+  }
+}
