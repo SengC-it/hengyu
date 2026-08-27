@@ -5,6 +5,8 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+import { deflateRawSync } from 'node:zlib';
+import { crc32 } from '../src/research/archive.mjs';
 import {
   benchmarkOfficialTransports,
   buildAcquisitionProgress,
@@ -20,6 +22,8 @@ import {
   setPartitionState
 } from '../src/research/hy-exp-0040-transport.mjs';
 import {
+  processAggTradeArchives,
+  readDerivedBuckets,
   restoreAggTradeRollingCheckpoint,
   serializeAggTradeRollingCheckpoint
 } from '../src/research/hy-exp-0040-aggtrade.mjs';
@@ -34,6 +38,65 @@ const fileSpec = (symbol, period, bytes, data = Buffer.alloc(bytes, 0x61)) => ({
   bytes,
   sha256: sha256(data)
 });
+
+function zipSingleCsv(text) {
+  const payload = Buffer.from(text);
+  const compressed = deflateRawSync(payload);
+  const name = Buffer.from('data.csv');
+  const checksum = crc32(payload);
+  const local = Buffer.alloc(30);
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(20, 4);
+  local.writeUInt16LE(8, 8);
+  local.writeUInt32LE(checksum, 14);
+  local.writeUInt32LE(compressed.length, 18);
+  local.writeUInt32LE(payload.length, 22);
+  local.writeUInt16LE(name.length, 26);
+  const centralOffset = local.length + name.length + compressed.length;
+  const central = Buffer.alloc(46);
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt16LE(20, 4);
+  central.writeUInt16LE(20, 6);
+  central.writeUInt16LE(8, 10);
+  central.writeUInt32LE(checksum, 16);
+  central.writeUInt32LE(compressed.length, 20);
+  central.writeUInt32LE(payload.length, 24);
+  central.writeUInt16LE(name.length, 28);
+  central.writeUInt32LE(0, 42);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(1, 8);
+  eocd.writeUInt16LE(1, 10);
+  eocd.writeUInt32LE(central.length + name.length, 12);
+  eocd.writeUInt32LE(centralOffset, 16);
+  return Buffer.concat([local, name, compressed, central, name, eocd]);
+}
+
+function archiveFixture(period, csv) {
+  const archiveData = zipSingleCsv(csv);
+  return { ...fileSpec('BTCUSDT', period, archiveData.length, archiveData), archiveData };
+}
+
+async function processArchiveFixtures(archives, root, outputPath) {
+  return processAggTradeArchives({
+    symbol: 'BTCUSDT',
+    archives,
+    outputPath,
+    start: 0,
+    end: 180000,
+    checkpointRoot: root,
+    downloadOptions: {
+      root,
+      chunkBytes: 4096,
+      concurrency: 1,
+      maxAttempts: 1,
+      fetchImpl: async (url, init) => {
+        const archive = archives.find(file => file.url === url);
+        return partialResponse(archive, archive.archiveData, init);
+      }
+    }
+  });
+}
 
 function rangeFrom(init) {
   const match = init.headers.Range.match(/^bytes=(\d+)-(\d+)$/);
@@ -222,6 +285,12 @@ test('derived commit deletes raw bytes only after a checkpoint and makes the par
   await fsp.rm(root, { recursive: true, force: true });
 });
 
+test('verified ZIP spool cap is enforced before processing can exceed the bound', () => {
+  const spool = createSpoolController(10);
+  spool.reserve(10);
+  assert.throws(() => spool.reserve(1), /VERIFIED_ZIP_SPOOL_CAP_EXCEEDED/);
+});
+
 test('global HTTP concurrency is capped and reduces after throttling', async () => {
   const coordinator = createDownloadCoordinator({ maxConcurrency: 8, maxAllowedConcurrency: 12 });
   let active = 0;
@@ -299,4 +368,37 @@ test('rolling CVD and prior-24h P95 state round-trips across restart', () => {
   assert.deepEqual(roundTrip.prior24hTradeDistribution, checkpoint.prior24hTradeDistribution);
   assert.equal(restored.CVD, 123);
   assert.equal(restored.lastTrade.aggregateTradeId, 22);
+});
+
+test('aggregateTradeId continuity is enforced across archive partitions', async () => {
+  const root = await rootFor();
+  const first = archiveFixture('2024-08', '1,100,1,1,1,0,false\n');
+  const duplicate = archiveFixture('2024-09', '1,101,1,2,2,60000,false\n');
+  await assert.rejects(
+    () => processArchiveFixtures([first, duplicate], root, path.join(root, 'derived.ndjson.gz')),
+    /AGGTRADE_ID_NOT_STRICTLY_INCREASING/
+  );
+  await fsp.rm(root, { recursive: true, force: true });
+});
+
+test('process stop/restart preserves hash-equivalent derived stream and rolling state', async () => {
+  const first = archiveFixture('2024-08', '1,100,1,1,1,0,false\n2,101,1,2,2,60000,true\n');
+  const second = archiveFixture('2024-09', '3,102,1,3,3,120000,false\n');
+  const continuousRoot = await rootFor();
+  const continuousPath = path.join(continuousRoot, 'derived.ndjson.gz');
+  await processArchiveFixtures([first, second], continuousRoot, continuousPath);
+  const continuousRows = await readDerivedBuckets(continuousPath);
+
+  const resumedRoot = await rootFor();
+  const resumedPath = path.join(resumedRoot, 'derived.ndjson.gz');
+  await processArchiveFixtures([first], resumedRoot, resumedPath);
+  const resumedResult = await processArchiveFixtures([first, second], resumedRoot, resumedPath);
+  const resumedRows = await readDerivedBuckets(resumedPath);
+
+  assert.deepEqual(resumedRows, continuousRows);
+  assert.equal(sha256(JSON.stringify(resumedRows)), sha256(JSON.stringify(continuousRows)));
+  assert.equal(resumedResult.bucketCount, continuousRows.length);
+  assert.equal(resumedRows.at(-1).CVD, continuousRows.at(-1).CVD);
+  await fsp.rm(continuousRoot, { recursive: true, force: true });
+  await fsp.rm(resumedRoot, { recursive: true, force: true });
 });

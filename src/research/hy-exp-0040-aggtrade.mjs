@@ -790,22 +790,42 @@ async function createGzipWriter(file) {
 
 async function createGzipWriterCorrect(file, { append = false } = {}) {
   await fsp.mkdir(path.dirname(file), { recursive: true });
-  const output = fs.createWriteStream(file, { flags: append ? 'a' : 'w' });
-  const gzip = createGzip({ level: 6 });
-  gzip.pipe(output);
+  let output = null;
+  let gzip = null;
+  let closed = false;
+  const open = async flags => {
+    output = fs.createWriteStream(file, { flags });
+    gzip = createGzip({ level: 6 });
+    gzip.pipe(output);
+  };
+  const finish = async () => {
+    if (!gzip || !output) return;
+    const currentGzip = gzip;
+    const currentOutput = output;
+    gzip = null;
+    output = null;
+    currentGzip.end();
+    await finished(currentOutput);
+  };
+  await open(append ? 'a' : 'w');
   return {
     async write(value) {
+      if (!gzip) throw new Error('DERIVED_WRITER_CLOSED');
       if (!gzip.write(JSON.stringify(value) + String.fromCharCode(10))) {
         await new Promise(resolve => gzip.once('drain', resolve));
       }
     },
     async close() {
-      gzip.end();
-      await finished(output);
+      if (closed) return;
+      closed = true;
+      await finish();
     },
     async checkpoint() {
-      await new Promise((resolve, reject) => gzip.flush(error => error ? reject(error) : resolve()));
-      return { bytes: fs.statSync(file).size, sha256: sha256File(file) };
+      if (closed) throw new Error('DERIVED_WRITER_CLOSED');
+      await finish();
+      const checkpoint = { bytes: fs.statSync(file).size, sha256: sha256File(file) };
+      await open('a');
+      return checkpoint;
     }
   };
 }
@@ -869,7 +889,8 @@ export async function processAggTradeArchives({
   async function consumeTrade(trade) {
     const openTime = Math.floor(trade.timestamp / MINUTE) * MINUTE;
     if (!current) {
-      for (let cursor = firstOpen; cursor < openTime; cursor += MINUTE) await writeMissing(cursor);
+      const resumeOpen = lastCompletedMinute == null ? firstOpen : lastCompletedMinute + MINUTE;
+      for (let cursor = resumeOpen; cursor < openTime; cursor += MINUTE) await writeMissing(cursor);
       current = await startBucket(openTime);
     } else if (openTime !== current.openTime) {
       const previousOpen = current.openTime;
