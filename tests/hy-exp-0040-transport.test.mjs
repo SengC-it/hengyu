@@ -133,30 +133,34 @@ test('benchmark chooses only a valid official range transport', async () => {
   });
   assert.equal(benchmark.samples.length, 3);
   assert.equal(benchmark.summaries.every(row => row.allSamplesValid), true);
-  assert.equal(benchmark.summaries.every(row => row.reasonableThroughput), true);
+  assert.equal(benchmark.summaries.every(row => row.performanceStatus === 'NORMAL'), true);
   assert.ok(['canonical', 'direct-s3'].includes(benchmark.selectedEndpoint));
   assert.equal(benchmark.selection, 'FASTEST_VALID_OFFICIAL_TRANSPORT');
   assert.equal(benchmark.selectedConcurrency, 8);
 });
 
-test('benchmark blocks a valid but operationally unreasonable host throughput', async () => {
-  const files = [fileSpec('BTCUSDT', '2024-08', 1_000_000), fileSpec('ETHUSDT', '2024-08', 1_000_000), fileSpec('LTCUSDT', '2024-08', 1_000_000)];
-  let tick = 0;
+test('benchmark selects valid slow transport and marks it resumable', async () => {
+  const files = [fileSpec('BTCUSDT', '2024-08', 2_000), fileSpec('ETHUSDT', '2024-08', 2_000), fileSpec('LTCUSDT', '2024-08', 2_000)];
+  let clock = 0;
   const result = await benchmarkOfficialTransports(files, {
-    sampleBytes: 800_000,
-    now: () => (tick += 10_000),
+    sampleBytes: 1_000,
+    now: () => clock,
     fetchImpl: async (url, init) => {
       const file = files.find(row => url.endsWith(`${row.symbol}-aggTrades-${row.period}.zip`));
+      clock += url.startsWith('https://s3-') ? 12.5 : 10;
       return partialResponse(file, Buffer.alloc(file.bytes, 0x62), init);
     }
   });
   assert.equal(result.summaries.every(row => row.allSamplesValid), true);
-  assert.equal(result.summaries.every(row => row.reasonableThroughput), false);
-  assert.equal(result.selectedEndpoint, null);
-  assert.equal(result.selection, 'HOST_NETWORK_THROUGHPUT_BLOCKER');
+  assert.equal(result.summaries[0].medianThroughputBytesPerSecond, 100_000);
+  assert.equal(result.summaries[1].medianThroughputBytesPerSecond, 80_000);
+  assert.equal(result.selectedEndpoint, 'canonical');
+  assert.equal(result.transportPerformanceStatus, 'SLOW_BUT_RESUMABLE');
+  assert.equal(result.selection, 'FASTEST_VALID_OFFICIAL_TRANSPORT');
+  assert.equal(result.selectedConcurrency, 8);
 });
 
-test('benchmark rejects HTTP 200 as a partial range success', async () => {
+test('benchmark blocks only when both official transports fail range validation', async () => {
   const files = [fileSpec('BTCUSDT', '2024-08', 20), fileSpec('ETHUSDT', '2024-08', 20), fileSpec('LTCUSDT', '2024-08', 20)];
   const result = await benchmarkOfficialTransports(files, {
     sampleBytes: 8,
@@ -166,7 +170,8 @@ test('benchmark rejects HTTP 200 as a partial range success', async () => {
     }
   });
   assert.equal(result.selectedEndpoint, null);
-  assert.equal(result.selection, 'HOST_NETWORK_THROUGHPUT_BLOCKER');
+  assert.equal(result.transportPerformanceStatus, 'UNAVAILABLE');
+  assert.equal(result.selection, 'HOST_NETWORK_TRANSPORT_BLOCKER');
 });
 
 test('resume keeps deterministic ranges and never downloads a completed range again', async () => {
@@ -205,6 +210,61 @@ test('resume keeps deterministic ranges and never downloads a completed range ag
   assert.equal(await fsp.readFile(result.path, 'utf8'), data.toString());
   assert.equal(loadPartitionState(file, root).state, 'SHA256_VERIFIED');
   assert.equal(result.path, paths.partPath);
+  await fsp.rm(root, { recursive: true, force: true });
+});
+
+test('serialized resume checkpoints survive 32 out-of-order ranges and restart', async () => {
+  const root = await rootFor();
+  const data = Buffer.from(Array.from({ length: 128 }, (_, index) => index));
+  const file = fileSpec('BTCUSDT', '2024-08', data.length, data);
+  const firstCalls = [];
+  const fetchImpl = async (url, init) => {
+    const range = rangeFrom(init);
+    firstCalls.push(range.start);
+    if (range.start === 124) {
+      await new Promise(resolve => setTimeout(resolve, 2_000));
+      throw new Error('simulated interruption');
+    }
+    await new Promise(resolve => setTimeout(resolve, 1 + ((range.start / 4) % 3)));
+    return partialResponse(file, data, init);
+  };
+  await assert.rejects(() => downloadArchiveWithResume(file, {
+    root,
+    chunkBytes: 4,
+    concurrency: 8,
+    maxAttempts: 1,
+    fetchImpl
+  }), /simulated interruption/);
+  const paths = partitionPaths(file, root);
+  const interrupted = JSON.parse(await fsp.readFile(paths.resumePath, 'utf8'));
+  const rangeKeyForTest = range => `${range.start}:${range.end}`;
+  const interruptedKeys = interrupted.completedRanges.map(rangeKeyForTest);
+  assert.equal(firstCalls.length, 32);
+  assert.equal(new Set(firstCalls).size, 32);
+  assert.equal(interrupted.completedRanges.length, 31);
+  assert.equal(new Set(interruptedKeys).size, 31);
+  assert.equal(interrupted.downloadedBytes, 124);
+  assert.equal(loadPartitionState(file, root).state, 'TRANSFER_RETRYABLE');
+
+  const restartCalls = [];
+  const result = await downloadArchiveWithResume(file, {
+    root,
+    chunkBytes: 4,
+    concurrency: 8,
+    maxAttempts: 1,
+    fetchImpl: async (url, init) => {
+      const range = rangeFrom(init);
+      restartCalls.push(range.start);
+      return partialResponse(file, data, init);
+    }
+  });
+  assert.deepEqual(restartCalls, [124]);
+  assert.equal(result.sha256, sha256(data));
+  assert.deepEqual(await fsp.readFile(result.path), data);
+  const completed = JSON.parse(await fsp.readFile(paths.resumePath, 'utf8'));
+  assert.equal(completed.completedRanges.length, 32);
+  assert.equal(new Set(completed.completedRanges.map(rangeKeyForTest)).size, 32);
+  assert.equal(completed.downloadedBytes, data.length);
   await fsp.rm(root, { recursive: true, force: true });
 });
 

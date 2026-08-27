@@ -1,15 +1,14 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 export const DEFAULT_CHUNK_BYTES = 8_000_000;
 export const DEFAULT_HTTP_CONCURRENCY = 8;
 export const MAX_HTTP_CONCURRENCY = 12;
 export const DEFAULT_MAX_VERIFIED_ZIP_SPOOL_BYTES = 8 * 1024 ** 3;
-// Operational floor for a bounded, resumable multi-hour acquisition on this host.
-// This is a transport-operability gate, not a research parameter.
-export const MIN_REASONABLE_THROUGHPUT_BYTES_PER_SECOND = 256_000;
+// Diagnostic-only warning threshold. It never controls transport selection or acquisition.
+export const TRANSPORT_PERFORMANCE_WARNING_THRESHOLD_BYTES_PER_SECOND = 1_000_000;
 export const DIRECT_S3_BASE = 'https://s3-ap-northeast-1.amazonaws.com/data.binance.vision/';
 
 function iso(value = Date.now()) {
@@ -76,10 +75,32 @@ export function partitionPaths(file, root) {
 
 async function writeJsonAtomic(file, value) {
   await fsp.mkdir(path.dirname(file), { recursive: true });
-  const temporary = file + '.tmp';
-  await fsp.writeFile(temporary, JSON.stringify(value, null, 2) + '\n');
-  await fsp.rm(file, { force: true });
-  await fsp.rename(temporary, file);
+  const temporary = file + '.' + process.pid + '.' + randomUUID() + '.tmp';
+  const handle = await fsp.open(temporary, 'w');
+  try {
+    await handle.writeFile(JSON.stringify(value, null, 2) + '\n');
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  try {
+    await fsp.rename(temporary, file);
+  } catch (error) {
+    if (!['EEXIST', 'EPERM'].includes(error.code)) throw error;
+    await fsp.rm(file, { force: true });
+    await fsp.rename(temporary, file);
+  }
+}
+
+function createAsyncMutex() {
+  let tail = Promise.resolve();
+  return {
+    runExclusive(task) {
+      const current = tail.then(task);
+      tail = current.catch(() => {});
+      return current;
+    }
+  };
 }
 
 function readJson(file) {
@@ -321,6 +342,7 @@ export async function downloadArchiveWithResume(file, {
   state.transportUrl = transportUrl;
   state.completedRanges = normalizeCompletedRanges(state.completedRanges, plan);
   state.downloadedBytes = state.completedRanges.reduce((sum, range) => sum + range.end - range.start + 1, 0);
+  const checkpointMutex = createAsyncMutex();
   const existingState = loadPartitionState(file, root);
   if (existingState?.derivedCommitted === true) {
     return { path: paths.partPath, bytes: file.bytes, sha256: file.sha256, state: existingState.state, skipped: true };
@@ -330,7 +352,7 @@ export async function downloadArchiveWithResume(file, {
   if (stat.size !== file.bytes) await fsp.truncate(paths.partPath, file.bytes);
   let checksumAttempt = Number(state.checksumAttempts) || 0;
   while (true) {
-    await writeJsonAtomic(paths.resumePath, { ...state, lastUpdatedAt: iso(now()) });
+    await checkpointMutex.runExclusive(() => writeJsonAtomic(paths.resumePath, { ...state, lastUpdatedAt: iso(now()) }));
     await setPartitionState(file, root, 'DOWNLOADING', { completedRanges: state.completedRanges, downloadedBytes: state.downloadedBytes }, now());
     const descriptor = await fsp.open(paths.partPath, 'r+');
     try {
@@ -341,11 +363,13 @@ export async function downloadArchiveWithResume(file, {
         const expected = range.end - range.start + 1;
         if (payload.length !== expected) throw new Error('RANGE_LENGTH_INVALID');
         await descriptor.write(payload, 0, payload.length, range.start);
-        state.completedRanges.push(range);
-        state.completedRanges.sort((left, right) => left.start - right.start);
-        state.downloadedBytes += payload.length;
-        state.attempts += 1;
-        await writeJsonAtomic(paths.resumePath, { ...state, lastUpdatedAt: iso(now()) });
+        await checkpointMutex.runExclusive(async () => {
+          state.completedRanges.push(range);
+          state.completedRanges.sort((left, right) => left.start - right.start);
+          state.downloadedBytes += payload.length;
+          state.attempts += 1;
+          await writeJsonAtomic(paths.resumePath, { ...state, lastUpdatedAt: iso(now()) });
+        });
       });
       await descriptor.sync();
     } catch (error) {
@@ -380,7 +404,7 @@ export async function downloadArchiveWithResume(file, {
     }
     state.checksumVerified = true;
     state.lastUpdatedAt = iso(now());
-    await writeJsonAtomic(paths.resumePath, state);
+    await checkpointMutex.runExclusive(() => writeJsonAtomic(paths.resumePath, state));
     await setPartitionState(file, root, 'SHA256_VERIFIED', {
       checksumVerified: true,
       downloadedBytes: file.bytes,
@@ -481,23 +505,28 @@ export async function benchmarkOfficialTransports(files, {
       validSampleCount: validRows.length,
       allSamplesValid,
       medianThroughputBytesPerSecond: medianThroughput,
-      reasonableThroughput: allSamplesValid && medianThroughput >= MIN_REASONABLE_THROUGHPUT_BYTES_PER_SECOND,
+      performanceStatus: allSamplesValid
+        ? medianThroughput < TRANSPORT_PERFORMANCE_WARNING_THRESHOLD_BYTES_PER_SECOND
+          ? 'SLOW_BUT_RESUMABLE'
+          : 'NORMAL'
+        : 'UNAVAILABLE',
       estimatedAcquisitionHoursAtDefaultConcurrency: medianThroughput > 0
         ? files.reduce((sum, file) => sum + file.bytes, 0) / medianThroughput / DEFAULT_HTTP_CONCURRENCY / 3600
         : null
     };
   });
-  const valid = summaries.filter(row => row.reasonableThroughput).sort((left, right) => right.medianThroughputBytesPerSecond - left.medianThroughputBytesPerSecond);
+  const valid = summaries.filter(row => row.allSamplesValid).sort((left, right) => right.medianThroughputBytesPerSecond - left.medianThroughputBytesPerSecond);
+  const selected = valid[0] ?? null;
   return {
     sampleBytes,
-    minimumReasonableThroughputBytesPerSecond: MIN_REASONABLE_THROUGHPUT_BYTES_PER_SECOND,
     totalCompressedBytes: files.reduce((sum, file) => sum + file.bytes, 0),
     samples: samples.map(file => ({ symbol: file.symbol, period: file.period, canonicalUrl: file.url, transportUrl: directS3UrlFor(file.url), objectKey: objectKeyFromCanonicalUrl(file.url), expectedBytes: file.bytes, officialSha256: file.sha256 })),
     measurements,
     summaries,
-    selectedEndpoint: valid[0]?.endpoint ?? null,
-    selection: valid.length ? 'FASTEST_VALID_OFFICIAL_TRANSPORT' : 'HOST_NETWORK_THROUGHPUT_BLOCKER',
-    selectedConcurrency: valid.length ? DEFAULT_HTTP_CONCURRENCY : null
+    selectedEndpoint: selected?.endpoint ?? null,
+    transportPerformanceStatus: selected?.performanceStatus ?? 'UNAVAILABLE',
+    selection: selected ? 'FASTEST_VALID_OFFICIAL_TRANSPORT' : 'HOST_NETWORK_TRANSPORT_BLOCKER',
+    selectedConcurrency: selected ? DEFAULT_HTTP_CONCURRENCY : null
   };
 }
 

@@ -141,7 +141,7 @@ async function lockData() {
       preregistrationSha256,
       sourceManifestSha256: sha256File(SOURCE_MANIFEST_PATH),
       status: 'BLOCKED_SOURCE_TRANSFER',
-      reason: 'HOST_NETWORK_THROUGHPUT_BLOCKER',
+      reason: 'HOST_NETWORK_TRANSPORT_BLOCKER',
       transportEvidenceSha256: sha256File(TRANSPORT_EVIDENCE_PATH),
       benchmark,
       dataLocked: false,
@@ -157,7 +157,7 @@ async function lockData() {
       safety: safety()
     };
     writeJson(path.join(ARTIFACT_DIR, 'data-acquisition-blocker.json'), blocker);
-    console.log(JSON.stringify({ mode: 'DATA_LOCK_BLOCKED', experimentId: HY_EXP_0040, blocker: 'HOST_NETWORK_THROUGHPUT_BLOCKER', progress: readJson(PROGRESS_PATH), safety: safety() }, null, 2));
+    console.log(JSON.stringify({ mode: 'DATA_LOCK_BLOCKED', experimentId: HY_EXP_0040, blocker: 'HOST_NETWORK_TRANSPORT_BLOCKER', progress: readJson(PROGRESS_PATH), safety: safety() }, null, 2));
     return;
   }
   const selectedTransport = benchmark.selectedEndpoint;
@@ -201,7 +201,7 @@ async function lockData() {
         preregistrationSha256,
         sourceManifestSha256: sha256File(SOURCE_MANIFEST_PATH),
         status: 'BLOCKED_SOURCE_TRANSFER',
-        reason: error.message === 'DATA_FAIL_SOURCE_INTEGRITY' ? 'DATA_FAIL_SOURCE_INTEGRITY' : 'HOST_NETWORK_THROUGHPUT_BLOCKER',
+        reason: error.message === 'DATA_FAIL_SOURCE_INTEGRITY' ? 'DATA_FAIL_SOURCE_INTEGRITY' : 'HOST_NETWORK_TRANSPORT_BLOCKER',
         errorCode: error.code ?? error.message,
         transportEvidenceSha256: sha256File(TRANSPORT_EVIDENCE_PATH),
         dataLocked: false,
