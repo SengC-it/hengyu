@@ -1,0 +1,452 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HY_EXP_0038_DEVELOPMENT_REPORT",
+  "immutable": true,
+  "experimentId": "HY-EXP-0038",
+  "window": {
+    "start": "2024-08-26T00:00:00.000Z",
+    "endExclusive": "2025-08-26T00:00:00.000Z",
+    "calendarDays": 365
+  },
+  "sourceBoundary": {
+    "outcomeRead": true,
+    "pnlComputed": true,
+    "finalOosRead": false
+  },
+  "counts": {
+    "rawCandidates": 67200,
+    "BUY": 33600,
+    "SELL": 33600,
+    "labeledCandidates": 32160,
+    "invalidCandidates": 0,
+    "oofPredictions": 52848,
+    "acceptedOofSignals": 0
+  },
+  "model": {
+    "name": "RIDGE_EXPECTED_RETURN_MODEL",
+    "lambdaGrid": [
+      0.1,
+      1,
+      10
+    ],
+    "selectedLambda": null,
+    "selectedEdgeThresholdBps": null,
+    "selectedMinimumEdgeBps": null,
+    "NEGATIVE_MODEL_EDGE_THRESHOLD": null,
+    "selectedEdgePercentile": null
+  },
+  "walkForward": {
+    "method": "EXPANDING_PURGED_WALK_FORWARD",
+    "folds": [
+      {
+        "fold": 1,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-02-22T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-02-23T12:00:00.000Z",
+        "validationEnd": "2025-03-25T12:00:00.000Z",
+        "trainingRows": 14400,
+        "validationRows": 2880,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 14400,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -549.0720918402835,
+              "upperP99": 703.357010614771
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 14400,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -549.0720918402835,
+              "upperP99": 703.357010614771
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 14400,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -549.0720918402835,
+              "upperP99": 703.357010614771
+            }
+          }
+        ]
+      },
+      {
+        "fold": 2,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-03-24T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-03-25T12:00:00.000Z",
+        "validationEnd": "2025-04-24T12:00:00.000Z",
+        "trainingRows": 17280,
+        "validationRows": 2880,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 17280,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -537.1474421429116,
+              "upperP99": 683.1026547734504
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 17280,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -537.1474421429116,
+              "upperP99": 683.1026547734504
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 17280,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -537.1474421429116,
+              "upperP99": 683.1026547734504
+            }
+          }
+        ]
+      },
+      {
+        "fold": 3,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-04-23T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-04-24T12:00:00.000Z",
+        "validationEnd": "2025-05-24T12:00:00.000Z",
+        "trainingRows": 20160,
+        "validationRows": 2880,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 20160,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -522.9872047524381,
+              "upperP99": 666.8393412055145
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 20160,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -522.9872047524381,
+              "upperP99": 666.8393412055145
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 20160,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -522.9872047524381,
+              "upperP99": 666.8393412055145
+            }
+          }
+        ]
+      },
+      {
+        "fold": 4,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-05-23T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-05-24T12:00:00.000Z",
+        "validationEnd": "2025-06-23T12:00:00.000Z",
+        "trainingRows": 23040,
+        "validationRows": 2880,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 23040,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -512.0987142954793,
+              "upperP99": 650.8897397467993
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 23040,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -512.0987142954793,
+              "upperP99": 650.8897397467993
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 23040,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -512.0987142954793,
+              "upperP99": 650.8897397467993
+            }
+          }
+        ]
+      },
+      {
+        "fold": 5,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-06-22T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-06-23T12:00:00.000Z",
+        "validationEnd": "2025-07-23T12:00:00.000Z",
+        "trainingRows": 25920,
+        "validationRows": 2880,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 25920,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -502.9164961256058,
+              "upperP99": 628.3761306168666
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 25920,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -502.9164961256058,
+              "upperP99": 628.3761306168666
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 25920,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -502.9164961256058,
+              "upperP99": 628.3761306168666
+            }
+          }
+        ]
+      },
+      {
+        "fold": 6,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-07-22T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-07-23T12:00:00.000Z",
+        "validationEnd": "2025-08-22T12:00:00.000Z",
+        "trainingRows": 28800,
+        "validationRows": 2880,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 28800,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -490.83406258546404,
+              "upperP99": 610.9905463187137
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 28800,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -490.83406258546404,
+              "upperP99": 610.9905463187137
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 28800,
+            "validationRows": 2880,
+            "targetWinsorization": {
+              "lowerP01": -490.83406258546404,
+              "upperP99": 610.9905463187137
+            }
+          }
+        ]
+      },
+      {
+        "fold": 7,
+        "trainStart": "2024-08-26T00:00:00.000Z",
+        "trainEnd": "2025-08-21T00:00:00.000Z",
+        "purgeHours": 24,
+        "embargoHours": 12,
+        "validationStart": "2025-08-22T12:00:00.000Z",
+        "validationEnd": "2025-08-26T00:00:00.000Z",
+        "trainingRows": 31680,
+        "validationRows": 336,
+        "lambdaFolds": [
+          {
+            "lambda": 0.1,
+            "trainingRows": 31680,
+            "validationRows": 336,
+            "targetWinsorization": {
+              "lowerP01": -479.2634387991432,
+              "upperP99": 592.3306278040086
+            }
+          },
+          {
+            "lambda": 1,
+            "trainingRows": 31680,
+            "validationRows": 336,
+            "targetWinsorization": {
+              "lowerP01": -479.2634387991432,
+              "upperP99": 592.3306278040086
+            }
+          },
+          {
+            "lambda": 10,
+            "trainingRows": 31680,
+            "validationRows": 336,
+            "targetWinsorization": {
+              "lowerP01": -479.2634387991432,
+              "upperP99": 592.3306278040086
+            }
+          }
+        ]
+      }
+    ],
+    "independentOofByLambda": {
+      "1": 17616,
+      "10": 17616,
+      "0.1": 17616
+    },
+    "randomSplit": false,
+    "oofOnly": true
+  },
+  "selection": {
+    "status": "NO_DEVELOPMENT_CONFIG",
+    "reason": "NO_OOF_THRESHOLD_MEETS_RATE_AND_EDGE",
+    "ratePer30Days": null,
+    "net27ExpectancyBps": null,
+    "PF27": null,
+    "configurations": []
+  },
+  "outcomeBreakdown": {
+    "net18": {
+      "count": 0,
+      "netPnlBps": 0,
+      "netExpectancyBps": null,
+      "profitFactor": null,
+      "positiveRate": null,
+      "activeMonths": 0,
+      "activeMonthKeys": [],
+      "positiveMonths": 0,
+      "positiveMonthShare": null,
+      "monthlyNetPnlBps": {},
+      "bestMonth": null,
+      "bestMonthNetPnlBps": null,
+      "netPnlWithoutBestMonthBps": null,
+      "bestEventNetPnlBps": null,
+      "netPnlWithoutBestEventBps": null,
+      "netPnlWithoutBest5EventsBps": 0,
+      "maxLossStreak": null,
+      "symbolNetPnlBps": {},
+      "largestSymbol": null,
+      "largestSymbolProfitContribution": null,
+      "largestSymbolContributionShare": null,
+      "positiveSymbolProfitPoolBps": 0,
+      "symbolProfitContributionStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+      "largestMonth": null,
+      "largestMonthProfitContribution": null,
+      "positiveMonthProfitPoolBps": 0,
+      "monthProfitContributionStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+      "fundingBps": 0,
+      "executionCostBps": 0,
+      "exitReasons": {},
+      "directionCounts": {}
+    },
+    "net27": {
+      "count": 0,
+      "netPnlBps": 0,
+      "netExpectancyBps": null,
+      "profitFactor": null,
+      "positiveRate": null,
+      "activeMonths": 0,
+      "activeMonthKeys": [],
+      "positiveMonths": 0,
+      "positiveMonthShare": null,
+      "monthlyNetPnlBps": {},
+      "bestMonth": null,
+      "bestMonthNetPnlBps": null,
+      "netPnlWithoutBestMonthBps": null,
+      "bestEventNetPnlBps": null,
+      "netPnlWithoutBestEventBps": null,
+      "netPnlWithoutBest5EventsBps": 0,
+      "maxLossStreak": null,
+      "symbolNetPnlBps": {},
+      "largestSymbol": null,
+      "largestSymbolProfitContribution": null,
+      "largestSymbolContributionShare": null,
+      "positiveSymbolProfitPoolBps": 0,
+      "symbolProfitContributionStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+      "largestMonth": null,
+      "largestMonthProfitContribution": null,
+      "positiveMonthProfitPoolBps": 0,
+      "monthProfitContributionStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+      "fundingBps": 0,
+      "executionCostBps": 0,
+      "exitReasons": {},
+      "directionCounts": {}
+    },
+    "net36": {
+      "count": 0,
+      "netPnlBps": 0,
+      "netExpectancyBps": null,
+      "profitFactor": null,
+      "positiveRate": null,
+      "activeMonths": 0,
+      "activeMonthKeys": [],
+      "positiveMonths": 0,
+      "positiveMonthShare": null,
+      "monthlyNetPnlBps": {},
+      "bestMonth": null,
+      "bestMonthNetPnlBps": null,
+      "netPnlWithoutBestMonthBps": null,
+      "bestEventNetPnlBps": null,
+      "netPnlWithoutBestEventBps": null,
+      "netPnlWithoutBest5EventsBps": 0,
+      "maxLossStreak": null,
+      "symbolNetPnlBps": {},
+      "largestSymbol": null,
+      "largestSymbolProfitContribution": null,
+      "largestSymbolContributionShare": null,
+      "positiveSymbolProfitPoolBps": 0,
+      "symbolProfitContributionStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+      "largestMonth": null,
+      "largestMonthProfitContribution": null,
+      "positiveMonthProfitPoolBps": 0,
+      "monthProfitContributionStatus": "NOT_EVALUABLE_NO_POSITIVE_PROFIT_POOL",
+      "fundingBps": 0,
+      "executionCostBps": 0,
+      "exitReasons": {},
+      "directionCounts": {}
+    }
+  },
+  "status": "NO_DEVELOPMENT_CONFIG",
+  "promotionEligible": false,
+  "safety": {
+    "paperOnly": true,
+    "signalOnly": true,
+    "gmail": false,
+    "scheduler": false,
+    "realEmail": false,
+    "automaticTrading": false,
+    "accountApi": false,
+    "orderApi": false,
+    "finalOosRead": false
+  }
+}
