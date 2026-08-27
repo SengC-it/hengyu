@@ -76,19 +76,37 @@ export function partitionPaths(file, root) {
 async function writeJsonAtomic(file, value) {
   await fsp.mkdir(path.dirname(file), { recursive: true });
   const temporary = file + '.' + process.pid + '.' + randomUUID() + '.tmp';
-  const handle = await fsp.open(temporary, 'w');
+  let installed = false;
+  const replaceErrors = new Set(['EEXIST', 'EPERM', 'EBUSY']);
   try {
-    await handle.writeFile(JSON.stringify(value, null, 2) + '\n');
-    await handle.sync();
+    const handle = await fsp.open(temporary, 'w');
+    try {
+      await handle.writeFile(JSON.stringify(value, null, 2) + '\n');
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    let lastError;
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      try {
+        await fsp.rename(temporary, file);
+        installed = true;
+        return;
+      } catch (error) {
+        if (!replaceErrors.has(error.code)) throw error;
+        lastError = error;
+        try {
+          await fsp.rm(file, { force: true });
+        } catch (removeError) {
+          if (!replaceErrors.has(removeError.code) && removeError.code !== 'ENOENT') throw removeError;
+          lastError = removeError;
+        }
+        if (attempt < 7) await sleep(25 * (attempt + 1));
+      }
+    }
+    throw lastError ?? new Error('ATOMIC_CHECKPOINT_REPLACE_FAILED');
   } finally {
-    await handle.close();
-  }
-  try {
-    await fsp.rename(temporary, file);
-  } catch (error) {
-    if (!['EEXIST', 'EPERM'].includes(error.code)) throw error;
-    await fsp.rm(file, { force: true });
-    await fsp.rename(temporary, file);
+    if (!installed) await fsp.rm(temporary, { force: true }).catch(() => {});
   }
 }
 
